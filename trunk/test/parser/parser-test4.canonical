@@ -1,0 +1,71 @@
+Document Comment
+
+	Doc comments
+
+Data
+ 
+		int	 foo;
+		float	bar;
+	
+added another id to the event declaration list
+The 2 events so far :
+	badMessage
+	goodMessage
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states so far :
+	working
+	initial
+found a scalar event : goodMessage
+found the beginning of a state comma list
+found a state vector
+	working
+	initial
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	processMessage
+found a scalar event : badMessage
+found the beginning of a state comma list
+found a state vector
+	working
+	initial
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	sendErrorIndication
+	processMessage
+found a machine
+	with 2 events and 2 states
+Actions return states
+The states :
+	1:	working
+
+	0:	initial
+
+The events :
+	1:	badMessage
+
+	0:	goodMessage
+
+The actions :
+	sendErrorIndication
+		which occurs in these events
+			badMessage
+		and states
+			working
+			initial
+	processMessage
+		which occurs in these events
+			goodMessage
+		and states
+			working
+			initial
+
+The 0 transitions :
+
+found a single machine
