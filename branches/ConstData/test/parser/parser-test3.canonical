@@ -1,0 +1,213 @@
+Duplicate action :
+Action already there : a1
+Duplicate action :
+Action already there : a1
+Duplicate action :
+Action already there : a1
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states so far :
+	s2
+	s1
+added another id to the event declaration list
+The 2 events so far :
+	e2
+	e1
+found the begining of an event comma list: e1
+found an event vector
+	e2
+	e1
+found the beginning of a state comma list
+found a state vector
+	s2
+	s1
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+found a scalar event : e2
+found the beginning of a state comma list
+found a state vector
+	s2
+	s1
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+added another action declarations
+found the begining of an event comma list: e1
+found an event vector
+	e2
+	e1
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+added another action declarations
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+added another action declarations
+The actions so far(1):
+	a4
+	a3
+	a2
+	a1
+found a machine
+	with 2 events and 2 states
+Actions return events
+The states :
+	1:	s2
+
+	0:	s1
+
+The events :
+	1:	e2
+
+	0:	e1
+
+The actions :
+	a4
+		which occurs in these events
+			e1
+		and states
+			s1
+		and transitions to state s2
+	a3
+		which occurs in these events
+			e2
+			e1
+		and states
+			s1
+	a2
+		which occurs in these events
+			e2
+		and states
+			s2
+			s1
+		and transitions to state s2
+	a1
+		which occurs in these events
+			e2
+			e1
+		and states
+			s2
+			s1
+		and transitions to state s2
+
+The 1 transitions :
+	s2
+
+found a single machine
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states so far :
+	s2
+	s1
+added another id to the event declaration list
+The 2 events so far :
+	e2
+	e1
+found the begining of an event comma list: e1
+found an event vector
+	e2
+	e1
+found the beginning of a state comma list
+found a state vector
+	s2
+	s1
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	a1
+found a scalar event : e2
+found the beginning of a state comma list
+found a state vector
+	s2
+	s1
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions so far(1):
+	a2
+	a1
+found the begining of an event comma list: e1
+found an event vector
+	e2
+	e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions so far(1):
+	a3
+	a2
+	a1
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions so far(1):
+	a4
+	a3
+	a2
+	a1
+found a machine
+	with 2 events and 2 states
+Actions return events
+The states :
+	1:	s2
+
+	0:	s1
+
+The events :
+	1:	e2
+
+	0:	e1
+
+The actions :
+	a4
+		which occurs in these events
+			e1
+		and states
+			s1
+		and transitions to state s2
+	a3
+		which occurs in these events
+			e2
+			e1
+		and states
+			s1
+		and transitions to state s2
+	a2
+		which occurs in these events
+			e2
+		and states
+			s2
+			s1
+		and transitions to state s2
+	a1
+		which occurs in these events
+			e2
+			e1
+		and states
+			s2
+			s1
+
+The 1 transitions :
+	s2
+
+making a list of machines
