@@ -104,6 +104,7 @@ struct _machine_info_ {
 	char					*native;
 	MOD_FLAGS			modFlags;
   pID_INFO      machineTransition;
+  pID_INFO      externalStateId;
 };
 
 /* lexer id list handlers */
