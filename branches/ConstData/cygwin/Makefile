@@ -44,6 +44,7 @@ lexer.o fsm_utils.o: y.tab.h
 y.tab.h:	parser.o
 
 fsm:	$(SRC:.c=.o)
+	echo $(CFLAGS)
 	$(CC) -o $@ $(LDFLAGS) $(SRC:.c=.o) -lfl
 
 

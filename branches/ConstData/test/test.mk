@@ -1,6 +1,6 @@
 #######################################
 #
-# Generic rules for creating an running tests.
+# Generic rules for creating and running tests.
 #
 #
 
