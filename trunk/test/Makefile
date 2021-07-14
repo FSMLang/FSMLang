@@ -3,12 +3,23 @@
 #
 #
 
-SUITES=full_test1 \
+SUITES= lexer       \
+			 	parser      \
+				full_test1 \
 			 full_test2 \
 			 full_test3 \
 			 full_test5 \
-			 lexer      \
-			 parser
+			 	full_test6  \
+			 	full_test7  \
+			 	full_test8  \
+			 	full_test9  \
+			 	full_test10 \
+			 	full_test11 \
+			 	full_test12 \
+			 	full_test13 \
+			 	full_test14 \
+			 	full_test15 \
+			 	full_test16
 
 CLEAN_SUITES=$(addsuffix .clean, $(SUITES))
 

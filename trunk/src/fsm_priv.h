@@ -91,8 +91,10 @@ struct _action_info_ {
 struct _machine_info_ {
   pID_INFO			state_list;
 	int						state_count;
+  int           external_state_designation_count;
   pID_INFO			event_list;
 	int						event_count;
+  int           external_event_designation_count;
 	pID_INFO			transition_list;
   int           transition_count;
 	pID_INFO			transition_fn_list;
@@ -170,6 +172,8 @@ struct _fsm_output_generator_
 	WriteMachine	writeMachine;
 	CloseOutput		closeOutput;
 };
+
+extern void yyerror(char*);
 
 
 #endif /* ----------- nothing below this line ---------------- */

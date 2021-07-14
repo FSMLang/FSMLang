@@ -42,6 +42,9 @@ test:
 	$(MAKE) -C ../test clean
 	$(MAKE) CFLAGS="-DCYGWIN -DMINGW" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
 
+testonly: 
+	$(MAKE) CFLAGS="-DCYGWIN -DMINGW" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
+
 lexer.o fsm_utils.o: y.tab.h
 
 y.tab.h:	parser.o

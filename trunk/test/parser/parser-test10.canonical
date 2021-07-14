@@ -1,11 +1,10 @@
-External designation = FOO
 found the start of a state declaration list
 added another id to the state declaration list
 added another id to the state declaration list
 The 3 states so far :
 	s3
 	s2
-	s1 = FOO
+	s1
 added another id to the event declaration list
 added another id to the event declaration list
 The 3 events so far :

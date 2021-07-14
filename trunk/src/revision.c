@@ -59,6 +59,15 @@ const char rev_string[] = "version 1.5";
    is only 2 bytes.
  
    When transition functions are used, a similar table/enum pair is constructed.
-*/
 const char rev_string[] = "version 1.6";
+*/
+
+/*
+   Revision 1.7:
+      * introduces the concept of transition functions to machines having actios which return states.
+      * extends the -c option to machines having actions which return void.  This required no code changes.
+      * introduces a new machine qualifier: 'on transition ID;' where ID names a function which will be called
+        whenever the state changes.  The function takes a pointer to the machine, and the value of the new state.
+*/
+const char rev_string[] = "version 1.7";
 
