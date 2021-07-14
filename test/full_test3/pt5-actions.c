@@ -104,11 +104,12 @@ NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e
 NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
 {
    (void) e;
+   NEW_MACHINE_STATE s = pfsm->state;
 
    DBG_PRINTF("newMachine_TransitionFn1\n");
 
-   return (pfsm->state < newMachine_s3)
-            ? pfsm->state++
+   return (s < newMachine_s3)
+            ? s++
             : newMachine_s1
             ;
    

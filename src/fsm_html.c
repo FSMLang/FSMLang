@@ -197,9 +197,66 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
                   ,	pmi->actionArray[e][s] 
                         ? (strlen(pmi->actionArray[e][s]->action->name) 
                            ? pmi->actionArray[e][s]->action->name 
-                           : "noAction") 
-                        : "&nbsp;"
+                           : "transition") 
+                        : "Not Defined"
                   );
+
+          if (
+              pmi->actionArray[e][s]
+             && pmi->actionArray[e][s]->action->action_returns_decl
+              )
+          {
+             fprintf(htmlMachineData.htmlFile
+                     ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+                     );
+             for (pasei = pmi->actionArray[e][s]->action->action_returns_decl;
+                  pasei;
+                  pasei = pasei->next
+                  )
+             {
+                fprintf(htmlMachineData.htmlFile
+                        , "\t\t<li>%s</li>\n"
+                        , pasei->se->name
+                        );
+             }
+             fprintf(htmlMachineData.htmlFile
+                     , "\t</ul>\n"
+                     );
+          }
+
+          if (
+              pmi->actionArray[e][s]
+             && pmi->actionArray[e][s]->transition
+              )
+          {
+             fprintf(htmlMachineData.htmlFile
+                     , "<br/>%s"
+                     , pmi->actionArray[e][s]->transition->name
+                     );
+
+             if (pmi->actionArray[e][s]->transition->transition_fn_returns_decl)
+             {
+                fprintf(htmlMachineData.htmlFile
+                        ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+                        );
+                for (pasei = pmi->actionArray[e][s]->transition->transition_fn_returns_decl;
+                     pasei;
+                     pasei = pasei->next
+                     )
+                {
+                   fprintf(htmlMachineData.htmlFile
+                           , "\t\t<li>%s</li>\n"
+                           , pasei->se->name
+                           );
+                }
+                fprintf(htmlMachineData.htmlFile
+                        , "\t</ul>\n"
+                        );
+             }
+             fprintf(htmlMachineData.htmlFile
+                     , "</td>\n"
+                     );
+             }
 
           fprintf(htmlMachineData.htmlFile
                   , "</td>\n"

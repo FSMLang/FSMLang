@@ -4,9 +4,9 @@
 machine newMachine
  on transition baz;
 {
-	state s1 external = FOO, s2, s3;
+	state s1, s2, s3;
 	event e1, e2, e3;
-  event e4 external = BAR;
+  event e4 = BAR;
 
 	//This is a one-line comment
 	action a1[e1,s1] transition s1;

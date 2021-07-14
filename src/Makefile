@@ -8,10 +8,10 @@ CFLAGS += -I ../src -I .
 ARCHITECTURES=Cygwin \
 	Mingw
 
-Cygwin Cygwin.clean Cygwin.test Cygwin.lexer Cygwin.parser : OUT_DIR=../cygwin
+Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser : OUT_DIR=../cygwin
 Mingw  Mingw.clean  Mingw.test  Mingw.lexer  Mingw.parser  : OUT_DIR=../mingw
 
-Cygwin Cygwin.clean Cygwin.test Cygwin.lexer Cygwin.parser : ARCH=CYGWIN
+Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser : ARCH=CYGWIN
 Mingw  Mingw.clean  Mingw.test  Mingw.lexer  Mingw.parser  : ARCH=CYGWIN
 
 all:
@@ -26,6 +26,9 @@ $(addsuffix .clean, $(ARCHITECTURES)):
 
 $(addsuffix .test, $(ARCHITECTURES)): $$(basename $$@)
 	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) test
+
+$(addsuffix .testonly, $(ARCHITECTURES)): $$(basename $$@)
+	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) testonly
 
 $(addsuffix .lexer, $(ARCHITECTURES)):
 	$(MAKE) -C ../test lexer

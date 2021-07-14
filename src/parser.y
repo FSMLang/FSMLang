@@ -320,19 +320,7 @@ machine:	doccmnt machine_modifier MACHINE_KEY ID machine_qualifier '{' data stat
 					}
 	;
 
-machine_qualifier: action_return_spec
-    | action_return_spec machine_transition_decl
-    | machine_transition_decl action_return_spec
-    ;
-
-machine_transition_decl:
-    ON TRANSITION_KEY ID ';'
-    {
-        machineInfo.machineTransition = $3;
-    }
-    ;
-
-action_return_spec: 
+machine_qualifier:
         {
 						pID_INFO pid_info;
            /* note that this is not added to the machine event list; it is here only to be
@@ -340,7 +328,20 @@ action_return_spec:
            */
 						add_id(EVENT,"noEvent",&pid_info);
         }
-	| ACTIONS RETURN EVENTS ';'
+    | machine_transition_decl
+    | action_return_spec
+    | action_return_spec machine_transition_decl
+    | machine_transition_decl action_return_spec
+    ;
+
+machine_transition_decl: ON TRANSITION_KEY ID ';'
+    {
+        machineInfo.machineTransition = $3;
+    }
+    ;
+
+action_return_spec: 
+	ACTIONS RETURN EVENTS ';'
         {
 						pID_INFO pid_info;
            /* note that this is not added to the machine event list; it is here only to be
@@ -943,7 +944,7 @@ state_decl:	state_decl_list ';'
 					}
 	;
 
-state_decl_list:	doccmnt STATE_KEY ID	external_designation
+state_decl_list:	doccmnt STATE_KEY ID	
 					{
 
 						#ifdef PARSER_DEBUG
@@ -958,12 +959,11 @@ state_decl_list:	doccmnt STATE_KEY ID	external_designation
 						$3->seOrder = machineInfo.state_count++;
 
 						$3->docCmnt             = $1;
-           $3->externalDesignation = $4;
 
 						$$ = $3;
 
 					}
-	| state_decl_list ',' ID external_designation			
+	| state_decl_list ',' ID 
 					{
 
 						#ifdef PARSER_DEBUG
@@ -975,7 +975,7 @@ state_decl_list:	doccmnt STATE_KEY ID	external_designation
 						$3->nextState = machineInfo.state_list;
 						machineInfo.state_list = $3;
 						$3->seOrder = machineInfo.state_count++;
-           $3->externalDesignation = $4;
+
 						$$ = $3;
 
 					}
@@ -1018,6 +1018,10 @@ event_decl_list:	doccmnt EVENT_KEY ID external_designation
 
  					$3->docCmnt             = $1;
            $3->externalDesignation = $4;
+           if ($4)
+           {
+						   machineInfo.external_event_designation_count++;
+           }
 
 						$$ = $3;
 
@@ -1035,6 +1039,11 @@ event_decl_list:	doccmnt EVENT_KEY ID external_designation
 						machineInfo.event_list = $3;
 						$3->seOrder = machineInfo.event_count++;
            $3->externalDesignation = $4;
+           if ($4)
+           {
+						   machineInfo.external_event_designation_count++;
+           }
+
 						$$ = $3;
 
 					}
@@ -1043,12 +1052,12 @@ event_decl_list:	doccmnt EVENT_KEY ID external_designation
 external_designation : {
            $$ = NULL;
      }
- | EXTERNAL '=' ID
+ | '=' ID
  {
            #ifdef PARSER_DEBUG
-           fprintf(yyout,"External designation = %s\n",$3->name);
+           fprintf(yyout,"External designation = %s\n",$2->name);
            #endif
-            $$ = $3;
+            $$ = $2;
  }
  ;
 
@@ -1101,6 +1110,9 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
+    if (machineInfo.modFlags & mfActionsReturnStates)
+        yyerror("action returning event statement found after actions declared to return states");
+
 			/* grab a state/event info record */
 			if (($2->action_returns_decl = (pACTION_SE_INFO) malloc(sizeof(ACTION_SE_INFO))) == NULL) 
 
@@ -1122,6 +1134,68 @@ action_return_decl:
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
     #endif
+
+    if (machineInfo.modFlags & mfActionsReturnStates)
+        yyerror("action returning event statement found after actions declared to return states");
+
+    if (machineInfo.modFlags & mfActionsReturnVoid)
+        yyerror("action returning event statement found after actions declared to return void");
+
+		 /* grab a state/event info record */
+		 if (($2->action_returns_decl = (pACTION_SE_INFO) malloc(sizeof(ACTION_SE_INFO))) == NULL) 
+
+				yyerror("out of memory");
+
+			#ifdef MEM_DEBUG
+			fprintf(yyout,"Adding: state ACTION_SE_INFO 0x%x\n",$1->action_returns_decl);
+			#endif
+
+			$2->action_returns_decl->se = $4;
+			$2->action_returns_decl->next = NULL;
+
+     if ($1 && !$2->docCmnt)
+        $2->docCmnt = $1;
+
+  }
+  | doccmnt ACTION RETURNS state_comma_list STATE ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found an action return declaration\n");
+    #endif
+
+    if (machineInfo.modFlags & mfActionsReturnVoid)
+        yyerror("action returning state statement found after actions declared to return void");
+
+    if (!(machineInfo.modFlags & mfActionsReturnStates))
+        yyerror("action returning state statement found after actions declared to return events");
+
+			/* grab a state/event info record */
+			if (($2->action_returns_decl = (pACTION_SE_INFO) malloc(sizeof(ACTION_SE_INFO))) == NULL) 
+
+				yyerror("out of memory");
+
+			#ifdef MEM_DEBUG
+			fprintf(yyout,"Adding: event ACTION_SE_INFO 0x%x\n",$1->actionInfo->returns_decl);
+			#endif
+
+			$2->action_returns_decl->se = $5;
+			$2->action_returns_decl->next = $4;
+
+     if ($1 && !$2->docCmnt)
+        $2->docCmnt = $1;
+
+  }
+  | doccmnt ACTION RETURNS STATE ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found an action return declaration\n");
+    #endif
+
+    if (machineInfo.modFlags & mfActionsReturnVoid)
+        yyerror("action returning state statement found after actions declared to return void");
+
+    if (!(machineInfo.modFlags & mfActionsReturnStates))
+        yyerror("action returning state statement found after actions declared to return events");
 
 		 /* grab a state/event info record */
 		 if (($2->action_returns_decl = (pACTION_SE_INFO) malloc(sizeof(ACTION_SE_INFO))) == NULL) 
