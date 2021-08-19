@@ -17,3 +17,4 @@ newMachine_machineTransitionFn
 	old state: newMachine_s2
 	new state: newMachine_s3
 end state: newMachine_s3
+warning: cannot use external event designations
