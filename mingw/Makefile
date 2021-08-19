@@ -7,27 +7,14 @@ VPATH=../src
 OUTPUT_DIR != PWD
 
 
-#Bad, all three of these are supposed to be applications from C:\cygwin\bin but there is no checking to 
-#make sure that that's what we are using.
-LEX = flex -I
-YACC = bison -d -y
-CC = i686-w64-mingw32-gcc.exe
+include system.mk
 
 override CFLAGS += -DCYGWIN -DMINGW
 CFLAGS += -DFSM_DEBUG
 
-LDFLAGS += -L /usr/lib
-
 .SUFFIXES: .fsm .c
 
-SRC =	lexer.c \
-			parser.c \
-			revision.c \
-			rindex.c \
-			fsm_utils.c \
-			fsm_html.c	\
-			fsm_c.c
-
+include source.mk
 include ../depends.mk
 
 all: fsm
