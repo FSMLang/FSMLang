@@ -6,18 +6,12 @@
 
 VPATH=../../src
 
-LEX = flex -I
-YACC = bison -d -y
-CC = gcc -g
+ifdef OUTPUT_DIR
+include $(OUTPUT_DIR)/system.mk
+include $(OUTPUT_DIR)/source.mk
+endif
 
 override CFLAGS += -DPARSER_DEBUG -D$(ARCH) -I../ -I$(VPATH) -I .
-
-SRC = lexer.c    \
-			parser.c   \
-			revision.c \
-			fsm_html.c \
-			fsm_c.c    \
-			fsm_utils.c
 
 TESTS=parser-test1  \
 			parser-test2  \
@@ -37,8 +31,9 @@ include ../test.mk
 runtest: $(TESTS)
 
 $(TESTS): test
-	./test $@.fsm &> $@.out
-	@diff $@.out $@.canonical > $@.result
+	./test $@.fsm > $@.out 2> $@.stderr
+	cat $@.stderr >> $@.out; rm $@.stderr
+	@$(DIFF) $@.out $@.canonical > $@.result
 	@echo $@ successful
 	@rm $@.out $@.result
       
@@ -47,5 +42,5 @@ $(TESTS): test
 y.tab.h: parser.o
 
 clean::
-	-@rm *.[hc] > /dev/nul
+	-@rm *.[hc] > /dev/null
 

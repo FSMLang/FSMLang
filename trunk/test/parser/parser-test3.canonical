@@ -1,9 +1,3 @@
-Duplicate action :
-Action already there : a1
-Duplicate action :
-Action already there : a1
-Duplicate action :
-Action already there : a1
 found the start of a state declaration list
 added another id to the state declaration list
 The 2 states so far :
@@ -211,3 +205,9 @@ The 1 transitions :
 	s2
 
 making a list of machines
+Duplicate action :
+Action already there : a1
+Duplicate action :
+Action already there : a1
+Duplicate action :
+Action already there : a1

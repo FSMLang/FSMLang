@@ -4,8 +4,7 @@
 
 VPATH=../src
 
-OUTPUT_DIR != PWD
-
+OUTPUT_DIR = $(shell pwd)
 
 include system.mk
 
@@ -20,12 +19,13 @@ include ../depends.mk
 all: fsm
 
 clean::
-	-@rm -f y.tab.[ch] *.o core 2> /dev/nul
-	-@rm -f parser.c lexer.c    2> /dev/nul
-	-@rm -f *.d* *.exe          2> /dev/nul
-	-@rm -f *.stackdump         2> /dev/nul
+	-@rm -f y.tab.[ch] *.o core 2> /dev/null
+	-@rm -f parser.c lexer.c    2> /dev/null
+	-@rm -f *.d* *.exe          2> /dev/null
+	-@rm -f *.stackdump         2> /dev/null
 
 test: 
+	@echo mingwsa/Makefile: OUTPUT_DIR: $(OUTPUT_DIR)
 	$(MAKE) -C ../test clean
 	$(MAKE) CFLAGS="-DCYGWIN -DMINGW" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
 

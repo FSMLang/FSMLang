@@ -13,17 +13,17 @@ FSM ?= fsm $(FSM_FLAGS)
 
 .fsm.o:
 	@echo "FSM:" $(FSM)
-	$(FSM) $<
+	$(FSM) $< > fsmout
 	$(CC) -c $(CFLAGS) $*.c
 	rm $*.c
 
 .fsm.c:
 	@echo "FSM:" $(FSM)
-	$(FSM) $<
+	$(FSM) $< > fsmout
 
 .fsm.h:
 	@echo "FSM:" $(FSM)
-	$(FSM) $<
+	$(FSM) $< > fsmout
 
 $(FSM_SRC:.fsm=.h): $(FSM_SRC)
 

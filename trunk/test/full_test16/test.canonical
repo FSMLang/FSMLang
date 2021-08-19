@@ -1,4 +1,4 @@
-./test: hello, world
+hello, world
 event: newMachine_e1; start state: newMachine_s1
 newMachine_a1
 newMachine_machineTransitionFn

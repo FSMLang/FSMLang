@@ -1,4 +1,4 @@
-./test: hello, world
+hello, world
 event: newMachine_e1
 state: newMachine_s1
 newMachine_a1
@@ -18,3 +18,4 @@ event: newMachine_e4
 state: newMachine_s2
 newMachine_noAction
 newMachine_noTransitionFn
+warning: cannot use external event designations
