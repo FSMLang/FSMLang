@@ -48,7 +48,7 @@ NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm,NEW_MACHINE_EVENT e
 
 int main(int argc, char **argv)
 {
-   fprintf(stdout,"%s: hello, world\n", argv[0]);
+   fprintf(stdout,"hello, world\n");
 
    RUN_STATE_MACHINE(pnewMachine, newMachine_e1);
    RUN_STATE_MACHINE(pnewMachine, newMachine_e2);

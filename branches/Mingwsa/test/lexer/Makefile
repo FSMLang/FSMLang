@@ -30,7 +30,7 @@ runtest: $(TESTS)
 
 $(TESTS): test
 	./test < $@.txt &> $@.out
-	@diff $@.out $@.canonical > $@.result
+	@$(DIFF) $@.out $@.canonical > $@.result
 	@echo $@ successful
 	@rm $@.out $@.result
 
