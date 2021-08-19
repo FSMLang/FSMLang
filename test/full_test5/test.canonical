@@ -1,1 +1,2 @@
-./test: hello, world
+hello, world
+warning: cannot use external event designations
