@@ -11,6 +11,7 @@ endif
 include ../../depends.mk
 
 OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o)
+FSM_HTML = $(FSM_SRC:.fsm=.html)
 
 ifndef NO_RUNTEST
 runtest: test
@@ -22,7 +23,12 @@ runtest: test
 	@rm test.out test.result
 endif
 
-test: $(OBJS)
+htmltest: $(FSM_HTML)
+	@if [ -n "$<" ]; then $(DIFF) -I'On \(Mon\|Tue\|Wed\|Thu\|Fri\|Sat\|Sun\).*' $< html.canonical > html.result; fi
+	@echo "HTML test successful"
+	-@rm html.result
+
+test: $(OBJS) htmltest
 	$(CC) -o $@ $(OBJS) $(LDFLAGS)
 
 clean::
@@ -36,4 +42,5 @@ clean::
 	-@rm *.stackdump 2> /dev/null
 	-@rm $(FSM_SRC:.fsm=.c) 2> /dev/null
 	-@rm $(FSM_SRC:.fsm=.h) 2> /dev/null
+	-@rm $(FSM_SRC:.fsm=.html) 2> /dev/null
 
