@@ -14,7 +14,8 @@ OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o)
 FSM_HTML = $(FSM_SRC:.fsm=.html)
 
 ifndef NO_RUNTEST
-runtest: test
+#here, we overload the idea of running the test meaning that the html test is wanted, too.  This may not always be the case; but, it is now.
+runtest: test htmltest
 	@./test > test.out 2> test.stderr
 	@cat test.stderr >> test.out
 	@cat fsmout >> test.out
@@ -28,7 +29,7 @@ htmltest: $(FSM_HTML)
 	@echo "HTML test successful"
 	-@rm html.result
 
-test: $(OBJS) htmltest
+test: $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS)
 
 clean::

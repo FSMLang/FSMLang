@@ -198,7 +198,7 @@ void freeMachineInfo(pMACHINE_INFO pmi)
 
 }
 
-FILE *openFile(char *fileName, char *mode)
+FILE *openFile(const char *fileName, const char *mode)
 {
 
   FILE *fp;
@@ -684,7 +684,7 @@ char *getFileNameNoDir(const char *path)
 {
 	char *cp,*cp1;
 
-	for(cp = path; cp1 = strpbrk(cp,"\\/"); cp = ++cp1)
+	for(cp = (char *) path; cp1 = strpbrk(cp,"\\/"); cp = ++cp1)
 		;
 
 	if ((cp1 = malloc(safe_strlen(cp)+1)) != NULL)
@@ -692,5 +692,33 @@ char *getFileNameNoDir(const char *path)
 
 	return cp1;
 
+}
+
+/**
+ * Opens the file indicated by src and copies the contents into 
+ * the file indicated by dest (which must be open).
+ */
+int copyFileContents(const FILE *fDest, const char *src)
+{
+    FILE *fSrc;
+    char buf[256];
+    int numBytes;
+
+    if (NULL == (fSrc = openFile(src,"r")))
+    {
+        return 1;
+    }
+
+    while (!feof(fSrc) && !ferror(fSrc) && !ferror(fDest))
+    {
+        if (0 < (numBytes = fread(buf,sizeof(char), sizeof(buf), fSrc)))
+        {
+            numBytes = fwrite(buf, sizeof(char), numBytes, (FILE*)fDest);
+        }
+    }
+
+    fclose(fSrc);
+
+    return ferror(fSrc) + ferror(fDest);
 }
 

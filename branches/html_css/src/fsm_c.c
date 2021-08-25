@@ -57,7 +57,7 @@ typedef struct _c_machine_data_ CMachineData, *pCMachineData;
 /*
   Our interface to the outside world
 */
-static int  initCMachine        (char*);
+static int  initCMachine        (pMACHINE_INFO);
 static void writeCMachine       (pMACHINE_INFO);
 static void writeCSwitchMachine (pMACHINE_INFO);
 static void closeCMachine       (int);
@@ -726,10 +726,10 @@ static void destroyCMachineData(pCMachineData pcmw, int good)
 
 }
 
-static int initCMachine(char *fileName)
+static int initCMachine(pMACHINE_INFO pmi)
 {
 
-   if (pcmd = newCMachineData(fileName)) return 0;
+    if (pcmd = newCMachineData(pmi->outFileBase)) return 0;
 
    return 1;
 

@@ -1,10 +1,10 @@
 /*
-	fsm_priv.h
+        fsm_priv.h
 
-	Contains definitions, &c. private to the fsmlang compiler
+        Contains definitions, &c. private to the fsmlang compiler
 
 
-		FSMLang (fsm) - A Finite State Machine description language.
+                FSMLang (fsm) - A Finite State Machine description language.
     Copyright (C) 2002  Steven Stanton
 
     This program is free software; you can redistribute it and/or modify
@@ -21,12 +21,12 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-		Steven Stanton
-		ringwinner@users.sourceforge.net
+                Steven Stanton
+                ringwinner@users.sourceforge.net
 
-		For the latest on FSMLang: http://fsmlang.sourceforge.net
+                For the latest on FSMLang: http://fsmlang.sourceforge.net
 
-		And, finally, your possession of this source code implies nothing.
+                And, finally, your possession of this source code implies nothing.
 
 */
 
@@ -37,75 +37,90 @@
 #include <stdbool.h>
 
 /*
-	These flags track the modifiers
-		of "machine" and also the action return specifiers.
+        These flags track the modifiers
+                of "machine" and also the action return specifiers.
 */
-typedef enum {
-	mfReentrant             = 1
-	, mfActionsReturnStates = 2
-  , mfActionsReturnVoid   = 4
-  , mfMachineTransition   = 8
+typedef enum
+{
+   mfReentrant             = 1
+   , mfActionsReturnStates = 2
+   , mfActionsReturnVoid   = 4
+   , mfMachineTransition   = 8
 } MOD_FLAGS;
 
-typedef struct _id_info_				ID_INFO, *pID_INFO;
-typedef struct _action_se_info_	ACTION_SE_INFO, *pACTION_SE_INFO;
-typedef struct _matrix_info_	  MATRIX_INFO, *pMATRIX_INFO;
-typedef struct _action_info_		ACTION_INFO, *pACTION_INFO;
-typedef struct _machine_info_		MACHINE_INFO, *pMACHINE_INFO;
+typedef struct _id_info_        ID_INFO,           *pID_INFO;
+typedef struct _action_se_info_ ACTION_SE_INFO,    *pACTION_SE_INFO;
+typedef struct _matrix_info_    MATRIX_INFO,       *pMATRIX_INFO;
+typedef struct _action_info_    ACTION_INFO,       *pACTION_INFO;
+typedef struct _machine_info_   MACHINE_INFO,      *pMACHINE_INFO;
+typedef struct _html_info_      HTML_INFO,         *pHTML_INFO;
 
-struct _id_info_ {
-  char    			  *name;
-  int     			  type;
-  pID_INFO			  nextID;
-  pID_INFO			  nextState;
-  pID_INFO			  nextEvent;
-  pID_INFO			  nextAction;
-  pID_INFO			  nextTransition;
-  pID_INFO			  nextTransitionFn;
-  pID_INFO        externalDesignation;
-	int						  seOrder;
-  int             tOrder;
-	char					  *docCmnt;
-	pACTION_INFO	  actionInfo;
-  pACTION_SE_INFO	action_returns_decl;
-  pACTION_SE_INFO	transition_fn_returns_decl;
+struct _html_info_
+{
+    char *css_content_filename; //< pointer to file name with css content
+    bool css_content_internal;  //< if true, css content is copied into the html file; otherwise css_content is used as the name of the external reference
 };
 
-struct _action_se_info_ {
-  pID_INFO  			se;
-  pACTION_SE_INFO next;
+struct _id_info_
+{
+   char    			  *name;
+   int     			  type;
+   pID_INFO			  nextID;
+   pID_INFO			  nextState;
+   pID_INFO			  nextEvent;
+   pID_INFO			  nextAction;
+   pID_INFO			  nextTransition;
+   pID_INFO			  nextTransitionFn;
+   pID_INFO        externalDesignation;
+   int						  seOrder;
+   int             tOrder;
+   char					  *docCmnt;
+   pACTION_INFO	  actionInfo;
+   pACTION_SE_INFO	action_returns_decl;
+   pACTION_SE_INFO	transition_fn_returns_decl;
 };
 
-struct _matrix_info_ {
-  pACTION_SE_INFO	state_list;
-  pACTION_SE_INFO	event_list;
+struct _action_se_info_
+{
+   pID_INFO  			se;
+   pACTION_SE_INFO next;
 };
 
-struct _action_info_ {
-	pID_INFO				action;
-  pMATRIX_INFO    matrix;
-  pID_INFO  			transition;
-	pACTION_INFO		nextAction;
+struct _matrix_info_
+{
+   pACTION_SE_INFO	state_list;
+   pACTION_SE_INFO	event_list;
 };
 
-struct _machine_info_ {
-  pID_INFO			state_list;
-	int						state_count;
-  int           external_state_designation_count;
-  pID_INFO			event_list;
-	int						event_count;
-  int           external_event_designation_count;
-	pID_INFO			transition_list;
-  int           transition_count;
-	pID_INFO			transition_fn_list;
-  int           transition_fn_count;
-	pID_INFO			action_list;
-	pID_INFO			name;
-	pACTION_INFO	**actionArray;
-	char					*data;
-	char					*native;
-	MOD_FLAGS			modFlags;
-  pID_INFO      machineTransition;
+struct _action_info_
+{
+   pID_INFO				action;
+   pMATRIX_INFO    matrix;
+   pID_INFO  			transition;
+   pACTION_INFO		nextAction;
+};
+
+struct _machine_info_
+{
+   pID_INFO     state_list;
+   int          state_count;
+   int          external_state_designation_count;
+   pID_INFO     event_list;
+   int          event_count;
+   int          external_event_designation_count;
+   pID_INFO     transition_list;
+   int          transition_count;
+   pID_INFO     transition_fn_list;
+   int          transition_fn_count;
+   pID_INFO     action_list;
+   pID_INFO     name;
+   pACTION_INFO	**actionArray;
+   char         *data;
+   char         *native;
+   MOD_FLAGS    modFlags;
+   pID_INFO     machineTransition;
+   HTML_INFO    html_info;
+   char         *outFileBase;
 };
 
 /* lexer id list handlers */
@@ -120,22 +135,23 @@ void free_ids(void);
 void freeMachineInfo(pMACHINE_INFO);
 
 /* other general utilities */
-FILE *openFile(char *, char *);
-char *createFileName(char *,char *);
-char *hungarianToUnderbarCaps(char *);
-char *eventNameByIndex(pMACHINE_INFO,int);
-pID_INFO eventPidByIndex(pMACHINE_INFO,int);
-char *stateNameByIndex(pMACHINE_INFO,int);
-pID_INFO statePidByIndex(pMACHINE_INFO,int);
-char *transitionNameByIndex(pMACHINE_INFO,int);
-pID_INFO transitionPidByIndex(pMACHINE_INFO,int);
+FILE* openFile(const char *, const char *);
+int   copyFileContents(const FILE*, const char *);
+char* createFileName(char *, char *);
+char* hungarianToUnderbarCaps(char *);
+char* eventNameByIndex(pMACHINE_INFO, int);
+pID_INFO eventPidByIndex(pMACHINE_INFO, int);
+char* stateNameByIndex(pMACHINE_INFO, int);
+pID_INFO statePidByIndex(pMACHINE_INFO, int);
+char* transitionNameByIndex(pMACHINE_INFO, int);
+pID_INFO transitionPidByIndex(pMACHINE_INFO, int);
 int  allocateActionArray(pMACHINE_INFO);
-int  addToActionArray(pMACHINE_INFO,pACTION_INFO);
+int  addToActionArray(pMACHINE_INFO, pACTION_INFO);
 void addToActionList(pMACHINE_INFO, pID_INFO);
-char *getFileNameNoDir(const char *);
+char* getFileNameNoDir(const char *);
 
 /* general use data */
-extern char *me;	/* main will set this to the program name (argv[0]) */
+extern char *me;        /* main will set this to the program name (argv[0]) */
 extern bool generate_instance;
 extern bool compact_action_array;
 
@@ -148,32 +164,32 @@ extern bool compact_action_array;
 #define FCLOSE_AND_CLEAR(A) fclose( A ); A = NULL;
 
 /*
-	Output generation.
+        Output generation.
 
-	Once the machine is parsed, we need to generate some output.
+        Once the machine is parsed, we need to generate some output.
 
-	The output object will have three functions:
-		1) initOutput - called to initialize the outputer
-		2) writeMachine - called each time a machine is successfully parsed
-		3) closeOutput - called to close the outputer.
+        The output object will have three functions:
+                1) initOutput - called to initialize the outputer
+                2) writeMachine - called each time a machine is successfully parsed
+                3) closeOutput - called to close the outputer.
 
-	Only one instance of an output device will be run at a time.
+        Only one instance of an output device will be run at a time.
 */
 
 typedef struct _fsm_output_generator_      FSMOutputGenerator, *pFSMOutputGenerator;
 
-typedef int (*InitOutput)(char *);
+typedef int (*InitOutput)(pMACHINE_INFO);
 typedef void (*WriteMachine)(pMACHINE_INFO);
 typedef void (*CloseOutput)(int);
 
 struct _fsm_output_generator_
 {
-	InitOutput		initOutput;
-	WriteMachine	writeMachine;
-	CloseOutput		closeOutput;
+   InitOutput		initOutput;
+   WriteMachine	writeMachine;
+   CloseOutput		closeOutput;
 };
 
-extern void yyerror(char*);
+extern void yyerror(char *);
 
 
 #endif /* ----------- nothing below this line ---------------- */
