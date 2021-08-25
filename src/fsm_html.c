@@ -47,7 +47,7 @@
 /*
 	Our interface to the outside world
 */
-int initHTMLWriter(char *);
+int initHTMLWriter(pMACHINE_INFO);
 void writeHTMLWriter(pMACHINE_INFO);
 void closeHTMLWriter(int);
 
@@ -80,19 +80,20 @@ HTMLMachineData htmlMachineData = {
 	,	NULL
 };
 
-int initHTMLWriter (char *baseFileName)
+int initHTMLWriter (pMACHINE_INFO pmi)
 {
 
 	time_t		now;
 
-	if (!baseFileName) {
+    if (!pmi->outFileBase)
+    {
 
 		htmlMachineData.htmlFile = stdout;
 
 	}
 	else {
 
-		htmlMachineData.htmlName = createFileName(baseFileName,".html");
+		htmlMachineData.htmlName = createFileName(pmi->outFileBase,".html");
 
 		if (!(htmlMachineData.htmlFile = openFile(htmlMachineData.htmlName,"w"))) {
 
@@ -113,9 +114,25 @@ int initHTMLWriter (char *baseFileName)
 
 			fprintf(htmlMachineData.htmlFile,"<head>\n");
 
-			fprintf(htmlMachineData.htmlFile,"<title>FSM Lang : %s</title>\n",baseFileName);
+			fprintf(htmlMachineData.htmlFile,"<title>FSM Lang : %s</title>\n",pmi->outFileBase);
 
-			fprintf(htmlMachineData.htmlFile,"<link REL=stylesheet type=\"text/css\" href=\"fsmlang.css\">\n");
+            if (!pmi->html_info.css_content_internal)
+            {
+                fprintf(htmlMachineData.htmlFile
+                        , "<link REL=stylesheet type=\"text/css\" href=\"%s\">\n"
+                        , pmi->html_info.css_content_filename ? pmi->html_info.css_content_filename : "fsmlang.css"
+                        );
+            }
+            else
+            {
+                fprintf(htmlMachineData.htmlFile, "<style>\n");
+                if (copyFileContents(htmlMachineData.htmlFile, pmi->html_info.css_content_filename))
+                {
+                    fprintf(stderr,"%s: Could not copy css file contents\n",me);
+                    return (1);
+                }
+                fprintf(htmlMachineData.htmlFile, "</style>\n");
+            }
 
 			fprintf(htmlMachineData.htmlFile,"</head><body>\n");
 

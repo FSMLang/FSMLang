@@ -31,8 +31,8 @@ include ../test.mk
 runtest: $(TESTS)
 
 $(TESTS): test
-	./test $@.fsm > $@.out 2> $@.stderr
-	cat $@.stderr >> $@.out; rm $@.stderr
+	@./test $@.fsm > $@.out 2> $@.stderr
+	@cat $@.stderr >> $@.out; rm $@.stderr
 	@$(DIFF) $@.out $@.canonical > $@.result
 	@echo $@ successful
 	@rm $@.out $@.result

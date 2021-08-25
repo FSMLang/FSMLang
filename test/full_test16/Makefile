@@ -9,6 +9,7 @@ override CFLAGS += -DFSM_DEBUG -DNEW_MACHINE_DEBUG -I../
 FSM_FLAGS = -ts
 
 FSM_SRC = parser-test12.fsm
+FSM_HTML_FLAGS=--css-content-filename="../../fsmlang.css" --css-content-internal
 
 SRC = pt12-actions.c 
 

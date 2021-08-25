@@ -12,7 +12,6 @@
 #if defined (LINUX) || defined (CYGWIN)
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <stdlib.h>
 #endif
 
@@ -1259,6 +1258,8 @@ transition_fn_return_decl:
      if ($1 && !$2->docCmnt)
         $2->docCmnt = $1;
 
+char *index(const char *s,int c);
+
   }
   ;
  
@@ -1267,6 +1268,7 @@ transition_fn_return_decl:
 #if defined(CYGWIN) || defined (LINUX)
 #include <unistd.h>
 #include <string.h>
+#include <getopt.h>
 #endif
 
 #ifdef VS
@@ -1274,15 +1276,51 @@ transition_fn_return_decl:
 #include "vsstring.h"
 #endif
 
+char *rindex(const char *s,int c);
+
 void usage(void);
 char *dotfsm = ".fsm";
+
+/*
+  use these as needed for the val param of the long options
+  when flag is set to &longval.  Otherwise, set the val param to the
+  short option character and set flag to NULL.
+*/
+typedef enum {
+    lo_css_content_filename
+    , lo_css_content_internal
+} LONG_OPTIONS;
+
+int longindex = 0;
+int longval;
+const struct option longopts[] =
+{
+    {
+        .name      = "help"
+        , .has_arg = no_argument
+        , .flag    = NULL
+        , .val     = '?'
+    }
+    , {
+        .name      = "css-content-filename"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_css_content_filename
+    }
+    , {
+        .name      = "css-content-internal"
+        , .has_arg = no_argument
+        , .flag    = &longval
+        , .val     = lo_css_content_internal
+    }
+    , {0}
+};
 
 int main(int argc, char **argv)
 {
 
 	int		c;
 	char	*cp,*cp1;
-	char  *outFileBase = 0;
 
 	me = argv[0];
 
@@ -1294,16 +1332,29 @@ int main(int argc, char **argv)
 
 	}
 
+	memset(&machineInfo,0,sizeof(MACHINE_INFO));
+
 	/* default to writing a c machine */
 	pfsmog = pCMachineWriter;
 
-	while ((c = getopt(argc,argv,"vht:o:i:c")) != -1) {
+	while ((c = getopt_long(argc, argv, "vht:o:i:c", longopts, &longindex)) != -1) {
 
 		switch(c) {
 
+            case 0: /* long options with flag set to &longval*/
+                switch (longval) {
+                    case lo_css_content_filename:
+                        machineInfo.html_info.css_content_filename = optarg;
+                        break;
+                    case lo_css_content_internal:
+                        machineInfo.html_info.css_content_internal = true;
+                        break;
+                }
+                break;
+
 			case 'h':
 				usage();
-				return (1);
+				return (0);
 
 			case 't':
 
@@ -1344,7 +1395,7 @@ int main(int argc, char **argv)
 
 			case 'o':
 
-				outFileBase = optarg;
+				machineInfo.outFileBase = optarg;
 				break;
 
      case 'v':
@@ -1356,7 +1407,7 @@ int main(int argc, char **argv)
 			case ':':
 
 				usage();
-				return (1);
+				return (0);
 
 		}
 
@@ -1371,7 +1422,7 @@ int main(int argc, char **argv)
 		if (!cp1) {
 
 			usage();
-			exit(1);
+			return(1);
 
 		}
 		else {
@@ -1392,16 +1443,14 @@ int main(int argc, char **argv)
 		}
 
 		/* get the base file name */
-		if (!outFileBase) {
+		if (!machineInfo.outFileBase) {
 			/* use the base input file name */
 			*cp1 = 0;
-			outFileBase = cp;
+			machineInfo.outFileBase = cp;
 		}
 
-		memset(&machineInfo,0,sizeof(MACHINE_INFO));
-
 		#ifndef PARSER_DEBUG
-		if (!(*pfsmog->initOutput)(outFileBase)) {
+		if (!(*pfsmog->initOutput)(&machineInfo)) {
 		#endif
 
 			yyparse();
@@ -1414,13 +1463,13 @@ int main(int argc, char **argv)
 
 		fclose(yyin);
 
-		return (!good);
+		return (0);
 
 	}
 	else {
 
 		usage();
-		return (!good);
+		return (1);
 
 	}
 
