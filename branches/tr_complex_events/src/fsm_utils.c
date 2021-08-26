@@ -50,6 +50,28 @@
 #include "lexer_debug.h"
 #endif
 
+typedef struct _complex_event_print_ complex_event_print_cb, *pcomplex_event_print_cb;
+struct _complex_event_print_ 
+{
+   FILE          *fp;
+   char          comma;
+   pMACHINE_INFO pmi;
+};
+
+typedef struct _complex_event_state_list_ complex_event_state_list_cb, *pcomplex_event_state_list_cb;
+struct _complex_event_state_list_ 
+{
+   pMACHINE_INFO pmi;
+   bool          success;
+};
+
+typedef struct _print_complex_ancestry_ print_complex_ancestry_cb, *pprint_complex_ancestry_cb;
+struct _print_complex_ancestry_
+{
+   FILE *fp;
+   bool use_external;
+};
+
 /* the general use data */
 char	*me = "I don't know who I am, but I'm";
 bool generate_instance    = true;
@@ -57,12 +79,19 @@ bool compact_action_array = false;
 
 pID_INFO id_list = NULL;
 
-int add_id(int type, char *name, pID_INFO *ppid_info)
+static void _print_ancestry     (pID_INFO,void*);
+static void _print_complex_event(pID_INFO,void*);
+static void _allocate_state_list(pID_INFO,void*);
+static void _add_to_state_list  (pID_INFO,void*);
+
+static void _add_state_to_complex_ancestors(pID_INFO ce, pID_INFO state);
+
+int add_id(int type, char *name, unsigned namespace, pID_INFO *ppid_info)
 {
    int ret_val;
 
   /* not already defined ? */
-  if ((ret_val = lookup_id(name,ppid_info)) == LOOKUP)
+  if ((ret_val = lookup_id(name,namespace,ppid_info)) == LOOKUP)
   {
      /* allocate new entry and link to list */
      if ((*ppid_info = (pID_INFO) malloc(sizeof(ID_INFO))) == NULL) {
@@ -81,10 +110,13 @@ int add_id(int type, char *name, pID_INFO *ppid_info)
      (*ppid_info)->nextID = id_list;
      (*ppid_info)->name = strdup(name);
      (*ppid_info)->type = type;
+     (*ppid_info)->namespace = namespace;
      id_list = *ppid_info;
 
      #ifdef LEX_DEBUG
-     printf("Added : %s of type %s\n",name,strings[type]);
+     printf("Added : %s of type %s in namespace %u\n",name,strings[type]
+            , namespace
+            );
      #endif
 
      ret_val = type;
@@ -100,14 +132,18 @@ int add_id(int type, char *name, pID_INFO *ppid_info)
 
 }
 
-int lookup_id(char *name, pID_INFO *ppid_info)
+int lookup_id(char *name, unsigned namespace, pID_INFO *ppid_info)
 {
 
   for (*ppid_info = id_list; *ppid_info; *ppid_info = (*ppid_info)->nextID)
-
-    if (!strcmp((*ppid_info)->name,name))
+  {
+     if ((*ppid_info)->namespace == namespace)
+     {
+        if (!strcmp((*ppid_info)->name,name))
 
       return (*ppid_info)->type;
+     }
+  }
 
   return LOOKUP;  /* i.e. not found */
 
@@ -353,6 +389,34 @@ int allocateActionArray(pMACHINE_INFO pmi)
 
 }
 
+/**********************************************************************************************************************/
+/**
+ * @brief Allocate space for state lists for each complex event_count
+ * 
+ * @author Steven Stanton (9/19/2019)
+ * 
+ * @param pmi pointer to the machine info struct
+ * 
+ *
+ * @ref_global none
+ *
+ * @mod_global none
+ *
+ * @return int 0 on success; 1 on failure
+ *
+ * 
+ ***********************************************************************************************************************/
+int  allocateComplexEventStateLists(pMACHINE_INFO pmi)
+{
+   complex_event_state_list_cb ceslcb = {.pmi = pmi, .success = true};
+
+   for (pID_INFO ce = pmi->complex_event_list; ce && ceslcb.success; ce = ce->nextEvent)
+   {
+      _allocate_state_list(ce, &ceslcb);
+      iterate_complex_event(ce, _allocate_state_list, &ceslcb);
+   }
+}
+
 /**
 	function: addToActionArray
 
@@ -377,7 +441,11 @@ int addToActionArray(pMACHINE_INFO pmi, pACTION_INFO pai)
 
 			if (pmi->actionArray[pasiE->se->seOrder][pasiS->se->seOrder]) {
 		
-				fprintf(stderr,"Duplicate action :\n");
+				fprintf(stderr,"Duplicate action: %s [%s, %s]:\n"
+                 , pai->action->name
+                 , pasiE->se->name
+                 , pasiS->se->name
+                 );
 				fprintf(stderr,"Action already there : %s\n",
 					pmi->actionArray[pasiE->se->seOrder][pasiS->se->seOrder]->action->name);
 		
@@ -387,6 +455,20 @@ int addToActionArray(pMACHINE_INFO pmi, pACTION_INFO pai)
 	
 			pmi->actionArray[pasiE->se->seOrder][pasiS->se->seOrder] = pai;
 
+      if (get_id_type(pasiE->se) == COMPLEX_EVENT_MEMBER)
+      {
+         _add_state_to_complex_ancestors(pasiE->se, pasiS->se);
+
+		}
+
+      pasiE->se->actionCount++;
+      pasiS->se->actionCount++;
+
+      if (pai->transition)
+      {
+         pasiE->se->transitionCount++;
+         pasiS->se->transitionCount++;
+      }
 		}
 
 	}
@@ -691,6 +773,232 @@ char *getFileNameNoDir(const char *path)
 		strcpy(cp1,cp);
 
 	return cp1;
+
+}
+
+/**
+ * recursively print a complex event
+ */
+void print_complex_event(FILE *fp, pID_INFO pid, pMACHINE_INFO pmi)
+{
+   complex_event_print_cb cb = {fp, ' ' , pmi};
+
+   _print_complex_event(pid, &cb);
+
+   cb.comma = '\n';
+   iterate_complex_event(pid, _print_complex_event, &cb);
+
+   fprintf(fp
+           , "}\n\n"
+           );
+}
+
+static void _print_complex_event(pID_INFO ce, void *param)
+{
+   pcomplex_event_print_cb pcb = param;
+   int                     i;
+   bool                    comma;
+
+   if (get_id_type(ce) == COMPLEX_EVENT_KEY)
+   {
+      fprintf(pcb->fp, "%c ", pcb->comma);
+
+      fprintf(pcb->fp
+              , "%s (namespace: %u, %u, parent: %s, prefix: %s):\n\tneeded by states: "
+              , ce->name
+              , ce->namespace
+              , ce->complexInfo->namespace
+              , ce->complexInfo->parent
+                  ? ce->complexInfo->parent->name
+                  : "None"
+              , ce->complexInfo->name_prefix
+                  ? ce->complexInfo->name_prefix 
+                  : "None"
+              );
+
+      for (i = 0, comma = false; i < pcb->pmi->state_count; i++)
+      {
+         if (ce->complexInfo->states[i])
+         {
+            fprintf(pcb->fp
+                    , "%s%s"
+                    , comma ? ", " : ""
+                    , ce->complexInfo->states[i]->name
+                   );
+            comma = true;
+         }
+      }
+      fprintf(pcb->fp, "\n{");
+      pcb->comma = '\n';
+
+   }
+   else
+   {
+      fprintf(pcb->fp
+              , ce->externalDesignation 
+                  ? "\t%c %s = %s; namespace: %u; parent: %s; seOrder: %u\n"
+                  : "\t%c %s%s; namespace: %u; parent: %s; seOrder: %u\n"
+              , pcb->comma
+              , ce->name
+              , ce->externalDesignation ? ce->externalDesignation->name : ""
+              , ce->namespace
+              , ce->complexInfo->parent
+                  ? ce->complexInfo->parent->name
+                  : "None"
+              , ce->seOrder
+              );
+      pcb->comma = ',';
+   }
+
+}
+
+void print_complex_event_ancestry(FILE *fp, pID_INFO ce, bool use_external)
+{
+   print_complex_ancestry_cb pcacb = {.fp = fp, .use_external = use_external};
+   iterate_complex_event_ancestors(ce, _print_ancestry, &pcacb);
+}
+
+void print_external_event_name_with_prefix(FILE *fp, pID_INFO event)
+{
+   if (get_id_type(event) == EVENT)
+   {
+      fprintf(fp
+              , "%s%s"
+              , event->externalDesignation->name_prefix 
+                  ? event->externalDesignation->name_prefix 
+                  : ""
+              , event->externalDesignation->name
+              );
+   }
+   else
+   {
+      fprintf(fp
+              , "%s%s"
+              , event->complexInfo->parent
+                  ? (event->complexInfo->parent->complexInfo->name_prefix
+                        ? event->complexInfo->parent->complexInfo->name_prefix
+                        : ""
+                     )
+                  : event->externalDesignation->name_prefix
+                     ? event->externalDesignation->name_prefix 
+                     : ""
+              , event->externalDesignation->name
+              );
+   }
+}
+
+static void _print_ancestry(pID_INFO ce, void *p)
+{
+   pprint_complex_ancestry_cb ppcacb = p;
+
+   fprintf(ppcacb->fp
+           , "%s%s%s"
+           , (ppcacb->use_external && ce->externalDesignation)
+               ? (ce->complexInfo->parent
+                  ? (ce->complexInfo->parent->complexInfo->name_prefix
+                        ? ce->complexInfo->parent->complexInfo->name_prefix
+                        : ""
+                    )
+                  : (ce->externalDesignation->name_prefix
+                     ? ce->externalDesignation->name_prefix
+                     : ""
+                    )
+                 )
+               : ""
+           , (ppcacb->use_external && ce->externalDesignation)
+               ? ce->externalDesignation->name
+               : ce->name
+           , (get_id_type(ce) == COMPLEX_EVENT_KEY)
+               ? "."
+               : ""
+           );
+}
+
+static void _allocate_state_list(pID_INFO ce, void *param)
+{
+   pcomplex_event_state_list_cb pceslcb = param;
+
+   pceslcb->success = (get_id_type(ce) == COMPLEX_EVENT_KEY)
+                        ? (NULL != (ce->complexInfo->states 
+                                    = (pID_INFO*)calloc(pceslcb->pmi->event_count
+                                                                , sizeof(pID_INFO)
+                                                                )
+                                    )
+                           )
+                        : true
+                        ;
+}
+
+void iterate_complex_event(pID_INFO ce, generic_callback_fn cbfn, void *param)
+{
+   pID_INFO p;
+
+   for (p = ce->complexInfo->members; p; p = p->complexInfo->nextEvent)
+   {
+      if (get_id_type(p) == COMPLEX_EVENT_KEY)
+      {
+         (*cbfn)(p,param);
+         iterate_complex_event(p,cbfn,param);
+      }
+      else
+      {
+         (*cbfn)(p,param);
+      }
+   }
+}
+
+void iterate_complex_event_ancestors(pID_INFO ce, generic_callback_fn cbfn, void *param)
+{
+   if (ce->complexInfo)
+   {
+      if (ce->complexInfo->parent)
+      {
+         iterate_complex_event_ancestors(ce->complexInfo->parent, cbfn, param);
+      }
+
+      (*cbfn)(ce,param);
+   }
+}
+
+static void _add_to_state_list(pID_INFO ce, void *param)
+{
+   pID_INFO state = param;
+
+   if (get_id_type(ce) == COMPLEX_EVENT_KEY)
+   {
+      ce->complexInfo->states[state->seOrder] = state;
+   }
+
+}
+
+static void _add_state_to_complex_ancestors(pID_INFO ce, pID_INFO state)
+{
+   iterate_complex_event_ancestors(ce, _add_to_state_list, state);
+}
+
+pID_INFO get_complex_event_ultimate_ancestor(pID_INFO pid)
+{
+   pID_INFO ua = NULL;
+
+   if (pid->complexInfo)
+   {
+      ua = pid;
+      while (ua->complexInfo->parent)
+      {
+         ua = ua->complexInfo->parent;
+      }
+   }
+
+   return ua;
+}
+
+bool assignExternalEventValues(pMACHINE_INFO pmi)
+{
+   return (
+       (pmi->modFlags & (mfActionsReturnStates | mfActionsReturnVoid))
+       && (pmi->event_count == pmi->external_event_designation_count)
+       && !compact_action_array
+       );
 
 }
 

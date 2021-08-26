@@ -36,6 +36,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define DEFAULT_NAME_SPACE (0)
+
 /*
 	These flags track the modifiers
 		of "machine" and also the action return specifiers.
@@ -52,10 +54,14 @@ typedef struct _action_se_info_	ACTION_SE_INFO, *pACTION_SE_INFO;
 typedef struct _matrix_info_	  MATRIX_INFO, *pMATRIX_INFO;
 typedef struct _action_info_		ACTION_INFO, *pACTION_INFO;
 typedef struct _machine_info_		MACHINE_INFO, *pMACHINE_INFO;
+typedef struct _complex_event_    COMPLEX_EVENT, *pCOMPLEX_EVENT;
+typedef struct _complex_event_cb_ complex_event_cb, *pcomplex_event_cb;
 
 struct _id_info_ {
   char    			  *name;
+  char    			  *name_prefix;
   int     			  type;
+  unsigned        namespace;
   pID_INFO			  nextID;
   pID_INFO			  nextState;
   pID_INFO			  nextEvent;
@@ -63,12 +69,16 @@ struct _id_info_ {
   pID_INFO			  nextTransition;
   pID_INFO			  nextTransitionFn;
   pID_INFO        externalDesignation;
+  pID_INFO        parentEvent;
 	int						  seOrder;
   int             tOrder;
+  int             actionCount; //!< records the number af actions associated with this state or event.
+  int             transitionCount; //!< records the number af actions associated with this state or event.
 	char					  *docCmnt;
 	pACTION_INFO	  actionInfo;
   pACTION_SE_INFO	action_returns_decl;
   pACTION_SE_INFO	transition_fn_returns_decl;
+  pCOMPLEX_EVENT  complexInfo;
 };
 
 struct _action_se_info_ {
@@ -89,7 +99,8 @@ struct _action_info_ {
 };
 
 struct _machine_info_ {
-  pID_INFO			state_list;
+   unsigned     namespaces;
+   pID_INFO			state_list;
 	int						state_count;
   int           external_state_designation_count;
   pID_INFO			event_list;
@@ -99,7 +110,9 @@ struct _machine_info_ {
   int           transition_count;
 	pID_INFO			transition_fn_list;
   int           transition_fn_count;
-	pID_INFO			action_list;
+	pID_INFO     complex_event_list;
+   int          complex_event_count;
+   pID_INFO     action_list;
 	pID_INFO			name;
 	pACTION_INFO	**actionArray;
 	char					*data;
@@ -108,13 +121,57 @@ struct _machine_info_ {
   pID_INFO      machineTransition;
 };
 
+struct _complex_event_
+{
+   pID_INFO	nextEvent;
+   pID_INFO members;
+   unsigned member_count;
+   pID_INFO parent;
+   unsigned external_event_designation_count;
+   unsigned namespace;
+   pID_INFO *states;
+   char     *name_prefix;
+};
+
+struct _complex_event_cb_
+{
+   FILE          * fp;
+   pMACHINE_INFO   pmi;
+   char          * ucMachineName;
+   pID_INFO        state;
+};
+
+typedef void (*generic_callback_fn)(pID_INFO,void*);
+void iterate_complex_event(pID_INFO, generic_callback_fn,void*);
+void iterate_complex_event_ancestors(pID_INFO, generic_callback_fn,void*);
+void print_complex_event_state_handler_name(pID_INFO,pcomplex_event_cb);
+void print_complex_event_discriminator_name(pID_INFO,pcomplex_event_cb);
+
 /* lexer id list handlers */
-int add_id(int, char *, pID_INFO *);
-int lookup_id(char *, pID_INFO *);
+int add_id(int, char *, unsigned, pID_INFO *);
+int lookup_id(char *, unsigned, pID_INFO *);
 void free_ids(void);
 
 /** _A is pID_INFO; _B is new type (int)   */
 #define set_id_type(_A,_B) (_A)->type = _B
+#define get_id_type(_A) ((_A)->type)
+
+/** _A is an event pID_INFO, _B is pMACHINE_INFO   */
+#define get_event_name(_A, _B) ((assignExternalEventValues((_B)))\
+ ? (_A)->externalDesignation->name\
+ : (_A)->name\
+  )
+
+/** _A is an event pID_INFO, _B is pMACHINE_INFO   */
+#define get_event_name_prefix(_A, _B) ((assignExternalEventValues((_B)) && (_A)->externalDesignation->name_prefix)\
+                                       ? (_A)->externalDesignation->name_prefix\
+                                       : ""\
+                                       )
+
+/** _A is an event or state pID_INFO   */
+#define has_actions(_A) ((((pID_INFO)_A)->actionCount > 0))
+#define has_transitions(_A) ((((pID_INFO)_A)->transitionCount > 0))
+#define has_actions_or_transitions(_A) (has_actions(_A) || has_transitions(_A))
 
 /* parser info */
 void freeMachineInfo(pMACHINE_INFO);
@@ -130,14 +187,22 @@ pID_INFO statePidByIndex(pMACHINE_INFO,int);
 char *transitionNameByIndex(pMACHINE_INFO,int);
 pID_INFO transitionPidByIndex(pMACHINE_INFO,int);
 int  allocateActionArray(pMACHINE_INFO);
+int      allocateComplexEventStateLists(pMACHINE_INFO);
 int  addToActionArray(pMACHINE_INFO,pACTION_INFO);
 void addToActionList(pMACHINE_INFO, pID_INFO);
 char *getFileNameNoDir(const char *);
+void     print_complex_event(FILE*,pID_INFO,pMACHINE_INFO);
+void     print_complex_event_ancestry(FILE*,pID_INFO,bool);
+void     print_external_event_name_with_prefix(FILE*,pID_INFO);
+pID_INFO get_complex_event_ultimate_ancestor(pID_INFO);
+bool     assignExternalEventValues(pMACHINE_INFO);
 
 /* general use data */
 extern char *me;	/* main will set this to the program name (argv[0]) */
 extern bool generate_instance;
 extern bool compact_action_array;
+extern unsigned namespace;
+extern pID_INFO complex_parent;
 
 
 #define LOOKUP	0	/* default - not defined in the parser */

@@ -19,7 +19,9 @@ TESTS=lexer-test1 \
 			lexer-test5 \
 			lexer-test6 \
 			lexer-test7 \
-			lexer-test8
+			lexer-test8 \
+			lexer-test9 \
+			lexer-test10
 
 LDFLAGS=-lfl
 

@@ -1,20 +1,25 @@
-hello, world
+./test: hello, world
+event: ext5
+state: newMachine_s1
+discriminated event: exts51
+newMachine_a3
 event: ext1
 state: newMachine_s1
 newMachine_a1
+event: ext2
+state: newMachine_s1
+newMachine_noAction
+event: ext3
+state: newMachine_s1
+newMachine_transitionFn1
 newMachine_machineTransitionFn
 	old state: newMachine_s1
 	new state: newMachine_s2
-event: ext2
-state: newMachine_s2
-newMachine_TransitionFn1
-event: ext3
-state: newMachine_s2
-newMachine_TransitionFn1
 event: ext4
 state: newMachine_s2
+discriminated event: exts1
 newMachine_a2
-newMachine_TransitionFn
+newMachine_transitionFn
 newMachine_machineTransitionFn
 	old state: newMachine_s2
 	new state: newMachine_s3

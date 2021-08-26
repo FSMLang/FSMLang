@@ -28,4 +28,5 @@ clean::
 	-@rm *.stackdump 2> /dev/nul
 	-@rm $(FSM_SRC:.fsm=.c) 2> /dev/nul
 	-@rm $(FSM_SRC:.fsm=.h) 2> /dev/nul
+	-@rm $(FSM_SRC:.fsm=.html) 2> /dev/nul
 

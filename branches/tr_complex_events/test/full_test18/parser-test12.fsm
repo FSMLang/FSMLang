@@ -1,0 +1,268 @@
+native
+{
+#include <stdbool.h>
+
+#include "test.h"
+#include "external.h"
+
+#define enable_standby true
+#define disable_standby false
+}
+
+/**
+  This is the main control FSM for the instrument.
+*/
+machine systemManager
+  actions return void;
+  on transition changeStateAndNotify;
+{
+  state POST
+        , IDLE
+        , STANDBY
+        , SETUP
+        , READY
+        , PRE_RUN_SELF_TEST_RECOVERY
+        , ABORT_RECOVERY
+        , SAMPLE_PROCESSING
+        , RUN_COMPLETION
+        , CLEANUP
+        , MANUAL_CONTROLS
+        , RECIPE_EXECUTION
+        , SYSTEM_SAFETY_FAULT
+        , SERVICE
+        ;
+
+  event e10 = "SYSTEM_MANAGER_":MESSAGE_QUEUE_EVENT prefix: "SF_MESSAGE_EVENT_CLASS_"
+              {
+                  e2 = RUN_SETUP_USER_ACTION_NOTICE prefix: "RSA_"
+                         {
+                             e1 = setup_started
+                           , e2 = new_kit
+                           , e3 = run_setup_cancelled
+                           , e4 = run_completion_acknowledged
+                         }
+
+                , e11 = PUMP_ON_TOO_LONG_ERROR_NOTICE
+                , e12 = PUMP_DUTY_CYCLE_ERROR_NOTICE
+                , e13 = PRESSURE_DECAY_TEST_RESULT_NOTICE prefix: "IF_"
+                         {
+                             e1 = pressure_decay_test_failure
+                         }
+                , e14 = CHAMBER_PRESSURE_SWITCH_VENT_TIMEOUT_NOTICE
+                , e15 = CHAMBER_PRESSURE_SWITCH_FILL_TIMEOUT_NOTICE
+                , e16 = CHAMBER_PRESSURIZED_BUT_NOT_LATCHED_ERROR_NOTICE
+                , e17 = CHAMBER_PRESSURE_SWITCH_DEVIATION_NOTICE
+                , e18 = TANK_PRESSURE_TOO_HIGH_ERROR_NOTICE
+                , e19 = CHAMBER_PRESSURE_TOO_HIGH_ERROR_NOTICE
+                , e20 = CHAMBER_PRESSURE_DETECTED_WITH_LOW_SUPPLY_PRESSURE_ERROR_NOTICE
+                , e21 = PINCH_VALVE_TIMEOUT_ERROR_NOTICE
+                , e22 = CHAMBER_PIN_TIMEOUT_ERROR_NOTICE
+                , e23 = CHAMBER_LATCH_TIMEOUT_ERROR_NOTICE
+                , e24 = PINCH_VALVE_INCORRECT_STATE_ERROR_NOTICE
+                , e25 = CHAMBER_PRESSURE_ERROR_NOTICE
+                , e26 = SALINE_LOST_ERROR_NOTICE
+                , e27 = TOUCH
+                         {
+                             e1 = SF_TOUCH_PANEL_EVENT_DOWN
+                         }
+                   
+                , e3 = SERVICE_DIALOG_ACTION_NOTICE prefix: "SA_"
+                         {
+                             e1 = fault_service_screen_entered
+                           , e2 = calibration_screen_entered
+                           , e3 = manual_controls_entered
+                           , e4 = custom_recipe_screen_entered
+                           , e5 = recipe_screen_entered
+                           , e6 = service_dialog_exited
+                           , e7 = service_dialog_entered
+                         }
+
+                , e1 = PUMP_STATE_NOTICE
+                         {
+                             e1 = PUMP_OFF
+                         }
+
+                , e4 = RTC_READY_NOTICE 
+
+                , e5 = SYSTEM_FAULT_CLEAR_REQUEST prefix: "SFT_"
+                         {
+                             e1 = inhibiting
+                           , e2 = run_terminating
+                           , e3 = safety
+                         }
+
+                , e6 = FILE_SYSTEM_REQUEST
+                , e7 = FILE_SYSTEM_NOTICE
+                , e8 = PUMP_RUN_TIME_RESET_REQUEST
+                , e9 = SET_SYSTEM_SETTING_STANDBY_CONTROL_REQUEST
+                         {
+                             e1 = enable_standby
+                           , e2 = disable_standby
+                         } 
+                , e10 = SYSTEM_TIME_UPDATE_REQUEST prefix: "RTC_"
+                         {
+                             e1 = UPDATE_TIME
+                           , e2 = UPDATE_DATE
+                         }
+              }
+              ;
+
+  event   e1  = "SYSTEM_MANAGER_":CRC_FAILED
+        , e2  = "SYSTEM_MANAGER_":POST_SUCCESSFUL
+        , e3  = "SYSTEM_MANAGER_":SHORT_MIXING_TIMER_EVENT
+        , e4  = "SYSTEM_MANAGER_":LONG_MIXING_TIMER_EVENT
+        , e5  = "SYSTEM_MANAGER_":USER_LOGIN_TIMER_EVENT
+        , e6  = "SYSTEM_MANAGER_":RUN_SETUP_COMPLETE
+        , e7  = "SYSTEM_MANAGER_":RETURN_TO_RUN_SETUP
+        , e8  = "SYSTEM_MANAGER_":PRST_RECOVERY_COMPLETE
+        , e9  = "SYSTEM_MANAGER_":CLEANUP_TIMER_EVENT
+        , e11 = "SYSTEM_MANAGER_":WATCHDOG_TIMER_EVENT
+        , e12 = "SYSTEM_MANAGER_":STANDBY_TIMER_EVENT
+        , e13 = "SYSTEM_MANAGER_":RUN_TIMER_EVENT
+        ;
+
+  action set_system_health_event_crc_failed [e1, (POST
+                                                  , IDLE
+                                                  , STANDBY
+                                                  , SETUP
+                                                  , READY
+                                                  , PRE_RUN_SELF_TEST_RECOVERY
+                                                  , ABORT_RECOVERY
+                                                  , SAMPLE_PROCESSING
+                                                  , RUN_COMPLETION
+                                                  , CLEANUP
+                                                  , MANUAL_CONTROLS
+                                                  , RECIPE_EXECUTION
+                                                  , SYSTEM_SAFETY_FAULT
+                                                  , SERVICE)                       ];
+
+
+	action continue_post_post_init       [ e2,      POST                             ] transition IDLE;
+
+	action perhaps_pet_the_dog           [ e11,     (IDLE
+                                                   , STANDBY
+                                                   , SETUP
+                                                   , READY
+                                                   , PRE_RUN_SELF_TEST_RECOVERY
+                                                   , ABORT_RECOVERY
+                                                   , SAMPLE_PROCESSING
+                                                   , RUN_COMPLETION
+                                                   , CLEANUP
+                                                   , MANUAL_CONTROLS
+                                                   , RECIPE_EXECUTION
+                                                   , SYSTEM_SAFETY_FAULT
+                                                   , SERVICE)                       ];
+
+  action increment_compressor_run_time [ e10.e1.e1, (IDLE
+                                                     , STANDBY
+                                                     , SETUP
+                                                     , READY
+                                                     , PRE_RUN_SELF_TEST_RECOVERY
+                                                     , ABORT_RECOVERY
+                                                     , SAMPLE_PROCESSING
+                                                     , RUN_COMPLETION
+                                                     , CLEANUP
+                                                     , MANUAL_CONTROLS
+                                                     , RECIPE_EXECUTION
+                                                     , SYSTEM_SAFETY_FAULT
+                                                     , SERVICE)                       ];
+
+  action increment_instrument_run_time [ e13,       (IDLE
+                                                     , STANDBY
+                                                     , SETUP
+                                                     , READY
+                                                     , PRE_RUN_SELF_TEST_RECOVERY
+                                                     , ABORT_RECOVERY
+                                                     , SAMPLE_PROCESSING
+                                                     , RUN_COMPLETION
+                                                     , CLEANUP
+                                                     , MANUAL_CONTROLS
+                                                     , RECIPE_EXECUTION
+                                                     , SYSTEM_SAFETY_FAULT
+                                                     , SERVICE)                       ];
+
+	action init_time_control_and_notify [ e10.e4,      IDLE                             ];
+
+	action clear_inhibiting_faults      [ e10.e5.e1,   SERVICE                          ];
+	action clear_terminating_faults     [ e10.e5.e2,   SERVICE                          ];
+	action clear_system_safety_faults   [ e10.e5.e3,   SERVICE                          ];
+	action save_tank_mode_and_stop_pump [ e10.e6,      SERVICE                          ];
+
+	action restore_tank_mode_and_start_pump [ e10.e7,        SERVICE                    ];
+
+	action reset_total_compressor_run_time [ e10.e8,         SERVICE                    ];
+
+	action set_standby_time_and_disable_timer [ e10.e9.e1,   (SERVICE, IDLE)            ];
+	action set_standby_time_and_enable_timer  [ e10.e9.e2,   (SERVICE, IDLE)            ];
+	action update_system_time                 [ e10.e10.e1,  (IDLE, SETUP)              ];
+	action update_system_date                 [ e10.e10.e2,  (IDLE, SETUP)              ];
+
+	action set_inibiting_fault                [e10.e11,    (IDLE
+                                                            , SETUP
+                                                            , READY
+                                                            , ABORT_RECOVERY
+                                                            , RUN_COMPLETION
+                                                            , CLEANUP)                ];
+
+	action set_inibiting_fault_and_stop_pump  [e10.e12,    (IDLE
+                                                          , SETUP
+                                                          , READY
+                                                          , ABORT_RECOVERY
+                                                          , RUN_COMPLETION
+                                                          , CLEANUP)                  ];
+
+	action set_inibiting_fault                [e10.e13.e1,    (IDLE
+                                                                         , SETUP
+                                                                         , READY)                  ];
+
+	action set_system_safety_fault [(e10.e14
+                                   , e10.e15
+                                   , e10.e16
+                                   , e10.e17
+                                   , e10.e18
+                                   , e10.e19
+                                   , e10.e20), (IDLE
+                                                                                                  , STANDBY
+                                                                                                  , SETUP
+                                                                                                  , READY
+                                                                                                  , ABORT_RECOVERY
+                                                                                                  , RUN_COMPLETION
+                                                                                                  , MANUAL_CONTROLS
+                                                                                                  , RECIPE_EXECUTION
+                                                                                                  , SERVICE
+                                                                                                  , SYSTEM_SAFETY_FAULT) ] transition SYSTEM_SAFETY_FAULT;
+
+	action call_sys_mgr_sp_fsm [(e10.e14
+                               , e10.e15
+                               , e10.e16
+                               , e10.e17
+                               , e10.e18
+                               , e10.e19
+                               , e10.e20), SAMPLE_PROCESSING ] transition fault_transition_on_sp_state;
+
+	action set_t_and_i_fault_and_abort_sp [(e10.e21
+                                          , e10.e22
+                                          , e10.e23
+                                          , e10.e24), SAMPLE_PROCESSING ];
+
+	action set_t_fault_and_abort_sp [(e10.e25
+                                    , e10.e26), SAMPLE_PROCESSING ];
+
+	action restart_standby_timer    [e10.e27.e1,      IDLE              ];
+
+  transition [ e10.e2.e1,              IDLE                                ] SETUP;
+  transition [ (e10.e2.e2, e10.e2.e3), SETUP                               ] IDLE;
+	transition [ (e10.e3.e1
+                , e10.e3.e2
+                , e10.e3.e3),          SERVICE                             ] MANUAL_CONTROLS;
+	transition [ (e10.e3.e4, e10.e3.e5), SERVICE                             ] RECIPE_EXECUTION;
+	transition [ e10.e3.e6,              (MANUAL_CONTROLS, RECIPE_EXECUTION) ] IDLE;
+	transition [ e10.e3.e7,              IDLE                                ] SERVICE;
+	transition [ e12,                    IDLE                                ] STANDBY;
+	transition [ e6,                     SETUP                               ] READY;
+	transition [ e7,                     READY                               ] SETUP;
+	transition [ e10.e2.e4,              CLEANUP                             ] IDLE;
+
+	fault_transition_on_sp_state returns PRE_RUN_SELF_TEST_RECOVERY, SYSTEM_SAFETY_FAULT;
+}
+

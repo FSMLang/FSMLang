@@ -1,0 +1,149 @@
+.machine {
+	border-collapse: collapse;
+}
+
+.machine td, .machine th {
+	padding: 10px;
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
+}
+
+.blankCorner {
+	background-color: rgb(96,182,255);
+}
+
+.eventName th, .stateName th {
+	background-color: rgb(96,182,255);
+	color: black;
+}
+
+.eventName a, .stateName a {
+	color: black;
+}
+
+.action {
+	color: green;
+}
+
+.action a {
+	color: green;
+}
+
+.nullAction {
+	color: orange;
+}
+
+.noAction {
+	color: green;
+}
+
+.elements {
+	border-style: solid;
+	border-collapse: collapse;
+	border-width: .5px;
+	border-color: black;
+	width: 75%;
+}
+
+.elements th {
+	background-color: rgb(96,182,255);
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
+	padding: 3px;
+}
+
+.elements td {
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
+	padding: 3px;
+}
+
+.label {
+	font-weight: bold;
+	padding: 3px;
+}
+
+.action .return_decl {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.action .return_decl li {
+  margin-top: 0px;
+}
+
+.action ul + br {
+	content: "";
+	margin: 0px;
+	display: block;
+	font-size: 0px;
+}
+
+.noAction .return_decl {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.noAction .return_decl li {
+  margin-top: 0px;
+}
+
+.noAction ul + br {
+	content: "";
+	margin: 0px;
+	display: block;
+	font-size: 0px;
+}
+
+a:link {
+	text-decoration: none;
+}
+
+a:visited {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:active {
+	text-decoration: underline;
+}
+
+/* Use overflow:scroll on your container to enable scrolling: */
+
+.scrollable {
+  max-height: 600px;
+  overflow: scroll;
+}
+
+
+/* Use position: sticky to have it stick to the edge
+ * and top, right, or left to choose which edge to stick to: */
+
+.scrollable thead th {
+	background-color: rgb(96,182,255);
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  top: 0;
+}
+
+.scrollable tbody th {
+	background-color: rgb(96,182,255);
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  left: 0;
+}
+
+
+/* To have the header in the first column stick to the left: */
+
+.scrollable thead th:first-child {
+  left: 0;
+  z-index: 1;
+}
+

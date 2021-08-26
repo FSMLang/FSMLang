@@ -1,29 +1,29 @@
 MACHINE_KEY
-Added : newMachine of type ID
+Added : newMachine of type ID in namespace 0
 newMachine : ID
 {
 STATE_KEY
-Added : s1 of type ID
+Added : s1 of type ID in namespace 0
 s1 : ID
 ,
-Added : s2 of type ID
+Added : s2 of type ID in namespace 0
 s2 : ID
 ,
-Added : s3 of type ID
+Added : s3 of type ID in namespace 0
 s3 : ID
 ;
 EVENT_KEY
-Added : e1 of type ID
+Added : e1 of type ID in namespace 0
 e1 : ID
 ,
-Added : e2 of type ID
+Added : e2 of type ID in namespace 0
 e2 : ID
 ,
-Added : e3 of type ID
+Added : e3 of type ID in namespace 0
 e3 : ID
 ;
 ACTION_KEY
-Added : a1 of type ID
+Added : a1 of type ID in namespace 0
 a1 : ID
 [
 Found : e1 of type ID
@@ -47,7 +47,7 @@ Found : s1 of type ID
 s1 : ID
 ]
 TRANSITION_KEY
-Added : transitionFn of type ID
+Added : transitionFn of type ID in namespace 0
 transitionFn : ID
 ;
 Doc Comment:
@@ -55,7 +55,7 @@ Doc Comment:
 		A Document Comment
 	
 ACTION_KEY
-Added : a2 of type ID
+Added : a2 of type ID in namespace 0
 a2 : ID
 [
 Found : e1 of type ID
@@ -94,7 +94,7 @@ Found : s3 of type ID
 s3 : ID
 )
 ]
-Added : transitionFn1 of type ID
+Added : transitionFn1 of type ID in namespace 0
 transitionFn1 : ID
 ;
 Found : a1 of type ID
@@ -112,7 +112,7 @@ s1 : ID
 Found : s2 of type ID
 s2 : ID
 ;
-Added : transitionFn2 of type ID
+Added : transitionFn2 of type ID in namespace 0
 transitionFn2 : ID
 RETURNS
 Found : s2 of type ID

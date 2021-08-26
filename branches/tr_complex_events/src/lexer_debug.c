@@ -55,5 +55,9 @@ char *strings[]  = {
   , "EXTERNAL"
   , "ON"
   , "VOID"
+  , "COMPLEX_EVENT_MEMBER"
+  , "COMPLEX_EVENT_KEY"
+  , "QS"
+  , "PREFIX"
 };
 

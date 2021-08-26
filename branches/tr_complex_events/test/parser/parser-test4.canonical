@@ -7,6 +7,7 @@ Data
 		int	 foo;
 		float	bar;
 	
+found the start of an event declaration list
 added another id to the event declaration list
 The 2 events so far :
 	badMessage
@@ -40,14 +41,14 @@ The actions so far(1):
 	sendErrorIndication
 	processMessage
 found a machine
-	with 2 events and 2 states
+	with 2 simple and 0 complex events; and 2 states
 Actions return states
 The states :
 	1:	working
 
 	0:	initial
 
-The events :
+The basic events :
 	1:	badMessage
 
 	0:	goodMessage
