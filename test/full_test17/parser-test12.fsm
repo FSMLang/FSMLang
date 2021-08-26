@@ -1,0 +1,57 @@
+native
+{
+#include "test.h"
+#include "external.h"
+}
+
+/*
+	Here are some comments
+*/
+machine newMachine
+ actions return void;
+	on transition baz;
+{
+
+data
+{
+	event_4_t       e4;
+	complex_event_t ce;
+}
+
+	state s1, s2, s3;
+	event e1=ext1, e2=ext2, e3=ext3;
+  event e4=ext4 {se1=exts1, se2=exts2};
+  event e5=ext5 {
+									se53=exts53
+									, se52=exts52
+										{
+											sse1=extsse1
+                      , sse2=extsse2
+										}
+									, se51=exts51
+									, se54=exts54
+                    {
+                      se541=exts541
+											, se542=exts542
+											  {
+													se5421=exts5421
+                        }
+                      , se543=exts543
+                    }
+								};
+
+	//This is a one-line comment
+	action a1[e1,s1] transition s1;
+	action a1[e5.se54.se542.se5421,s1] transition transitionFn;
+
+	/**
+		A Document Comment
+	*/
+	action a2[e4.se1,(s2,s3)] transition transitionFn;
+	transition[e3,(s1,s2,s3)] transitionFn1;
+
+	action a3[e5.se51,s1];
+
+	transitionFn1 returns s1,s2;
+}
+

@@ -1,20 +1,20 @@
 hello, world
-event: newMachine_e1
+event: ext1
 state: newMachine_s1
 newMachine_a1
 newMachine_transitionTos2
 newMachine_machineTransitionFn
 	old state: newMachine_s1
 	new state: newMachine_s2
-event: newMachine_e2
+event: ext2
 state: newMachine_s2
 newMachine_noAction
 newMachine_TransitionFn1
-event: newMachine_e3
+event: ext3
 state: newMachine_s2
 newMachine_noAction
 newMachine_TransitionFn1
-event: newMachine_e4
+event: ext4
 state: newMachine_s2
 newMachine_a2
 newMachine_TransitionFn

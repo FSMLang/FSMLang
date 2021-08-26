@@ -34,6 +34,8 @@ MACHINE_INFO  machineInfo;
 
 pFSMOutputGenerator	pfsmog;
 
+char error_buf[256];
+
 void yyerror(char *);
 
 %}
@@ -44,19 +46,25 @@ void yyerror(char *);
 	pACTION_INFO		action_info;
 	pMATRIX_INFO		matrix_info;
 	char *					charData;
+ pCOMPLEX_EVENT  pcomplex_event;
 }
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID
+%token PREFIX
+
 %token <charData>	NATIVE_KEY
 %token <charData>	DATA_KEY
 %token <charData>	DOC_COMMENT
+%token <charData> QS
 %token <pid_info> MACHINE
 %token <pid_info> STATE
 %token <pid_info> EVENT
 %token <pid_info> ACTION
 %token <pid_info> TRANSITION_FN
 %token <pid_info> ID
+%token <pid_info> COMPLEX_EVENT_KEY
+%token <pid_info> COMPLEX_EVENT_MEMBER
 
 %type <se_info>     event_comma_list
 %type <se_info>     event_vector
@@ -65,6 +73,7 @@ void yyerror(char *);
 %type <matrix_info> matrix
 %type <pid_info>    state_decl
 %type <pid_info>    event_decl
+%type <pid_info>    event_decl_start
 %type <pid_info>    state_decl_list
 %type <pid_info>    event_decl_list
 %type <pid_info>    transition
@@ -78,6 +87,16 @@ void yyerror(char *);
 %type <charData>    doccmnt
 %type <charData>    data
 %type <charData>    native
+%type <pid_info>    event_ref
+%type <pid_info>    complex_event_ref
+%type <pid_info>    complex_event_decl
+%type <pid_info>    complex_event_decl_start
+%type <pid_info>    nested_complex_event_decl
+%type <pid_info>    nested_complex_event_decl_start
+%type <pid_info>    complex_event_list
+%type <pid_info>    complex_event_list_member
+%type <pid_info>    complex_event_ancestor
+%type <charData>    prefix
 
 %%
 
@@ -102,6 +121,9 @@ fsmlang: native machine
 
 						free_ids();
 
+           namespace = DEFAULT_NAME_SPACE;
+           complex_parent = NULL;
+
 					}
 	| fsmlang native machine	
 					{ 
@@ -123,6 +145,9 @@ fsmlang: native machine
 
 						free_ids();
 
+           namespace = DEFAULT_NAME_SPACE;
+           complex_parent = NULL;
+
 					}
 	;
 
@@ -136,8 +161,9 @@ machine:	doccmnt machine_modifier MACHINE_KEY ID machine_qualifier '{' data stat
 
 						fprintf(yyout,"found a machine\n");
 						fprintf(yyout
-								,"\twith %d events and %d states\n"
+								,"\twith %d simple and %d complex events; and %d states\n"
 								,machineInfo.event_count
+								,machineInfo.complex_event_count
 								,machineInfo.state_count
 								);
 
@@ -185,19 +211,46 @@ machine:	doccmnt machine_modifier MACHINE_KEY ID machine_qualifier '{' data stat
 
 						}
 
-						fprintf(yyout,"The events :\n");
+						fprintf(yyout,"The basic events :\n");
 						for (pid_info = machineInfo.event_list;
 									pid_info;
 									pid_info = pid_info->nextEvent) {
+
+               if (get_id_type(pid_info) == COMPLEX_EVENT_MEMBER)
+               {
+								   fprintf(yyout
+									   	     ,"\t%d:\t"
+										       ,pid_info->seOrder
+                          );
+                  print_complex_event_ancestry(yyout,pid_info,false);
+                  fprintf(yyout
+                          ,"\n%s\n"
+		   								     ,pid_info->docCmnt ? pid_info->docCmnt : ""
+                          );
+               }
+               else
+               {
 
 								fprintf(yyout
 										,"\t%d:\t%s\n%s\n"
 										,pid_info->seOrder
 										,pid_info->name
 										,pid_info->docCmnt ? pid_info->docCmnt : ""
-										);
+			   						       );
+               }
 
 						}
+
+           if (machineInfo.complex_event_count)
+           {
+              fprintf(yyout,"The complex events:\n");
+              for (pid_info = machineInfo.complex_event_list;
+                    pid_info;
+                    pid_info = pid_info->nextEvent) {
+   
+                  print_complex_event(yyout,pid_info,&machineInfo);
+              }
+           }
 
 						fprintf(yyout,"The actions :\n");
 						for (pid_info = machineInfo.action_list;
@@ -218,7 +271,17 @@ machine:	doccmnt machine_modifier MACHINE_KEY ID machine_qualifier '{' data stat
 											pase_info;
 											pase_info = pase_info->next) {
 	
+                   if (get_id_type(pase_info->se) == COMPLEX_EVENT_MEMBER)
+                   {
+                       fprintf(yyout,"\t\t");
+                       print_complex_event_ancestry(yyout,pase_info->se,false);
+                       fprintf(yyout,"\n");
+                   }
+                   else
+                   {
+	
 										fprintf(yyout,"\t\t\t%s\n",pase_info->se->name);
+                   }
 	
 									}
 	
@@ -326,7 +389,7 @@ machine_qualifier:
            /* note that this is not added to the machine event list; it is here only to be
            found as an event id for return decls.
            */
-						add_id(EVENT,"noEvent",&pid_info);
+						add_id(EVENT,"noEvent",namespace,&pid_info);
         }
     | machine_transition_decl
     | action_return_spec
@@ -347,7 +410,7 @@ action_return_spec:
            /* note that this is not added to the machine event list; it is here only to be
            found as an event id for return decls.
            */
-						add_id(EVENT,"noEvent",&pid_info);
+						add_id(EVENT,"noEvent",namespace,&pid_info);
         }
 	| ACTIONS RETURN STATES ';'
 					{
@@ -404,7 +467,7 @@ transition_matrix:	TRANSITION_KEY matrix STATE ';'
 
 						//first, we have to add an id_info struct to the id list
 						//we treat it as a "null action"
-						add_id(ACTION,"",&pid_info);
+						add_id(ACTION,"",namespace,&pid_info);
 
 						//second, we grab a struct to hold the info
 						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
@@ -458,7 +521,7 @@ transition_matrix:	TRANSITION_KEY matrix STATE ';'
 
 						//first, we have to add an id_info struct to the id list
 						//we treat it as a "null action"
-						add_id(ACTION,"",&pid_info);
+						add_id(ACTION,"",namespace,&pid_info);
 
 						//second, we grab a struct to hold the info
 						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
@@ -496,7 +559,7 @@ transition_matrix:	TRANSITION_KEY matrix STATE ';'
 
 						//first, we have to add an id_info struct to the id list
 						//we treat it as a "null action"
-						add_id(ACTION,"",&pid_info);
+						add_id(ACTION,"",namespace,&pid_info);
 
 						//second, we grab a struct to hold the info
 						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
@@ -562,6 +625,14 @@ action_decl_list: doccmnt ACTION_KEY action
 							if (allocateActionArray(&machineInfo))
 
 								yyerror("out of memory");
+
+             if (machineInfo.complex_event_count) {
+
+                 if (allocateComplexEventStateLists(&machineInfo))
+
+								yyerror("out of memory");
+
+             }
 
 						}
 
@@ -821,7 +892,44 @@ state_comma_list:	STATE ','
 					}
 	;
 
-event_vector: '(' event_comma_list EVENT ')' 
+complex_event_ancestor: COMPLEX_EVENT_KEY
+    {
+        $$ = $1;
+        namespace = $$->complexInfo->namespace;
+
+        #ifdef PARSER_DEBUG
+        fprintf(yyout
+                , "starting complex_event_ancestor; namespace: %u\n"
+                , namespace
+               );
+        #endif
+    }
+    | complex_event_ancestor '.' COMPLEX_EVENT_KEY 
+    {
+        $$ = $3;
+        namespace = $$->complexInfo->namespace;
+
+        #ifdef PARSER_DEBUG
+        fprintf(yyout
+                , "continuing complex_event_ancestor; namespace: %u\n"
+                , namespace
+               );
+        #endif
+    }
+    ;
+
+complex_event_ref: complex_event_ancestor '.' COMPLEX_EVENT_MEMBER
+    {
+        $$ = $3;
+        namespace = DEFAULT_NAME_SPACE;
+    }
+    ;
+
+event_ref: EVENT {$$ = $1;}
+    | complex_event_ref {$$ = $1;}
+    ;
+
+event_vector: '(' event_comma_list event_ref ')' 
 					{
 
 						#ifdef PARSER_DEBUG
@@ -847,7 +955,7 @@ event_vector: '(' event_comma_list EVENT ')'
 						#endif
 
 					}
-	| EVENT
+	| event_ref
 					{
 
 						#ifdef PARSER_DEBUG
@@ -869,7 +977,7 @@ event_vector: '(' event_comma_list EVENT ')'
 					}
 	;
 
-event_comma_list:	EVENT ',' 	
+event_comma_list:	event_ref ',' 	
 					{
 
 						#ifdef PARSER_DEBUG
@@ -889,7 +997,7 @@ event_comma_list:	EVENT ','
 						$$->next = NULL;
 
 					}
-	| event_comma_list EVENT ','
+	| event_comma_list event_ref ','
 					{
 
 						#ifdef PARSER_DEBUG
@@ -911,15 +1019,31 @@ event_comma_list:	EVENT ','
 					}
 	;
 
-state_and_event_decls: state_or_event_decl
-	| state_and_event_decls state_or_event_decl
+state_and_event_decls: s_e_decls ';'
 	;
+
+s_e_decls: state_or_event_decl
+	| s_e_decls ';' state_or_event_decl
+    ;
 
 state_or_event_decl: state_decl
-	| event_decl
+	| event_decl 
+ | complex_event_decl
+    {
+				#ifdef PARSER_DEBUG
+				fprintf(yyout
+               ,"adding complex event declaration %s\n"
+               , $1->name
+               );
+				#endif
+
+        $1->nextEvent = (pID_INFO) machineInfo.complex_event_list;
+        machineInfo.complex_event_list = $1;
+        machineInfo.complex_event_count++;
+    }
 	;
 
-state_decl:	state_decl_list ';'
+state_decl:	state_decl_list 
 					{
 
 						#ifdef PARSER_DEBUG
@@ -981,7 +1105,7 @@ state_decl_list:	doccmnt STATE_KEY ID
 					}
 	;
  
-event_decl:	event_decl_list ';'
+event_decl:	event_decl_list 
 					{
 
 						#ifdef PARSER_DEBUG
@@ -1004,26 +1128,187 @@ event_decl:	event_decl_list ';'
 						$$ = $1;
 
 					}
-	;
+	       ;
 
-event_decl_list:	doccmnt EVENT_KEY ID external_designation
-					{
-
-           set_id_type($3,EVENT);
-
-						$3->nextEvent = machineInfo.event_list;
-						machineInfo.event_list = $3;
-
-						$3->seOrder = machineInfo.event_count++;
+event_decl_start: doccmnt EVENT_KEY ID external_designation
+        {
 
  					$3->docCmnt             = $1;
            $3->externalDesignation = $4;
-           if ($4)
+           //don't count the external designation until we know this is not a complex event
+
+           
+						$$ = $3;
+
+        }
+        ;
+
+complex_event_list
+    : complex_event_list_member
+        {
+            $$ = $1;
+            namespace = $$->namespace;
+            complex_parent = $$->complexInfo->parent;
+        }
+    | complex_event_list ',' complex_event_list_member
+        {
+            $3->complexInfo->nextEvent = $1;
+            $$ = $3;
+            namespace = $$->namespace;
+            complex_parent = $$->complexInfo->parent;
+        }
+    ;
+
+complex_event_list_member
+        : ID external_designation
+					{
+                if (($1->complexInfo = (pCOMPLEX_EVENT) calloc(1, sizeof(COMPLEX_EVENT))) == NULL)
+                    yyerror("out of memory");
+
+                set_id_type($1,COMPLEX_EVENT_MEMBER);
+
+                /* this is the actual "event" */
+						     $1->nextEvent = machineInfo.event_list;
+						machineInfo.event_list = $1;
+						     $1->seOrder = machineInfo.event_count++;
+
+                $1->externalDesignation = $2;
+                machineInfo.external_event_designation_count++;
+
+                $1->complexInfo->parent = complex_parent;
+
+                $$ = $1;
+            }
+        | nested_complex_event_decl
+            {
+                $$ = $1;
+            }
+        ;
+
+complex_event_decl_start: event_decl_start prefix '{' 
+    {
+        if (($1->complexInfo = (pCOMPLEX_EVENT) calloc(1, sizeof(COMPLEX_EVENT))) == NULL)
+            yyerror("out of memory");
+
+        set_id_type($1,COMPLEX_EVENT_KEY);
+
+        $1->complexInfo->namespace = namespace = ++machineInfo.namespaces;
+        complex_parent = $1;
+
+        $1->complexInfo->name_prefix = $2;
+
+        #ifdef PARSER_DEBUG
+        printf("complex_parent: %s\n", complex_parent->name);
+        #endif
+
+
+        $$ = $1;
+    }
+    ;
+
+prefix: {$$ = NULL;}
+    | PREFIX ':' QS {$$ = $3;}
+    ;
+
+complex_event_decl: complex_event_decl_start complex_event_list '}'
+        {
+
+            $$ = $1;
+
+            $$->complexInfo->members = $2;
+
+            namespace = DEFAULT_NAME_SPACE;
+            complex_parent = NULL;
+
+            #ifdef PARSER_DEBUG
+						 fprintf(yyout
+                    ,"found a complex event declaration %s\n"
+                    , $$->name
+                    );
+            fprintf(yyout,"members:\n");
+            pID_INFO pid;
+            for (pid=$$->complexInfo->members; pid; pid = pid->complexInfo->nextEvent)
+            {
+                fprintf(yyout
+                        ,"\t%s%s\n"
+                        , pid->name
+                        , (get_id_type(pid) == COMPLEX_EVENT_KEY)
+                            ? " (complex)" 
+                            : ""
+                        );
+            }
+            #endif
+        }
+        ;
+
+nested_complex_event_decl_start: ID external_designation prefix '{'
+    {
+        if (($1->complexInfo = (pCOMPLEX_EVENT) calloc(1, sizeof(COMPLEX_EVENT))) == NULL)
+            yyerror("out of memory");
+
+        set_id_type($1,COMPLEX_EVENT_KEY);
+        $1->externalDesignation = $2;
+
+        $1->complexInfo->name_prefix = $3;
+
+        $$ = $1;
+
+        $$->complexInfo->namespace = namespace = ++machineInfo.namespaces;
+        $$->complexInfo->parent    = complex_parent;
+
+        complex_parent = $$;
+    }
+    ;
+
+nested_complex_event_decl: nested_complex_event_decl_start complex_event_list '}'
+        {
+            #ifdef PARSER_DEBUG
+            #endif
+
+            $$ = $1;
+
+            $$->complexInfo->members = $2;
+
+            #ifdef PARSER_DEBUG
+						 fprintf(yyout
+                    ,"found a nested complex event declaration %s\n"
+                    , $$->name
+                    );
+            fprintf(yyout,"members:\n");
+            pID_INFO pid;
+            for (pid=$$->complexInfo->members; pid; pid = pid->complexInfo->nextEvent)
+            {
+                fprintf(yyout
+                        ,"\t%s%s\n"
+                        , pid->name
+                        , (get_id_type(pid) == COMPLEX_EVENT_KEY)
+                            ? " (complex)"
+                            : ""
+                        );
+            }
+            #endif
+        }
+        ;
+
+event_decl_list:	 event_decl_start
+					{
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found the start of an event declaration list\n");
+						#endif
+
+           set_id_type($1,EVENT);
+
+						$1->nextEvent = machineInfo.event_list;
+						machineInfo.event_list = $1;
+
+						$1->seOrder = machineInfo.event_count++;
+
+           if ($1->externalDesignation)
            {
 						   machineInfo.external_event_designation_count++;
            }
 
-						$$ = $3;
+						$$ = $1;
 
 					}
 	| event_decl_list ',' ID external_designation
@@ -1044,6 +1329,8 @@ event_decl_list:	doccmnt EVENT_KEY ID external_designation
 						   machineInfo.external_event_designation_count++;
            }
 
+           $3->parentEvent = $1;
+
 						$$ = $3;
 
 					}
@@ -1058,6 +1345,19 @@ external_designation : {
            fprintf(yyout,"External designation = %s\n",$2->name);
            #endif
             $$ = $2;
+ }
+ | '=' QS ':' ID
+ {
+           $4->name_prefix = $2;
+
+           #ifdef PARSER_DEBUG
+           fprintf(yyout
+                   ,"External designation = %s%s\n"
+                   ,$4->name_prefix
+                   ,$4->name
+                   );
+           #endif
+            $$ = $4;
  }
  ;
 
@@ -1276,6 +1576,8 @@ transition_fn_return_decl:
 
 void usage(void);
 char *dotfsm = ".fsm";
+unsigned namespace;
+pID_INFO complex_parent;
 
 int main(int argc, char **argv)
 {
@@ -1285,6 +1587,8 @@ int main(int argc, char **argv)
 	char  *outFileBase = 0;
 
 	me = argv[0];
+ namespace      = DEFAULT_NAME_SPACE;
+ complex_parent = NULL;
 
 	/* special case the single '?' */
 	if (argc == 2 && argv[1][0] == '?') {

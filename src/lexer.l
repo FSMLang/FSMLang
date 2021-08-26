@@ -137,6 +137,19 @@ native	{
 					#endif
 					}
 
+	/* quoted strings */
+\"([^\\\"]|\\.)*\" {
+
+        yytext[strlen(yytext)-1]=0;
+				 #ifdef LEX_DEBUG
+        printf("Quoted string: %s\n", yytext+1);
+        #else
+        yylval.charData = strdup(yytext+1);
+        return QS;
+        #endif
+    }
+
+
 	/* statement end */
 ;	{
 		#ifndef LEX_DEBUG
@@ -259,8 +272,16 @@ void {
 					#endif
 				}
 
+prefix {
+					#ifndef LEX_DEBUG
+					return PREFIX;
+					#else
+					printf("%s\n",strings[PREFIX]);
+					#endif
+				}
 
-[](){}=] | 
+
+[](){}=\.] | 
 [[]		{ 
 				#ifndef LEX_DEBUG
 				return yytext[0];
@@ -269,7 +290,7 @@ void {
 				#endif
 			}
 
-,		{ 
+[,:]		{ 
 				#ifndef LEX_DEBUG
 				return yytext[0]; 
 				#else
@@ -283,7 +304,7 @@ void {
 					int				wordType;
 					pID_INFO	pid_info;
 
-         wordType = add_id(ID,yytext,&pid_info);
+         wordType = add_id(ID,yytext,namespace,&pid_info);
 
 					#ifndef LEX_DEBUG
 
@@ -328,8 +349,11 @@ int yywrap(void)
 #endif
 
 #if defined (LEX_DEBUG)
+unsigned namespace;
 int main (int argc, char **argv)
 {
+    namespace = 0;
+
     yylex();
 
     return 0;

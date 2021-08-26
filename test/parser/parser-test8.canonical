@@ -9,6 +9,7 @@ The 3 states so far :
 	s3
 	s2
 	s1
+found the start of an event declaration list
 added another id to the event declaration list
 added another id to the event declaration list
 added another id to the event declaration list
@@ -18,6 +19,7 @@ The 4 events so far :
 	e2
 	e1
 External designation = BAR
+found the start of an event declaration list
 The 5 events so far :
 	e5 = BAR
 	e4
@@ -73,7 +75,7 @@ Found an action return declaration
 found the beginning of a state comma list
 Found an transition_fn return declaration
 found a machine
-	with 5 events and 3 states
+	with 5 simple and 0 complex events; and 3 states
 Actions return events
 The states :
 	2:	s3
@@ -82,7 +84,7 @@ The states :
 
 	0:	s1
 
-The events :
+The basic events :
 	4:	e5
 
 	3:	e4

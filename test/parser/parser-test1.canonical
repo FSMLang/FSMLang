@@ -7,6 +7,7 @@ The 4 states so far :
 	s3
 	s2
 	s1
+found the start of an event declaration list
 added another id to the event declaration list
 added another id to the event declaration list
 added another id to the event declaration list
@@ -60,7 +61,7 @@ The actions so far(1):
 	a2
 	a1
 found a machine
-	with 4 events and 4 states
+	with 4 simple and 0 complex events; and 4 states
 Actions return events
 The states :
 	3:	s4
@@ -71,7 +72,7 @@ The states :
 
 	0:	s1
 
-The events :
+The basic events :
 	3:	e4
 
 	2:	e3
@@ -122,6 +123,7 @@ The 4 states so far :
 	anmS3
 	anmS2
 	anmS1
+found the start of an event declaration list
 added another id to the event declaration list
 added another id to the event declaration list
 added another id to the event declaration list
@@ -184,7 +186,7 @@ The actions so far(1):
 	anmA2
 	anmA1
 found a machine
-	with 4 events and 4 states
+	with 4 simple and 0 complex events; and 4 states
 Actions return events
 The states :
 	3:	anmS4
@@ -195,7 +197,7 @@ The states :
 
 	0:	anmS1
 
-The events :
+The basic events :
 	3:	anmE4
 
 	2:	anmE3

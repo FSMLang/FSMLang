@@ -1,6 +1,15 @@
 MACHINE_KEY
 Added : newMachine of type ID in namespace 0
 newMachine : ID
+ACTIONS
+RETURN
+VOID
+;
+ON
+TRANSITION_KEY
+Added : baz of type ID in namespace 0
+baz : ID
+;
 {
 STATE_KEY
 Added : s1 of type ID in namespace 0
@@ -29,10 +38,22 @@ e3 : ID
 EVENT_KEY
 Added : e4 of type ID in namespace 0
 e4 : ID
-EXTERNAL
 =
-Added : BAR of type ID in namespace 0
-BAR : ID
+Added : ext4 of type ID in namespace 0
+ext4 : ID
+{
+Added : se1 of type ID in namespace 0
+se1 : ID
+=
+Added : exts1 of type ID in namespace 0
+exts1 : ID
+,
+Added : se2 of type ID in namespace 0
+se2 : ID
+=
+Added : exts2 of type ID in namespace 0
+exts2 : ID
+}
 ;
 ACTION_KEY
 Added : a1 of type ID in namespace 0
@@ -72,6 +93,9 @@ a2 : ID
 [
 Found : e1 of type ID
 e1 : ID
+.
+Found : se1 of type ID
+se1 : ID
 ,
 (
 Found : s2 of type ID
@@ -108,12 +132,6 @@ s3 : ID
 ]
 Added : transitionFn1 of type ID in namespace 0
 transitionFn1 : ID
-;
-Found : a1 of type ID
-a1 : ID
-RETURNS
-Found : e1 of type ID
-e1 : ID
 ;
 Found : transitionFn1 of type ID
 transitionFn1 : ID
