@@ -1276,6 +1276,7 @@ char *index(const char *s,int c);
 #include "vsstring.h"
 #endif
 
+//this suppresses a warning; I cannot find the right header file for mingwsa.
 char *rindex(const char *s,int c);
 
 void usage(void);
