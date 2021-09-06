@@ -793,6 +793,44 @@ void print_complex_event(FILE *fp, pID_INFO pid, pMACHINE_INFO pmi)
            );
 }
 
+/**********************************************************************************************************************/
+/**
+ * @brief print the actions return spec indicated by modFlags
+ * 
+ * @author Steven Stanton (9/5/2021)
+ * 
+ * @param fp pointer to the output fileName
+ * @param modFlags flags containing the actions return spec
+ * @param le the character to place at the end of the string.
+ * 
+ *
+ * @ref_global none
+ *
+ * @mod_global none
+ *
+ * @thread_safe yes
+ *
+ * 
+ ***********************************************************************************************************************/
+void print_actions_return_spec(FILE *fp, MOD_FLAGS modFlags, char le)
+{
+   if (modFlags & mfActionsReturnStates) {
+
+     fprintf(fp,"Actions return states%c",le);
+
+   }
+   else if (modFlags & mfActionsReturnVoid) {
+
+     fprintf(fp,"Actions return void%c",le);
+
+   }
+   else {
+
+     fprintf(fp,"Actions return events%c",le);
+
+   }
+}
+
 static void _print_complex_event(pID_INFO ce, void *param)
 {
    pcomplex_event_print_cb pcb = param;
@@ -804,7 +842,7 @@ static void _print_complex_event(pID_INFO ce, void *param)
       fprintf(pcb->fp, "%c ", pcb->comma);
 
       fprintf(pcb->fp
-              , "%s (namespace: %u, %u, parent: %s, prefix: %s):\n\tneeded by states: "
+              , "%s (namespace: %u, %u, parent: %s, prefix: %s; "
               , ce->name
               , ce->namespace
               , ce->complexInfo->namespace
@@ -814,6 +852,12 @@ static void _print_complex_event(pID_INFO ce, void *param)
               , ce->complexInfo->name_prefix
                   ? ce->complexInfo->name_prefix 
                   : "None"
+              );
+
+      print_actions_return_spec(pcb->fp, ce->complexInfo->mod_flags,')');
+
+      fprintf(pcb->fp
+              , ":\n\tneeded by states: "
               );
 
       for (i = 0, comma = false; i < pcb->pmi->state_count; i++)

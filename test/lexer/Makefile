@@ -12,16 +12,17 @@ SRC = lexer.c       \
 			lexer_debug.c \
 			fsm_utils.c
 
-TESTS=lexer-test1 \
-			lexer-test2 \
-			lexer-test3 \
-			lexer-test4 \
-			lexer-test5 \
-			lexer-test6 \
-			lexer-test7 \
-			lexer-test8 \
-			lexer-test9 \
-			lexer-test10
+TESTS=lexer-test1  \
+			lexer-test2  \
+			lexer-test3  \
+			lexer-test4  \
+			lexer-test5  \
+			lexer-test6  \
+			lexer-test7  \
+			lexer-test8  \
+			lexer-test9  \
+			lexer-test10 \
+			lexer-test11 \
 
 LDFLAGS=-lfl
 
@@ -36,3 +37,4 @@ $(TESTS): test
 	@echo $@ successful
 	@rm $@.out $@.result
 
+lexer.c: lexer.l

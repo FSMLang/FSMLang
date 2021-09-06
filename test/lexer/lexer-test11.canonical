@@ -1,0 +1,1418 @@
+Native:
+
+
+#include <stdbool.h>
+
+#include "test.h"
+#include "external.h"
+
+#define enable_standby true
+#define disable_standby false
+
+Doc Comment:
+
+  This is the main control FSM for the instrument.
+
+MACHINE_KEY
+Added : systemManager of type ID in namespace 0
+systemManager : ID
+ACTIONS
+RETURN
+EVENTS
+;
+ON
+TRANSITION_KEY
+Added : changeStateAndNotify of type ID in namespace 0
+changeStateAndNotify : ID
+;
+{
+STATE_KEY
+Added : POST of type ID in namespace 0
+POST : ID
+,
+Added : IDLE of type ID in namespace 0
+IDLE : ID
+,
+Added : STANDBY of type ID in namespace 0
+STANDBY : ID
+,
+Added : SETUP of type ID in namespace 0
+SETUP : ID
+,
+Added : READY of type ID in namespace 0
+READY : ID
+,
+Added : PRE_RUN_SELF_TEST_RECOVERY of type ID in namespace 0
+PRE_RUN_SELF_TEST_RECOVERY : ID
+,
+Added : ABORT_RECOVERY of type ID in namespace 0
+ABORT_RECOVERY : ID
+,
+Added : SAMPLE_PROCESSING of type ID in namespace 0
+SAMPLE_PROCESSING : ID
+,
+Added : RUN_COMPLETION of type ID in namespace 0
+RUN_COMPLETION : ID
+,
+Added : CLEANUP of type ID in namespace 0
+CLEANUP : ID
+,
+Added : MANUAL_CONTROLS of type ID in namespace 0
+MANUAL_CONTROLS : ID
+,
+Added : RECIPE_EXECUTION of type ID in namespace 0
+RECIPE_EXECUTION : ID
+,
+Added : SYSTEM_SAFETY_FAULT of type ID in namespace 0
+SYSTEM_SAFETY_FAULT : ID
+,
+Added : SERVICE of type ID in namespace 0
+SERVICE : ID
+;
+EVENT_KEY
+Added : e10 of type ID in namespace 0
+e10 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : MESSAGE_QUEUE_EVENT of type ID in namespace 0
+MESSAGE_QUEUE_EVENT : ID
+PREFIX
+:
+Quoted string: SF_MESSAGE_EVENT_CLASS_
+{
+ACTIONS
+RETURN
+VOID
+;
+Added : e2 of type ID in namespace 0
+e2 : ID
+=
+Added : RUN_SETUP_USER_ACTION_NOTICE of type ID in namespace 0
+RUN_SETUP_USER_ACTION_NOTICE : ID
+PREFIX
+:
+Quoted string: RSA_
+{
+Added : e1 of type ID in namespace 0
+e1 : ID
+=
+Added : setup_started of type ID in namespace 0
+setup_started : ID
+,
+Found : e2 of type ID
+e2 : ID
+=
+Added : new_kit of type ID in namespace 0
+new_kit : ID
+,
+Added : e3 of type ID in namespace 0
+e3 : ID
+=
+Added : run_setup_cancelled of type ID in namespace 0
+run_setup_cancelled : ID
+,
+Added : e4 of type ID in namespace 0
+e4 : ID
+=
+Added : run_completion_acknowledged of type ID in namespace 0
+run_completion_acknowledged : ID
+}
+,
+Added : e11 of type ID in namespace 0
+e11 : ID
+=
+Added : PUMP_ON_TOO_LONG_ERROR_NOTICE of type ID in namespace 0
+PUMP_ON_TOO_LONG_ERROR_NOTICE : ID
+,
+Added : e12 of type ID in namespace 0
+e12 : ID
+=
+Added : PUMP_DUTY_CYCLE_ERROR_NOTICE of type ID in namespace 0
+PUMP_DUTY_CYCLE_ERROR_NOTICE : ID
+,
+Added : e13 of type ID in namespace 0
+e13 : ID
+=
+Added : PRESSURE_DECAY_TEST_RESULT_NOTICE of type ID in namespace 0
+PRESSURE_DECAY_TEST_RESULT_NOTICE : ID
+PREFIX
+:
+Quoted string: IF_
+{
+Found : e1 of type ID
+e1 : ID
+=
+Added : pressure_decay_test_failure of type ID in namespace 0
+pressure_decay_test_failure : ID
+}
+,
+Added : e14 of type ID in namespace 0
+e14 : ID
+=
+Added : CHAMBER_PRESSURE_SWITCH_VENT_TIMEOUT_NOTICE of type ID in namespace 0
+CHAMBER_PRESSURE_SWITCH_VENT_TIMEOUT_NOTICE : ID
+,
+Added : e15 of type ID in namespace 0
+e15 : ID
+=
+Added : CHAMBER_PRESSURE_SWITCH_FILL_TIMEOUT_NOTICE of type ID in namespace 0
+CHAMBER_PRESSURE_SWITCH_FILL_TIMEOUT_NOTICE : ID
+,
+Added : e16 of type ID in namespace 0
+e16 : ID
+=
+Added : CHAMBER_PRESSURIZED_BUT_NOT_LATCHED_ERROR_NOTICE of type ID in namespace 0
+CHAMBER_PRESSURIZED_BUT_NOT_LATCHED_ERROR_NOTICE : ID
+,
+Added : e17 of type ID in namespace 0
+e17 : ID
+=
+Added : CHAMBER_PRESSURE_SWITCH_DEVIATION_NOTICE of type ID in namespace 0
+CHAMBER_PRESSURE_SWITCH_DEVIATION_NOTICE : ID
+,
+Added : e18 of type ID in namespace 0
+e18 : ID
+=
+Added : TANK_PRESSURE_TOO_HIGH_ERROR_NOTICE of type ID in namespace 0
+TANK_PRESSURE_TOO_HIGH_ERROR_NOTICE : ID
+,
+Added : e19 of type ID in namespace 0
+e19 : ID
+=
+Added : CHAMBER_PRESSURE_TOO_HIGH_ERROR_NOTICE of type ID in namespace 0
+CHAMBER_PRESSURE_TOO_HIGH_ERROR_NOTICE : ID
+,
+Added : e20 of type ID in namespace 0
+e20 : ID
+=
+Added : CHAMBER_PRESSURE_DETECTED_WITH_LOW_SUPPLY_PRESSURE_ERROR_NOTICE of type ID in namespace 0
+CHAMBER_PRESSURE_DETECTED_WITH_LOW_SUPPLY_PRESSURE_ERROR_NOTICE : ID
+,
+Added : e21 of type ID in namespace 0
+e21 : ID
+=
+Added : PINCH_VALVE_TIMEOUT_ERROR_NOTICE of type ID in namespace 0
+PINCH_VALVE_TIMEOUT_ERROR_NOTICE : ID
+,
+Added : e22 of type ID in namespace 0
+e22 : ID
+=
+Added : CHAMBER_PIN_TIMEOUT_ERROR_NOTICE of type ID in namespace 0
+CHAMBER_PIN_TIMEOUT_ERROR_NOTICE : ID
+,
+Added : e23 of type ID in namespace 0
+e23 : ID
+=
+Added : CHAMBER_LATCH_TIMEOUT_ERROR_NOTICE of type ID in namespace 0
+CHAMBER_LATCH_TIMEOUT_ERROR_NOTICE : ID
+,
+Added : e24 of type ID in namespace 0
+e24 : ID
+=
+Added : PINCH_VALVE_INCORRECT_STATE_ERROR_NOTICE of type ID in namespace 0
+PINCH_VALVE_INCORRECT_STATE_ERROR_NOTICE : ID
+,
+Added : e25 of type ID in namespace 0
+e25 : ID
+=
+Added : CHAMBER_PRESSURE_ERROR_NOTICE of type ID in namespace 0
+CHAMBER_PRESSURE_ERROR_NOTICE : ID
+,
+Added : e26 of type ID in namespace 0
+e26 : ID
+=
+Added : SALINE_LOST_ERROR_NOTICE of type ID in namespace 0
+SALINE_LOST_ERROR_NOTICE : ID
+,
+Added : e27 of type ID in namespace 0
+e27 : ID
+=
+Added : TOUCH of type ID in namespace 0
+TOUCH : ID
+{
+Found : e1 of type ID
+e1 : ID
+=
+Added : SF_TOUCH_PANEL_EVENT_DOWN of type ID in namespace 0
+SF_TOUCH_PANEL_EVENT_DOWN : ID
+}
+,
+Found : e3 of type ID
+e3 : ID
+=
+Added : SERVICE_DIALOG_ACTION_NOTICE of type ID in namespace 0
+SERVICE_DIALOG_ACTION_NOTICE : ID
+PREFIX
+:
+Quoted string: SA_
+{
+Found : e1 of type ID
+e1 : ID
+=
+Added : fault_service_screen_entered of type ID in namespace 0
+fault_service_screen_entered : ID
+,
+Found : e2 of type ID
+e2 : ID
+=
+Added : calibration_screen_entered of type ID in namespace 0
+calibration_screen_entered : ID
+,
+Found : e3 of type ID
+e3 : ID
+=
+Added : manual_controls_entered of type ID in namespace 0
+manual_controls_entered : ID
+,
+Found : e4 of type ID
+e4 : ID
+=
+Added : custom_recipe_screen_entered of type ID in namespace 0
+custom_recipe_screen_entered : ID
+,
+Added : e5 of type ID in namespace 0
+e5 : ID
+=
+Added : recipe_screen_entered of type ID in namespace 0
+recipe_screen_entered : ID
+,
+Added : e6 of type ID in namespace 0
+e6 : ID
+=
+Added : service_dialog_exited of type ID in namespace 0
+service_dialog_exited : ID
+,
+Added : e7 of type ID in namespace 0
+e7 : ID
+=
+Added : service_dialog_entered of type ID in namespace 0
+service_dialog_entered : ID
+}
+,
+Found : e1 of type ID
+e1 : ID
+=
+Added : PUMP_STATE_NOTICE of type ID in namespace 0
+PUMP_STATE_NOTICE : ID
+{
+Found : e1 of type ID
+e1 : ID
+=
+Added : PUMP_OFF of type ID in namespace 0
+PUMP_OFF : ID
+}
+,
+Found : e4 of type ID
+e4 : ID
+=
+Added : RTC_READY_NOTICE of type ID in namespace 0
+RTC_READY_NOTICE : ID
+,
+Found : e5 of type ID
+e5 : ID
+=
+Added : SYSTEM_FAULT_CLEAR_REQUEST of type ID in namespace 0
+SYSTEM_FAULT_CLEAR_REQUEST : ID
+PREFIX
+:
+Quoted string: SFT_
+{
+Found : e1 of type ID
+e1 : ID
+=
+Added : inhibiting of type ID in namespace 0
+inhibiting : ID
+,
+Found : e2 of type ID
+e2 : ID
+=
+Added : run_terminating of type ID in namespace 0
+run_terminating : ID
+,
+Found : e3 of type ID
+e3 : ID
+=
+Added : safety of type ID in namespace 0
+safety : ID
+}
+,
+Found : e6 of type ID
+e6 : ID
+=
+Added : FILE_SYSTEM_REQUEST of type ID in namespace 0
+FILE_SYSTEM_REQUEST : ID
+,
+Found : e7 of type ID
+e7 : ID
+=
+Added : FILE_SYSTEM_NOTICE of type ID in namespace 0
+FILE_SYSTEM_NOTICE : ID
+,
+Added : e8 of type ID in namespace 0
+e8 : ID
+=
+Added : PUMP_RUN_TIME_RESET_REQUEST of type ID in namespace 0
+PUMP_RUN_TIME_RESET_REQUEST : ID
+,
+Added : e9 of type ID in namespace 0
+e9 : ID
+=
+Added : SET_SYSTEM_SETTING_STANDBY_CONTROL_REQUEST of type ID in namespace 0
+SET_SYSTEM_SETTING_STANDBY_CONTROL_REQUEST : ID
+{
+Found : e1 of type ID
+e1 : ID
+=
+Added : enable_standby of type ID in namespace 0
+enable_standby : ID
+,
+Found : e2 of type ID
+e2 : ID
+=
+Added : disable_standby of type ID in namespace 0
+disable_standby : ID
+}
+,
+Found : e10 of type ID
+e10 : ID
+=
+Added : SYSTEM_TIME_UPDATE_REQUEST of type ID in namespace 0
+SYSTEM_TIME_UPDATE_REQUEST : ID
+PREFIX
+:
+Quoted string: RTC_
+{
+Found : e1 of type ID
+e1 : ID
+=
+Added : UPDATE_TIME of type ID in namespace 0
+UPDATE_TIME : ID
+,
+Found : e2 of type ID
+e2 : ID
+=
+Added : UPDATE_DATE of type ID in namespace 0
+UPDATE_DATE : ID
+}
+}
+;
+EVENT_KEY
+Found : e1 of type ID
+e1 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : CRC_FAILED of type ID in namespace 0
+CRC_FAILED : ID
+,
+Found : e2 of type ID
+e2 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : POST_SUCCESSFUL of type ID in namespace 0
+POST_SUCCESSFUL : ID
+,
+Found : e3 of type ID
+e3 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : SHORT_MIXING_TIMER_EVENT of type ID in namespace 0
+SHORT_MIXING_TIMER_EVENT : ID
+,
+Found : e4 of type ID
+e4 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : LONG_MIXING_TIMER_EVENT of type ID in namespace 0
+LONG_MIXING_TIMER_EVENT : ID
+,
+Found : e5 of type ID
+e5 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : USER_LOGIN_TIMER_EVENT of type ID in namespace 0
+USER_LOGIN_TIMER_EVENT : ID
+,
+Found : e6 of type ID
+e6 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : RUN_SETUP_COMPLETE of type ID in namespace 0
+RUN_SETUP_COMPLETE : ID
+,
+Found : e7 of type ID
+e7 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : RETURN_TO_RUN_SETUP of type ID in namespace 0
+RETURN_TO_RUN_SETUP : ID
+,
+Found : e8 of type ID
+e8 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : PRST_RECOVERY_COMPLETE of type ID in namespace 0
+PRST_RECOVERY_COMPLETE : ID
+,
+Found : e9 of type ID
+e9 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : CLEANUP_TIMER_EVENT of type ID in namespace 0
+CLEANUP_TIMER_EVENT : ID
+,
+Found : e11 of type ID
+e11 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : WATCHDOG_TIMER_EVENT of type ID in namespace 0
+WATCHDOG_TIMER_EVENT : ID
+,
+Found : e12 of type ID
+e12 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : STANDBY_TIMER_EVENT of type ID in namespace 0
+STANDBY_TIMER_EVENT : ID
+,
+Found : e13 of type ID
+e13 : ID
+=
+Quoted string: SYSTEM_MANAGER_
+:
+Added : RUN_TIMER_EVENT of type ID in namespace 0
+RUN_TIMER_EVENT : ID
+;
+ACTION_KEY
+Added : set_system_health_event_crc_failed of type ID in namespace 0
+set_system_health_event_crc_failed : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+(
+Found : POST of type ID
+POST : ID
+,
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : STANDBY of type ID
+STANDBY : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+,
+Found : READY of type ID
+READY : ID
+,
+Found : PRE_RUN_SELF_TEST_RECOVERY of type ID
+PRE_RUN_SELF_TEST_RECOVERY : ID
+,
+Found : ABORT_RECOVERY of type ID
+ABORT_RECOVERY : ID
+,
+Found : SAMPLE_PROCESSING of type ID
+SAMPLE_PROCESSING : ID
+,
+Found : RUN_COMPLETION of type ID
+RUN_COMPLETION : ID
+,
+Found : CLEANUP of type ID
+CLEANUP : ID
+,
+Found : MANUAL_CONTROLS of type ID
+MANUAL_CONTROLS : ID
+,
+Found : RECIPE_EXECUTION of type ID
+RECIPE_EXECUTION : ID
+,
+Found : SYSTEM_SAFETY_FAULT of type ID
+SYSTEM_SAFETY_FAULT : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+)
+]
+;
+ACTION_KEY
+Added : continue_post_post_init of type ID in namespace 0
+continue_post_post_init : ID
+[
+Found : e2 of type ID
+e2 : ID
+,
+Found : POST of type ID
+POST : ID
+]
+TRANSITION_KEY
+Found : IDLE of type ID
+IDLE : ID
+;
+ACTION_KEY
+Added : perhaps_pet_the_dog of type ID in namespace 0
+perhaps_pet_the_dog : ID
+[
+Found : e11 of type ID
+e11 : ID
+,
+(
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : STANDBY of type ID
+STANDBY : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+,
+Found : READY of type ID
+READY : ID
+,
+Found : PRE_RUN_SELF_TEST_RECOVERY of type ID
+PRE_RUN_SELF_TEST_RECOVERY : ID
+,
+Found : ABORT_RECOVERY of type ID
+ABORT_RECOVERY : ID
+,
+Found : SAMPLE_PROCESSING of type ID
+SAMPLE_PROCESSING : ID
+,
+Found : RUN_COMPLETION of type ID
+RUN_COMPLETION : ID
+,
+Found : CLEANUP of type ID
+CLEANUP : ID
+,
+Found : MANUAL_CONTROLS of type ID
+MANUAL_CONTROLS : ID
+,
+Found : RECIPE_EXECUTION of type ID
+RECIPE_EXECUTION : ID
+,
+Found : SYSTEM_SAFETY_FAULT of type ID
+SYSTEM_SAFETY_FAULT : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+)
+]
+;
+ACTION_KEY
+Added : increment_compressor_run_time of type ID in namespace 0
+increment_compressor_run_time : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e1 of type ID
+e1 : ID
+.
+Found : e1 of type ID
+e1 : ID
+,
+(
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : STANDBY of type ID
+STANDBY : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+,
+Found : READY of type ID
+READY : ID
+,
+Found : PRE_RUN_SELF_TEST_RECOVERY of type ID
+PRE_RUN_SELF_TEST_RECOVERY : ID
+,
+Found : ABORT_RECOVERY of type ID
+ABORT_RECOVERY : ID
+,
+Found : SAMPLE_PROCESSING of type ID
+SAMPLE_PROCESSING : ID
+,
+Found : RUN_COMPLETION of type ID
+RUN_COMPLETION : ID
+,
+Found : CLEANUP of type ID
+CLEANUP : ID
+,
+Found : MANUAL_CONTROLS of type ID
+MANUAL_CONTROLS : ID
+,
+Found : RECIPE_EXECUTION of type ID
+RECIPE_EXECUTION : ID
+,
+Found : SYSTEM_SAFETY_FAULT of type ID
+SYSTEM_SAFETY_FAULT : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+)
+]
+;
+ACTION_KEY
+Added : increment_instrument_run_time of type ID in namespace 0
+increment_instrument_run_time : ID
+[
+Found : e13 of type ID
+e13 : ID
+,
+(
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : STANDBY of type ID
+STANDBY : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+,
+Found : READY of type ID
+READY : ID
+,
+Found : PRE_RUN_SELF_TEST_RECOVERY of type ID
+PRE_RUN_SELF_TEST_RECOVERY : ID
+,
+Found : ABORT_RECOVERY of type ID
+ABORT_RECOVERY : ID
+,
+Found : SAMPLE_PROCESSING of type ID
+SAMPLE_PROCESSING : ID
+,
+Found : RUN_COMPLETION of type ID
+RUN_COMPLETION : ID
+,
+Found : CLEANUP of type ID
+CLEANUP : ID
+,
+Found : MANUAL_CONTROLS of type ID
+MANUAL_CONTROLS : ID
+,
+Found : RECIPE_EXECUTION of type ID
+RECIPE_EXECUTION : ID
+,
+Found : SYSTEM_SAFETY_FAULT of type ID
+SYSTEM_SAFETY_FAULT : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+)
+]
+;
+ACTION_KEY
+Added : init_time_control_and_notify of type ID in namespace 0
+init_time_control_and_notify : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e4 of type ID
+e4 : ID
+,
+Found : IDLE of type ID
+IDLE : ID
+]
+;
+ACTION_KEY
+Added : clear_inhibiting_faults of type ID in namespace 0
+clear_inhibiting_faults : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e5 of type ID
+e5 : ID
+.
+Found : e1 of type ID
+e1 : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+]
+;
+ACTION_KEY
+Added : clear_terminating_faults of type ID in namespace 0
+clear_terminating_faults : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e5 of type ID
+e5 : ID
+.
+Found : e2 of type ID
+e2 : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+]
+;
+ACTION_KEY
+Added : clear_system_safety_faults of type ID in namespace 0
+clear_system_safety_faults : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e5 of type ID
+e5 : ID
+.
+Found : e3 of type ID
+e3 : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+]
+;
+ACTION_KEY
+Added : save_tank_mode_and_stop_pump of type ID in namespace 0
+save_tank_mode_and_stop_pump : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e6 of type ID
+e6 : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+]
+;
+ACTION_KEY
+Added : restore_tank_mode_and_start_pump of type ID in namespace 0
+restore_tank_mode_and_start_pump : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e7 of type ID
+e7 : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+]
+;
+ACTION_KEY
+Added : reset_total_compressor_run_time of type ID in namespace 0
+reset_total_compressor_run_time : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e8 of type ID
+e8 : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+]
+;
+ACTION_KEY
+Added : set_standby_time_and_disable_timer of type ID in namespace 0
+set_standby_time_and_disable_timer : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e9 of type ID
+e9 : ID
+.
+Found : e1 of type ID
+e1 : ID
+,
+(
+Found : SERVICE of type ID
+SERVICE : ID
+,
+Found : IDLE of type ID
+IDLE : ID
+)
+]
+;
+ACTION_KEY
+Added : set_standby_time_and_enable_timer of type ID in namespace 0
+set_standby_time_and_enable_timer : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e9 of type ID
+e9 : ID
+.
+Found : e2 of type ID
+e2 : ID
+,
+(
+Found : SERVICE of type ID
+SERVICE : ID
+,
+Found : IDLE of type ID
+IDLE : ID
+)
+]
+;
+ACTION_KEY
+Added : update_system_time of type ID in namespace 0
+update_system_time : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e10 of type ID
+e10 : ID
+.
+Found : e1 of type ID
+e1 : ID
+,
+(
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+)
+]
+;
+ACTION_KEY
+Added : update_system_date of type ID in namespace 0
+update_system_date : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e10 of type ID
+e10 : ID
+.
+Found : e2 of type ID
+e2 : ID
+,
+(
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+)
+]
+;
+ACTION_KEY
+Added : set_inibiting_fault of type ID in namespace 0
+set_inibiting_fault : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e11 of type ID
+e11 : ID
+,
+(
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+,
+Found : READY of type ID
+READY : ID
+,
+Found : ABORT_RECOVERY of type ID
+ABORT_RECOVERY : ID
+,
+Found : RUN_COMPLETION of type ID
+RUN_COMPLETION : ID
+,
+Found : CLEANUP of type ID
+CLEANUP : ID
+)
+]
+;
+ACTION_KEY
+Added : set_inibiting_fault_and_stop_pump of type ID in namespace 0
+set_inibiting_fault_and_stop_pump : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e12 of type ID
+e12 : ID
+,
+(
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+,
+Found : READY of type ID
+READY : ID
+,
+Found : ABORT_RECOVERY of type ID
+ABORT_RECOVERY : ID
+,
+Found : RUN_COMPLETION of type ID
+RUN_COMPLETION : ID
+,
+Found : CLEANUP of type ID
+CLEANUP : ID
+)
+]
+;
+ACTION_KEY
+Found : set_inibiting_fault of type ID
+set_inibiting_fault : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e13 of type ID
+e13 : ID
+.
+Found : e1 of type ID
+e1 : ID
+,
+(
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+,
+Found : READY of type ID
+READY : ID
+)
+]
+;
+ACTION_KEY
+Added : set_system_safety_fault of type ID in namespace 0
+set_system_safety_fault : ID
+[
+(
+Found : e10 of type ID
+e10 : ID
+.
+Found : e14 of type ID
+e14 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e15 of type ID
+e15 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e16 of type ID
+e16 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e17 of type ID
+e17 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e18 of type ID
+e18 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e19 of type ID
+e19 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e20 of type ID
+e20 : ID
+)
+,
+(
+Found : IDLE of type ID
+IDLE : ID
+,
+Found : STANDBY of type ID
+STANDBY : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+,
+Found : READY of type ID
+READY : ID
+,
+Found : ABORT_RECOVERY of type ID
+ABORT_RECOVERY : ID
+,
+Found : RUN_COMPLETION of type ID
+RUN_COMPLETION : ID
+,
+Found : MANUAL_CONTROLS of type ID
+MANUAL_CONTROLS : ID
+,
+Found : RECIPE_EXECUTION of type ID
+RECIPE_EXECUTION : ID
+,
+Found : SERVICE of type ID
+SERVICE : ID
+,
+Found : SYSTEM_SAFETY_FAULT of type ID
+SYSTEM_SAFETY_FAULT : ID
+)
+]
+TRANSITION_KEY
+Found : SYSTEM_SAFETY_FAULT of type ID
+SYSTEM_SAFETY_FAULT : ID
+;
+ACTION_KEY
+Added : call_sys_mgr_sp_fsm of type ID in namespace 0
+call_sys_mgr_sp_fsm : ID
+[
+(
+Found : e10 of type ID
+e10 : ID
+.
+Found : e14 of type ID
+e14 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e15 of type ID
+e15 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e16 of type ID
+e16 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e17 of type ID
+e17 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e18 of type ID
+e18 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e19 of type ID
+e19 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e20 of type ID
+e20 : ID
+)
+,
+Found : SAMPLE_PROCESSING of type ID
+SAMPLE_PROCESSING : ID
+]
+TRANSITION_KEY
+Added : fault_transition_on_sp_state of type ID in namespace 0
+fault_transition_on_sp_state : ID
+;
+ACTION_KEY
+Added : set_t_and_i_fault_and_abort_sp of type ID in namespace 0
+set_t_and_i_fault_and_abort_sp : ID
+[
+(
+Found : e10 of type ID
+e10 : ID
+.
+Found : e21 of type ID
+e21 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e22 of type ID
+e22 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e23 of type ID
+e23 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e24 of type ID
+e24 : ID
+)
+,
+Found : SAMPLE_PROCESSING of type ID
+SAMPLE_PROCESSING : ID
+]
+;
+ACTION_KEY
+Added : set_t_fault_and_abort_sp of type ID in namespace 0
+set_t_fault_and_abort_sp : ID
+[
+(
+Found : e10 of type ID
+e10 : ID
+.
+Found : e25 of type ID
+e25 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e26 of type ID
+e26 : ID
+)
+,
+Found : SAMPLE_PROCESSING of type ID
+SAMPLE_PROCESSING : ID
+]
+;
+ACTION_KEY
+Added : restart_standby_timer of type ID in namespace 0
+restart_standby_timer : ID
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e27 of type ID
+e27 : ID
+.
+Found : e1 of type ID
+e1 : ID
+,
+Found : IDLE of type ID
+IDLE : ID
+]
+;
+TRANSITION_KEY
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e2 of type ID
+e2 : ID
+.
+Found : e1 of type ID
+e1 : ID
+,
+Found : IDLE of type ID
+IDLE : ID
+]
+Found : SETUP of type ID
+SETUP : ID
+;
+TRANSITION_KEY
+[
+(
+Found : e10 of type ID
+e10 : ID
+.
+Found : e2 of type ID
+e2 : ID
+.
+Found : e2 of type ID
+e2 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e2 of type ID
+e2 : ID
+.
+Found : e3 of type ID
+e3 : ID
+)
+,
+Found : SETUP of type ID
+SETUP : ID
+]
+Found : IDLE of type ID
+IDLE : ID
+;
+TRANSITION_KEY
+[
+(
+Found : e10 of type ID
+e10 : ID
+.
+Found : e3 of type ID
+e3 : ID
+.
+Found : e1 of type ID
+e1 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e3 of type ID
+e3 : ID
+.
+Found : e2 of type ID
+e2 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e3 of type ID
+e3 : ID
+.
+Found : e3 of type ID
+e3 : ID
+)
+,
+Found : SERVICE of type ID
+SERVICE : ID
+]
+Found : MANUAL_CONTROLS of type ID
+MANUAL_CONTROLS : ID
+;
+TRANSITION_KEY
+[
+(
+Found : e10 of type ID
+e10 : ID
+.
+Found : e3 of type ID
+e3 : ID
+.
+Found : e4 of type ID
+e4 : ID
+,
+Found : e10 of type ID
+e10 : ID
+.
+Found : e3 of type ID
+e3 : ID
+.
+Found : e5 of type ID
+e5 : ID
+)
+,
+Found : SERVICE of type ID
+SERVICE : ID
+]
+Found : RECIPE_EXECUTION of type ID
+RECIPE_EXECUTION : ID
+;
+TRANSITION_KEY
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e3 of type ID
+e3 : ID
+.
+Found : e6 of type ID
+e6 : ID
+,
+(
+Found : MANUAL_CONTROLS of type ID
+MANUAL_CONTROLS : ID
+,
+Found : RECIPE_EXECUTION of type ID
+RECIPE_EXECUTION : ID
+)
+]
+Found : IDLE of type ID
+IDLE : ID
+;
+TRANSITION_KEY
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e3 of type ID
+e3 : ID
+.
+Found : e7 of type ID
+e7 : ID
+,
+Found : IDLE of type ID
+IDLE : ID
+]
+Found : SERVICE of type ID
+SERVICE : ID
+;
+TRANSITION_KEY
+[
+Found : e12 of type ID
+e12 : ID
+,
+Found : IDLE of type ID
+IDLE : ID
+]
+Found : STANDBY of type ID
+STANDBY : ID
+;
+TRANSITION_KEY
+[
+Found : e6 of type ID
+e6 : ID
+,
+Found : SETUP of type ID
+SETUP : ID
+]
+Found : READY of type ID
+READY : ID
+;
+TRANSITION_KEY
+[
+Found : e7 of type ID
+e7 : ID
+,
+Found : READY of type ID
+READY : ID
+]
+Found : SETUP of type ID
+SETUP : ID
+;
+TRANSITION_KEY
+[
+Found : e10 of type ID
+e10 : ID
+.
+Found : e2 of type ID
+e2 : ID
+.
+Found : e4 of type ID
+e4 : ID
+,
+Found : CLEANUP of type ID
+CLEANUP : ID
+]
+Found : IDLE of type ID
+IDLE : ID
+;
+Found : fault_transition_on_sp_state of type ID
+fault_transition_on_sp_state : ID
+RETURNS
+Found : PRE_RUN_SELF_TEST_RECOVERY of type ID
+PRE_RUN_SELF_TEST_RECOVERY : ID
+,
+Found : SYSTEM_SAFETY_FAULT of type ID
+SYSTEM_SAFETY_FAULT : ID
+;
+}

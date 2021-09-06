@@ -13,7 +13,7 @@ native
   This is the main control FSM for the instrument.
 */
 machine systemManager
-  actions return void;
+  actions return events;
   on transition changeStateAndNotify;
 {
   state POST
@@ -34,6 +34,7 @@ machine systemManager
 
   event e10 = "SYSTEM_MANAGER_":MESSAGE_QUEUE_EVENT prefix: "SF_MESSAGE_EVENT_CLASS_"
               {
+  							actions return void;
                   e2 = RUN_SETUP_USER_ACTION_NOTICE prefix: "RSA_"
                          {
                              e1 = setup_started

@@ -47,15 +47,16 @@ void yyerror(char *);
 	pMATRIX_INFO		matrix_info;
 	char *					charData;
  pCOMPLEX_EVENT  pcomplex_event;
+ MOD_FLAGS       mod_flags;
 }
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID
 %token PREFIX
 
-%token <charData>	NATIVE_KEY
-%token <charData>	DATA_KEY
-%token <charData>	DOC_COMMENT
+%token <charData> NATIVE_KEY
+%token <charData> DATA_KEY
+%token <charData> DOC_COMMENT
 %token <charData> QS
 %token <pid_info> MACHINE
 %token <pid_info> STATE
@@ -97,6 +98,8 @@ void yyerror(char *);
 %type <pid_info>    complex_event_list_member
 %type <pid_info>    complex_event_ancestor
 %type <charData>    prefix
+%type <mod_flags>   action_return_spec
+
 
 %%
 
@@ -173,21 +176,7 @@ machine:	doccmnt machine_modifier MACHINE_KEY ID machine_qualifier '{' data stat
 
 						}
 
-						if (machineInfo.modFlags & mfActionsReturnStates) {
-
-							fprintf(yyout,"Actions return states\n");
-
-						}
-						else if (machineInfo.modFlags & mfActionsReturnVoid) {
-
-							fprintf(yyout,"Actions return void\n");
-
-						}
-						else {
-
-							fprintf(yyout,"Actions return events\n");
-
-						}
+            print_actions_return_spec(yyout, machineInfo.modFlags,'\n');
 
            if (machineInfo.machineTransition)
            {
@@ -393,8 +382,56 @@ machine_qualifier:
         }
     | machine_transition_decl
     | action_return_spec
+    {
+        if (0 == $1)
+        {
+           /* note that this is not added to the machine event list; it is here only to be
+           found as an event id for return decls.
+           */
+            pID_INFO pid_info;
+            add_id(EVENT,"noEvent",namespace,&pid_info);
+        }
+        else
+        {
+             if (machineInfo.modFlags & (mfActionsReturnVoid|mfActionsReturnStates))
+                yyerror("actions return directive already seen");
+        }
+        machineInfo.modFlags |= $1;
+    }
     | action_return_spec machine_transition_decl
+    {
+        if (0 == $1)
+        {
+           /* note that this is not added to the machine event list; it is here only to be
+           found as an event id for return decls.
+           */
+            pID_INFO pid_info;
+            add_id(EVENT,"noEvent",namespace,&pid_info);
+        }
+        else
+        {
+             if (machineInfo.modFlags & (mfActionsReturnVoid|mfActionsReturnStates))
+                yyerror("actions return directive already seen");
+        }
+        machineInfo.modFlags |= $1;
+    }
     | machine_transition_decl action_return_spec
+    {
+        if (0 == $2)
+        {
+           /* note that this is not added to the machine event list; it is here only to be
+           found as an event id for return decls.
+           */
+            pID_INFO pid_info;
+            add_id(EVENT,"noEvent",namespace,&pid_info);
+        }
+        else
+        {
+             if (machineInfo.modFlags & (mfActionsReturnVoid|mfActionsReturnStates))
+                yyerror("actions return directive already seen");
+        }
+        machineInfo.modFlags |= $2;
+    }
     ;
 
 machine_transition_decl: ON TRANSITION_KEY ID ';'
@@ -406,25 +443,15 @@ machine_transition_decl: ON TRANSITION_KEY ID ';'
 action_return_spec: 
 	ACTIONS RETURN EVENTS ';'
         {
-						pID_INFO pid_info;
-           /* note that this is not added to the machine event list; it is here only to be
-           found as an event id for return decls.
-           */
-						add_id(EVENT,"noEvent",namespace,&pid_info);
+            $$ = 0;
         }
 	| ACTIONS RETURN STATES ';'
 					{
-             if (machineInfo.modFlags & mfActionsReturnVoid)
-                yyerror("actions return void directive already seen");
-
-						machineInfo.modFlags |= mfActionsReturnStates;
+						$$ = mfActionsReturnStates;
 					}
 	| ACTIONS RETURN VOID ';'
 					{
-             if (machineInfo.modFlags & mfActionsReturnStates)
-                yyerror("actions return states directive already seen");
-
-						machineInfo.modFlags |= mfActionsReturnVoid;
+						$$ = mfActionsReturnVoid;
 					}
 	;
 
@@ -1019,16 +1046,13 @@ event_comma_list:	event_ref ','
 					}
 	;
 
-state_and_event_decls: s_e_decls ';'
+state_and_event_decls: state_or_event_decl 
+    | state_and_event_decls state_or_event_decl
 	;
 
-s_e_decls: state_or_event_decl
-	| s_e_decls ';' state_or_event_decl
-    ;
-
-state_or_event_decl: state_decl
-	| event_decl 
- | complex_event_decl
+state_or_event_decl: state_decl ';'
+	| event_decl  ';'
+ | complex_event_decl ';'
     {
 				#ifdef PARSER_DEBUG
 				fprintf(yyout
@@ -1132,11 +1156,10 @@ event_decl:	event_decl_list
 
 event_decl_start: doccmnt EVENT_KEY ID external_designation
         {
-
+        
  					$3->docCmnt             = $1;
            $3->externalDesignation = $4;
            //don't count the external designation until we know this is not a complex event
-
            
 						$$ = $3;
 
@@ -1196,6 +1219,7 @@ complex_event_decl_start: event_decl_start prefix '{'
         complex_parent = $1;
 
         $1->complexInfo->name_prefix = $2;
+        $1->complexInfo->mod_flags   |= mfActionsReturnVoid;
 
         #ifdef PARSER_DEBUG
         printf("complex_parent: %s\n", complex_parent->name);
@@ -1210,12 +1234,13 @@ prefix: {$$ = NULL;}
     | PREFIX ':' QS {$$ = $3;}
     ;
 
-complex_event_decl: complex_event_decl_start complex_event_list '}'
+complex_event_decl: complex_event_decl_start action_return_spec complex_event_list '}'
         {
 
             $$ = $1;
 
-            $$->complexInfo->members = $2;
+            $$->complexInfo->members    = $3;
+            $$->complexInfo->mod_flags |= $2;
 
             namespace = DEFAULT_NAME_SPACE;
             complex_parent = NULL;
@@ -1247,14 +1272,14 @@ nested_complex_event_decl_start: ID external_designation prefix '{'
             yyerror("out of memory");
 
         set_id_type($1,COMPLEX_EVENT_KEY);
-        $1->externalDesignation = $2;
 
-        $1->complexInfo->name_prefix = $3;
+        $1->externalDesignation       = $2;
+        $1->complexInfo->name_prefix  = $3;
+        $1->complexInfo->namespace    = namespace = ++machineInfo.namespaces;
+        $1->complexInfo->parent       = complex_parent;
+        $1->complexInfo->mod_flags   |= mfActionsReturnVoid;
 
         $$ = $1;
-
-        $$->complexInfo->namespace = namespace = ++machineInfo.namespaces;
-        $$->complexInfo->parent    = complex_parent;
 
         complex_parent = $$;
     }

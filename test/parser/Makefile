@@ -29,7 +29,8 @@ TESTS=parser-test1  \
 			parser-test8  \
 			parser-test9  \
 			parser-test10 \
-			parser-test11
+			parser-test11 \
+			parser-test12
 
 NO_RUNTEST=TRUE
 include ../test.mk
@@ -48,4 +49,6 @@ y.tab.h: parser.o
 
 clean::
 	-@rm *.[hc] > /dev/nul
+
+parser.o: parser.y
 

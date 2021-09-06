@@ -2127,8 +2127,8 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
               , "\t}\n\n"
               );
 
-      #if 0 
-      I don't think this belongs here; it is in the main machine loop
+#if 0 
+      I do not think this belongs here; it is in the main machine loop
       if (pmi->machineTransition)
       {
          fprintf(pcmw->cFile
@@ -2149,7 +2149,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                  , "\t}\n\n"
                  );
       }
-      #endif
+#endif
 
       if (!(pmi->modFlags & mfActionsReturnVoid))
       {
