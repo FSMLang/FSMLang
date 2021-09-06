@@ -1,0 +1,1512 @@
+Native
+
+
+#include <stdbool.h>
+
+#include "test.h"
+#include "external.h"
+
+#define enable_standby true
+#define disable_standby false
+
+Document Comment
+
+  This is the main control FSM for the instrument.
+
+found the start of a state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+The 14 states so far :
+	SERVICE
+	SYSTEM_SAFETY_FAULT
+	RECIPE_EXECUTION
+	MANUAL_CONTROLS
+	CLEANUP
+	RUN_COMPLETION
+	SAMPLE_PROCESSING
+	ABORT_RECOVERY
+	PRE_RUN_SELF_TEST_RECOVERY
+	READY
+	SETUP
+	STANDBY
+	IDLE
+	POST
+External designation = SYSTEM_MANAGER_MESSAGE_QUEUE_EVENT
+complex_parent: e10
+External designation = RUN_SETUP_USER_ACTION_NOTICE
+External designation = setup_started
+External designation = new_kit
+External designation = run_setup_cancelled
+External designation = run_completion_acknowledged
+found a nested complex event declaration e2
+members:
+	e4
+	e3
+	e2
+	e1
+External designation = PUMP_ON_TOO_LONG_ERROR_NOTICE
+External designation = PUMP_DUTY_CYCLE_ERROR_NOTICE
+External designation = PRESSURE_DECAY_TEST_RESULT_NOTICE
+External designation = pressure_decay_test_failure
+found a nested complex event declaration e13
+members:
+	e1
+External designation = CHAMBER_PRESSURE_SWITCH_VENT_TIMEOUT_NOTICE
+External designation = CHAMBER_PRESSURE_SWITCH_FILL_TIMEOUT_NOTICE
+External designation = CHAMBER_PRESSURIZED_BUT_NOT_LATCHED_ERROR_NOTICE
+External designation = CHAMBER_PRESSURE_SWITCH_DEVIATION_NOTICE
+External designation = TANK_PRESSURE_TOO_HIGH_ERROR_NOTICE
+External designation = CHAMBER_PRESSURE_TOO_HIGH_ERROR_NOTICE
+External designation = CHAMBER_PRESSURE_DETECTED_WITH_LOW_SUPPLY_PRESSURE_ERROR_NOTICE
+External designation = PINCH_VALVE_TIMEOUT_ERROR_NOTICE
+External designation = CHAMBER_PIN_TIMEOUT_ERROR_NOTICE
+External designation = CHAMBER_LATCH_TIMEOUT_ERROR_NOTICE
+External designation = PINCH_VALVE_INCORRECT_STATE_ERROR_NOTICE
+External designation = CHAMBER_PRESSURE_ERROR_NOTICE
+External designation = SALINE_LOST_ERROR_NOTICE
+External designation = TOUCH
+External designation = SF_TOUCH_PANEL_EVENT_DOWN
+found a nested complex event declaration e27
+members:
+	e1
+External designation = SERVICE_DIALOG_ACTION_NOTICE
+External designation = fault_service_screen_entered
+External designation = calibration_screen_entered
+External designation = manual_controls_entered
+External designation = custom_recipe_screen_entered
+External designation = recipe_screen_entered
+External designation = service_dialog_exited
+External designation = service_dialog_entered
+found a nested complex event declaration e3
+members:
+	e7
+	e6
+	e5
+	e4
+	e3
+	e2
+	e1
+External designation = PUMP_STATE_NOTICE
+External designation = PUMP_OFF
+found a nested complex event declaration e1
+members:
+	e1
+External designation = RTC_READY_NOTICE
+External designation = SYSTEM_FAULT_CLEAR_REQUEST
+External designation = inhibiting
+External designation = run_terminating
+External designation = safety
+found a nested complex event declaration e5
+members:
+	e3
+	e2
+	e1
+External designation = FILE_SYSTEM_REQUEST
+External designation = FILE_SYSTEM_NOTICE
+External designation = PUMP_RUN_TIME_RESET_REQUEST
+External designation = SET_SYSTEM_SETTING_STANDBY_CONTROL_REQUEST
+External designation = enable_standby
+External designation = disable_standby
+found a nested complex event declaration e9
+members:
+	e2
+	e1
+External designation = SYSTEM_TIME_UPDATE_REQUEST
+External designation = UPDATE_TIME
+External designation = UPDATE_DATE
+found a nested complex event declaration e10
+members:
+	e2
+	e1
+found a complex event declaration e10
+members:
+	e10 (complex)
+	e9 (complex)
+	e8
+	e7
+	e6
+	e5 (complex)
+	e4
+	e1 (complex)
+	e3 (complex)
+	e27 (complex)
+	e26
+	e25
+	e24
+	e23
+	e22
+	e21
+	e20
+	e19
+	e18
+	e17
+	e16
+	e15
+	e14
+	e13 (complex)
+	e12
+	e11
+	e2 (complex)
+adding complex event declaration e10
+External designation = SYSTEM_MANAGER_CRC_FAILED
+found the start of an event declaration list
+External designation = SYSTEM_MANAGER_POST_SUCCESSFUL
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_SHORT_MIXING_TIMER_EVENT
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_LONG_MIXING_TIMER_EVENT
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_USER_LOGIN_TIMER_EVENT
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_RUN_SETUP_COMPLETE
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_RETURN_TO_RUN_SETUP
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_PRST_RECOVERY_COMPLETE
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_CLEANUP_TIMER_EVENT
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_WATCHDOG_TIMER_EVENT
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_STANDBY_TIMER_EVENT
+added another id to the event declaration list
+External designation = SYSTEM_MANAGER_RUN_TIMER_EVENT
+added another id to the event declaration list
+The 52 events so far :
+	e13 = RUN_TIMER_EVENT
+	e12 = STANDBY_TIMER_EVENT
+	e11 = WATCHDOG_TIMER_EVENT
+	e9 = CLEANUP_TIMER_EVENT
+	e8 = PRST_RECOVERY_COMPLETE
+	e7 = RETURN_TO_RUN_SETUP
+	e6 = RUN_SETUP_COMPLETE
+	e5 = USER_LOGIN_TIMER_EVENT
+	e4 = LONG_MIXING_TIMER_EVENT
+	e3 = SHORT_MIXING_TIMER_EVENT
+	e2 = POST_SUCCESSFUL
+	e1 = CRC_FAILED
+	e2 = UPDATE_DATE
+	e1 = UPDATE_TIME
+	e2 = disable_standby
+	e1 = enable_standby
+	e8 = PUMP_RUN_TIME_RESET_REQUEST
+	e7 = FILE_SYSTEM_NOTICE
+	e6 = FILE_SYSTEM_REQUEST
+	e3 = safety
+	e2 = run_terminating
+	e1 = inhibiting
+	e4 = RTC_READY_NOTICE
+	e1 = PUMP_OFF
+	e7 = service_dialog_entered
+	e6 = service_dialog_exited
+	e5 = recipe_screen_entered
+	e4 = custom_recipe_screen_entered
+	e3 = manual_controls_entered
+	e2 = calibration_screen_entered
+	e1 = fault_service_screen_entered
+	e1 = SF_TOUCH_PANEL_EVENT_DOWN
+	e26 = SALINE_LOST_ERROR_NOTICE
+	e25 = CHAMBER_PRESSURE_ERROR_NOTICE
+	e24 = PINCH_VALVE_INCORRECT_STATE_ERROR_NOTICE
+	e23 = CHAMBER_LATCH_TIMEOUT_ERROR_NOTICE
+	e22 = CHAMBER_PIN_TIMEOUT_ERROR_NOTICE
+	e21 = PINCH_VALVE_TIMEOUT_ERROR_NOTICE
+	e20 = CHAMBER_PRESSURE_DETECTED_WITH_LOW_SUPPLY_PRESSURE_ERROR_NOTICE
+	e19 = CHAMBER_PRESSURE_TOO_HIGH_ERROR_NOTICE
+	e18 = TANK_PRESSURE_TOO_HIGH_ERROR_NOTICE
+	e17 = CHAMBER_PRESSURE_SWITCH_DEVIATION_NOTICE
+	e16 = CHAMBER_PRESSURIZED_BUT_NOT_LATCHED_ERROR_NOTICE
+	e15 = CHAMBER_PRESSURE_SWITCH_FILL_TIMEOUT_NOTICE
+	e14 = CHAMBER_PRESSURE_SWITCH_VENT_TIMEOUT_NOTICE
+	e1 = pressure_decay_test_failure
+	e12 = PUMP_DUTY_CYCLE_ERROR_NOTICE
+	e11 = PUMP_ON_TOO_LONG_ERROR_NOTICE
+	e4 = run_completion_acknowledged
+	e3 = run_setup_cancelled
+	e2 = new_kit
+	e1 = setup_started
+found a scalar event : e1
+found the beginning of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found a state vector
+	SERVICE
+	SYSTEM_SAFETY_FAULT
+	RECIPE_EXECUTION
+	MANUAL_CONTROLS
+	CLEANUP
+	RUN_COMPLETION
+	SAMPLE_PROCESSING
+	ABORT_RECOVERY
+	PRE_RUN_SELF_TEST_RECOVERY
+	READY
+	SETUP
+	STANDBY
+	IDLE
+	POST
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	set_system_health_event_crc_failed
+found a scalar event : e2
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions so far(1):
+	continue_post_post_init
+	set_system_health_event_crc_failed
+found a scalar event : e11
+found the beginning of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found a state vector
+	SERVICE
+	SYSTEM_SAFETY_FAULT
+	RECIPE_EXECUTION
+	MANUAL_CONTROLS
+	CLEANUP
+	RUN_COMPLETION
+	SAMPLE_PROCESSING
+	ABORT_RECOVERY
+	PRE_RUN_SELF_TEST_RECOVERY
+	READY
+	SETUP
+	STANDBY
+	IDLE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 6
+found a scalar event : e1
+found the beginning of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found a state vector
+	SERVICE
+	SYSTEM_SAFETY_FAULT
+	RECIPE_EXECUTION
+	MANUAL_CONTROLS
+	CLEANUP
+	RUN_COMPLETION
+	SAMPLE_PROCESSING
+	ABORT_RECOVERY
+	PRE_RUN_SELF_TEST_RECOVERY
+	READY
+	SETUP
+	STANDBY
+	IDLE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+found a scalar event : e13
+found the beginning of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found a state vector
+	SERVICE
+	SYSTEM_SAFETY_FAULT
+	RECIPE_EXECUTION
+	MANUAL_CONTROLS
+	CLEANUP
+	RUN_COMPLETION
+	SAMPLE_PROCESSING
+	ABORT_RECOVERY
+	PRE_RUN_SELF_TEST_RECOVERY
+	READY
+	SETUP
+	STANDBY
+	IDLE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found a scalar event : e4
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 7
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 7
+found a scalar event : e2
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 7
+found a scalar event : e3
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found a scalar event : e6
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found a scalar event : e7
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found a scalar event : e8
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 8
+found a scalar event : e1
+found the beginning of a state comma list
+found a state vector
+	IDLE
+	SERVICE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 8
+found a scalar event : e2
+found the beginning of a state comma list
+found a state vector
+	IDLE
+	SERVICE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 9
+found a scalar event : e1
+found the beginning of a state comma list
+found a state vector
+	SETUP
+	IDLE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 9
+found a scalar event : e2
+found the beginning of a state comma list
+found a state vector
+	SETUP
+	IDLE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	update_system_date
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found a scalar event : e11
+found the beginning of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found a state vector
+	CLEANUP
+	RUN_COMPLETION
+	ABORT_RECOVERY
+	READY
+	SETUP
+	IDLE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	set_inibiting_fault
+	update_system_date
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found a scalar event : e12
+found the beginning of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found a state vector
+	CLEANUP
+	RUN_COMPLETION
+	ABORT_RECOVERY
+	READY
+	SETUP
+	IDLE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	set_inibiting_fault_and_stop_pump
+	set_inibiting_fault
+	update_system_date
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 3
+found a scalar event : e1
+found the beginning of a state comma list
+found the continuation of a state comma list
+found a state vector
+	READY
+	SETUP
+	IDLE
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	set_inibiting_fault_and_stop_pump
+	set_inibiting_fault
+	update_system_date
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found the begining of an event comma list: e14
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e15
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e16
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e17
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e18
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e19
+starting complex_event_ancestor; namespace: 1
+found an event vector
+	e20
+	e19
+	e18
+	e17
+	e16
+	e15
+	e14
+found the beginning of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found a state vector
+	SYSTEM_SAFETY_FAULT
+	SERVICE
+	RECIPE_EXECUTION
+	MANUAL_CONTROLS
+	RUN_COMPLETION
+	ABORT_RECOVERY
+	READY
+	SETUP
+	STANDBY
+	IDLE
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions so far(1):
+	set_system_safety_fault
+	set_inibiting_fault_and_stop_pump
+	set_inibiting_fault
+	update_system_date
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found the begining of an event comma list: e14
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e15
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e16
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e17
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e18
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e19
+starting complex_event_ancestor; namespace: 1
+found an event vector
+	e20
+	e19
+	e18
+	e17
+	e16
+	e15
+	e14
+found a state scalar
+found a matrix
+found an action matrix
+found a transition with new function
+found an action with transition
+started an action declaration
+The actions so far(1):
+	call_sys_mgr_sp_fsm
+	set_system_safety_fault
+	set_inibiting_fault_and_stop_pump
+	set_inibiting_fault
+	update_system_date
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found the begining of an event comma list: e21
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e22
+starting complex_event_ancestor; namespace: 1
+found the continuation of an event comma list. adding e23
+starting complex_event_ancestor; namespace: 1
+found an event vector
+	e24
+	e23
+	e22
+	e21
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	set_t_and_i_fault_and_abort_sp
+	call_sys_mgr_sp_fsm
+	set_system_safety_fault
+	set_inibiting_fault_and_stop_pump
+	set_inibiting_fault
+	update_system_date
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+found the begining of an event comma list: e25
+starting complex_event_ancestor; namespace: 1
+found an event vector
+	e26
+	e25
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	set_t_fault_and_abort_sp
+	set_t_and_i_fault_and_abort_sp
+	call_sys_mgr_sp_fsm
+	set_system_safety_fault
+	set_inibiting_fault_and_stop_pump
+	set_inibiting_fault
+	update_system_date
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 4
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	restart_standby_timer
+	set_t_fault_and_abort_sp
+	set_t_and_i_fault_and_abort_sp
+	call_sys_mgr_sp_fsm
+	set_system_safety_fault
+	set_inibiting_fault_and_stop_pump
+	set_inibiting_fault
+	update_system_date
+	update_system_time
+	set_standby_time_and_enable_timer
+	set_standby_time_and_disable_timer
+	reset_total_compressor_run_time
+	restore_tank_mode_and_start_pump
+	save_tank_mode_and_stop_pump
+	clear_system_safety_faults
+	clear_terminating_faults
+	clear_inhibiting_faults
+	init_time_control_and_notify
+	increment_instrument_run_time
+	increment_compressor_run_time
+	perhaps_pet_the_dog
+	continue_post_post_init
+	set_system_health_event_crc_failed
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 2
+found a scalar event : e1
+found a state scalar
+found a matrix
+found a transition matrix
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 2
+found the begining of an event comma list: e2
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 2
+found an event vector
+	e3
+	e2
+found a state scalar
+found a matrix
+found a transition matrix
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 5
+found the begining of an event comma list: e1
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 5
+found the continuation of an event comma list. adding e2
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 5
+found an event vector
+	e3
+	e2
+	e1
+found a state scalar
+found a matrix
+found a transition matrix
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 5
+found the begining of an event comma list: e4
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 5
+found an event vector
+	e5
+	e4
+found a state scalar
+found a matrix
+found a transition matrix
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 5
+found a scalar event : e6
+found the beginning of a state comma list
+found a state vector
+	RECIPE_EXECUTION
+	MANUAL_CONTROLS
+found a matrix
+found a transition matrix
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 5
+found a scalar event : e7
+found a state scalar
+found a matrix
+found a transition matrix
+found a scalar event : e12
+found a state scalar
+found a matrix
+found a transition matrix
+found a scalar event : e6
+found a state scalar
+found a matrix
+found a transition matrix
+found a scalar event : e7
+found a state scalar
+found a matrix
+found a transition matrix
+starting complex_event_ancestor; namespace: 1
+continuing complex_event_ancestor; namespace: 2
+found a scalar event : e4
+found a state scalar
+found a matrix
+found a transition matrix
+found the beginning of a state comma list
+Found an transition_fn return declaration
+found a machine
+	with 52 simple and 1 complex events; and 14 states
+Actions return events
+on transition: changeStateAndNotify
+The states :
+	13:	SERVICE
+
+	12:	SYSTEM_SAFETY_FAULT
+
+	11:	RECIPE_EXECUTION
+
+	10:	MANUAL_CONTROLS
+
+	9:	CLEANUP
+
+	8:	RUN_COMPLETION
+
+	7:	SAMPLE_PROCESSING
+
+	6:	ABORT_RECOVERY
+
+	5:	PRE_RUN_SELF_TEST_RECOVERY
+
+	4:	READY
+
+	3:	SETUP
+
+	2:	STANDBY
+
+	1:	IDLE
+
+	0:	POST
+
+The basic events :
+	51:	e13
+
+	50:	e12
+
+	49:	e11
+
+	48:	e9
+
+	47:	e8
+
+	46:	e7
+
+	45:	e6
+
+	44:	e5
+
+	43:	e4
+
+	42:	e3
+
+	41:	e2
+
+	40:	e1
+
+	39:	e10.e10.e2
+
+	38:	e10.e10.e1
+
+	37:	e10.e9.e2
+
+	36:	e10.e9.e1
+
+	35:	e10.e8
+
+	34:	e10.e7
+
+	33:	e10.e6
+
+	32:	e10.e5.e3
+
+	31:	e10.e5.e2
+
+	30:	e10.e5.e1
+
+	29:	e10.e4
+
+	28:	e10.e1.e1
+
+	27:	e10.e3.e7
+
+	26:	e10.e3.e6
+
+	25:	e10.e3.e5
+
+	24:	e10.e3.e4
+
+	23:	e10.e3.e3
+
+	22:	e10.e3.e2
+
+	21:	e10.e3.e1
+
+	20:	e10.e27.e1
+
+	19:	e10.e26
+
+	18:	e10.e25
+
+	17:	e10.e24
+
+	16:	e10.e23
+
+	15:	e10.e22
+
+	14:	e10.e21
+
+	13:	e10.e20
+
+	12:	e10.e19
+
+	11:	e10.e18
+
+	10:	e10.e17
+
+	9:	e10.e16
+
+	8:	e10.e15
+
+	7:	e10.e14
+
+	6:	e10.e13.e1
+
+	5:	e10.e12
+
+	4:	e10.e11
+
+	3:	e10.e2.e4
+
+	2:	e10.e2.e3
+
+	1:	e10.e2.e2
+
+	0:	e10.e2.e1
+
+The complex events:
+  e10 (namespace: 0, 1, parent: None, prefix: SF_MESSAGE_EVENT_CLASS_; Actions return void):
+	needed by states: IDLE, STANDBY, SETUP, READY, PRE_RUN_SELF_TEST_RECOVERY, ABORT_RECOVERY, SAMPLE_PROCESSING, RUN_COMPLETION, CLEANUP, MANUAL_CONTROLS, RECIPE_EXECUTION, SYSTEM_SAFETY_FAULT, SERVICE
+{
+ e10 (namespace: 1, 9, parent: e10, prefix: RTC_; Actions return void):
+	needed by states: IDLE, SETUP
+{	
+ e2 = UPDATE_DATE; namespace: 9; parent: e10; seOrder: 39
+	, e1 = UPDATE_TIME; namespace: 9; parent: e10; seOrder: 38
+, e9 (namespace: 1, 8, parent: e10, prefix: None; Actions return void):
+	needed by states: IDLE, SERVICE
+{	
+ e2 = disable_standby; namespace: 8; parent: e9; seOrder: 37
+	, e1 = enable_standby; namespace: 8; parent: e9; seOrder: 36
+	, e8 = PUMP_RUN_TIME_RESET_REQUEST; namespace: 1; parent: e10; seOrder: 35
+	, e7 = FILE_SYSTEM_NOTICE; namespace: 1; parent: e10; seOrder: 34
+	, e6 = FILE_SYSTEM_REQUEST; namespace: 1; parent: e10; seOrder: 33
+, e5 (namespace: 1, 7, parent: e10, prefix: SFT_; Actions return void):
+	needed by states: SERVICE
+{	
+ e3 = safety; namespace: 7; parent: e5; seOrder: 32
+	, e2 = run_terminating; namespace: 7; parent: e5; seOrder: 31
+	, e1 = inhibiting; namespace: 7; parent: e5; seOrder: 30
+	, e4 = RTC_READY_NOTICE; namespace: 1; parent: e10; seOrder: 29
+, e1 (namespace: 1, 6, parent: e10, prefix: None; Actions return void):
+	needed by states: IDLE, STANDBY, SETUP, READY, PRE_RUN_SELF_TEST_RECOVERY, ABORT_RECOVERY, SAMPLE_PROCESSING, RUN_COMPLETION, CLEANUP, MANUAL_CONTROLS, RECIPE_EXECUTION, SYSTEM_SAFETY_FAULT, SERVICE
+{	
+ e1 = PUMP_OFF; namespace: 6; parent: e1; seOrder: 28
+, e3 (namespace: 1, 5, parent: e10, prefix: SA_; Actions return void):
+	needed by states: IDLE, MANUAL_CONTROLS, RECIPE_EXECUTION, SERVICE
+{	
+ e7 = service_dialog_entered; namespace: 5; parent: e3; seOrder: 27
+	, e6 = service_dialog_exited; namespace: 5; parent: e3; seOrder: 26
+	, e5 = recipe_screen_entered; namespace: 5; parent: e3; seOrder: 25
+	, e4 = custom_recipe_screen_entered; namespace: 5; parent: e3; seOrder: 24
+	, e3 = manual_controls_entered; namespace: 5; parent: e3; seOrder: 23
+	, e2 = calibration_screen_entered; namespace: 5; parent: e3; seOrder: 22
+	, e1 = fault_service_screen_entered; namespace: 5; parent: e3; seOrder: 21
+, e27 (namespace: 1, 4, parent: e10, prefix: None; Actions return void):
+	needed by states: IDLE
+{	
+ e1 = SF_TOUCH_PANEL_EVENT_DOWN; namespace: 4; parent: e27; seOrder: 20
+	, e26 = SALINE_LOST_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 19
+	, e25 = CHAMBER_PRESSURE_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 18
+	, e24 = PINCH_VALVE_INCORRECT_STATE_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 17
+	, e23 = CHAMBER_LATCH_TIMEOUT_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 16
+	, e22 = CHAMBER_PIN_TIMEOUT_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 15
+	, e21 = PINCH_VALVE_TIMEOUT_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 14
+	, e20 = CHAMBER_PRESSURE_DETECTED_WITH_LOW_SUPPLY_PRESSURE_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 13
+	, e19 = CHAMBER_PRESSURE_TOO_HIGH_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 12
+	, e18 = TANK_PRESSURE_TOO_HIGH_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 11
+	, e17 = CHAMBER_PRESSURE_SWITCH_DEVIATION_NOTICE; namespace: 1; parent: e10; seOrder: 10
+	, e16 = CHAMBER_PRESSURIZED_BUT_NOT_LATCHED_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 9
+	, e15 = CHAMBER_PRESSURE_SWITCH_FILL_TIMEOUT_NOTICE; namespace: 1; parent: e10; seOrder: 8
+	, e14 = CHAMBER_PRESSURE_SWITCH_VENT_TIMEOUT_NOTICE; namespace: 1; parent: e10; seOrder: 7
+, e13 (namespace: 1, 3, parent: e10, prefix: IF_; Actions return void):
+	needed by states: IDLE, SETUP, READY
+{	
+ e1 = pressure_decay_test_failure; namespace: 3; parent: e13; seOrder: 6
+	, e12 = PUMP_DUTY_CYCLE_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 5
+	, e11 = PUMP_ON_TOO_LONG_ERROR_NOTICE; namespace: 1; parent: e10; seOrder: 4
+, e2 (namespace: 1, 2, parent: e10, prefix: RSA_; Actions return void):
+	needed by states: IDLE, SETUP, CLEANUP
+{	
+ e4 = run_completion_acknowledged; namespace: 2; parent: e2; seOrder: 3
+	, e3 = run_setup_cancelled; namespace: 2; parent: e2; seOrder: 2
+	, e2 = new_kit; namespace: 2; parent: e2; seOrder: 1
+	, e1 = setup_started; namespace: 2; parent: e2; seOrder: 0
+}
+
+The actions :
+	noAction
+		which occurs in these events
+		e10.e2.e4
+		and states
+			CLEANUP
+		and transitions to state IDLE
+		which occurs in these events
+			e7
+		and states
+			READY
+		and transitions to state SETUP
+		which occurs in these events
+			e6
+		and states
+			SETUP
+		and transitions to state READY
+		which occurs in these events
+			e12
+		and states
+			IDLE
+		and transitions to state STANDBY
+		which occurs in these events
+		e10.e3.e7
+		and states
+			IDLE
+		and transitions to state SERVICE
+		which occurs in these events
+		e10.e3.e6
+		and states
+			RECIPE_EXECUTION
+			MANUAL_CONTROLS
+		and transitions to state IDLE
+		which occurs in these events
+		e10.e3.e5
+		e10.e3.e4
+		and states
+			SERVICE
+		and transitions to state RECIPE_EXECUTION
+		which occurs in these events
+		e10.e3.e3
+		e10.e3.e2
+		e10.e3.e1
+		and states
+			SERVICE
+		and transitions to state MANUAL_CONTROLS
+		which occurs in these events
+		e10.e2.e3
+		e10.e2.e2
+		and states
+			SETUP
+		and transitions to state IDLE
+		which occurs in these events
+		e10.e2.e1
+		and states
+			IDLE
+		and transitions to state SETUP
+	restart_standby_timer
+		which occurs in these events
+		e10.e27.e1
+		and states
+			IDLE
+	set_t_fault_and_abort_sp
+		which occurs in these events
+		e10.e26
+		e10.e25
+		and states
+			SAMPLE_PROCESSING
+	set_t_and_i_fault_and_abort_sp
+		which occurs in these events
+		e10.e24
+		e10.e23
+		e10.e22
+		e10.e21
+		and states
+			SAMPLE_PROCESSING
+	call_sys_mgr_sp_fsm
+		which occurs in these events
+		e10.e20
+		e10.e19
+		e10.e18
+		e10.e17
+		e10.e16
+		e10.e15
+		e10.e14
+		and states
+			SAMPLE_PROCESSING
+		and transitions using function fault_transition_on_sp_state
+	set_system_safety_fault
+		which occurs in these events
+		e10.e20
+		e10.e19
+		e10.e18
+		e10.e17
+		e10.e16
+		e10.e15
+		e10.e14
+		and states
+			SYSTEM_SAFETY_FAULT
+			SERVICE
+			RECIPE_EXECUTION
+			MANUAL_CONTROLS
+			RUN_COMPLETION
+			ABORT_RECOVERY
+			READY
+			SETUP
+			STANDBY
+			IDLE
+		and transitions to state SYSTEM_SAFETY_FAULT
+	set_inibiting_fault_and_stop_pump
+		which occurs in these events
+		e10.e12
+		and states
+			CLEANUP
+			RUN_COMPLETION
+			ABORT_RECOVERY
+			READY
+			SETUP
+			IDLE
+	set_inibiting_fault
+		which occurs in these events
+		e10.e13.e1
+		and states
+			READY
+			SETUP
+			IDLE
+		which occurs in these events
+		e10.e11
+		and states
+			CLEANUP
+			RUN_COMPLETION
+			ABORT_RECOVERY
+			READY
+			SETUP
+			IDLE
+	update_system_date
+		which occurs in these events
+		e10.e10.e2
+		and states
+			SETUP
+			IDLE
+	update_system_time
+		which occurs in these events
+		e10.e10.e1
+		and states
+			SETUP
+			IDLE
+	set_standby_time_and_enable_timer
+		which occurs in these events
+		e10.e9.e2
+		and states
+			IDLE
+			SERVICE
+	set_standby_time_and_disable_timer
+		which occurs in these events
+		e10.e9.e1
+		and states
+			IDLE
+			SERVICE
+	reset_total_compressor_run_time
+		which occurs in these events
+		e10.e8
+		and states
+			SERVICE
+	restore_tank_mode_and_start_pump
+		which occurs in these events
+		e10.e7
+		and states
+			SERVICE
+	save_tank_mode_and_stop_pump
+		which occurs in these events
+		e10.e6
+		and states
+			SERVICE
+	clear_system_safety_faults
+		which occurs in these events
+		e10.e5.e3
+		and states
+			SERVICE
+	clear_terminating_faults
+		which occurs in these events
+		e10.e5.e2
+		and states
+			SERVICE
+	clear_inhibiting_faults
+		which occurs in these events
+		e10.e5.e1
+		and states
+			SERVICE
+	init_time_control_and_notify
+		which occurs in these events
+		e10.e4
+		and states
+			IDLE
+	increment_instrument_run_time
+		which occurs in these events
+			e13
+		and states
+			SERVICE
+			SYSTEM_SAFETY_FAULT
+			RECIPE_EXECUTION
+			MANUAL_CONTROLS
+			CLEANUP
+			RUN_COMPLETION
+			SAMPLE_PROCESSING
+			ABORT_RECOVERY
+			PRE_RUN_SELF_TEST_RECOVERY
+			READY
+			SETUP
+			STANDBY
+			IDLE
+	increment_compressor_run_time
+		which occurs in these events
+		e10.e1.e1
+		and states
+			SERVICE
+			SYSTEM_SAFETY_FAULT
+			RECIPE_EXECUTION
+			MANUAL_CONTROLS
+			CLEANUP
+			RUN_COMPLETION
+			SAMPLE_PROCESSING
+			ABORT_RECOVERY
+			PRE_RUN_SELF_TEST_RECOVERY
+			READY
+			SETUP
+			STANDBY
+			IDLE
+	perhaps_pet_the_dog
+		which occurs in these events
+			e11
+		and states
+			SERVICE
+			SYSTEM_SAFETY_FAULT
+			RECIPE_EXECUTION
+			MANUAL_CONTROLS
+			CLEANUP
+			RUN_COMPLETION
+			SAMPLE_PROCESSING
+			ABORT_RECOVERY
+			PRE_RUN_SELF_TEST_RECOVERY
+			READY
+			SETUP
+			STANDBY
+			IDLE
+	continue_post_post_init
+		which occurs in these events
+			e2
+		and states
+			POST
+		and transitions to state IDLE
+	set_system_health_event_crc_failed
+		which occurs in these events
+			e1
+		and states
+			SERVICE
+			SYSTEM_SAFETY_FAULT
+			RECIPE_EXECUTION
+			MANUAL_CONTROLS
+			CLEANUP
+			RUN_COMPLETION
+			SAMPLE_PROCESSING
+			ABORT_RECOVERY
+			PRE_RUN_SELF_TEST_RECOVERY
+			READY
+			SETUP
+			STANDBY
+			IDLE
+			POST
+
+The 2 transitions :
+	fault_transition_on_sp_state
+	IDLE
+
+The 1 transition functions :
+	fault_transition_on_sp_state
+		which returns
+			SYSTEM_SAFETY_FAULT
+			PRE_RUN_SELF_TEST_RECOVERY
+
+found a single machine

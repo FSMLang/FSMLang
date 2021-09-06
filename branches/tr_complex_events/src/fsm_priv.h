@@ -73,7 +73,7 @@ struct _id_info_ {
 	int						  seOrder;
   int             tOrder;
   int             actionCount; //!< records the number af actions associated with this state or event.
-  int             transitionCount; //!< records the number af actions associated with this state or event.
+  int             transitionCount; //!< records the number af transitions associated with this state or event.
 	char					  *docCmnt;
 	pACTION_INFO	  actionInfo;
   pACTION_SE_INFO	action_returns_decl;
@@ -123,14 +123,15 @@ struct _machine_info_ {
 
 struct _complex_event_
 {
-   pID_INFO	nextEvent;
-   pID_INFO members;
-   unsigned member_count;
-   pID_INFO parent;
-   unsigned external_event_designation_count;
-   unsigned namespace;
-   pID_INFO *states;
-   char     *name_prefix;
+   pID_INFO	 nextEvent;
+   pID_INFO  members;
+   unsigned  member_count;
+   pID_INFO  parent;
+   unsigned  external_event_designation_count;
+   unsigned  namespace;
+   pID_INFO  *states;
+   char      *name_prefix;
+   MOD_FLAGS mod_flags;
 };
 
 struct _complex_event_cb_
@@ -192,6 +193,7 @@ int  addToActionArray(pMACHINE_INFO,pACTION_INFO);
 void addToActionList(pMACHINE_INFO, pID_INFO);
 char *getFileNameNoDir(const char *);
 void     print_complex_event(FILE*,pID_INFO,pMACHINE_INFO);
+void     print_actions_return_spec(FILE*,MOD_FLAGS,char);
 void     print_complex_event_ancestry(FILE*,pID_INFO,bool);
 void     print_external_event_name_with_prefix(FILE*,pID_INFO);
 pID_INFO get_complex_event_ultimate_ancestor(pID_INFO);
