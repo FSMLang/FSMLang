@@ -16,6 +16,11 @@
 #include <stdlib.h>
 #endif
 
+#if defined (LINUX)
+#include <unistd.h>
+#include <getopt.h>
+#endif
+
 #include "revision.h"
 #include "fsm_priv.h"
 
