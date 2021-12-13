@@ -320,7 +320,7 @@ void {
 
 %%
 
-#if defined (VS) || defined (MINGW) || defined (CYGWIN)
+#if defined (VS) || defined (MINGW) || defined (CYGWIN) || defined (LINUX)
 int yywrap(void)
 {
 	return 1;

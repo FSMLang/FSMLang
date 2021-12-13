@@ -7,15 +7,18 @@ CFLAGS += -I ../src -I .
 
 ARCHITECTURES=Cygwin \
 	Mingw        \
-	Mingwsa
+	Mingwsa      \
+	Linux
 
 Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser : OUT_DIR=../cygwin
 Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  : OUT_DIR=../mingw
 Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : OUT_DIR=../mingwsa
+Linux  Linux.clean  Linux.test  Linux.testonly Linux.lexer  Linux.parser  : OUT_DIR=../linux
 
 Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser : ARCH=CYGWIN
 Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  : ARCH=CYGWIN
 Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : ARCH=CYGWIN
+Linux  Linux.clean  Linux.test  Linux.testonly Linux.lexer  Linux.parser  : ARCH=LINUX
 
 all:
 	@echo You must choose a target.

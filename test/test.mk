@@ -36,4 +36,5 @@ clean::
 	-@rm *.stackdump 2> /dev/null
 	-@rm $(FSM_SRC:.fsm=.c) 2> /dev/null
 	-@rm $(FSM_SRC:.fsm=.h) 2> /dev/null
+	-@rm test
 
