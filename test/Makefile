@@ -19,7 +19,8 @@ SUITES= lexer       \
 			 	full_test13 \
 			 	full_test14 \
 			 	full_test15 \
-			 	full_test16
+			 	full_test16 \
+			 	full_test17
 
 CLEAN_SUITES=$(addsuffix .clean, $(SUITES))
 

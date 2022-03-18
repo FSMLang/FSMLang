@@ -1611,7 +1611,7 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
             }
 
             }
-            else
+            else //if (pmi->modFlags & mfActionsReturnStates)
             {
 
                fprintf(pcmw->cFile, "{");
@@ -1645,11 +1645,13 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
                      fprintf(pcmw->cFile
                              , "%s_noTransition%s"
                              , pmi->name->name
-                             , compact_action_array ? "_e" : "Fn"
+                             , compact_action_array ? "_e"
+                               : pmi->transition_fn_count ? "Fn"
+                                 : ""
                             );
                   }
                }
-               else
+               else // if (pmi->transition_fn_count)
                {
                   fprintf(pcmw->cFile, "%s_%s",
                           pmi->name->name,
@@ -1663,7 +1665,7 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
             }
 
          }
-         else
+         else // if (pmi->actionArray[i][j])
          {
 
             /* we need to insert a dummy here */
@@ -1672,7 +1674,11 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
                fprintf(pcmw->cFile, "%s_noTransition%s\n",
                        pmi->name->name
-                       , compact_action_array ? "_e" : "Fn"
+                       , compact_action_array
+                         ? "_e" 
+                         : pmi->transition_fn_count
+                           ? "Fn"
+                           : ""
                        );
 
             }
@@ -1687,9 +1693,13 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
                        , compact_action_array ? "_e" : ""
                        , pmi->name->name
                        , (pmi->transition_fn_count == 0)
-                       ? stateNameByIndex(pmi, j)
-                       : "noTransition"
-                       , compact_action_array ? "_e" : "Fn"
+                         ? stateNameByIndex(pmi, j)
+                         : "noTransition"
+                       , compact_action_array
+                         ? "_e"
+                         : pmi->transition_fn_count
+                           ? "Fn"
+                           : ""
                       );
 
                fprintf(pcmw->cFile, "}\n");
