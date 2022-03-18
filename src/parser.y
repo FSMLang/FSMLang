@@ -1449,10 +1449,10 @@ void usage(void)
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
  fprintf(stdout,"\t%s -i0 inhibits the creation of a machine instance\n",me);
- fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n",me);
- fprintf(stdout,"\t\tthis is the default\n",me);
+ fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n");
+ fprintf(stdout,"\t\tthis is the default\n");
  fprintf(stdout,"\t%s -c will create a more compact event/state table when -tc is used\n",me);
- fprintf(stdout,"\t\twith machines having actions which return states\n",me);
+ fprintf(stdout,"\t\twith machines having actions which return states\n");
  fprintf(stdout,"\t%s -v prints the version and exits\n",me);
 	
 }
