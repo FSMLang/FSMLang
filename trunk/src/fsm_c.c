@@ -1443,8 +1443,6 @@ static void declareCMachineTransitionFnEnum(pCMachineData pcmw, pMACHINE_INFO pm
    fprintf(pcmw->hFile
            , ", %s_noTransition_e\n"
            , pmi->name->name
-           , cp
-           , cp
           );
 
    fprintf(pcmw->hFile
@@ -1482,8 +1480,6 @@ static void defineCMachineTransitionFnArray(pCMachineData pcmw, pMACHINE_INFO pm
    fprintf(pcmw->cFile
            , ", %s_noTransitionFn\n"
            , pmi->name->name
-           , cp
-           , cp
           );
 
    fprintf(pcmw->cFile
@@ -1913,8 +1909,6 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                   fprintf(pcmw->cFile
                           , "#ifdef %s_DEBUG\n\t\tDBG_PRINTF(\"%s_noAction\\n\");\n#endif\n"
                           , cp
-                          , pmi->name->name
-                          , eventNameByIndex(pmi,j)
                           , pmi->name->name
                           );
                }
