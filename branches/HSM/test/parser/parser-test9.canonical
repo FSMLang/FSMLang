@@ -1,0 +1,124 @@
+found the start of a state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+The 3 states so far :
+	s3
+	s2
+	s1
+added another id to the event declaration list
+added another id to the event declaration list
+The 3 events so far :
+	e3
+	e2
+	e1
+External designation = BAR
+The 4 events so far :
+	e4 = BAR
+	e3
+	e2
+	e1
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions so far(1):
+	a1
+Document Comment
+
+		A Document Comment
+	
+found a scalar event : e1
+found the beginning of a state comma list
+found a state vector
+	s3
+	s2
+found a matrix
+found an action matrix
+found a transition with new function
+found an action with transition
+started an action declaration
+The actions so far(1):
+	a2
+	a1
+found the begining of an event comma list: e2
+found an event vector
+	e3
+	e2
+found the beginning of a state comma list
+found the continuation of a state comma list
+found a state vector
+	s3
+	s2
+	s1
+found a matrix
+found a transition matrix with new transition function
+found the beginning of a state comma list
+Found an transition_fn return declaration
+found the beginning of a state comma list
+Found an transition_fn return declaration
+found a machine
+	with 4 events and 3 states
+Actions return void
+The states :
+	2:	s3
+
+	1:	s2
+
+	0:	s1
+
+The events :
+	3:	e4
+
+	2:	e3
+
+	1:	e2
+
+	0:	e1
+
+The actions :
+	noAction
+		which occurs in these events
+			e3
+			e2
+		and states
+			s3
+			s2
+			s1
+		and transitions using function transitionFn1
+	a2
+		which occurs in these events
+			e1
+		and states
+			s3
+			s2
+		and transitions using function transitionFn
+Doc Comments:
+
+		A Document Comment
+	
+	a1
+		which occurs in these events
+			e1
+		and states
+			s1
+		and transitions to state s1
+
+The 3 transitions :
+	transitionFn1
+	transitionFn
+	s1
+
+The 2 transition functions :
+	transitionFn1
+		which returns
+			s3
+			s2
+	transitionFn
+		which returns
+			s2
+			s1
+
+found a single machine
