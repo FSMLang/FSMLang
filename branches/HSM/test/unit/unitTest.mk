@@ -1,6 +1,8 @@
+VPATH=../../../src
+
 CFLAGS += -I ../../../src -DARCH=$(ARCH)
 
-SRC=$(shell find -L . -type f -name "*.c" -printf "%P ")
+SRC+=$(shell find -L . -type f -name "*.c" -printf "%P ")
 
 OBJ=$(SRC:.c=.o)
 
