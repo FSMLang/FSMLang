@@ -34,6 +34,7 @@
 */
 
 #include "fsm_html.h"
+#include "list.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,6 +81,41 @@ HTMLMachineData htmlMachineData = {
 	,	NULL
 };
 
+/* list iteration callbacks */
+bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
+{
+   fprintf(htmlMachineData.htmlFile
+           , "\t\t<li>%s</li>\n"
+           , ((pID_INFO)pelem->mbr)->name
+           );
+
+   return false;
+}
+
+bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid = ((pID_INFO)data);
+
+   fprintf(htmlMachineData.htmlFile,"<tr>\n");
+   fprintf(htmlMachineData.htmlFile,"<td class=\"label\">%s</td>\n"
+     , strlen(pid->name) ? pid->name : "transition");
+   fprintf(htmlMachineData.htmlFile,"<td>\n");
+   fprintf(htmlMachineData.htmlFile,"%s"
+           , pid->docCmnt ? pid->docCmnt : "&nbsp;"
+           );
+   if (pid->action_returns_decl)
+   {
+      fprintf(htmlMachineData.htmlFile,"\n<br/><br/>Returns:<ul class=\"return_decl\">");
+      iterate_list(pid->action_returns_decl,print_id_info_as_html_list_element,NULL);
+      fprintf(htmlMachineData.htmlFile,"</ul>\n"
+              );
+   }
+   fprintf(htmlMachineData.htmlFile, "</td>\n</tr>\n");
+
+   return false;
+}
+
+/* Main section */
 int initHTMLWriter (char *baseFileName)
 {
 
@@ -153,14 +189,14 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
 	fprintf(htmlMachineData.htmlFile,"\t<tr>\n");
 	fprintf(htmlMachineData.htmlFile,"\t\t<th class=blankCorner rowspan=2 colspan=2>&nbsp;</th>\n");
 	fprintf(htmlMachineData.htmlFile,"\t\t<th class=eventLabel colspan=%d>%s</th>\n"
-		,pmi->event_count	
+		,pmi->event_list->count	
 		,"Events"
 		);
 	fprintf(htmlMachineData.htmlFile,"\t</tr>\n");
 
 	/* event names row */
 	fprintf(htmlMachineData.htmlFile,"\t<tr>\n");
-	for (e = 0;e < pmi->event_count;e++)
+	for (e = 0;e < pmi->event_list->count;e++)
 		fprintf(htmlMachineData.htmlFile,"\t\t<th class=eventName>%s</th>\n"
 			, eventNameByIndex(pmi,e)
 			);
@@ -169,12 +205,12 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
 	/* State Label column */
 	fprintf(htmlMachineData.htmlFile,"\t<tr>\n");
 	fprintf(htmlMachineData.htmlFile,"\t\t<th class=stateLabel rowspan=%d>%s</th>\n"
-		, pmi->state_count
+		, pmi->state_list->count
 		, "S<br/>t<br/>a<br/>t<br/>e<br/>s"
 		);
 
 	/* now, it gets a bit tricky with the row breaks */
-	for (s = 0; s < pmi->state_count; s++) {
+	for (s = 0; s < pmi->state_list->count; s++) {
 
 		if (s)
 
@@ -184,7 +220,7 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
 			,	stateNameByIndex(pmi,s)
 			);
 
-			for (e = 0; e < pmi->event_count; e++) {
+			for (e = 0; e < pmi->event_list->count; e++) {
 
 				if (pmi->modFlags & mfActionsReturnStates) {
 
@@ -209,16 +245,7 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
              fprintf(htmlMachineData.htmlFile
                      ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
                      );
-             for (pasei = pmi->actionArray[e][s]->action->action_returns_decl;
-                  pasei;
-                  pasei = pasei->next
-                  )
-             {
-                fprintf(htmlMachineData.htmlFile
-                        , "\t\t<li>%s</li>\n"
-                        , pasei->se->name
-                        );
-             }
+             iterate_list(pmi->actionArray[e][s]->action->action_returns_decl,print_id_info_as_html_list_element,NULL);
              fprintf(htmlMachineData.htmlFile
                      , "\t</ul>\n"
                      );
@@ -239,16 +266,7 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
                 fprintf(htmlMachineData.htmlFile
                         ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
                         );
-                for (pasei = pmi->actionArray[e][s]->transition->transition_fn_returns_decl;
-                     pasei;
-                     pasei = pasei->next
-                     )
-                {
-                   fprintf(htmlMachineData.htmlFile
-                           , "\t\t<li>%s</li>\n"
-                           , pasei->se->name
-                           );
-                }
+                iterate_list(pmi->actionArray[e][s]->transition->transition_fn_returns_decl, print_id_info_as_html_list_element, NULL);
                 fprintf(htmlMachineData.htmlFile
                         , "\t</ul>\n"
                         );
@@ -287,16 +305,7 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
              fprintf(htmlMachineData.htmlFile
                      ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
                      );
-             for (pasei = pmi->actionArray[e][s]->action->action_returns_decl;
-                  pasei;
-                  pasei = pasei->next
-                  )
-             {
-                fprintf(htmlMachineData.htmlFile
-                        , "\t\t<li>%s</li>\n"
-                        , pasei->se->name
-                        );
-             }
+             iterate_list(pmi->actionArray[e][s]->action->action_returns_decl, print_id_info_as_html_list_element, NULL);
              fprintf(htmlMachineData.htmlFile
                      , "\t</ul>\n"
                      );
@@ -319,16 +328,7 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
              fprintf(htmlMachineData.htmlFile
                      ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
                      );
-             for (pasei = pmi->actionArray[e][s]->transition->transition_fn_returns_decl;
-                  pasei;
-                  pasei = pasei->next
-                  )
-             {
-                fprintf(htmlMachineData.htmlFile
-                        , "\t\t<li>%s</li>\n"
-                        , pasei->se->name
-                        );
-             }
+             iterate_list(pmi->actionArray[e][s]->transition->transition_fn_returns_decl, print_id_info_as_html_list_element, NULL);
              fprintf(htmlMachineData.htmlFile
                      , "\t</ul>\n"
                      );
@@ -357,7 +357,7 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
 	fprintf(htmlMachineData.htmlFile,"<th colspan=2 align=left>Events</th>\n");
 	fprintf(htmlMachineData.htmlFile,"</tr>\n");
 	
-	for (e = 0; e < pmi->event_count; e++) {
+	for (e = 0; e < pmi->event_list->count; e++) {
 
 		pid = eventPidByIndex(pmi,e);
 	
@@ -374,7 +374,7 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
 	fprintf(htmlMachineData.htmlFile,"<th colspan=2 align=left>States</th>\n");
 	fprintf(htmlMachineData.htmlFile,"</tr>\n");
 	
-	for (s = 0; s < pmi->state_count; s++) {
+	for (s = 0; s < pmi->state_list->count; s++) {
 	
 		pid = statePidByIndex(pmi,s);
 
@@ -391,60 +391,16 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
 	fprintf(htmlMachineData.htmlFile,"<th colspan=2 align=left>Actions</th>\n");
 	fprintf(htmlMachineData.htmlFile,"</tr>\n");
 	
-	for (pid = pmi->action_list; pid; pid = pid->nextAction) {
-	
-		fprintf(htmlMachineData.htmlFile,"<tr>\n");
-		fprintf(htmlMachineData.htmlFile,"<td class=\"label\">%s</td>\n"
-			, strlen(pid->name) ? pid->name : "transition");
-		fprintf(htmlMachineData.htmlFile,"<td>\n");
-		fprintf(htmlMachineData.htmlFile,"%s"
-            , pid->docCmnt ? pid->docCmnt : "&nbsp;"
-            );
-    if (pid->action_returns_decl)
-    {
-       fprintf(htmlMachineData.htmlFile,"\n<br/><br/>Returns:<ul class=\"return_decl\">");
-       for (pasei = pid->action_returns_decl; pasei; pasei = pasei->next)
-       {
-          fprintf(htmlMachineData.htmlFile,"<li>%s</li>\n"
-                  ,pasei->se->name
-                  );
-       }
-       fprintf(htmlMachineData.htmlFile,"</ul>\n"
-               );
-    }
-    fprintf(htmlMachineData.htmlFile, "</td>\n</tr>\n");
+  iterate_list(pmi->action_list,print_action_table_row,NULL);
 
-	}
-
-  if (pmi->transition_fn_count)
+  if (pmi->transition_fn_list->count)
   {
      fprintf(htmlMachineData.htmlFile, "<tr>\n");
      fprintf(htmlMachineData.htmlFile,"<th colspan=2 align=left>Transition Functions</th>\n");
      fprintf(htmlMachineData.htmlFile,"</tr>\n");
 
-     for (pid = pmi->transition_fn_list; pid; pid = pid->nextTransitionFn)
-     {
-        fprintf(htmlMachineData.htmlFile,"<tr>\n");
-        fprintf(htmlMachineData.htmlFile,"<td class=\"label\">%s</td>\n"
-          , pid->name);
-        fprintf(htmlMachineData.htmlFile,"<td>\n");
-        fprintf(htmlMachineData.htmlFile,"%s"
-                , pid->docCmnt ? pid->docCmnt : "&nbsp;"
-                );
-        if (pid->transition_fn_returns_decl)
-        {
-           fprintf(htmlMachineData.htmlFile,"\n<br/><br/>Returns:<ul class=\"return_decl\">");
-           for (pasei = pid->transition_fn_returns_decl; pasei; pasei = pasei->next)
-           {
-              fprintf(htmlMachineData.htmlFile,"<li>%s</li>\n"
-                      ,pasei->se->name
-                      );
-           }
-           fprintf(htmlMachineData.htmlFile,"</ul>\n"
-                   );
-        }
-        fprintf(htmlMachineData.htmlFile, "</td>\n</tr>\n");
-     }
+     iterate_list(pmi->transition_fn_list,print_action_table_row,NULL);
+     
   }
 	
   fprintf(htmlMachineData.htmlFile, "</table>\n");

@@ -36,6 +36,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "list.h"
+
 /*
 	These flags track the modifiers
 		of "machine" and also the action return specifiers.
@@ -47,28 +49,55 @@ typedef enum {
   , mfMachineTransition   = 8
 } MOD_FLAGS;
 
-typedef struct _id_info_				ID_INFO, *pID_INFO;
-typedef struct _action_se_info_	ACTION_SE_INFO, *pACTION_SE_INFO;
-typedef struct _matrix_info_	  MATRIX_INFO, *pMATRIX_INFO;
-typedef struct _action_info_		ACTION_INFO, *pACTION_INFO;
-typedef struct _machine_info_		MACHINE_INFO, *pMACHINE_INFO;
+typedef struct _id_info_				         ID_INFO, *pID_INFO;
+typedef struct _action_se_info_	         ACTION_SE_INFO, *pACTION_SE_INFO;
+typedef struct _matrix_info_	           MATRIX_INFO, *pMATRIX_INFO;
+typedef struct _action_info_		         ACTION_INFO, *pACTION_INFO;
+typedef struct _machine_info_		         MACHINE_INFO, *pMACHINE_INFO;
+typedef struct _state_and_event_decls_   STATE_AND_EVENT_DECLS, *pSTATE_AND_EVENT_DECLS;
+typedef struct _statement_decl_list_     STATEMENT_DECL_LIST, *pSTATEMENT_DECL_LIST;   
+typedef struct _actions_and_transitions_ ACTIONS_AND_TRANSITIONS, *pACTIONS_AND_TRANSITIONS;
+typedef struct _action_decl_             ACTION_DECL, *pACTION_DECL;
+typedef struct _machine_qualifier_       MACHINE_QUALIFIER, *pMACHINE_QUALIFIER;
+
+struct _action_decl_            
+{
+   pLIST action_list;
+   pLIST action_info_list;
+   pLIST transition_list;
+   pLIST transition_fn_list;
+};
+
+struct _actions_and_transitions_
+{
+   pLIST action_list;
+   pLIST action_info_list;
+   pLIST transition_list;
+   pLIST transition_fn_list;
+};
+
+struct _statement_decl_list_
+{
+   pSTATE_AND_EVENT_DECLS   pstate_and_event_decls;
+   pACTIONS_AND_TRANSITIONS pactions_and_transitions;
+};
+
+struct _state_and_event_decls_
+{
+   pLIST state_decls;
+   pLIST event_decls;
+};
 
 struct _id_info_ {
   char    			  *name;
   int     			  type;
   pID_INFO			  nextID;
-  pID_INFO			  nextState;
-  pID_INFO			  nextEvent;
-  pID_INFO			  nextAction;
-  pID_INFO			  nextTransition;
-  pID_INFO			  nextTransitionFn;
   pID_INFO        externalDesignation;
-	int						  seOrder;
-  int             tOrder;
 	char					  *docCmnt;
+  unsigned        order;
 	pACTION_INFO	  actionInfo;
-  pACTION_SE_INFO	action_returns_decl;
-  pACTION_SE_INFO	transition_fn_returns_decl;
+  pLIST         	action_returns_decl;
+  pLIST        	  transition_fn_returns_decl;
 };
 
 struct _action_se_info_ {
@@ -77,8 +106,8 @@ struct _action_se_info_ {
 };
 
 struct _matrix_info_ {
-  pACTION_SE_INFO	state_list;
-  pACTION_SE_INFO	event_list;
+  pLIST	state_list;
+  pLIST	event_list;
 };
 
 struct _action_info_ {
@@ -88,19 +117,23 @@ struct _action_info_ {
 	pACTION_INFO		nextAction;
 };
 
+struct _machine_qualifier_
+{
+   MOD_FLAGS			modFlags;
+   pID_INFO      machineTransition;
+};
+
 struct _machine_info_ {
-  pID_INFO			state_list;
-	int						state_count;
+  pMACHINE_INFO sub_machines;
+  pLIST         state_list;
   int           external_state_designation_count;
-  pID_INFO			event_list;
-	int						event_count;
+  pLIST         event_list;
   int           external_event_designation_count;
-	pID_INFO			transition_list;
-  int           transition_count;
-	pID_INFO			transition_fn_list;
-  int           transition_fn_count;
-	pID_INFO			action_list;
+	pLIST   			transition_list;
+	pLIST   			transition_fn_list;
+	pLIST         action_list;
 	pID_INFO			name;
+  pLIST         action_info_list;
 	pACTION_INFO	**actionArray;
 	char					*data;
 	char					*native;
@@ -127,12 +160,20 @@ char *eventNameByIndex(pMACHINE_INFO,int);
 pID_INFO eventPidByIndex(pMACHINE_INFO,int);
 char *stateNameByIndex(pMACHINE_INFO,int);
 pID_INFO statePidByIndex(pMACHINE_INFO,int);
-char *transitionNameByIndex(pMACHINE_INFO,int);
 pID_INFO transitionPidByIndex(pMACHINE_INFO,int);
 int  allocateActionArray(pMACHINE_INFO);
-int  addToActionArray(pMACHINE_INFO,pACTION_INFO);
-void addToActionList(pMACHINE_INFO, pID_INFO);
 char *getFileNameNoDir(const char *);
+void enumerate_pid_list(pLIST);
+void count_external_declarations(pLIST,unsigned*);
+bool populate_action_array(pMACHINE_INFO,FILE*);
+
+#ifdef PARSER_DEBUG
+void parser_debug_print_state_or_event_list(pLIST,FILE*);
+void parser_debug_print_id_list_names(pLIST,FILE*,char*);
+void parser_debug_print_action_list_deep(pLIST,FILE*);
+void parser_debug_print_transition_list(pLIST,FILE*);
+void parser_debug_print_transition_fn_list(pLIST,FILE*);
+#endif
 
 /* general use data */
 extern char *me;	/* main will set this to the program name (argv[0]) */

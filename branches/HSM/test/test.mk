@@ -19,7 +19,7 @@ runtest: test
 	@cat fsmout >> test.out
 	@$(DIFF) test.out test.canonical > test.result
 	@echo "Test successful"
-	@rm test.out test.result
+	@rm test.out test.result test.stderr
 endif
 
 test: $(OBJS)

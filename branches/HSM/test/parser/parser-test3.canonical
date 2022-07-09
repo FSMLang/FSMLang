@@ -1,20 +1,24 @@
 found the start of a state declaration list
 added another id to the state declaration list
-The 2 states so far :
-	s2
-	s1
+The 2 states in this list :
+	0:	s1
+
+	1:	s2
+
 added another id to the event declaration list
-The 2 events so far :
-	e2
-	e1
+The 2 events in this list:
+	0:	e1
+
+	1:	e2
+
 found the begining of an event comma list: e1
 found an event vector
-	e2
 	e1
+	e2
 found the beginning of a state comma list
 found a state vector
-	s2
 	s1
+	s2
 found a matrix
 found an action matrix
 found a transition to known state
@@ -23,8 +27,8 @@ started an action declaration
 found a scalar event : e2
 found the beginning of a state comma list
 found a state vector
-	s2
 	s1
+	s2
 found a matrix
 found an action matrix
 found a transition to known state
@@ -32,8 +36,8 @@ found an action with transition
 added another action declarations
 found the begining of an event comma list: e1
 found an event vector
-	e2
 	e1
+	e2
 found a state scalar
 found a matrix
 found an action matrix
@@ -46,51 +50,62 @@ found an action matrix
 found a transition to known state
 found an action with transition
 added another action declarations
-The actions so far(1):
-	a4
-	a3
-	a2
+The actions in this list:
 	a1
+	a2
+	a3
+	a4
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+process_action_info: a2
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s1
+populate_action_array returning true
 found a machine
 	with 2 events and 2 states
 Actions return events
 The states :
-	1:	s2
-
 	0:	s1
 
-The events :
-	1:	e2
+	1:	s2
 
+The events :
 	0:	e1
 
+	1:	e2
+
 The actions :
-	a4
+	a1
 		which occurs in these events
-			e1
+				e1
+				e2
 		and states
-			s1
+				s1
+				s2
+		and transitions to state s2
+	a2
+		which occurs in these events
+				e2
+		and states
+				s1
+				s2
 		and transitions to state s2
 	a3
 		which occurs in these events
-			e2
-			e1
+				e1
+				e2
 		and states
-			s1
-	a2
+				s1
+	a4
 		which occurs in these events
-			e2
+				e1
 		and states
-			s2
-			s1
-		and transitions to state s2
-	a1
-		which occurs in these events
-			e2
-			e1
-		and states
-			s2
-			s1
+				s1
 		and transitions to state s2
 
 The 1 transitions :
@@ -99,54 +114,55 @@ The 1 transitions :
 found a single machine
 found the start of a state declaration list
 added another id to the state declaration list
-The 2 states so far :
-	s2
-	s1
+The 2 states in this list :
+	0:	s1
+
+	1:	s2
+
 added another id to the event declaration list
-The 2 events so far :
-	e2
-	e1
+The 2 events in this list:
+	0:	e1
+
+	1:	e2
+
 found the begining of an event comma list: e1
 found an event vector
-	e2
 	e1
+	e2
 found the beginning of a state comma list
 found a state vector
-	s2
 	s1
+	s2
 found a matrix
 found an action matrix
 found an action without transition
 started an action declaration
-The actions so far(1):
+The actions in this list:
 	a1
 found a scalar event : e2
 found the beginning of a state comma list
 found a state vector
-	s2
 	s1
+	s2
 found a matrix
 found an action matrix
 found a transition to known state
 found an action with transition
 started an action declaration
-The actions so far(1):
+The actions in this list:
 	a2
-	a1
 found the begining of an event comma list: e1
 found an event vector
-	e2
 	e1
+	e2
 found a state scalar
 found a matrix
 found an action matrix
 found a transition to known state
 found an action with transition
 started an action declaration
-The actions so far(1):
+The actions in this list:
 	a3
-	a2
-	a1
 found a scalar event : e1
 found a state scalar
 found a matrix
@@ -154,60 +170,68 @@ found an action matrix
 found a transition to known state
 found an action with transition
 started an action declaration
-The actions so far(1):
+The actions in this list:
 	a4
-	a3
-	a2
-	a1
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+process_action_info: a2
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s1
+populate_action_array returning true
 found a machine
 	with 2 events and 2 states
 Actions return events
 The states :
-	1:	s2
-
 	0:	s1
 
-The events :
-	1:	e2
+	1:	s2
 
+The events :
 	0:	e1
 
+	1:	e2
+
 The actions :
-	a4
+	a1
 		which occurs in these events
-			e1
+				e1
+				e2
 		and states
-			s1
+				s1
+				s2
+	a2
+		which occurs in these events
+				e2
+		and states
+				s1
+				s2
 		and transitions to state s2
 	a3
 		which occurs in these events
-			e2
-			e1
+				e1
+				e2
 		and states
-			s1
+				s1
 		and transitions to state s2
-	a2
+	a4
 		which occurs in these events
-			e2
+				e1
 		and states
-			s2
-			s1
+				s1
 		and transitions to state s2
-	a1
-		which occurs in these events
-			e2
-			e1
-		and states
-			s2
-			s1
 
 The 1 transitions :
 	s2
 
 making a list of machines
-Duplicate action :
-Action already there : a1
-Duplicate action :
-Action already there : a1
-Duplicate action :
-Action already there : a1
+Won't insert action a2 into slot: event e2, state s1, because it is already occupied by a1
+./test: Action array population failed
+	line 9 : }
+Won't insert action a2 into slot: event e2, state s1, because it is already occupied by a1
+./test: Action array population failed
+	line 19 : }
