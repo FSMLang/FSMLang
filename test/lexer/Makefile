@@ -10,6 +10,7 @@ override CFLAGS += -DLEX_DEBUG -I../ -I$(VPATH)
 
 SRC = lexer.c       \
 			lexer_debug.c \
+			list.c \
 			fsm_utils.c
 
 TESTS=lexer-test1 \
