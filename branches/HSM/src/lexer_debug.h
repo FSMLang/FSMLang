@@ -33,6 +33,8 @@
 #ifndef _LEXER_DEBUG_H
 #define _LEXER_DEBUG_H
 
+#include "list.h"
+
 enum states {
 	MACHINE = 1
 	, STATE
@@ -57,5 +59,7 @@ enum states {
 };
 
 extern char *strings[];
+
+extern pLIST id_list;
 
 #endif  /* ******************************************  Nothing below  *************************** */

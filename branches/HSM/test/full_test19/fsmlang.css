@@ -1,27 +1,27 @@
 .machine {
 	border-collapse: collapse;
-	border-style   : solid;
-	border-width   : .5px;
-	border-color   : black;
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
 }
 
 .machine td, .machine th {
 	border-style: solid;
 	border-width: .5px;
 	border-color: black;
-	padding     : 10px;
+	padding: 10px;
 }
 
 .eventLabel, .stateLabel, .blankCorner {
 	background-color: rgb(96,182,255);
-	padding         : 10px;
+	padding: 10px;
 }
 
 .eventName, .stateName {
 	background-color: rgb(96,182,255);
-	border-style    : solid;
-	border-width    : .5px;
-	border-color    : black;
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
 }
 
 
@@ -38,12 +38,12 @@
 }
 
 .elements {
-	margin         : 10px;
-	border-style   : solid;
+	margin: 10px;
+	border-style: solid;
 	border-collapse: collapse;
-	border-width   : .5px;
-	border-color   : black;
-	width          : 75%;
+	border-width: .5px;
+	border-color: black;
+	width: 75%;
 }
 
 .elements th {

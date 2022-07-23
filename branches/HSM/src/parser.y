@@ -1,4 +1,4 @@
-%{
+%{         
 	/* parser.y
 
 		the FSM Description Language Parser.
@@ -30,6 +30,7 @@
 #include "list.h"
 
 int lineno=1;
+pLIST id_list = NULL;
 
 //did we parse correctly?
 int good=1;
@@ -37,7 +38,7 @@ int good=1;
 extern char	*yytext;
 extern FILE	*yyin, *yyout;
  
-pMACHINE_INFO        pmachineInfo;
+pMACHINE_INFO        pmachineInfo = NULL;
 pFSMOutputGenerator	pfsmog;
 
 void yyerror(char *);
@@ -58,6 +59,7 @@ void yyerror(char *);
  pACTIONS_AND_TRANSITIONS pactions_and_transitions;
  pACTION_DECL						 paction_decl;
  pMACHINE_QUALIFIER       pmachine_qualifier;
+ pMACHINE_PREFIX          pmachine_prefix;
 }
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON
@@ -94,13 +96,14 @@ void yyerror(char *);
 %type <charData>                 data
 %type <charData>                 native
 %type <mod_flags>                machine_modifier
-%type <pmachineInfo>             machine_prefix
 %type <pmachineInfo>             machine
 %type <pstatement_decl_list>     statement_decl_list
 %type <pactions_and_transitions> actions_and_transitions
 %type <mod_flags>                action_return_spec
 %type <pid_info>                 machine_transition_decl
-%type <pmachine_qualifier>        machine_qualifier      
+%type <pmachine_qualifier>       machine_qualifier      
+%type <plist>                    machine_list
+%type <pmachine_prefix>          machine_prefix
 
 %%
 
@@ -116,14 +119,14 @@ fsmlang: native machine
 						$2->native = $1;
 
 						/* write the machine */
-						(*pfsmog->writeMachine)($2);
+						(*pfsmog->writeMachine)(pfsmog,$2);
 
 						#endif
 
 						/* get ready for the next machine */
 						freeMachineInfo($2);
 
-						free_ids();
+						free_ids(id_list);
 
 					}
 	| fsmlang native machine	
@@ -137,50 +140,58 @@ fsmlang: native machine
 						$3->native = $2;
 
 						/* write the machine */
-						(*pfsmog->writeMachine)($3);
+						(*pfsmog->writeMachine)(pfsmog,$3);
 
 						#endif
 
 						/* get ready for the next machine */
 						freeMachineInfo($3);
 
-						free_ids();
+						free_ids(id_list);
 
 					}
 	;
 
-machine_prefix: doccmnt machine_modifier MACHINE_KEY ID machine_qualifier
+machine_prefix: doccmnt machine_modifier MACHINE_KEY 
    {
 
-				if (($$ = (pMACHINE_INFO)calloc(1,sizeof(MACHINE_INFO))) == NULL)
-
+				if (($$ = (pMACHINE_PREFIX)calloc(1,sizeof(MACHINE_PREFIX))) == NULL)
 						yyerror("out of memory");
 
-				$4->docCmnt = $1;
-				$$->name    = $4;
+				if (($$->pmachineInfo = (pMACHINE_INFO)calloc(1,sizeof(MACHINE_INFO))) == NULL)
+						yyerror("out of memory");
 
- 			$$->modFlags = $2;
- 			$$->modFlags |= $5->modFlags;
+				$$->docCmnt                = $1;
+ 			$$->pmachineInfo->modFlags = $2;
 
- 			$$->machineTransition = $5->machineTransition;
+       id_list = $$->pmachineInfo->id_list = init_list();
 
-				pmachineInfo  = $$;
+       $$->pmachineInfo->parent = pmachineInfo;
+				pmachineInfo             = $$->pmachineInfo;
+
    }
  	;
 
-machine:	machine_prefix '{' data statement_decl_list '}' 
+machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}' 
 					{
 
-						$$ = $1;
- 					$$->data = $3;
+						$$ = $1->pmachineInfo;
+
+				    $$->name              = $2;
+				    $$->name->docCmnt     = $1->docCmnt;
+ 			    $$->modFlags          |= $3->modFlags;
+ 			    $$->machineTransition = $3->machineTransition;
+
+ 					$$->data = $5;
 
 						/* harvest the lists */
- 					$$->state_list         = $4->pstate_and_event_decls->state_decls;
- 					$$->event_list         = $4->pstate_and_event_decls->event_decls;
- 					$$->action_list        = $4->pactions_and_transitions->action_list;
- 					$$->action_info_list   = $4->pactions_and_transitions->action_info_list;
- 					$$->transition_list    = $4->pactions_and_transitions->transition_list;
- 					$$->transition_fn_list = $4->pactions_and_transitions->transition_fn_list;
+ 					$$->state_list         = $6->pstate_and_event_decls->state_decls;
+ 					$$->event_list         = $6->pstate_and_event_decls->event_decls;
+ 					$$->action_list        = $6->pactions_and_transitions->action_list;
+ 					$$->action_info_list   = $6->pactions_and_transitions->action_info_list;
+ 					$$->transition_list    = $6->pactions_and_transitions->transition_list;
+ 					$$->transition_fn_list = $6->pactions_and_transitions->transition_fn_list;
+ 					$$->machine_list       = $6->pactions_and_transitions->machine_list;
 
 						count_external_declarations($$->event_list,&($$->external_event_designation_count));
 						count_external_declarations($$->state_list,&($$->external_state_designation_count));
@@ -194,30 +205,40 @@ machine:	machine_prefix '{' data statement_decl_list '}'
 						if (populate_action_array($$, yyout))
  						yyerror("Action array population failed");
 
+           free($1);
+
+           /* reset context */
+           pmachineInfo = $$->parent;
+           if ($$->parent)
+           {
+            id_list = $$->parent->id_list;
+           }
+
 						#ifdef PARSER_DEBUG
 						pID_INFO	pid_info;
 
- 					pmachineInfo = $$;
-
-						fprintf(yyout,"found a machine\n");
+						fprintf(yyout
+                   ,"found a machine named %s\n"
+                   , $$->name->name
+                   );
 						fprintf(yyout
 								,"\twith %d events and %d states\n"
-								,pmachineInfo->event_list->count
-								,pmachineInfo->state_list->count
+								,$$->event_list->count
+								,$$->state_list->count
 								);
 
-						if (pmachineInfo->modFlags & mfReentrant) {
+						if ($$->modFlags & mfReentrant) {
 
 							fprintf(yyout,"The machine is reentrant\n");
 
 						}
 
-						if (pmachineInfo->modFlags & mfActionsReturnStates) {
+						if ($$->modFlags & mfActionsReturnStates) {
 
 							fprintf(yyout,"Actions return states\n");
 
 						}
-						else if (pmachineInfo->modFlags & mfActionsReturnVoid) {
+						else if ($$->modFlags & mfActionsReturnVoid) {
 
 							fprintf(yyout,"Actions return void\n");
 
@@ -228,36 +249,44 @@ machine:	machine_prefix '{' data statement_decl_list '}'
 
 						}
 
-           if (pmachineInfo->machineTransition)
+           if ($$->machineTransition)
            {
                fprintf(yyout
                        ,"on transition: %s\n"
-                       ,pmachineInfo->machineTransition->name
+                       ,$$->machineTransition->name
                        );
            }
 
 						fprintf(yyout,"The states :\n");
- 					parser_debug_print_state_or_event_list(pmachineInfo->state_list,yyout);
+ 					parser_debug_print_state_or_event_list($$->state_list,yyout);
 
 						fprintf(yyout,"The events :\n");
- 					parser_debug_print_state_or_event_list(pmachineInfo->event_list,yyout);
+ 					parser_debug_print_state_or_event_list($$->event_list,yyout);
 
 						fprintf(yyout,"The actions :\n");
- 					parser_debug_print_action_list_deep(pmachineInfo->action_list,yyout);
+ 					parser_debug_print_action_list_deep($$->action_list,yyout);
 
            fprintf(yyout,"\nThe %d transitions :\n"
-                   , pmachineInfo->transition_list->count
+                   , $$->transition_list->count
                    );
-					  parser_debug_print_transition_list(pmachineInfo->transition_list,yyout);
+					  parser_debug_print_transition_list($$->transition_list,yyout);
 
-           if (pmachineInfo->transition_fn_list->count)
+           if ($$->transition_fn_list->count)
            {
 		           fprintf(yyout,"\nThe %d transition functions :\n"
-                      , pmachineInfo->transition_fn_list->count
+                      , $$->transition_fn_list->count
                       );
 
-								parser_debug_print_transition_fn_list(pmachineInfo->transition_fn_list,yyout);
+								parser_debug_print_transition_fn_list($$->transition_fn_list,yyout);
            }
+
+            if ($$->machine_list)
+            {
+                fprintf(yyout
+                     ,"this machine has %u sub-machines\n"
+                     ,$$->machine_list->count
+                     );
+            }
 
 						fprintf(yyout,"\n");
 						#endif
@@ -271,7 +300,7 @@ machine_qualifier:
            /* note that this is not added to the machine event list; it is here only to be
            found as an event id for return decls.
            */
-						add_id(EVENT,"noEvent",&pid_info);
+						add_id(id_list, EVENT,"noEvent",&pid_info);
 
  					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
  						yyerror("Out of memory");
@@ -305,8 +334,8 @@ machine_qualifier:
  					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
  						yyerror("Out of memory");
 
- 					$$->modFlags          = $2;
  					$$->machineTransition = $1;
+ 					$$->modFlags          = $2;
 		     }
     ;
 
@@ -323,7 +352,7 @@ action_return_spec:
            /* note that this is not added to the machine event list; it is here only to be
            found as an event id for return decls.
            */
-						add_id(EVENT,"noEvent",&pid_info);
+						add_id(id_list, EVENT,"noEvent",&pid_info);
 
  					$$ = 0;
         }
@@ -358,8 +387,50 @@ statement_decl_list:	state_and_event_decls actions_and_transitions
 	}
 	;
 
+machine_list:
+    machine
+    {
+        if (NULL == ($$ = init_list()))
+            yyerror("out of memory");
+
+        if (NULL == add_to_list($$,$1))
+            yyerror("out of memory");
+
+    }
+    | machine_list machine
+    {
+
+        $$ = $1;
+
+        if (NULL == add_to_list($$,$2))
+            yyerror("out of memory");
+
+    }
+    ;
+
 actions_and_transitions: 
-   action_decl
+   machine_list
+		{
+ 		if (NULL == ($$ = (pACTIONS_AND_TRANSITIONS)calloc(1,sizeof(ACTIONS_AND_TRANSITIONS))))
+ 			yyerror("out of memory");
+
+
+ 		if (NULL == ($$->action_list = init_list()))
+	 			yyerror("out of memory");
+
+ 		if (NULL == ($$->action_info_list = init_list()))
+ 			yyerror("out of memory");
+
+ 		if (NULL == ($$->transition_list = init_list()))
+ 			yyerror("out of memory");
+
+ 		if (NULL == ($$->transition_fn_list = init_list()))
+ 			yyerror("out of memory");
+
+    $$->machine_list = $1;
+
+		}
+   | action_decl
 		{
  		if (NULL == ($$ = (pACTIONS_AND_TRANSITIONS)calloc(1,sizeof(ACTIONS_AND_TRANSITIONS))))
  			yyerror("out of memory");
@@ -394,6 +465,9 @@ actions_and_transitions:
  			yyerror("out of memory");
 
  		if (NULL == ($$->transition_fn_list = init_list()))
+ 			yyerror("out of memory");
+
+ 		if (NULL == ($$->machine_list = init_list()))
  			yyerror("out of memory");
 
 			if (NULL == add_unique_to_list($$->action_list, $1->action))
@@ -437,6 +511,9 @@ actions_and_transitions:
  		if (NULL == ($$->transition_fn_list = init_list()))
  			yyerror("out of memory");
 
+ 		if (NULL == ($$->machine_list = init_list()))
+ 			yyerror("out of memory");
+
    }
  | transition_fn_return_decl
    {
@@ -453,6 +530,9 @@ actions_and_transitions:
  			yyerror("out of memory");
 
  		if (NULL == ($$->transition_fn_list = init_list()))
+ 			yyerror("out of memory");
+
+ 		if (NULL == ($$->machine_list = init_list()))
  			yyerror("out of memory");
 
    }
@@ -510,6 +590,7 @@ actions_and_transitions:
 	  {
 			$$ = $1;
 	  }
+   /* note that machines must precede actions and transitions */
 	;
 
 transition_matrix_list: doccmnt transition_matrix
@@ -530,7 +611,7 @@ transition_matrix:	TRANSITION_KEY matrix STATE ';'
 
 						//first, we have to add an id_info struct to the id list
 						//we treat it as a "null action"
-						add_id(ACTION,"",&pid_info);
+						add_id(id_list, ACTION,"",&pid_info);
 
 						//second, we grab a struct to hold the info
 						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
@@ -558,7 +639,7 @@ transition_matrix:	TRANSITION_KEY matrix STATE ';'
 
 						//first, we have to add an id_info struct to the id list
 						//we treat it as a "null action"
-						add_id(ACTION,"",&pid_info);
+						add_id(id_list, ACTION,"",&pid_info);
 
 						//second, we grab a struct to hold the info
 						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
@@ -584,7 +665,7 @@ transition_matrix:	TRANSITION_KEY matrix STATE ';'
 
 						//first, we have to add an id_info struct to the id list
 						//we treat it as a "null action"
-						add_id(ACTION,"",&pid_info);
+						add_id(id_list, ACTION,"",&pid_info);
 
 						//second, we grab a struct to hold the info
 						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
@@ -1156,9 +1237,6 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
-    if (pmachineInfo->modFlags & mfActionsReturnStates)
-        yyerror("action returning event statement found after actions declared to return states");
-
  	 if (!$2->action_returns_decl)
 		 {
 		    if (($2->action_returns_decl = init_list()) == NULL) 
@@ -1181,12 +1259,6 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
-    if (pmachineInfo->modFlags & mfActionsReturnStates)
-        yyerror("action returning event statement found after actions declared to return states");
-
-    if (pmachineInfo->modFlags & mfActionsReturnVoid)
-        yyerror("action returning event statement found after actions declared to return void");
-
  	 if (!$2->action_returns_decl)
 		 {
 		    if (($2->action_returns_decl = init_list()) == NULL) 
@@ -1205,12 +1277,6 @@ action_return_decl:
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
     #endif
-
-    if (pmachineInfo->modFlags & mfActionsReturnVoid)
-        yyerror("action returning state statement found after actions declared to return void");
-
-    if (!(pmachineInfo->modFlags & mfActionsReturnStates))
-        yyerror("action returning state statement found after actions declared to return events");
 
 			if (add_to_list($4, $5) == NULL)
 				yyerror("out of memory");
@@ -1233,12 +1299,6 @@ action_return_decl:
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
     #endif
-
-    if (pmachineInfo->modFlags & mfActionsReturnVoid)
-        yyerror("action returning state statement found after actions declared to return void");
-
-    if (!(pmachineInfo->modFlags & mfActionsReturnStates))
-        yyerror("action returning state statement found after actions declared to return events");
 
 		 if (add_to_list($2->action_returns_decl,$4) == NULL)
 				yyerror("out of memory");
@@ -1438,16 +1498,14 @@ int main(int argc, char **argv)
 			outFileBase = cp;
 		}
 
-		//pmachineInfo = (pMACHINE_INFO)calloc(1,sizeof(MACHINE_INFO));
-
 		#ifndef PARSER_DEBUG
-		if (!(*pfsmog->initOutput)(outFileBase)) {
+		if (!(*pfsmog->initOutput)(pfsmog,outFileBase)) {
 		#endif
 
 			yyparse();
 
 		#ifndef PARSER_DEBUG
-			(*pfsmog->closeOutput)(good);
+			(*pfsmog->closeOutput)(pfsmog,good);
 
 		}
 		#endif

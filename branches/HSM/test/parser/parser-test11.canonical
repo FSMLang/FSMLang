@@ -79,7 +79,7 @@ process_action_info: noAction
 		add_to_action_array: state: s2
 		add_to_action_array: state: s3
 populate_action_array returning false
-found a machine
+found a machine named newMachine
 	with 4 events and 3 states
 Actions return events
 on transition: baz

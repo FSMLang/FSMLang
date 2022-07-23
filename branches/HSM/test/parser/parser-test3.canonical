@@ -66,7 +66,7 @@ process_action_info: a2
 	iterate_matrix_states: event: e2
 		add_to_action_array: state: s1
 populate_action_array returning true
-found a machine
+found a machine named newMachine
 	with 2 events and 2 states
 Actions return events
 The states :
@@ -183,7 +183,7 @@ process_action_info: a2
 	iterate_matrix_states: event: e2
 		add_to_action_array: state: s1
 populate_action_array returning true
-found a machine
+found a machine named anotherNewMachine
 	with 2 events and 2 states
 Actions return events
 The states :
@@ -229,9 +229,9 @@ The 1 transitions :
 	s2
 
 making a list of machines
-Won't insert action a2 into slot: event e2, state s1, because it is already occupied by a1
+Machine newMachine: Won't insert action a2 into slot: event e2, state s1 because it is already occupied by a1
 ./test: Action array population failed
 	line 9 : }
-Won't insert action a2 into slot: event e2, state s1, because it is already occupied by a1
+Machine anotherNewMachine: Won't insert action a2 into slot: event e2, state s1 because it is already occupied by a1
 ./test: Action array population failed
 	line 19 : }

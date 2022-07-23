@@ -49,16 +49,36 @@ typedef enum {
   , mfMachineTransition   = 8
 } MOD_FLAGS;
 
-typedef struct _id_info_				         ID_INFO, *pID_INFO;
-typedef struct _action_se_info_	         ACTION_SE_INFO, *pACTION_SE_INFO;
-typedef struct _matrix_info_	           MATRIX_INFO, *pMATRIX_INFO;
-typedef struct _action_info_		         ACTION_INFO, *pACTION_INFO;
-typedef struct _machine_info_		         MACHINE_INFO, *pMACHINE_INFO;
-typedef struct _state_and_event_decls_   STATE_AND_EVENT_DECLS, *pSTATE_AND_EVENT_DECLS;
-typedef struct _statement_decl_list_     STATEMENT_DECL_LIST, *pSTATEMENT_DECL_LIST;   
+typedef struct _id_info_				         ID_INFO,                 *pID_INFO;
+typedef struct _action_se_info_	         ACTION_SE_INFO,          *pACTION_SE_INFO;
+typedef struct _matrix_info_	           MATRIX_INFO,             *pMATRIX_INFO;
+typedef struct _action_info_		         ACTION_INFO,             *pACTION_INFO;
+typedef struct _machine_info_		         MACHINE_INFO,            *pMACHINE_INFO;
+typedef struct _state_and_event_decls_   STATE_AND_EVENT_DECLS,   *pSTATE_AND_EVENT_DECLS;
+typedef struct _statement_decl_list_     STATEMENT_DECL_LIST,     *pSTATEMENT_DECL_LIST;   
 typedef struct _actions_and_transitions_ ACTIONS_AND_TRANSITIONS, *pACTIONS_AND_TRANSITIONS;
-typedef struct _action_decl_             ACTION_DECL, *pACTION_DECL;
-typedef struct _machine_qualifier_       MACHINE_QUALIFIER, *pMACHINE_QUALIFIER;
+typedef struct _action_decl_             ACTION_DECL,             *pACTION_DECL;
+typedef struct _machine_qualifier_       MACHINE_QUALIFIER,       *pMACHINE_QUALIFIER;
+typedef struct _machine_prefix_          MACHINE_PREFIX,          *pMACHINE_PREFIX;
+typedef struct _iterator_helper_         ITERATOR_HELPER,         *pITERATOR_HELPER;
+
+struct _iterator_helper_
+{
+   FILE          *fout;
+   pMACHINE_INFO pmi;
+   pMACHINE_INFO pparent;
+   pID_INFO      pid;
+   bool          error;
+   bool          first;
+   char          *cp;
+};
+
+
+struct _machine_prefix_ 
+{
+   pMACHINE_INFO pmachineInfo;
+   char          *docCmnt;
+};
 
 struct _action_decl_            
 {
@@ -74,6 +94,7 @@ struct _actions_and_transitions_
    pLIST action_info_list;
    pLIST transition_list;
    pLIST transition_fn_list;
+   pLIST machine_list;
 };
 
 struct _statement_decl_list_
@@ -124,7 +145,7 @@ struct _machine_qualifier_
 };
 
 struct _machine_info_ {
-  pMACHINE_INFO sub_machines;
+  pMACHINE_INFO parent;
   pLIST         state_list;
   int           external_state_designation_count;
   pLIST         event_list;
@@ -139,12 +160,15 @@ struct _machine_info_ {
 	char					*native;
 	MOD_FLAGS			modFlags;
   pID_INFO      machineTransition;
+  pLIST         machine_list;
+  pLIST         id_list;
 };
 
 /* lexer id list handlers */
-int add_id(int, char *, pID_INFO *);
-int lookup_id(char *, pID_INFO *);
-void free_ids(void);
+extern pLIST id_list;
+int add_id(pLIST, int, char *, pID_INFO *);
+int lookup_id(pLIST, char *, pID_INFO *);
+void free_ids(pLIST);
 
 /** _A is pID_INFO; _B is new type (int)   */
 #define set_id_type(_A,_B) (_A)->type = _B
@@ -203,9 +227,9 @@ extern bool compact_action_array;
 
 typedef struct _fsm_output_generator_      FSMOutputGenerator, *pFSMOutputGenerator;
 
-typedef int (*InitOutput)(char *);
-typedef void (*WriteMachine)(pMACHINE_INFO);
-typedef void (*CloseOutput)(int);
+typedef int (*InitOutput)(pFSMOutputGenerator,char *);
+typedef void (*WriteMachine)(pFSMOutputGenerator,pMACHINE_INFO);
+typedef void (*CloseOutput)(pFSMOutputGenerator,int);
 
 struct _fsm_output_generator_
 {
@@ -216,5 +240,11 @@ struct _fsm_output_generator_
 
 extern void yyerror(char*);
 
+void write_machines(pLIST, pFSMOutputGenerator);
+bool print_machine_component(pLIST_ELEMENT,void*);
+bool print_sub_machine_component(pLIST_ELEMENT,void*);
+bool print_sub_machine_component_name(pLIST_ELEMENT,void*);
+bool print_sub_machine_events(pLIST_ELEMENT,void*);
+bool print_sub_machine_event_names(pLIST_ELEMENT,void*);
 
 #endif /* ----------- nothing below this line ---------------- */

@@ -1,6 +1,6 @@
 VPATH=../../../src
 
-CFLAGS += -I ../../../src -DARCH=$(ARCH)
+override CFLAGS += -I../../../src -DARCH=$(ARCH)
 
 SRC+=$(shell find -L . -type f -name "*.c" -printf "%P ")
 

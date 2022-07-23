@@ -51,19 +51,27 @@
 #include "lexer_debug.h"
 #endif
 
+typedef struct _action_array_population_helper_ ACTION_ARRAY_POPULATION_HELPER, *pACTION_ARRAY_POPULATION_HELPER;
+struct _action_array_population_helper_ 
+{
+   FILE          *fout;
+   pMACHINE_INFO pmi;
+   pACTION_INFO  pai;
+   pID_INFO      pevent;
+   bool          error;
+};
+
 /* the general use data */
 char	*me = "I don't know who I am, but I'm";
 bool generate_instance    = true;
 bool compact_action_array = false;
 
-pID_INFO id_list = NULL;
-
-int add_id(int type, char *name, pID_INFO *ppid_info)
+int add_id(pLIST id_list, int type, char *name, pID_INFO *ppid_info)
 {
    int ret_val;
 
   /* not already defined ? */
-  if ((ret_val = lookup_id(name,ppid_info)) == LOOKUP)
+  if ((ret_val = lookup_id(id_list, name, ppid_info)) == LOOKUP)
   {
      /* allocate new entry and link to list */
      if ((*ppid_info = (pID_INFO) malloc(sizeof(ID_INFO))) == NULL) {
@@ -79,10 +87,10 @@ int add_id(int type, char *name, pID_INFO *ppid_info)
      printf("Adding ID_INFO 0x%x\n",*ppid_info);
      #endif
 
-     (*ppid_info)->nextID = id_list;
      (*ppid_info)->name = strdup(name);
      (*ppid_info)->type = type;
-     id_list = *ppid_info;
+
+     add_to_list(id_list,*ppid_info);
 
      #ifdef LEX_DEBUG
      printf("Added : %s of type %s\n",name,strings[type]);
@@ -101,78 +109,37 @@ int add_id(int type, char *name, pID_INFO *ppid_info)
 
 }
 
-int lookup_id(char *name, pID_INFO *ppid_info)
+static bool find_id_by_name(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid   = (pID_INFO) pelem->mbr;
+   char     *name = (char *) data;
+
+   /*
+   printf("looking for: %s\n",name);
+   printf("\texamining %s\n", pid->name);
+   */
+
+   return !strcmp(pid->name, name);
+}
+
+int lookup_id(pLIST id_list, char *name, pID_INFO *ppid_info)
 {
 
-  for (*ppid_info = id_list; *ppid_info; *ppid_info = (*ppid_info)->nextID)
+   pLIST_ELEMENT pelem = iterate_list(id_list,find_id_by_name,name);
 
-    if (!strcmp((*ppid_info)->name,name))
+   if (pelem)
+   {
+      *ppid_info = (pID_INFO)pelem->mbr;
+      return ((pID_INFO)pelem->mbr)->type;
+   }
 
-      return (*ppid_info)->type;
-
-  return LOOKUP;  /* i.e. not found */
+   return LOOKUP;  /* i.e. not found */
 
 }
 
-void free_ids(void)
+void free_ids(pLIST id_list)
 {
-
-	pID_INFO	pid_info, pid_info1;
-	pACTION_INFO		pai,pai1;
-	pACTION_SE_INFO	pasi, pasi1;
-
-	pid_info = id_list;
-	while (pid_info) {
-
-		pid_info1 = pid_info->nextID;
-
-		free(pid_info->name);
-		#ifdef MEM_DEBUG
-		printf("freeing ID_INFO 0x%x\n",pid_info);
-		#endif
-
-		CHECK_AND_FREE(pid_info->docCmnt);
-
-    #if 0
-		/* free the action related stuff */
-		for (pai = pid_info->actionInfo; pai; pai = pai1) {
-	
-				pai1 = pai->nextAction;
-	
-				/* events */
-				for (pasi = pai->matrix->event_list; pasi; pasi = pasi1) {
-					pasi1 = pasi->next;
-					#ifdef MEM_DEBUG
-					printf("freeing event ACTION_SE_INFO 0x%x\n",pasi);
-					#endif
-					free(pasi);
-				}
-	
-				/* states */
-				for (pasi = pai->matrix->state_list; pasi; pasi = pasi1) {
-					pasi1 = pasi->next;
-					#ifdef MEM_DEBUG
-					printf("freeing state ACTION_SE_INFO 0x%x\n",pasi);
-					#endif
-					free(pasi);
-				}
-	
-				/* the action info block itself */
-				#ifdef MEM_DEBUG
-				printf("freeing ACTION_INFO 0x%x\n",pai);
-				#endif
-				free(pai);
-	
-		}
-    #endif
-
-		free(pid_info);
-		pid_info = pid_info1;
-
-	}
-
-	id_list = NULL;
-
+   (void) id_list;
 }
 
 void freeMachineInfo(pMACHINE_INFO pmi)
@@ -356,15 +323,6 @@ int allocateActionArray(pMACHINE_INFO pmi)
 
 }
 
-typedef struct _action_array_population_helper_ ACTION_ARRAY_POPULATION_HELPER, *pACTION_ARRAY_POPULATION_HELPER;
-struct _action_array_population_helper_ 
-{
-   FILE          *fout;
-   pMACHINE_INFO pmi;
-   pACTION_INFO  pai;
-   pID_INFO      pevent;
-   bool          error;
-};
 static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
 {
    pACTION_ARRAY_POPULATION_HELPER paaph  = (pACTION_ARRAY_POPULATION_HELPER) data;
@@ -379,7 +337,8 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
    if (paaph->pmi->actionArray[paaph->pevent->order][pstate->order])
    {
       fprintf(stderr
-              ,"Won't insert action %s into slot: event %s, state %s, because it is already occupied by %s\n"
+              ,"Machine %s: Won't insert action %s into slot: event %s, state %s because it is already occupied by %s\n"
+              , paaph->pmi->name->name
               , paaph->pai->action->name
               , paaph->pevent->name
               , pstate->name
@@ -688,6 +647,133 @@ char *getFileNameNoDir(const char *path)
 
 	return cp1;
 
+}
+
+/**********************************************************************************************************************/
+/**
+ * @brief write a machine
+ * 
+ * @author Steven Stanton (7/10/2022)
+ * 
+ * @param pelem pointer to a list element; the member is expected to be a pMACHINE_INFO.
+ * @param data expected to be a pFSMOutputGenerator.
+ * 
+ *
+ * @ref_global None
+ *
+ * @mod_global None
+ *
+ * @thread_safe Yes
+ * 
+ * @return bool always returns false, indicating that list processing should continue
+ *
+ * Require a list member pointing to a valid MACHINE_INFO struct, and data pointing to a valid FSMOutputGenerator struct.
+ * Call the generator's writeMachine function, passing the pointer to the MACHINE_INFO struct.
+ ***********************************************************************************************************************/
+static bool write_machine(pLIST_ELEMENT pelem, void *data)
+{
+   pFSMOutputGenerator pfsmog = (pFSMOutputGenerator) data;
+   pMACHINE_INFO       pmi    = (pMACHINE_INFO) pelem->mbr;
+
+   (*pfsmog->initOutput)(pfsmog, pmi->name->name);
+   (*pfsmog->writeMachine)(pfsmog, pmi);
+   (*pfsmog->closeOutput)(pfsmog,1);
+
+   return false;
+}
+
+/**********************************************************************************************************************/
+/**
+ * @brief write each member of the list using the given pFSMOutputGenerator.
+ * 
+ * @author Steven Stanton (7/10/2022)
+ * 
+ * @param plist list of pMACHINE_INFOs
+ * @param pfsmog ouput generator to use
+ * 
+ *
+ * @ref_global None
+ *
+ * @mod_global None
+ *
+ * @thread_safe Yes
+ *
+ * Require a valid list of pointers to valid MACHINE_INFO structure and a pointer to a valid FSMOutputGenerator.
+ * Use the output generator to write each member of the list.
+ ***********************************************************************************************************************/
+void write_machines(pLIST plist, pFSMOutputGenerator pfsmog)
+{
+   iterate_list(plist, write_machine, pfsmog);
+}
+
+bool print_machine_component(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid         = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   fprintf(pih->fout
+           , "%s%s_%s\n"
+           , pih->first ? "" : ","
+           , pih->pmi->name->name
+           , pid->name
+           );
+
+   return false;
+}
+
+bool print_sub_machine_component(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid         = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   fprintf(pih->fout
+           , "\t%s%s_%s_%s\n"
+           , pih->first ? "" : ","
+           , pih->pparent->name->name
+           , pih->pmi->name->name
+           , pid->name
+           );
+
+   return false;
+}
+
+bool print_sub_machine_component_name(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid         = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   fprintf(pih->fout
+           , "\t, \"%s_%s_%s\"\n"
+           , pih->pparent->name->name
+           , pih->pmi->name->name
+           , pid->name
+           );
+
+   return false;
+}
+
+bool print_sub_machine_events(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   pih->pmi   = (pMACHINE_INFO) pelem->mbr;
+   pih->first = false;
+
+   iterate_list(pih->pmi->event_list,print_sub_machine_component,pih);
+
+   return false;
+}
+
+bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   pih->pmi   = (pMACHINE_INFO) pelem->mbr;
+   pih->first = false;
+
+   iterate_list(pih->pmi->event_list,print_sub_machine_component_name,pih);
+
+   return false;
 }
 
 #ifdef PARSER_DEBUG
