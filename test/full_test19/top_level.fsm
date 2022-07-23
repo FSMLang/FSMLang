@@ -180,7 +180,7 @@ machine top_level
    action activate_sub_machine3[e4, s2] transition s3;
 
    /**
-     In the steady state, e 5 triggers us to re-run sub
+     In the steady state, e5 triggers us to re-run sub
      machines 2 and 3.
    */
    action activate_sub_machine2[e5, s3];
