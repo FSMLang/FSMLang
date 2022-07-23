@@ -1,0 +1,239 @@
+found the start of a state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+The 4 states so far :
+	s4
+	s3
+	s2
+	s1
+added another id to the event declaration list
+added another id to the event declaration list
+added another id to the event declaration list
+The 4 events so far :
+	e4
+	e3
+	e2
+	e1
+found the begining of an event comma list: e1
+found an event vector
+	e2
+	e1
+found the beginning of a state comma list
+found a state vector
+	s2
+	s1
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+found a scalar event : e3
+found the beginning of a state comma list
+found a state vector
+	s2
+	s1
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+added another action declarations
+found the begining of an event comma list: e1
+found an event vector
+	e2
+	e1
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+added another action declarations
+found a scalar event : e4
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+added another action declarations
+The actions so far(1):
+	a4
+	a3
+	a2
+	a1
+found a machine
+	with 4 events and 4 states
+Actions return events
+The states :
+	3:	s4
+
+	2:	s3
+
+	1:	s2
+
+	0:	s1
+
+The events :
+	3:	e4
+
+	2:	e3
+
+	1:	e2
+
+	0:	e1
+
+The actions :
+	a4
+		which occurs in these events
+			e4
+		and states
+			s4
+		and transitions to state s2
+	a3
+		which occurs in these events
+			e2
+			e1
+		and states
+			s3
+	a2
+		which occurs in these events
+			e3
+		and states
+			s2
+			s1
+		and transitions to state s2
+	a1
+		which occurs in these events
+			e2
+			e1
+		and states
+			s2
+			s1
+		and transitions to state s2
+
+The 1 transitions :
+	s2
+
+found a single machine
+found the start of a state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+The 4 states so far :
+	anmS4
+	anmS3
+	anmS2
+	anmS1
+added another id to the event declaration list
+added another id to the event declaration list
+added another id to the event declaration list
+The 4 events so far :
+	anmE4
+	anmE3
+	anmE2
+	anmE1
+found the begining of an event comma list: anmE1
+found an event vector
+	anmE2
+	anmE1
+found the beginning of a state comma list
+found a state vector
+	anmS2
+	anmS1
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions so far(1):
+	anmA1
+found a scalar event : anmE3
+found the beginning of a state comma list
+found a state vector
+	anmS2
+	anmS1
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions so far(1):
+	anmA2
+	anmA1
+found the begining of an event comma list: anmE1
+found an event vector
+	anmE2
+	anmE1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions so far(1):
+	anmA3
+	anmA2
+	anmA1
+found a scalar event : anmE4
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions so far(1):
+	anmA4
+	anmA3
+	anmA2
+	anmA1
+found a machine
+	with 4 events and 4 states
+Actions return events
+The states :
+	3:	anmS4
+
+	2:	anmS3
+
+	1:	anmS2
+
+	0:	anmS1
+
+The events :
+	3:	anmE4
+
+	2:	anmE3
+
+	1:	anmE2
+
+	0:	anmE1
+
+The actions :
+	anmA4
+		which occurs in these events
+			anmE4
+		and states
+			anmS4
+		and transitions to state anmS2
+	anmA3
+		which occurs in these events
+			anmE2
+			anmE1
+		and states
+			anmS3
+		and transitions to state anmS2
+	anmA2
+		which occurs in these events
+			anmE3
+		and states
+			anmS2
+			anmS1
+		and transitions to state anmS2
+	anmA1
+		which occurs in these events
+			anmE2
+			anmE1
+		and states
+			anmS2
+			anmS1
+
+The 1 transitions :
+	anmS2
+
+making a list of machines
