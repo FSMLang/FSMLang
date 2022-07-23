@@ -51,7 +51,7 @@ process_action_info: sendErrorIndication
 		add_to_action_array: state: initial
 		add_to_action_array: state: working
 populate_action_array returning false
-found a machine
+found a machine named test4FSM
 	with 2 events and 2 states
 Actions return states
 The states :

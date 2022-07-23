@@ -87,7 +87,7 @@ process_action_info: a4
 	iterate_matrix_states: event: e4
 		add_to_action_array: state: s4
 populate_action_array returning false
-found a machine
+found a machine named newMachine
 	with 4 events and 4 states
 Actions return events
 The states :
@@ -233,7 +233,7 @@ process_action_info: anmA4
 	iterate_matrix_states: event: anmE4
 		add_to_action_array: state: anmS4
 populate_action_array returning false
-found a machine
+found a machine named anotherNewMachine
 	with 4 events and 4 states
 Actions return events
 The states :

@@ -48,22 +48,11 @@
 /*
 	Our interface to the outside world
 */
-int initHTMLWriter(char *);
-void writeHTMLWriter(pMACHINE_INFO);
-void closeHTMLWriter(int);
+int initHTMLWriter(pFSMOutputGenerator,char *);
+void writeHTMLWriter(pFSMOutputGenerator,pMACHINE_INFO);
+void closeHTMLWriter(pFSMOutputGenerator,int);
 
-FSMOutputGenerator HTMLMachineWriter = {
-	initHTMLWriter,
-	writeHTMLWriter,
-	closeHTMLWriter
-};
-
-pFSMOutputGenerator pHTMLMachineWriter = &HTMLMachineWriter;
-
-
-/*
-	Our internal data
-*/
+typedef struct _fsm_html_output_generator_ FSMHTMLOutputGenerator, *pFSMHTMLOutputGenerator;
 typedef struct _html_machine_data_ HTMLMachineData, *pHTMLMachineData;
 
 struct _html_machine_data_ {
@@ -76,15 +65,41 @@ struct _html_machine_data_ {
 
 };
 
-HTMLMachineData htmlMachineData = {
-		NULL
-	,	NULL
+struct _fsm_html_output_generator_
+{
+   FSMOutputGenerator fsmog;
+   pHTMLMachineData   pmd;
 };
+
+FSMHTMLOutputGenerator HTMLMachineWriter = {
+	{
+     initHTMLWriter,
+     writeHTMLWriter,
+     closeHTMLWriter
+  },
+  NULL
+};
+
+FSMHTMLOutputGenerator HTMLSubMachineWriter = {
+	{
+     initHTMLWriter,
+     writeHTMLWriter,
+     closeHTMLWriter
+  },
+  NULL
+};
+
+pFSMOutputGenerator pHTMLMachineWriter    = (pFSMOutputGenerator) &HTMLMachineWriter;
+pFSMOutputGenerator pHTMLSubMachineWriter = (pFSMOutputGenerator) &HTMLSubMachineWriter;
+
+static pHTMLMachineData newHTMLMachineData(char *);
 
 /* list iteration callbacks */
 bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
 {
-   fprintf(htmlMachineData.htmlFile
+   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
+
+   fprintf(pfsmhtmlog->pmd->htmlFile
            , "\t\t<li>%s</li>\n"
            , ((pID_INFO)pelem->mbr)->name
            );
@@ -94,117 +109,152 @@ bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
 
 bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
 {
-   pID_INFO pid = ((pID_INFO)data);
+   pID_INFO pid = ((pID_INFO)pelem->mbr);
+   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
 
-   fprintf(htmlMachineData.htmlFile,"<tr>\n");
-   fprintf(htmlMachineData.htmlFile,"<td class=\"label\">%s</td>\n"
+   fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
+   fprintf(pfsmhtmlog->pmd->htmlFile,"<td class=\"label\">%s</td>\n"
      , strlen(pid->name) ? pid->name : "transition");
-   fprintf(htmlMachineData.htmlFile,"<td>\n");
-   fprintf(htmlMachineData.htmlFile,"%s"
+   fprintf(pfsmhtmlog->pmd->htmlFile,"<td>\n");
+   fprintf(pfsmhtmlog->pmd->htmlFile,"%s"
            , pid->docCmnt ? pid->docCmnt : "&nbsp;"
            );
    if (pid->action_returns_decl)
    {
-      fprintf(htmlMachineData.htmlFile,"\n<br/><br/>Returns:<ul class=\"return_decl\">");
-      iterate_list(pid->action_returns_decl,print_id_info_as_html_list_element,NULL);
-      fprintf(htmlMachineData.htmlFile,"</ul>\n"
+      fprintf(pfsmhtmlog->pmd->htmlFile,"\n<br/><br/>Returns:<ul class=\"return_decl\">");
+      iterate_list(pid->action_returns_decl,print_id_info_as_html_list_element,pfsmhtmlog);
+      fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
               );
    }
-   fprintf(htmlMachineData.htmlFile, "</td>\n</tr>\n");
+   fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n</tr>\n");
+
+   return false;
+}
+
+bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO           pmi        = ((pMACHINE_INFO)pelem->mbr);
+   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
+
+   fprintf(pfsmhtmlog->pmd->htmlFile
+           ,"<tr>\n"
+           );
+   fprintf(pfsmhtmlog->pmd->htmlFile
+           ,"<td class=\"label\"><a href=\"%s.html\" target=\"_blank\">%s</a></td>\n"
+           , pmi->name->name
+           , pmi->name->name
+           );
+   fprintf(pfsmhtmlog->pmd->htmlFile
+           ,"<td>\n"
+           );
+   fprintf(pfsmhtmlog->pmd->htmlFile
+           ,"%s"
+           , pmi->name->docCmnt ? pmi->name->docCmnt : "&nbsp;"
+           );
+
+   fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n</tr>\n");
 
    return false;
 }
 
 /* Main section */
-int initHTMLWriter (char *baseFileName)
+int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
 
 	time_t		now;
+  pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
 
-	if (!baseFileName) {
+  if (NULL != (pfsmhtmlog->pmd = calloc(1, sizeof(HTMLMachineData))))
+  {
+     if (!baseFileName)
+     {
 
-		htmlMachineData.htmlFile = stdout;
+       pfsmhtmlog->pmd->htmlFile = stdout;
 
-	}
-	else {
+     }
+     else {
 
-		htmlMachineData.htmlName = createFileName(baseFileName,".html");
+       pfsmhtmlog->pmd->htmlName = createFileName(baseFileName,".html");
 
-		if (!(htmlMachineData.htmlFile = openFile(htmlMachineData.htmlName,"w"))) {
+       if (!(pfsmhtmlog->pmd->htmlFile = openFile(pfsmhtmlog->pmd->htmlName,"w"))) {
 
-			CHECK_AND_FREE(htmlMachineData.htmlName);
+         CHECK_AND_FREE(pfsmhtmlog->pmd->htmlName);
 
-		}
-		else {
+       }
+       else {
 
-			/* we're good to go; write the preamble */
+         /* we're good to go; write the preamble */
 
-			time(&now);
+         time(&now);
 
-			fprintf(htmlMachineData.htmlFile,"<!DOCTYPE html>\n<html>\n");
+         fprintf(pfsmhtmlog->pmd->htmlFile,"<!DOCTYPE html>\n<html>\n");
 
-			fprintf(htmlMachineData.htmlFile,"<!--\n\t%s\n\n",htmlMachineData.htmlName);
-			fprintf(htmlMachineData.htmlFile,"\tThis file automatically generated by FSMLang\n\n");
-			fprintf(htmlMachineData.htmlFile,"\tOn %s\n\n-->\n",ctime(&now));
+         fprintf(pfsmhtmlog->pmd->htmlFile,"<!--\n\t%s\n\n",pfsmhtmlog->pmd->htmlName);
+         fprintf(pfsmhtmlog->pmd->htmlFile,"\tThis file automatically generated by FSMLang\n\n");
+         fprintf(pfsmhtmlog->pmd->htmlFile,"\tOn %s\n\n-->\n",ctime(&now));
 
-			fprintf(htmlMachineData.htmlFile,"<head>\n");
+         fprintf(pfsmhtmlog->pmd->htmlFile,"<head>\n");
 
-			fprintf(htmlMachineData.htmlFile,"<title>FSM Lang : %s</title>\n",baseFileName);
+         fprintf(pfsmhtmlog->pmd->htmlFile,"<title>FSM Lang : %s</title>\n",baseFileName);
 
-			fprintf(htmlMachineData.htmlFile,"<link REL=stylesheet type=\"text/css\" href=\"fsmlang.css\">\n");
+         fprintf(pfsmhtmlog->pmd->htmlFile,"<link REL=stylesheet type=\"text/css\" href=\"fsmlang.css\">\n");
 
-			fprintf(htmlMachineData.htmlFile,"</head><body>\n");
+         fprintf(pfsmhtmlog->pmd->htmlFile,"</head><body>\n");
 
-		}
+       }
 
-	}
+     }
+  }
 
 	/* this may look funny, but it does the trick */
-	return ((int) !htmlMachineData.htmlFile);
+	return ((int) !pfsmhtmlog->pmd->htmlFile);
 
 }
 
-void writeHTMLWriter(pMACHINE_INFO pmi)
+void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
 	pID_INFO			  pid;
 	pACTION_INFO	  pai;
   pACTION_SE_INFO pasei;
 	int						  e,s;
+  ITERATOR_HELPER ih;
+
+  pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
 
 	if (!pmi)
 
 		return;
 
-	fprintf(htmlMachineData.htmlFile,"<h2>%s</h2>\n"
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<h2>%s</h2>\n"
 		, pmi->name->name
 		);
 
 	if (pmi->name->docCmnt)
-		fprintf(htmlMachineData.htmlFile,"<p>%s<p>\n",pmi->name->docCmnt);
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<p>%s<p>\n",pmi->name->docCmnt);
 
-	fprintf(htmlMachineData.htmlFile,"<table class=machine>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=machine>\n");
 
 	/* first row */
-	fprintf(htmlMachineData.htmlFile,"\t<tr>\n");
-	fprintf(htmlMachineData.htmlFile,"\t\t<th class=blankCorner rowspan=2 colspan=2>&nbsp;</th>\n");
-	fprintf(htmlMachineData.htmlFile,"\t\t<th class=eventLabel colspan=%d>%s</th>\n"
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=blankCorner rowspan=2 colspan=2>&nbsp;</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=eventLabel colspan=%d>%s</th>\n"
 		,pmi->event_list->count	
 		,"Events"
 		);
-	fprintf(htmlMachineData.htmlFile,"\t</tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t</tr>\n");
 
 	/* event names row */
-	fprintf(htmlMachineData.htmlFile,"\t<tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tr>\n");
 	for (e = 0;e < pmi->event_list->count;e++)
-		fprintf(htmlMachineData.htmlFile,"\t\t<th class=eventName>%s</th>\n"
+		fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=eventName>%s</th>\n"
 			, eventNameByIndex(pmi,e)
 			);
-	fprintf(htmlMachineData.htmlFile,"\t</tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t</tr>\n");
 
 	/* State Label column */
-	fprintf(htmlMachineData.htmlFile,"\t<tr>\n");
-	fprintf(htmlMachineData.htmlFile,"\t\t<th class=stateLabel rowspan=%d>%s</th>\n"
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=stateLabel rowspan=%d>%s</th>\n"
 		, pmi->state_list->count
 		, "S<br/>t<br/>a<br/>t<br/>e<br/>s"
 		);
@@ -214,9 +264,9 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
 
 		if (s)
 
-			fprintf(htmlMachineData.htmlFile,"\t<tr>\n");
+			fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tr>\n");
 
-		fprintf(htmlMachineData.htmlFile,"\t\t<th class=stateName>%s</th>\n"
+		fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=stateName>%s</th>\n"
 			,	stateNameByIndex(pmi,s)
 			);
 
@@ -224,7 +274,7 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
 
 				if (pmi->modFlags & mfActionsReturnStates) {
 
-					fprintf(htmlMachineData.htmlFile
+					fprintf(pfsmhtmlog->pmd->htmlFile
                   ,"\t\t<td class=%s>%s"
                   ,	pmi->actionArray[e][s] ?
 								     (strlen(pmi->actionArray[e][s]->action->name) 
@@ -242,11 +292,11 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
              && pmi->actionArray[e][s]->action->action_returns_decl
               )
           {
-             fprintf(htmlMachineData.htmlFile
+             fprintf(pfsmhtmlog->pmd->htmlFile
                      ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
                      );
-             iterate_list(pmi->actionArray[e][s]->action->action_returns_decl,print_id_info_as_html_list_element,NULL);
-             fprintf(htmlMachineData.htmlFile
+             iterate_list(pmi->actionArray[e][s]->action->action_returns_decl,print_id_info_as_html_list_element,pfsmhtmlog);
+             fprintf(pfsmhtmlog->pmd->htmlFile
                      , "\t</ul>\n"
                      );
           }
@@ -256,34 +306,34 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
              && pmi->actionArray[e][s]->transition
               )
           {
-             fprintf(htmlMachineData.htmlFile
+             fprintf(pfsmhtmlog->pmd->htmlFile
                      , "<br/>%s"
                      , pmi->actionArray[e][s]->transition->name
                      );
 
              if (pmi->actionArray[e][s]->transition->transition_fn_returns_decl)
              {
-                fprintf(htmlMachineData.htmlFile
+                fprintf(pfsmhtmlog->pmd->htmlFile
                         ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
                         );
-                iterate_list(pmi->actionArray[e][s]->transition->transition_fn_returns_decl, print_id_info_as_html_list_element, NULL);
-                fprintf(htmlMachineData.htmlFile
+                iterate_list(pmi->actionArray[e][s]->transition->transition_fn_returns_decl, print_id_info_as_html_list_element, pfsmhtmlog);
+                fprintf(pfsmhtmlog->pmd->htmlFile
                         , "\t</ul>\n"
                         );
              }
-             fprintf(htmlMachineData.htmlFile
+             fprintf(pfsmhtmlog->pmd->htmlFile
                      , "</td>\n"
                      );
              }
 
-          fprintf(htmlMachineData.htmlFile
+          fprintf(pfsmhtmlog->pmd->htmlFile
                   , "</td>\n"
                   );
 
 				}
 				else {
 
-					fprintf(htmlMachineData.htmlFile
+					fprintf(pfsmhtmlog->pmd->htmlFile
                   ,"\t\t<td class=%s>%s"
                   ,	pmi->actionArray[e][s] 
                      ? (strlen(pmi->actionArray[e][s]->action->name) 
@@ -302,16 +352,16 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
              && pmi->actionArray[e][s]->action->action_returns_decl
               )
           {
-             fprintf(htmlMachineData.htmlFile
+             fprintf(pfsmhtmlog->pmd->htmlFile
                      ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
                      );
-             iterate_list(pmi->actionArray[e][s]->action->action_returns_decl, print_id_info_as_html_list_element, NULL);
-             fprintf(htmlMachineData.htmlFile
+             iterate_list(pmi->actionArray[e][s]->action->action_returns_decl, print_id_info_as_html_list_element, pfsmhtmlog);
+             fprintf(pfsmhtmlog->pmd->htmlFile
                      , "\t</ul>\n"
                      );
           }
           
-          fprintf(htmlMachineData.htmlFile
+          fprintf(pfsmhtmlog->pmd->htmlFile
                   , "<br/><b>transition</b> : %s"
                   , pmi->actionArray[e][s] ? 
                     (pmi->actionArray[e][s]->transition ? 
@@ -325,15 +375,15 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
              && pmi->actionArray[e][s]->transition->transition_fn_returns_decl
               )
           {
-             fprintf(htmlMachineData.htmlFile
+             fprintf(pfsmhtmlog->pmd->htmlFile
                      ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
                      );
-             iterate_list(pmi->actionArray[e][s]->transition->transition_fn_returns_decl, print_id_info_as_html_list_element, NULL);
-             fprintf(htmlMachineData.htmlFile
+             iterate_list(pmi->actionArray[e][s]->transition->transition_fn_returns_decl, print_id_info_as_html_list_element, pfsmhtmlog);
+             fprintf(pfsmhtmlog->pmd->htmlFile
                      , "\t</ul>\n"
                      );
           }
-          fprintf(htmlMachineData.htmlFile
+          fprintf(pfsmhtmlog->pmd->htmlFile
                   , "</td>\n"
                   );
 
@@ -341,89 +391,114 @@ void writeHTMLWriter(pMACHINE_INFO pmi)
 
 			}
 
-			fprintf(htmlMachineData.htmlFile,"\t</tr>\n");
+			fprintf(pfsmhtmlog->pmd->htmlFile,"\t</tr>\n");
 
 	}
 	
-	fprintf(htmlMachineData.htmlFile,"</table>\n<p>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</table>\n<p>\n");
 
 	/*
     Now, list the events, states, actions, and any transition functions
     with their Document Comments
 	*/
-	fprintf(htmlMachineData.htmlFile,"<table class=\"elements\">\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
 
-	fprintf(htmlMachineData.htmlFile,"<tr>\n");
-	fprintf(htmlMachineData.htmlFile,"<th colspan=2 align=left>Events</th>\n");
-	fprintf(htmlMachineData.htmlFile,"</tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Events</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
 	
 	for (e = 0; e < pmi->event_list->count; e++) {
 
 		pid = eventPidByIndex(pmi,e);
 	
-		fprintf(htmlMachineData.htmlFile,"<tr>\n");
-		fprintf(htmlMachineData.htmlFile,"<td class=\"label\">%s</td>\n"
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<td class=\"label\">%s</td>\n"
 			, pid->name);
-		fprintf(htmlMachineData.htmlFile,"<td>%s</td>\n"
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<td>%s</td>\n"
 			, pid->docCmnt ? pid->docCmnt : "&nbsp;");
-		fprintf(htmlMachineData.htmlFile,"</tr>\n");
+		fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
 
 	}
 
-	fprintf(htmlMachineData.htmlFile,"<tr>\n");
-	fprintf(htmlMachineData.htmlFile,"<th colspan=2 align=left>States</th>\n");
-	fprintf(htmlMachineData.htmlFile,"</tr>\n");
+  fprintf(pfsmhtmlog->pmd->htmlFile,"</table>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>States</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
 	
 	for (s = 0; s < pmi->state_list->count; s++) {
 	
 		pid = statePidByIndex(pmi,s);
 
-		fprintf(htmlMachineData.htmlFile,"<tr>\n");
-		fprintf(htmlMachineData.htmlFile,"<td class=\"label\">%s</td>\n"
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<td class=\"label\">%s</td>\n"
 			, pid->name);
-		fprintf(htmlMachineData.htmlFile,"<td>%s</td>\n"
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<td>%s</td>\n"
 			, pid->docCmnt ? pid->docCmnt : "&nbsp;");
-		fprintf(htmlMachineData.htmlFile,"</tr>\n");
+		fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
 
 	}
 
-	fprintf(htmlMachineData.htmlFile,"<tr>\n");
-	fprintf(htmlMachineData.htmlFile,"<th colspan=2 align=left>Actions</th>\n");
-	fprintf(htmlMachineData.htmlFile,"</tr>\n");
+  fprintf(pfsmhtmlog->pmd->htmlFile,"</table>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Actions</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
 	
-  iterate_list(pmi->action_list,print_action_table_row,NULL);
+  iterate_list(pmi->action_list,print_action_table_row,pfsmhtmlog);
+
+  fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
 
   if (pmi->transition_fn_list->count)
   {
-     fprintf(htmlMachineData.htmlFile, "<tr>\n");
-     fprintf(htmlMachineData.htmlFile,"<th colspan=2 align=left>Transition Functions</th>\n");
-     fprintf(htmlMachineData.htmlFile,"</tr>\n");
+     fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+     fprintf(pfsmhtmlog->pmd->htmlFile, "<tr>\n");
+     fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Transition Functions</th>\n");
+     fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
 
-     iterate_list(pmi->transition_fn_list,print_action_table_row,NULL);
+     iterate_list(pmi->transition_fn_list,print_action_table_row,pfsmhtmlog);
+
+     fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
      
   }
-	
-  fprintf(htmlMachineData.htmlFile, "</table>\n");
+
+
+  if (pmi->machine_list)
+  {
+     fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+     fprintf(pfsmhtmlog->pmd->htmlFile, "<tr>\n");
+     fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Sub Machines</th>\n");
+     fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
+
+     iterate_list(pmi->machine_list, print_sub_machine_row, pfsmhtmlog);
+
+     fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
+
+     write_machines(pmi->machine_list, pHTMLSubMachineWriter);
+  }
 }
 
-void closeHTMLWriter(int good)
+void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good)
 {
+   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
 
 	if (good) {
 
-		fprintf(htmlMachineData.htmlFile,"</body>\n</html>\n");
+		fprintf(pfsmhtmlog->pmd->htmlFile,"</body>\n</html>\n");
 
 	}
 
-	fclose(htmlMachineData.htmlFile);
+	fclose(pfsmhtmlog->pmd->htmlFile);
 
 	if (!good) {
 
-		unlink(htmlMachineData.htmlName);
+		unlink(pfsmhtmlog->pmd->htmlName);
 
 	}
 
-	CHECK_AND_FREE(htmlMachineData.htmlName);
+	CHECK_AND_FREE(pfsmhtmlog->pmd->htmlName);
 
 }
 

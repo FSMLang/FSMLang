@@ -283,7 +283,7 @@ void {
 					int				wordType;
 					pID_INFO	pid_info;
 
-         wordType = add_id(ID,yytext,&pid_info);
+         wordType = add_id(id_list,ID,yytext,&pid_info);
 
 					#ifndef LEX_DEBUG
 
@@ -328,8 +328,11 @@ int yywrap(void)
 #endif
 
 #if defined (LEX_DEBUG)
+pLIST id_list;
 int main (int argc, char **argv)
 {
+    id_list = init_list();
+
     yylex();
 
     return 0;

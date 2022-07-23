@@ -51,7 +51,7 @@ process_action_info: sendErrorIndication
 		add_to_action_array: state: initial
 		add_to_action_array: state: working
 populate_action_array returning false
-found a machine
+found a machine named testFSM
 	with 2 events and 2 states
 The machine is reentrant
 Actions return events
