@@ -8,29 +8,27 @@ VPATH=../../src
 
 ifdef OUTPUT_DIR
 include $(OUTPUT_DIR)/system.mk
-include $(OUTPUT_DIR)/source.mk
+#include $(OUTPUT_DIR)/source.mk
 endif
 
-override CFLAGS += -DPARSER_DEBUG -D$(ARCH) -I../ -I$(VPATH) -I .
+SRC =	lexer.c \
+			parser.c \
+			fsm_utils.c \
+			list.c 
 
-TESTS=parser-test1  \
-			parser-test2  \
-			parser-test3  \
-			parser-test4  \
-			parser-test5  \
-			parser-test6  \
-			parser-test7  \
-			parser-test8  \
-			parser-test9  \
-			parser-test10 \
-			parser-test11
+override CFLAGS += -ggdb -DPARSER_DEBUG -D$(ARCH) -I../ -I$(VPATH) -I .
+
+TESTS = $(basename $(shell find . -name "*.fsm" -printf "%P "))
+
+echotests:
+	@echo $(TESTS)
 
 NO_RUNTEST=TRUE
 include ../test.mk
 
 runtest: $(TESTS)
 
-$(TESTS): test
+$(TESTS): test 
 	./test $@.fsm > $@.out 2> $@.stderr
 	cat $@.stderr >> $@.out; rm $@.stderr
 	@$(DIFF) $@.out $@.canonical > $@.result

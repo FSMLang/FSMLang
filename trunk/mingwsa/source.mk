@@ -4,5 +4,6 @@ SRC =	lexer.c \
 			rindex.c \
 			fsm_utils.c \
 			fsm_html.c	\
-			fsm_c.c
+			fsm_c.c \
+			list.c
 
