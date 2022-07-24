@@ -68,6 +68,12 @@ const char rev_string[] = "version 1.6";
       * extends the -c option to machines having actions which return void.  This required no code changes.
       * introduces a new machine qualifier: 'on transition ID;' where ID names a function which will be called
         whenever the state changes.  The function takes a pointer to the machine, and the value of the new state.
-*/
 const char rev_string[] = "version 1.7";
+*/
+
+/*
+   Revision 1.8:
+      * introduces Hierarchical state machines.
+*/
+const char rev_string[] = "version 1.8";
 
