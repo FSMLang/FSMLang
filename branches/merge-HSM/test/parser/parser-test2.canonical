@@ -1,12 +1,16 @@
 added another id to the event declaration list
-The 2 events so far :
-	badMessage
-	goodMessage
+The 2 events in this list:
+	0:	goodMessage
+
+	1:	badMessage
+
 found the start of a state declaration list
 added another id to the state declaration list
-The 2 states so far :
-	working
-	initial
+The 2 states in this list :
+	0:	initial
+
+	1:	working
+
 found a scalar event : goodMessage
 found a state scalar
 found a matrix
@@ -14,7 +18,7 @@ found an action matrix
 found a transition to known state
 found an action with transition
 started an action declaration
-The actions so far(1):
+The actions in this list:
 	processMessage
 found a scalar event : goodMessage
 found a state scalar
@@ -22,55 +26,66 @@ found a matrix
 found an action matrix
 found an action without transition
 started an action declaration
-The actions so far(1):
+The actions in this list:
 	processMessage
 found a scalar event : badMessage
 found the beginning of a state comma list
 found a state vector
-	working
 	initial
+	working
 found a matrix
 found an action matrix
 found a transition to known state
 found an action with transition
 started an action declaration
-The actions so far(1):
+The actions in this list:
 	sendErrorIndication
-	processMessage
-found a machine
+process_action_info: processMessage
+	iterate_matrix_states: event: goodMessage
+		add_to_action_array: state: initial
+process_action_info: processMessage
+	iterate_matrix_states: event: goodMessage
+		add_to_action_array: state: working
+process_action_info: sendErrorIndication
+	iterate_matrix_states: event: badMessage
+		add_to_action_array: state: initial
+		add_to_action_array: state: working
+populate_action_array returning false
+found a machine named testFSM
 	with 2 events and 2 states
 The machine is reentrant
 Actions return events
 The states :
-	1:	working
-
 	0:	initial
 
-The events :
-	1:	badMessage
+	1:	working
 
+The events :
 	0:	goodMessage
 
+	1:	badMessage
+
 The actions :
-	sendErrorIndication
-		which occurs in these events
-			badMessage
-		and states
-			working
-			initial
-		and transitions to state initial
 	processMessage
 		which occurs in these events
-			goodMessage
+				goodMessage
 		and states
-			working
-		which occurs in these events
-			goodMessage
+				working
+		and which occurs in these events
+				goodMessage
 		and states
-			initial
+				initial
 		and transitions to state working
+	sendErrorIndication
+		which occurs in these events
+				badMessage
+		and states
+				initial
+				working
+		and transitions to state initial
 
-The 1 transitions :
+The 2 transitions :
 	working
+	initial
 
 found a single machine

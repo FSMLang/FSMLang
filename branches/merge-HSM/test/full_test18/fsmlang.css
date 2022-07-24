@@ -38,6 +38,7 @@
 }
 
 .elements {
+	margin: 10px;
 	border-style: solid;
 	border-collapse: collapse;
 	border-width: .5px;
@@ -63,5 +64,21 @@
 .label {
 	font-weight: bold;
 	padding: 3px;
+}
+
+.action .return_decl {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.action .return_decl li {
+  margin-top: 0px;
+}
+
+.action ul + br {
+	content: "";
+	margin: 0px;
+	display: block;
+	font-size: 0px;
 }
 
