@@ -1,0 +1,11 @@
+Hello, world
+event: newMachine_e1
+state: newMachine_s1
+newMachine_a1
+newMachine_transitionTos1
+event: newMachine_subMachine1_ee1
+state: newMachine_s1
+event: subMachine1_ee1
+state: subMachine1_ss1
+subMachine1_aa1
+warning: cannot use external event designations
