@@ -10,16 +10,21 @@ override CFLAGS += -DLEX_DEBUG -I../ -I$(VPATH)
 
 SRC = lexer.c       \
 			lexer_debug.c \
+			list.c \
 			fsm_utils.c
 
-TESTS=lexer-test1 \
-			lexer-test2 \
-			lexer-test3 \
-			lexer-test4 \
-			lexer-test5 \
-			lexer-test6 \
-			lexer-test7 \
-			lexer-test8
+#TESTS=lexer-test1 \
+#			lexer-test2 \
+#			lexer-test3 \
+#			lexer-test4 \
+#			lexer-test5 \
+#			lexer-test6 \
+#			lexer-test7 \
+#			lexer-test8 \
+#			lexer-test9
+#
+
+TESTS = $(basename $(shell find . -name "lexer-*.txt" -printf "%P "))
 
 LDFLAGS=-lfl
 

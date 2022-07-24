@@ -1,22 +1,26 @@
 found the start of a state declaration list
 added another id to the state declaration list
 added another id to the state declaration list
-The 3 states so far :
-	s3
-	s2
-	s1
+The 3 states in this list :
+	0:	s1
+
+	1:	s2
+
+	2:	s3
+
 added another id to the event declaration list
 added another id to the event declaration list
-The 3 events so far :
-	e3
-	e2
-	e1
+The 3 events in this list:
+	0:	e1
+
+	1:	e2
+
+	2:	e3
+
 External designation = BAR
-The 4 events so far :
-	e4 = BAR
-	e3
-	e2
-	e1
+The 1 events in this list:
+	0:	e4 = BAR
+
 found a scalar event : e1
 found a state scalar
 found a matrix
@@ -24,7 +28,7 @@ found an action matrix
 found a transition to known state
 found an action with transition
 started an action declaration
-The actions so far(1):
+The actions in this list:
 	a1
 Document Comment
 
@@ -33,93 +37,107 @@ Document Comment
 found a scalar event : e1
 found the beginning of a state comma list
 found a state vector
-	s3
 	s2
+	s3
 found a matrix
 found an action matrix
 found a transition with new function
 found an action with transition
 started an action declaration
-The actions so far(1):
+The actions in this list:
 	a2
-	a1
 found the begining of an event comma list: e2
 found an event vector
-	e3
 	e2
+	e3
 found the beginning of a state comma list
 found the continuation of a state comma list
 found a state vector
-	s3
-	s2
 	s1
+	s2
+	s3
 found a matrix
 found a transition matrix with new transition function
 found the beginning of a state comma list
-Found an transition_fn return declaration
+Found a transition_fn return declaration
 found the beginning of a state comma list
-Found an transition_fn return declaration
-found a machine
+Found a transition_fn return declaration
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+process_action_info: a2
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s2
+		add_to_action_array: state: s3
+process_action_info: noAction
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+		add_to_action_array: state: s3
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+		add_to_action_array: state: s3
+populate_action_array returning false
+found a machine named newMachine
 	with 4 events and 3 states
 Actions return events
 on transition: baz
 The states :
-	2:	s3
+	0:	s1
 
 	1:	s2
 
-	0:	s1
+	2:	s3
 
 The events :
-	3:	e4
-
-	2:	e3
+	0:	e1
 
 	1:	e2
 
-	0:	e1
+	2:	e3
+
+	3:	e4 = BAR
 
 The actions :
-	noAction
+	a1
 		which occurs in these events
-			e3
-			e2
+				e1
 		and states
-			s3
-			s2
-			s1
-		and transitions using function transitionFn1
+				s1
+		and transitions to state s1
 	a2
 		which occurs in these events
-			e1
+				e1
 		and states
-			s3
-			s2
+				s2
+				s3
 		and transitions using function transitionFn
 Doc Comments:
 
 		A Document Comment
 	
-	a1
+	noAction
 		which occurs in these events
-			e1
+				e2
+				e3
 		and states
-			s1
-		and transitions to state s1
+				s1
+				s2
+				s3
+		and transitions using function transitionFn1
 
-The 3 transitions :
-	transitionFn1
-	transitionFn
+The 1 transitions :
 	s1
 
 The 2 transition functions :
-	transitionFn1
-		which returns
-			s3
-			s2
 	transitionFn
 		which returns
-			s2
-			s1
+				s1
+				s2
+	transitionFn1
+		which returns
+				s2
+				s3
 
 found a single machine
