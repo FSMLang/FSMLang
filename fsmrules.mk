@@ -3,7 +3,7 @@
 #  .fsm rules
 #
 
-.SUFFIXES: .fsm 
+.SUFFIXES: .fsm .html
 
 ifdef OUTPUT_DIR
 FSM=$(OUTPUT_DIR)/fsm $(FSM_FLAGS)
@@ -24,6 +24,10 @@ FSM ?= fsm $(FSM_FLAGS)
 .fsm.h:
 	@echo "FSM:" $(FSM)
 	$(FSM) $< > fsmout
+
+.fsm.html:
+	@echo "FSM:" $(FSM)
+	$(FSM) -th $< > fsmout
 
 $(FSM_SRC:.fsm=.h): $(FSM_SRC)
 

@@ -10,7 +10,7 @@ endif
 
 include ../../depends.mk
 
-OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o)
+OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o) $(GENERATED_SRC:.c=.o)
 
 ifndef NO_RUNTEST
 runtest: test
@@ -19,7 +19,7 @@ runtest: test
 	@cat fsmout >> test.out
 	@$(DIFF) test.out test.canonical > test.result
 	@echo "Test successful"
-	@rm test.out test.result
+	@rm test.out test.result test.stderr
 endif
 
 test: $(OBJS)
@@ -36,5 +36,9 @@ clean::
 	-@rm *.stackdump 2> /dev/null
 	-@rm $(FSM_SRC:.fsm=.c) 2> /dev/null
 	-@rm $(FSM_SRC:.fsm=.h) 2> /dev/null
+	-@rm $(FSM_SRC:.fsm=.html) 2> /dev/null
+	-@rm $(GENERATED_SRC) 2> /dev/null
+	-@rm $(GENERATED_SRC:.c=.h) 2> /dev/null
+	-@rm $(GENERATED_SRC:.c=.html) 2> /dev/null
 	-@rm test
 

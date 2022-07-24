@@ -36,6 +36,7 @@
 #include <ctype.h>
 
 #include "fsm_priv.h"
+#include "list.h"
 
 #ifndef LEX_DEBUG
 
@@ -50,19 +51,27 @@
 #include "lexer_debug.h"
 #endif
 
+typedef struct _action_array_population_helper_ ACTION_ARRAY_POPULATION_HELPER, *pACTION_ARRAY_POPULATION_HELPER;
+struct _action_array_population_helper_ 
+{
+   FILE          *fout;
+   pMACHINE_INFO pmi;
+   pACTION_INFO  pai;
+   pID_INFO      pevent;
+   bool          error;
+};
+
 /* the general use data */
 char	*me = "I don't know who I am, but I'm";
 bool generate_instance    = true;
 bool compact_action_array = false;
 
-pID_INFO id_list = NULL;
-
-int add_id(int type, char *name, pID_INFO *ppid_info)
+int add_id(pLIST id_list, int type, char *name, pID_INFO *ppid_info)
 {
    int ret_val;
 
   /* not already defined ? */
-  if ((ret_val = lookup_id(name,ppid_info)) == LOOKUP)
+  if ((ret_val = lookup_id(id_list, name, ppid_info)) == LOOKUP)
   {
      /* allocate new entry and link to list */
      if ((*ppid_info = (pID_INFO) malloc(sizeof(ID_INFO))) == NULL) {
@@ -78,10 +87,10 @@ int add_id(int type, char *name, pID_INFO *ppid_info)
      printf("Adding ID_INFO 0x%x\n",*ppid_info);
      #endif
 
-     (*ppid_info)->nextID = id_list;
      (*ppid_info)->name = strdup(name);
      (*ppid_info)->type = type;
-     id_list = *ppid_info;
+
+     add_to_list(id_list,*ppid_info);
 
      #ifdef LEX_DEBUG
      printf("Added : %s of type %s\n",name,strings[type]);
@@ -100,76 +109,37 @@ int add_id(int type, char *name, pID_INFO *ppid_info)
 
 }
 
-int lookup_id(char *name, pID_INFO *ppid_info)
+static bool find_id_by_name(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid   = (pID_INFO) pelem->mbr;
+   char     *name = (char *) data;
+
+   /*
+   printf("looking for: %s\n",name);
+   printf("\texamining %s\n", pid->name);
+   */
+
+   return !strcmp(pid->name, name);
+}
+
+int lookup_id(pLIST id_list, char *name, pID_INFO *ppid_info)
 {
 
-  for (*ppid_info = id_list; *ppid_info; *ppid_info = (*ppid_info)->nextID)
+   pLIST_ELEMENT pelem = iterate_list(id_list,find_id_by_name,name);
 
-    if (!strcmp((*ppid_info)->name,name))
+   if (pelem)
+   {
+      *ppid_info = (pID_INFO)pelem->mbr;
+      return ((pID_INFO)pelem->mbr)->type;
+   }
 
-      return (*ppid_info)->type;
-
-  return LOOKUP;  /* i.e. not found */
+   return LOOKUP;  /* i.e. not found */
 
 }
 
-void free_ids(void)
+void free_ids(pLIST id_list)
 {
-
-	pID_INFO	pid_info, pid_info1;
-	pACTION_INFO		pai,pai1;
-	pACTION_SE_INFO	pasi, pasi1;
-
-	pid_info = id_list;
-	while (pid_info) {
-
-		pid_info1 = pid_info->nextID;
-
-		free(pid_info->name);
-		#ifdef MEM_DEBUG
-		printf("freeing ID_INFO 0x%x\n",pid_info);
-		#endif
-
-		CHECK_AND_FREE(pid_info->docCmnt);
-
-		/* free the action related stuff */
-		for (pai = pid_info->actionInfo; pai; pai = pai1) {
-	
-				pai1 = pai->nextAction;
-	
-				/* events */
-				for (pasi = pai->matrix->event_list; pasi; pasi = pasi1) {
-					pasi1 = pasi->next;
-					#ifdef MEM_DEBUG
-					printf("freeing event ACTION_SE_INFO 0x%x\n",pasi);
-					#endif
-					free(pasi);
-				}
-	
-				/* states */
-				for (pasi = pai->matrix->state_list; pasi; pasi = pasi1) {
-					pasi1 = pasi->next;
-					#ifdef MEM_DEBUG
-					printf("freeing state ACTION_SE_INFO 0x%x\n",pasi);
-					#endif
-					free(pasi);
-				}
-	
-				/* the action info block itself */
-				#ifdef MEM_DEBUG
-				printf("freeing ACTION_INFO 0x%x\n",pai);
-				#endif
-				free(pai);
-	
-		}
-
-		free(pid_info);
-		pid_info = pid_info1;
-
-	}
-
-	id_list = NULL;
-
+   (void) id_list;
 }
 
 void freeMachineInfo(pMACHINE_INFO pmi)
@@ -184,7 +154,7 @@ void freeMachineInfo(pMACHINE_INFO pmi)
 	/* and, the action array */
 	if (pmi->actionArray) {
 
-		for (i = 0; i < pmi->event_count; i++) {
+		for (i = 0; i < pmi->event_list->count; i++) {
 
 			CHECK_AND_FREE(pmi->actionArray[i]);
 
@@ -337,15 +307,15 @@ int allocateActionArray(pMACHINE_INFO pmi)
 
 	int i;
 
-	if (!pmi || !pmi->state_count || !pmi->event_count)
+	if (!pmi || !pmi->state_list->count || !pmi->event_list->count)
 		return 1;
 
-	if (!(pmi->actionArray = (pACTION_INFO **)calloc(pmi->event_count,sizeof(pACTION_INFO *))))
+	if (!(pmi->actionArray = (pACTION_INFO **)calloc(pmi->event_list->count,sizeof(pACTION_INFO *))))
 		return 1;
 
-	for (i = 0; i < pmi->event_count; i++)
+	for (i = 0; i < pmi->event_list->count; i++)
 
-		if (!(pmi->actionArray[i] = (pACTION_INFO *)calloc(pmi->state_count,sizeof(pACTION_INFO))))
+		if (!(pmi->actionArray[i] = (pACTION_INFO *)calloc(pmi->state_list->count,sizeof(pACTION_INFO))))
 
 			return 1;
 
@@ -353,46 +323,86 @@ int allocateActionArray(pMACHINE_INFO pmi)
 
 }
 
-/**
-	function: addToActionArray
-
-	Add the given Action to the Action array,
-		complaining if there is already something
-		in the slot.
-
-	Arguments : 
-		pMACHINE_INFO	-	The completed machine info struct.
-
-	returns: 0 on success
-					 1 on failure
-*/
-int addToActionArray(pMACHINE_INFO pmi, pACTION_INFO pai)
+static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
 {
-	pACTION_SE_INFO	pasiE, pasiS;
+   pACTION_ARRAY_POPULATION_HELPER paaph  = (pACTION_ARRAY_POPULATION_HELPER) data;
+   pID_INFO                        pstate = (pID_INFO)      pelem->mbr;
 
-	/* since we look at things from an event,state order */
-	for (pasiE = pai->matrix->event_list; pasiE; pasiE = pasiE->next) {
+   #ifdef PARSER_DEBUG
+   fprintf(paaph->fout, "\t\tadd_to_action_array: state: %s\n"
+           , pstate->name
+           );
+   #endif
 
-		for (pasiS = pai->matrix->state_list; pasiS; pasiS = pasiS->next) {
+   if (paaph->pmi->actionArray[paaph->pevent->order][pstate->order])
+   {
+      fprintf(stderr
+              ,"Machine %s: Won't insert action %s into slot: event %s, state %s because it is already occupied by %s\n"
+              , paaph->pmi->name->name
+              , paaph->pai->action->name
+              , paaph->pevent->name
+              , pstate->name
+              , paaph->pmi->actionArray[paaph->pevent->order][pstate->order]->action->name
+              );
 
-			if (pmi->actionArray[pasiE->se->seOrder][pasiS->se->seOrder]) {
-		
-				fprintf(stderr,"Duplicate action :\n");
-				fprintf(stderr,"Action already there : %s\n",
-					pmi->actionArray[pasiE->se->seOrder][pasiS->se->seOrder]->action->name);
-		
-				return 1;
-		
-			}
-	
-			pmi->actionArray[pasiE->se->seOrder][pasiS->se->seOrder] = pai;
+      paaph->error = true;
+   }
+   else
+   {
+      paaph->pmi->actionArray[paaph->pevent->order][pstate->order] = paaph->pai;
+   }
 
-		}
+   return paaph->error;
+}
 
-	}
+static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
+{
+   pACTION_ARRAY_POPULATION_HELPER paaph = (pACTION_ARRAY_POPULATION_HELPER) data;
+   
+   paaph->pevent = (pID_INFO) pelem->mbr;
 
-	return 0;
+   #ifdef PARSER_DEBUG
+   fprintf(paaph->fout, "\titerate_matrix_states: event: %s\n", paaph->pevent->name);
+   #endif
 
+   iterate_list(paaph->pai->matrix->state_list,add_to_action_array,paaph);
+
+   return paaph->error;
+}
+static bool process_action_info(pLIST_ELEMENT pelem, void *data)
+{
+   pACTION_ARRAY_POPULATION_HELPER paaph = (pACTION_ARRAY_POPULATION_HELPER) data;
+
+   paaph->pai = (pACTION_INFO)pelem->mbr;
+
+   #ifdef PARSER_DEBUG
+   fprintf(paaph->fout
+           , "process_action_info: %s\n"
+           , strlen(paaph->pai->action->name) ? paaph->pai->action->name : "noAction"
+           );
+   #endif
+
+   iterate_list(paaph->pai->matrix->event_list,iterate_matrix_states,paaph);
+
+   return paaph->error;
+
+}
+
+bool populate_action_array(pMACHINE_INFO pmi, FILE *fout)
+{
+   ACTION_ARRAY_POPULATION_HELPER aaph;
+
+   aaph.pmi   = pmi;
+   aaph.fout  = fout;
+   aaph.error = false;
+
+   iterate_list(pmi->action_info_list,process_action_info,&aaph);
+
+   #ifdef PARSER_DEBUG
+   fprintf(fout,"populate_action_array returning %s\n", aaph.error ? "true" : "false");
+   #endif
+
+   return aaph.error;
 }
 
 /**
@@ -418,17 +428,13 @@ char *eventNameByIndex(pMACHINE_INFO pmi, int index)
 	char 			*cp = NULL;
 	pID_INFO	pidi;
 
-	if (pmi && (index >= 0) && (index < pmi->event_count)) {
+	if (pmi && (index >= 0) && (index < pmi->event_list->count)) {
 
-		for (pidi = pmi->event_list; pidi; pidi = pidi->nextEvent)
-
-			if (pidi->seOrder == index) {
-
-				cp = pidi->name;
-
-				break;
-
-			}
+     pidi = (pID_INFO)find_nth_list_member(pmi->event_list,(unsigned)index);
+     if (pidi)
+     {
+        cp = pidi->name;
+     }
 
 	}
 
@@ -458,16 +464,9 @@ pID_INFO eventPidByIndex(pMACHINE_INFO pmi, int index)
 
 	pID_INFO	pidi = NULL;
 
-	if (pmi && (index >= 0) && (index < pmi->event_count)) {
+	if (pmi && (index >= 0) ) {
 
-		for (pidi = pmi->event_list; pidi; pidi = pidi->nextEvent)
-
-			if (pidi->seOrder == index) {
-
-				break;
-
-			}
-
+     pidi = (pID_INFO) find_nth_list_member(pmi->event_list, (unsigned) index);
 	}
 
 	return pidi;
@@ -497,17 +496,13 @@ char *stateNameByIndex(pMACHINE_INFO pmi, int index)
 	char 			*cp = NULL;
 	pID_INFO	pidi;
 
-	if (pmi && (index >= 0) && (index < pmi->state_count)) {
+	if (pmi && (index >= 0)) {
 
-		for (pidi = pmi->state_list; pidi; pidi = pidi->nextState)
-
-			if (pidi->seOrder == index) {
-
-				cp = pidi->name;
-
-				break;
-
-			}
+     pidi = (pID_INFO)find_nth_list_member(pmi->state_list,(unsigned) index);
+     if (pidi)
+     {
+        cp = pidi->name;
+     }
 
 	}
 
@@ -537,63 +532,14 @@ pID_INFO statePidByIndex(pMACHINE_INFO pmi, int index)
 
 	pID_INFO	pidi = NULL;
 
-	if (pmi && (index >= 0) && (index < pmi->state_count)) {
-
-		for (pidi = pmi->state_list; pidi; pidi = pidi->nextState)
-
-			if (pidi->seOrder == index) {
-
-				break;
-
-			}
-
+	if (pmi && (index >= 0)) {
+     pidi = (pID_INFO)find_nth_list_member(pmi->state_list,(unsigned) index);
 	}
 
 	return pidi;
 
 }
 
-
-/**
-	function: transitionNameByIndex
-
-* looks up the transition with the tOrder equal to the given 
-* index. The pointer returned points to a field in the ID_INFO 
-* struct and MUST NOT be freed. 
-
-	Arguments:
-
-			pMACHINE_INFO pmi	- the machine with which we are concerned.
-			int	index	-	The index we want.
-
-	Returns
-
-		a pointer to the transition_fn name on success, or
-		NULL on error.
-*/
-char *transitionNameByIndex(pMACHINE_INFO pmi, int index)
-{
-
-	char 			*cp = NULL;
-	pID_INFO	pidi;
-
-	if (pmi && (index >= 0) && (index < pmi->transition_count)) {
-
-		for (pidi = pmi->transition_list; pidi; pidi = pidi->nextTransition)
-
-			if (pidi->tOrder == index) {
-
-				cp = pidi->name;
-
-				break;
-
-			}
-
-	}
-
-	return cp;
-
-}
 
 /**
 	function: transitionPidByIndex
@@ -617,60 +563,68 @@ pID_INFO transitionPidByIndex(pMACHINE_INFO pmi, int index)
 
 	pID_INFO	pidi = NULL;
 
-	if (pmi && (index >= 0) && (index < pmi->transition_count)) {
-
-		for (pidi = pmi->transition_list; pidi; pidi = pidi->nextTransition)
-
-			if (pidi->tOrder == index) {
-
-				break;
-
-			}
-
+  if (pmi && (index >= 0) && (index < pmi->transition_list->count))
+  {
+     pidi = (pID_INFO)find_nth_list_member(pmi->transition_list,(unsigned)index);
 	}
 
 	return pidi;
 
 }
 
-/**
-	function: addToActionList
-
-	Not to be confused with functions concerning the actionArray, this function
-		uniquiely adds a pID_INFO to the machine's action_list.
-
-	Arguments:
-
-		pMACHINE_INFO pmi - the machine with which we are concerned.
-		pID_INFO pid			-	the pID_INFO struct to add.
-
-	Returns:	void
+/*
+   require a pointer to a list element which has a pID_INFO as a member
+      and a pointer to an unsigned integer.
+ 
+   Assign the value of the unsigned integer to the order field of the ID_INFO, then
+      increment the unsigned integer.
 */
-void addToActionList(pMACHINE_INFO pmi, pID_INFO pid)
+static bool enumerate_pid(pLIST_ELEMENT pelem, void *data)
 {
+   ((pID_INFO)pelem->mbr)->order = (*((unsigned*)data))++;
+   return false;
+}
 
-	pID_INFO p;
+/**********************************************************************************************************************/
+/**
+ * @brief assign ordinal values to the members of a list which contains pID_INFO members
+ * 
+ * @author Steven Stanton (7/8/2022)
+ * 
+ * @param plist the list to sequentially number
+ * 
+ *
+ * @ref_global none
+ *
+ * @mod_global none
+ *
+ * @thread_safe yes
+ *
+ * counting starts at 0.
+ ***********************************************************************************************************************/
+void enumerate_pid_list(pLIST plist)
+{
+   unsigned counter = 0;
+   iterate_list(plist,enumerate_pid,&counter);
+}
 
-	/* Make certain we are not yet on the list. */
-	for (p = pmi->action_list; p; p = p->nextAction) {
-
-		if (p == pid)
-    {
-        return;
-    }
-
-	}
-
-	/* Still here means we weren't on the list */
-	pid->nextAction = pmi->action_list;
-	pmi->action_list = pid;
-
+static bool count_external(pLIST_ELEMENT pelem, void *data)
+{
+   if (((pID_INFO)pelem->mbr)->externalDesignation)
+   {
+      (*((unsigned*)data))++;
+   }
+   return false;
+}
+void count_external_declarations(pLIST plist, unsigned *counter)
+{
+   iterate_list(plist, count_external, counter);
 }
 
 /**
 	return the length of the given string, or 0, if NULL is passed.
 */
-int safe_strlen(char *s)
+int safe_strlen(const char *s)
 {
 	return (s ? strlen(s) : 0);
 }
@@ -682,7 +636,8 @@ int safe_strlen(char *s)
 */
 char *getFileNameNoDir(const char *path)
 {
-	char *cp,*cp1;
+	const char *cp;
+  char *cp1;
 
 	for(cp = path; cp1 = strpbrk(cp,"\\/"); cp = ++cp1)
 		;
@@ -693,4 +648,329 @@ char *getFileNameNoDir(const char *path)
 	return cp1;
 
 }
+
+/**********************************************************************************************************************/
+/**
+ * @brief write a machine
+ * 
+ * @author Steven Stanton (7/10/2022)
+ * 
+ * @param pelem pointer to a list element; the member is expected to be a pMACHINE_INFO.
+ * @param data expected to be a pFSMOutputGenerator.
+ * 
+ *
+ * @ref_global None
+ *
+ * @mod_global None
+ *
+ * @thread_safe Yes
+ * 
+ * @return bool always returns false, indicating that list processing should continue
+ *
+ * Require a list member pointing to a valid MACHINE_INFO struct, and data pointing to a valid FSMOutputGenerator struct.
+ * Call the generator's writeMachine function, passing the pointer to the MACHINE_INFO struct.
+ ***********************************************************************************************************************/
+static bool write_machine(pLIST_ELEMENT pelem, void *data)
+{
+   pFSMOutputGenerator pfsmog = (pFSMOutputGenerator) data;
+   pMACHINE_INFO       pmi    = (pMACHINE_INFO) pelem->mbr;
+
+   (*pfsmog->initOutput)(pfsmog, pmi->name->name);
+   (*pfsmog->writeMachine)(pfsmog, pmi);
+   (*pfsmog->closeOutput)(pfsmog,1);
+
+   return false;
+}
+
+/**********************************************************************************************************************/
+/**
+ * @brief write each member of the list using the given pFSMOutputGenerator.
+ * 
+ * @author Steven Stanton (7/10/2022)
+ * 
+ * @param plist list of pMACHINE_INFOs
+ * @param pfsmog ouput generator to use
+ * 
+ *
+ * @ref_global None
+ *
+ * @mod_global None
+ *
+ * @thread_safe Yes
+ *
+ * Require a valid list of pointers to valid MACHINE_INFO structure and a pointer to a valid FSMOutputGenerator.
+ * Use the output generator to write each member of the list.
+ ***********************************************************************************************************************/
+void write_machines(pLIST plist, pFSMOutputGenerator pfsmog)
+{
+   iterate_list(plist, write_machine, pfsmog);
+}
+
+bool print_machine_component(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid         = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   fprintf(pih->fout
+           , "%s%s_%s\n"
+           , pih->first ? "" : ","
+           , pih->pmi->name->name
+           , pid->name
+           );
+
+   return false;
+}
+
+bool print_sub_machine_component(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid         = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   fprintf(pih->fout
+           , "\t%s%s_%s_%s\n"
+           , pih->first ? "" : ","
+           , pih->pparent->name->name
+           , pih->pmi->name->name
+           , pid->name
+           );
+
+   return false;
+}
+
+bool print_sub_machine_component_name(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid         = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   fprintf(pih->fout
+           , "\t, \"%s_%s_%s\"\n"
+           , pih->pparent->name->name
+           , pih->pmi->name->name
+           , pid->name
+           );
+
+   return false;
+}
+
+bool print_sub_machine_events(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   pih->pmi   = (pMACHINE_INFO) pelem->mbr;
+   pih->first = false;
+
+   iterate_list(pih->pmi->event_list,print_sub_machine_component,pih);
+
+   return false;
+}
+
+bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   pih->pmi   = (pMACHINE_INFO) pelem->mbr;
+   pih->first = false;
+
+   iterate_list(pih->pmi->event_list,print_sub_machine_component_name,pih);
+
+   return false;
+}
+
+#ifdef PARSER_DEBUG
+
+typedef struct _debug_list_helper_ DEBUG_LIST_HELPER, *pDEBUG_LIST_HELPER;
+struct _debug_list_helper_
+{
+   FILE     *fout;
+   unsigned counter;
+   char     *nullName;
+   char     *indenture;
+};
+
+static bool print_state_or_event_id_info(pLIST_ELEMENT pelem, void *data)
+{
+   pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
+   pID_INFO pid               = (pID_INFO) pelem->mbr;
+
+   fprintf(phelper->fout
+       ,"\t%d:\t%s"
+       ,phelper->counter++
+       ,pid->name
+       );
+
+   if (pid->externalDesignation)
+   {
+      fprintf(phelper->fout," = %s", pid->externalDesignation->name);
+   }
+
+   fprintf(phelper->fout
+       ,"\n%s\n"
+       ,pid->docCmnt ? pid->docCmnt : ""
+       );
+
+   return false;  //do not quit
+}
+
+void parser_debug_print_state_or_event_list(pLIST plist,FILE *file)
+{
+   DEBUG_LIST_HELPER helper;
+
+   helper.fout = file;
+   helper.counter = 0;
+
+   iterate_list(plist,print_state_or_event_id_info,&helper);
+}
+
+static bool print_pid_name(pLIST_ELEMENT pelem, void *data)
+{
+   pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
+
+   char *name = strlen(((pID_INFO)pelem->mbr)->name)
+                   ? ((pID_INFO)pelem->mbr)->name 
+                   : phelper->nullName;
+
+   fprintf(phelper->fout,"\t%s%s\n"
+           , phelper->indenture ? phelper->indenture : ""
+           , name
+           );
+
+   return false;
+}
+
+/**********************************************************************************************************************/
+/**
+ * @brief prints the names of the ID_INFOs comprising the given list
+ * 
+ * @author Steven Stanton (7/9/2022)
+ * 
+ * @param plist Must point to a list whose members are pID_INFOs
+ * @param file the output filename
+ * @param nullName A string to use when the name field of the ID_INFO struct is null
+ * 
+ *
+ * @ref_global None
+ *
+ * @mod_global None
+ *
+ * @thread_safe Yes
+ *
+ * all input parameters must be valid.  The format used is simply "%s\n".
+ ***********************************************************************************************************************/
+void parser_debug_print_id_list_names(pLIST plist, FILE *file, char *nullName)
+{
+   DEBUG_LIST_HELPER helper = {0};
+
+   helper.fout = file;
+   helper.nullName = nullName;
+
+   iterate_list(plist,print_pid_name,&helper);
+}
+
+static bool print_full_action_info(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid               = (pID_INFO)pelem->mbr;
+   pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
+
+   pACTION_INFO	    pai;
+   pACTION_SE_INFO	pase_info;
+
+   fprintf(phelper->fout
+       ,"\t%s\n"
+       ,strlen(pid->name) ? pid->name : "noAction"
+       );
+
+   phelper->indenture = "\t\t\t";
+   for (pai = pid->actionInfo;
+         pai;
+         pai = pai->nextAction) {
+
+     fprintf(phelper->fout,"\t\t%swhich occurs in these events\n"
+             , pai == pid->actionInfo ? "" : "and "
+             );
+     phelper->nullName = "noEvent";
+     iterate_list(pai->matrix->event_list, print_pid_name, phelper);
+
+     fprintf(phelper->fout,"\t\tand states\n");
+     phelper->nullName = "noState";
+     iterate_list(pai->matrix->state_list, print_pid_name, phelper);
+
+     if (pai->transition)
+    {
+        switch (pai->transition->type)
+        {
+            case STATE:
+                fprintf(phelper->fout,"\t\tand transitions to state %s\n"
+               ,pai->transition->name);
+               break;
+            case TRANSITION_FN:
+                fprintf(phelper->fout,"\t\tand transitions using function %s\n"
+               ,pai->transition->name);
+               break;
+        }
+    }
+
+   }
+
+   if (pid->action_returns_decl)
+  {
+    fprintf(phelper->fout,"\t\tand which returns\n");
+    phelper->indenture = "\t\t\t";
+    iterate_list(pid->action_returns_decl, print_pid_name, phelper);
+  }
+
+   if (pid->docCmnt)
+     fprintf(phelper->fout,"Doc Comments:\n%s\n"
+           ,pid->docCmnt);
+
+   return false;
+}
+
+void parser_debug_print_action_list_deep(pLIST plist, FILE *file)
+{
+   DEBUG_LIST_HELPER helper = {0};
+
+   helper.fout = file;
+
+   iterate_list(plist,print_full_action_info,&helper);
+}
+
+void parser_debug_print_transition_list(pLIST plist, FILE *file)
+{
+   DEBUG_LIST_HELPER helper = {0};
+
+   helper.fout = file;
+
+   iterate_list(plist,print_pid_name,&helper);
+}
+
+static bool print_transition_info(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid               = (pID_INFO)pelem->mbr;
+   pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
+
+   pACTION_SE_INFO	pase_info;
+
+   fprintf(phelper->fout,"\t%s\n"
+           , pid->name
+           );
+
+    if (pid->transition_fn_returns_decl)
+   {
+       fprintf(phelper->fout,"\t\twhich returns\n");
+       phelper->indenture = "\t\t\t";
+       phelper->nullName  = "";
+       iterate_list(pid->transition_fn_returns_decl, print_pid_name, phelper);
+   }
+
+}
+
+void parser_debug_print_transition_fn_list(pLIST plist, FILE *file)
+{
+   DEBUG_LIST_HELPER helper = {0};
+
+   helper.fout = file;
+
+   iterate_list(plist,print_transition_info,&helper);
+}
+#endif
 
