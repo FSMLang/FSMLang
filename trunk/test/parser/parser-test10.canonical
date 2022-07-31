@@ -30,10 +30,6 @@ found an action with transition
 started an action declaration
 The actions in this list:
 	a1
-Document Comment
-
-		A Document Comment
-	
 found a scalar event : e1
 found the beginning of a state comma list
 found a state vector

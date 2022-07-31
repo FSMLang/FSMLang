@@ -21,8 +21,6 @@ External designation = BAR
 The 1 events in this list:
 	0:	e4 = BAR
 
-Document Comment
- a sub machine 
 found the start of a state declaration list
 added another id to the state declaration list
 added another id to the state declaration list
@@ -102,8 +100,6 @@ The 2 transitions :
 	ss2
 	ss3
 
-Document Comment
- a second sub machine 
 found the start of a state declaration list
 added another id to the state declaration list
 added another id to the state declaration list
@@ -192,10 +188,6 @@ found an action with transition
 started an action declaration
 The actions in this list:
 	a1
-Document Comment
-
-		A Document Comment
-	
 found a scalar event : e1
 found the beginning of a state comma list
 found a state vector
