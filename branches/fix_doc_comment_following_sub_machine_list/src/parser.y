@@ -176,7 +176,6 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
 						$$ = $1->pmachineInfo;
 
 				    $$->name              = $2;
-				    $$->name->docCmnt     = $1->docCmnt;
  			    $$->modFlags          |= $3->modFlags;
  			    $$->machineTransition = $3->machineTransition;
 
