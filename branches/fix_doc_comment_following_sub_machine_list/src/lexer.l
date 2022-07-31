@@ -15,7 +15,8 @@
 extern int lineno;
 #endif
 
-char	charData[4096];	/* holder for Document comments */
+char	charData[4096];	          /* holder for Document comments */
+char *currDocCmnt = NULL;      /* points to the most recently seen document comment. */
 int	charOffset = 0;						/* the character offset */
 
 #ifdef LEX_DEBUG
@@ -55,9 +56,8 @@ int	charOffset = 0;						/* the character offset */
 			printf("Doc Comment:\n%s\n",charData);
 			#else
 
-			yylval.charData = strdup(charData);
+			currDocCmnt = strdup(charData);
 
-			return DOC_COMMENT;
 			#endif
 
 		}
@@ -286,6 +286,12 @@ void {
          wordType = add_id(id_list,ID,yytext,&pid_info);
 
 					#ifndef LEX_DEBUG
+
+         if (currDocCmnt)
+         {
+             pid_info->docCmnt = currDocCmnt;
+             currDocCmnt       = NULL;
+         }
 
 					yylval.pid_info = pid_info;
 

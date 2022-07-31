@@ -543,7 +543,8 @@ char *yytext;
 extern int lineno;
 #endif
 
-char	charData[4096];	/* holder for Document comments */
+char	charData[4096];	          /* holder for Document comments */
+char *currDocCmnt = NULL;      /* points to the most recently seen document comment. */
 int	charOffset = 0;						/* the character offset */
 
 #ifdef LEX_DEBUG
@@ -556,7 +557,7 @@ int	charOffset = 0;						/* the character offset */
 
 
 
-#line 560 "<stdout>"
+#line 561 "<stdout>"
 
 #define INITIAL 0
 #define CMNT 1
@@ -747,11 +748,11 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 34 "../../src/lexer.l"
+#line 35 "../../src/lexer.l"
 
 
 	/* document comments */
-#line 755 "<stdout>"
+#line 756 "<stdout>"
 
 	if ( !(yy_init) )
 		{
@@ -836,7 +837,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 37 "../../src/lexer.l"
+#line 38 "../../src/lexer.l"
 {
 				BEGIN DOCCMNT;
 				charOffset = 0;
@@ -844,13 +845,13 @@ YY_RULE_SETUP
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 41 "../../src/lexer.l"
+#line 42 "../../src/lexer.l"
 charData[charOffset++] = *yytext;	
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 42 "../../src/lexer.l"
+#line 43 "../../src/lexer.l"
 {
 						charData[charOffset++] = *yytext;	
 						#ifndef LEX_DEBUG
@@ -862,7 +863,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 50 "../../src/lexer.l"
+#line 51 "../../src/lexer.l"
 {
 
 			BEGIN INITIAL;
@@ -871,9 +872,8 @@ YY_RULE_SETUP
 			printf("Doc Comment:\n%s\n",charData);
 			#else
 
-			yylval.charData = strdup(charData);
+			currDocCmnt = strdup(charData);
 
-			return DOC_COMMENT;
 			#endif
 
 		}
@@ -1216,6 +1216,12 @@ YY_RULE_SETUP
 
 					#ifndef LEX_DEBUG
 
+         if (currDocCmnt)
+         {
+             pid_info->docCmnt = currDocCmnt;
+             currDocCmnt       = NULL;
+         }
+
 					yylval.pid_info = pid_info;
 
          #ifdef PARSE_DEBUG
@@ -1239,7 +1245,7 @@ YY_RULE_SETUP
 case 39:
 /* rule 39 can match eol */
 YY_RULE_SETUP
-#line 310 "../../src/lexer.l"
+#line 316 "../../src/lexer.l"
 {
 			#ifndef LEX_DEBUG
 			lineno++;
@@ -1251,15 +1257,15 @@ YY_RULE_SETUP
 /* ignore anything else */
 case 40:
 YY_RULE_SETUP
-#line 319 "../../src/lexer.l"
+#line 325 "../../src/lexer.l"
 ;
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 321 "../../src/lexer.l"
+#line 327 "../../src/lexer.l"
 ECHO;
 	YY_BREAK
-#line 1263 "<stdout>"
+#line 1269 "<stdout>"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(CMNT):
 case YY_STATE_EOF(DOCCMNT):
@@ -2261,7 +2267,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 321 "../../src/lexer.l"
+#line 327 "../../src/lexer.l"
 
 
 
