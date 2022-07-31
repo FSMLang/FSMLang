@@ -92,7 +92,6 @@ void yyerror(char *);
 %type <paction_decl>             action_decl_list
 %type <action_info>              transition_matrix
 %type <action_info>              transition_matrix_list
-%type <charData>                 doccmnt
 %type <charData>                 data
 %type <charData>                 native
 %type <mod_flags>                machine_modifier
@@ -152,7 +151,7 @@ fsmlang: native machine
 					}
 	;
 
-machine_prefix: doccmnt machine_modifier MACHINE_KEY 
+machine_prefix: machine_modifier MACHINE_KEY 
    {
 
 				if (($$ = (pMACHINE_PREFIX)calloc(1,sizeof(MACHINE_PREFIX))) == NULL)
@@ -161,8 +160,7 @@ machine_prefix: doccmnt machine_modifier MACHINE_KEY
 				if (($$->pmachineInfo = (pMACHINE_INFO)calloc(1,sizeof(MACHINE_INFO))) == NULL)
 						yyerror("out of memory");
 
-				$$->docCmnt                = $1;
- 			$$->pmachineInfo->modFlags = $2;
+ 			$$->pmachineInfo->modFlags = $1;
 
        id_list = $$->pmachineInfo->id_list = init_list();
 
@@ -178,7 +176,6 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
 						$$ = $1->pmachineInfo;
 
 				    $$->name              = $2;
-				    $$->name->docCmnt     = $1->docCmnt;
  			    $$->modFlags          |= $3->modFlags;
  			    $$->machineTransition = $3->machineTransition;
 
@@ -593,10 +590,9 @@ actions_and_transitions:
    /* note that machines must precede actions and transitions */
 	;
 
-transition_matrix_list: doccmnt transition_matrix
+transition_matrix_list: transition_matrix
 					{
-						$2->action->docCmnt = $1;
-						$$ = $2;
+						$$ = $1;
 					}
 	;
 
@@ -699,7 +695,7 @@ action_decl:	action_decl_list ';'
 					}
 	;
 
-action_decl_list: doccmnt ACTION_KEY action 	
+action_decl_list: ACTION_KEY action 	
 					{
 
 						#ifdef PARSER_DEBUG
@@ -721,24 +717,24 @@ action_decl_list: doccmnt ACTION_KEY action
  					if (NULL == ($$->transition_fn_list = init_list()))
  						yyerror("out of memory");
 
-						if (NULL == add_unique_to_list($$->action_list, $3->action))
+						if (NULL == add_unique_to_list($$->action_list, $2->action))
  						yyerror("out of memory");
 
-						if (NULL == add_to_list($$->action_info_list, $3))
+						if (NULL == add_to_list($$->action_info_list, $2))
  						yyerror("out of memory");
 
-						if ($3->transition)
+						if ($2->transition)
 						{
 
-							switch ($3->transition->type)
+							switch ($2->transition->type)
 							{
  							case STATE:
-									if (NULL == add_unique_to_list($$->transition_list, $3->transition))
+									if (NULL == add_unique_to_list($$->transition_list, $2->transition))
  									yyerror("out of memory");
  								break;
 
  							case TRANSITION_FN:
-									if (NULL == add_unique_to_list($$->transition_fn_list, $3->transition))
+									if (NULL == add_unique_to_list($$->transition_fn_list, $2->transition))
  									yyerror("out of memory");
  								break;
 
@@ -746,8 +742,6 @@ action_decl_list: doccmnt ACTION_KEY action
 							}
 
 						}
-
-						$3->action->docCmnt = $1;
 
 					}
 
@@ -1084,7 +1078,7 @@ state_decl:	state_decl_list ';'
 					}
 	;
 
-state_decl_list:	doccmnt STATE_KEY ID	
+state_decl_list:	STATE_KEY ID	
 					{
 
 						#ifdef PARSER_DEBUG
@@ -1094,10 +1088,9 @@ state_decl_list:	doccmnt STATE_KEY ID
  					if (NULL == ($$ = init_list()))
  						yyerror("Out of memory");
 
-           set_id_type($3,STATE);
-						$3->docCmnt = $1;
+           set_id_type($2,STATE);
 
- 					if (NULL == (add_to_list($$,$3)))
+ 					if (NULL == (add_to_list($$,$2)))
  						yyerror("Out of memory");
 
 					}
@@ -1132,15 +1125,14 @@ event_decl:	event_decl_list ';'
 					}
 	;
 
-event_decl_list:	doccmnt EVENT_KEY ID external_designation
+event_decl_list:	EVENT_KEY ID external_designation
 					{
 
  					if (NULL == ($$ = init_list()))
  						yyerror("Out of memory");
 
-           set_id_type($3,EVENT);
- 					$3->docCmnt             = $1;
-           $3->externalDesignation = $4;
+           set_id_type($2,EVENT);
+           $2->externalDesignation = $3;
 
 //todo: deal with this when machine is finally assembled
 //           if ($4)
@@ -1148,7 +1140,7 @@ event_decl_list:	doccmnt EVENT_KEY ID external_designation
 //						   pmachineInfo->external_event_designation_count++;
 //           }
 
- 					if (NULL == (add_to_list($$,$3)))
+ 					if (NULL == (add_to_list($$,$2)))
  						yyerror("Out of memory");
 
 					}
@@ -1216,146 +1208,114 @@ data:	{
 
 	;
  
-doccmnt:	{
-						$$ = NULL;
-					}
-	| DOC_COMMENT
-					{
-						#ifdef PARSER_DEBUG
-						fprintf(yyout,"Document Comment\n%s\n",$1);
-						#else
-						$$ = $1;
-						#endif
-					}
-
-	;
-
 action_return_decl: 
-  doccmnt ACTION RETURNS event_comma_list EVENT ';'
+  ACTION RETURNS event_comma_list EVENT ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$2->action_returns_decl)
+ 	 if (!$1->action_returns_decl)
 		 {
-		    if (($2->action_returns_decl = init_list()) == NULL) 
+		    if (($1->action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			if (add_to_list($4,$5) == NULL)
+			if (add_to_list($3,$4) == NULL)
 				 yyerror("out of memory");
 
-			move_list_unique($2->action_returns_decl, $4);
- 		free_list($4);
-
-     if ($1 && !$2->docCmnt)
-        $2->docCmnt = $1;
+			move_list_unique($1->action_returns_decl, $3);
+ 		free_list($3);
 
   }
-  | doccmnt ACTION RETURNS EVENT ';'
+  | ACTION RETURNS EVENT ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$2->action_returns_decl)
+ 	 if (!$1->action_returns_decl)
 		 {
-		    if (($2->action_returns_decl = init_list()) == NULL) 
+		    if (($1->action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-		 if (add_unique_to_list($2->action_returns_decl,$4) == NULL)
+		 if (add_unique_to_list($1->action_returns_decl,$3) == NULL)
 				yyerror("out of memory");
 
-     if ($1 && !$2->docCmnt)
-        $2->docCmnt = $1;
-
   }
-  | doccmnt ACTION RETURNS state_comma_list STATE ';'
+  | ACTION RETURNS state_comma_list STATE ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
-			if (add_to_list($4, $5) == NULL)
+			if (add_to_list($3, $4) == NULL)
 				yyerror("out of memory");
 
- 	 if (!$2->action_returns_decl)
+ 	 if (!$1->action_returns_decl)
 		 {
-		    if (($2->action_returns_decl = init_list()) == NULL) 
+		    if (($1->action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			move_list_unique($2->action_returns_decl, $4);
- 		free_list($4);
-
-     if ($1 && !$2->docCmnt)
-        $2->docCmnt = $1;
+			move_list_unique($1->action_returns_decl, $3);
+ 		free_list($3);
 
   }
-  | doccmnt ACTION RETURNS STATE ';'
+  | ACTION RETURNS STATE ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
-		 if (add_to_list($2->action_returns_decl,$4) == NULL)
+		 if (add_to_list($1->action_returns_decl,$3) == NULL)
 				yyerror("out of memory");
 
- 	 if (!$2->action_returns_decl)
+ 	 if (!$1->action_returns_decl)
 		 {
-		    if (($2->action_returns_decl = init_list()) == NULL) 
+		    if (($1->action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			add_unique_to_list($2->action_returns_decl, $4);
-
-     if ($1 && !$2->docCmnt)
-        $2->docCmnt = $1;
+			add_unique_to_list($1->action_returns_decl, $3);
 
   }
   ;
  
 transition_fn_return_decl:
-  doccmnt TRANSITION_FN RETURNS state_comma_list STATE ';'
+  TRANSITION_FN RETURNS state_comma_list STATE ';'
   {
-			if (add_unique_to_list($4, $5) == NULL)
+			if (add_unique_to_list($3, $4) == NULL)
  			yyerror("out of memory");
 
- 	 if (!$2->transition_fn_returns_decl)
+ 	 if (!$1->transition_fn_returns_decl)
 		 {
-		    if (($2->transition_fn_returns_decl = init_list()) == NULL) 
+		    if (($1->transition_fn_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			move_list_unique($2->transition_fn_returns_decl, $4);
- 		free_list($4);
-
-     if ($1 && !$2->docCmnt)
-        $2->docCmnt = $1;
+			move_list_unique($1->transition_fn_returns_decl, $3);
+ 		free_list($3);
 
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found a transition_fn return declaration\n");
     #endif
 
   }
-  | doccmnt TRANSITION_FN RETURNS STATE ';'
+  | TRANSITION_FN RETURNS STATE ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found a transition_fn return declaration\n");
     #endif
 
- 	 if (!$2->transition_fn_returns_decl)
+ 	 if (!$1->transition_fn_returns_decl)
 		 {
-		    if (($2->transition_fn_returns_decl = init_list()) == NULL) 
+		    if (($1->transition_fn_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			add_unique_to_list($2->transition_fn_returns_decl, $4);
-
-     if ($1 && !$2->docCmnt)
-        $2->docCmnt = $1;
+			add_unique_to_list($1->transition_fn_returns_decl, $3);
 
   }
   ;

@@ -155,6 +155,9 @@ machine top_level
 		   action a3[e3, s3] transition s1;
 		}
 		
+    /**
+      Do a top level action
+    */
    action a1[e1,s1] transition s2;
 
    /**

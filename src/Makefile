@@ -20,6 +20,8 @@ Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  : ARCH
 Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : ARCH=CYGWIN
 Linux  Linux.clean  Linux.test  Linux.testonly Linux.lexer  Linux.parser  : ARCH=LINUX
 
+Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : NEED_RINDEX=TRUE
+
 all:
 	@echo You must choose a target.
 
@@ -31,14 +33,14 @@ $(addsuffix .clean, $(ARCHITECTURES)):
 	$(MAKE) -C ../test clean
 
 $(addsuffix .test, $(ARCHITECTURES)): $$(basename $$@)
-	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) test
+	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) test
 
 $(addsuffix .testonly, $(ARCHITECTURES)): $$(basename $$@)
-	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) testonly
+	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) testonly
 
 $(addsuffix .lexer, $(ARCHITECTURES)):
-	$(MAKE) -C ../test lexer
+	$(MAKE) NEED_RINDEX=$(NEED_RINDEX) -C ../test lexer
 
 $(addsuffix .parser, $(ARCHITECTURES)):
-	$(MAKE) ARCH=$(ARCH) -C ../test parser
+	$(MAKE) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) -C ../test parser
 
