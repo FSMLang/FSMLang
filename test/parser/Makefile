@@ -16,6 +16,10 @@ SRC =	lexer.c \
 			fsm_utils.c \
 			list.c 
 
+ifdef NEED_RINDEX
+SRC += rindex.c
+endif
+
 override CFLAGS += -ggdb -DPARSER_DEBUG -D$(ARCH) -I../ -I$(VPATH) -I .
 
 TESTS = $(basename $(shell find . -name "*.fsm" -printf "%P "))
