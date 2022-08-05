@@ -5,10 +5,10 @@
 #
 
 override CFLAGS += -DFSM_DEBUG \
-         -DSUB__MACHINE1_DEBUG \
-         -DSUB__MACHINE2_DEBUG \
-         -DSUB__MACHINE3_DEBUG \
-         -DTOP__LEVEL_DEBUG \
+         -DSUB_MACHINE1_DEBUG \
+         -DSUB_MACHINE2_DEBUG \
+         -DSUB_MACHINE3_DEBUG \
+         -DTOP_LEVEL_DEBUG \
          -I../
 
 FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
