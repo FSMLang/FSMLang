@@ -1,6 +1,7 @@
 native
 {
-#if defined TOP__LEVEL_DEBUG
+#ifdef TOP_LEVEL_DEBUG
+#include <stdio.h>
 #define DBG_PRINTF printf
 #endif
 }

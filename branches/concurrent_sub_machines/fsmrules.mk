@@ -29,9 +29,11 @@ FSM ?= fsm $(FSM_FLAGS)
 	@echo "FSM:" $(FSM)
 	$(FSM) -th $< > fsmout
 
-$(FSM_SRC:.fsm=.h): $(FSM_SRC)
+$(FSM_SRC:.fsm=.html): $(FSM_SRC) $(FSM)
 
-$(FSM_SRC:.fsm=.c): $(FSM_SRC)
+$(FSM_SRC:.fsm=.h): $(FSM_SRC) $(FSM)
+
+$(FSM_SRC:.fsm=.c): $(FSM_SRC) $(FSM)
 
 $(SRC): $(FSM_SRC:.fsm=.h)
 
