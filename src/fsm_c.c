@@ -436,6 +436,9 @@ static bool            assignExternalEventValues(pMACHINE_INFO);
 static void            defineSubMachineArray(pCMachineData, pMACHINE_INFO, char *);
 static bool            print_sub_machine_if(pLIST_ELEMENT,void*);
 static bool            declare_sub_machine_if(pLIST_ELEMENT,void*);
+static bool            print_sub_machine_as_enum_member(pLIST_ELEMENT,void*);
+static void            defineSubMachineFinder(pCMachineData, pMACHINE_INFO, char *);
+
 
 /**
   newpCMachineData
@@ -585,7 +588,7 @@ static char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *
            , cp
           );
    fprintf(pcmw->hFile
-           , "enum _%s_EVENT_ {\n"
+           , "enum _%s_EVENT_\n{\n"
            , cp
           );
 
@@ -611,8 +614,8 @@ static char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *
    {
       fprintf(pcmw->hFile
               , assignExternalEventValues(pmi)
-              ? "\t,%s_%s = %s\n"
-              : "\t,%s_%s%s\n"
+              ? "\t, %s_%s = %s\n"
+              : "\t, %s_%s%s\n"
               , pmi->name->name
               , eventNameByIndex(pmi, i)
               , assignExternalEventValues(pmi)
@@ -627,7 +630,7 @@ static char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *
       )
    {
       fprintf(pcmw->hFile
-              , "\t,%s_noEvent\n"
+              , "\t, %s_noEvent\n"
               , pmi->name->name
              );
    }
@@ -639,6 +642,22 @@ static char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *
       helper.fout    = pcmw->hFile;
 
       iterate_list(pmi->machine_list,print_sub_machine_events,&helper);
+   }
+
+   if (assignExternalEventValues(pmi))
+   {
+      fprintf(pcmw->hFile
+              , "\t, %s_numEvents = %u\n"
+              , pmi->name->name
+              , pmi->event_list->count
+              );
+   }
+   else
+   {
+      fprintf(pcmw->hFile
+              , "\t, %s_numEvents\n"
+              , pmi->name->name
+              );
    }
 
    fprintf(pcmw->hFile
@@ -657,7 +676,7 @@ static char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *
            , cp
           );
    fprintf(pcmw->hFile
-           , "enum _%s_STATE_ {\n"
+           , "enum _%s_STATE_\n{\n"
            , cp
           );
 
@@ -668,7 +687,7 @@ static char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *
    for (i = 1; i < pmi->state_list->count; i++)
    {
       fprintf(pcmw->hFile
-              , "\t,%s_%s\n"
+              , "\t, %s_%s\n"
               , pmi->name->name
               , stateNameByIndex(pmi, i)
              );
@@ -683,10 +702,15 @@ static char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *
    if (pmi->modFlags & mfActionsReturnStates)
    {
       fprintf(pcmw->hFile
-              , "\t,%s_noTransition\n"
+              , "\t, %s_noTransition\n"
               , pmi->name->name
              );
    }
+
+   fprintf(pcmw->hFile
+           , "\t, %s_numStates\n"
+           , pmi->name->name
+           );
 
    fprintf(pcmw->hFile
            , "}%s;\n\n"
@@ -885,7 +909,7 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
            , cp
           );
    fprintf(pcmw->hFile
-           , "enum _%s_EVENT_ {\n"
+           , "enum _%s_EVENT_\n{\n"
            , cp
           );
 
@@ -913,8 +937,8 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
    {
       fprintf(pcmw->hFile
               , assignExternalEventValues(pmi)
-              ? "\t,%s_%s = %s\n"
-              : "\t,%s_%s%s\n"
+              ? "\t, %s_%s = %s\n"
+              : "\t, %s_%s%s\n"
               , pmi->name->name
               , eventNameByIndex(pmi, i)
               , assignExternalEventValues(pmi)
@@ -929,7 +953,7 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
       )
    {
       fprintf(pcmw->hFile
-              , "\t,%s_noEvent\n"
+              , "\t, %s_noEvent\n"
               , pmi->name->name
              );
    }
@@ -941,6 +965,22 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
       helper.fout    = pcmw->hFile;
 
       iterate_list(pmi->machine_list,print_sub_machine_events,&helper);
+   }
+
+   if (assignExternalEventValues(pmi))
+   {
+      fprintf(pcmw->hFile
+              , "\t, %s_numEvents = %u\n"
+              , pmi->name->name
+              , pmi->event_list->count
+              );
+   }
+   else
+   {
+      fprintf(pcmw->hFile
+              , "\t, %s_numEvents\n"
+              , pmi->name->name
+              );
    }
 
    fprintf(pcmw->hFile
@@ -959,7 +999,7 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
            , cp
           );
    fprintf(pcmw->hFile
-           , "enum _%s_STATE_ {\n"
+           , "enum _%s_STATE_\n{\n"
            , cp
           );
 
@@ -970,7 +1010,7 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
    for (i = 1; i < pmi->state_list->count; i++)
    {
       fprintf(pcmw->hFile
-              , "\t,%s_%s\n"
+              , "\t, %s_%s\n"
               , pmi->name->name
               , stateNameByIndex(pmi, i)
              );
@@ -985,10 +1025,15 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
    if (pmi->modFlags & mfActionsReturnStates)
    {
       fprintf(pcmw->hFile
-              , "\t,%s_noTransition\n"
+              , "\t, %s_noTransition\n"
               , pmi->name->name
              );
    }
+
+   fprintf(pcmw->hFile
+           , "\t, %s_numStates\n"
+           , pmi->name->name
+           );
 
    fprintf(pcmw->hFile
            , "}%s;\n\n"
@@ -1093,7 +1138,28 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
 
    if (pmi->machine_list)
    {
+      helper.first = true;
+      helper.cp    = cp;
+
       fprintf(pcmw->hFile,"/* Sub Machine Declarations */\n\n");
+      fprintf(pcmw->hFile
+              ,"%s\ntypedef enum _%s_SUB_MACHINES_ %s_SUB_MACHINES;\nenum _%s_SUB_MACHINES_\n{\n"
+              ,"/* enumerate sub-machines */"
+              , cp
+              , cp
+              , cp
+              );
+
+      iterate_list(pmi->machine_list
+                   , print_sub_machine_as_enum_member
+                   ,&helper
+                   );
+
+      fprintf(pcmw->hFile
+              , "\t, %s_numSubMachines\n};\n\n"
+              , pmi->name->name
+              );
+
       fprintf(pcmw->hFile
               , "typedef %s_EVENT (*%s_SUB_MACHINE_FN)(%s_EVENT);\n"
               , cp
@@ -1109,20 +1175,41 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
              );
 
       fprintf(pcmw->hFile
-              ,"struct _%s_sub_fsm_if_\n{\n\t%s_SUB_MACHINE_FN subFSM;\n};\n\n"
+              ,"struct _%s_sub_fsm_if_\n{\n"
               , pmi->name->name
+              );
+
+      fprintf(pcmw->hFile
+              , "\t%s_EVENT                first_event;\n"
               , cp
               );
 
       fprintf(pcmw->hFile
-              , "extern p%s_SUB_FSM_IF %s_sub_fsm_if_array[%u];\n\n"
+              , "\t%s_EVENT                last_event;\n"
+              , cp
+              );
+
+      fprintf(pcmw->hFile
+              , "\t%s_SUB_MACHINE_FN       subFSM;\n"
+              , cp
+              );
+
+      fprintf(pcmw->hFile
+              ,"};\n\n"
+              );
+
+      fprintf(pcmw->hFile
+              , "extern p%s_SUB_FSM_IF %s_sub_fsm_if_array[%s_numSubMachines];\n\n"
               , cp
               , pmi->name->name
-              , pmi->machine_list->count
+              , pmi->name->name
              );
 
-      helper.cp = cp;
       iterate_list(pmi->machine_list, declare_sub_machine_if, &helper);
+
+      fprintf(pcmw->hFile
+              , "\n"
+              );
 
    }
 
@@ -1441,6 +1528,11 @@ static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       writeNoTransition(pcmw, pmi, cp);
    }
 
+   /* write our sub-machine lookup, if needed */
+   if (pmi->machine_list)
+   {
+      defineSubMachineFinder(pcmw, pmi, cp);
+   }
    writeDebugInfo(pcmw, pmi, cp);
 
    FREE_AND_CLEAR(cp);
@@ -1699,12 +1791,22 @@ static void writeDebugInfo(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
            pmi->name->name,
            stateNameByIndex(pmi, 0));
 
-   for (i = 1; i < pmi->state_list->count; i++) fprintf(pcmw->cFile, "\t,\"%s_%s\"\n",
-                                                        pmi->name->name,
-                                                        stateNameByIndex(pmi, i));
+   for (i = 1; i < pmi->state_list->count; i++)
+   {
+      fprintf(pcmw->cFile
+              , "\t,\"%s_%s\"\n"
+              , pmi->name->name
+              , stateNameByIndex(pmi, i)
+              );
+   }
 
-   if (pmi->modFlags & mfActionsReturnStates) fprintf(pcmw->cFile, "\t,\"%s_noTransition\"\n",
-                                                      pmi->name->name);
+   if (pmi->modFlags & mfActionsReturnStates)
+   {
+      fprintf(pcmw->cFile
+              , "\t,\"%s_noTransition\"\n"
+              , pmi->name->name
+              );
+   }
 
    fprintf(pcmw->cFile, "};\n\n");
 
@@ -2172,7 +2274,7 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
               );
 
       fprintf(pcmw->cFile
-              , "\t\t\te = ((* (*pfsm->subMachineArray)[pfsm->active_sub_machine]->subFSM)(e));\n\n\t\t}\n\n\t}"
+              , "\t\t\te = findAndRunSubMachine(pfsm, e);\n\t\t}\n\n\t}"
               );
    }
 
@@ -2328,10 +2430,10 @@ static void declareCSwitchMachineStateFnArray(pCMachineData pcmw, pMACHINE_INFO 
    }
 
    fprintf(pcmw->hFile
-           , "extern const %s_STATE_FN %s_state_fn_array[%d];\n\n"
+           , "extern const %s_STATE_FN %s_state_fn_array[%s_numStates];\n\n"
            , cp
            , pmi->name->name
-           , pmi->state_list->count
+           , pmi->name->name
           );
 }
 
@@ -2348,11 +2450,12 @@ static void declareCMachineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, ch
    {
 
       /* publish the array */
-      fprintf(pcmw->hFile, "extern const %s_ACTION_FN %s_ACTION_ARRAY[%d][%d];\n\n",
+      fprintf(pcmw->hFile
+              , "extern const %s_ACTION_FN %s_ACTION_ARRAY[%s_numEvents][%s_numStates];\n\n",
               cp,
               cp,
-              pmi->event_list->count,
-              pmi->state_list->count
+              pmi->name->name,
+              pmi->name->name
              );
 
    }
@@ -2394,11 +2497,11 @@ static void declareCMachineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, ch
              );
 
       /* publish the array */
-      fprintf(pcmw->hFile, "extern const %s_ACTION_TRANS %s_action_array[%d][%d];\n\n"
+      fprintf(pcmw->hFile, "extern const %s_ACTION_TRANS %s_action_array[%s_numEvents][%s_numStates];\n\n"
               , cp
               , pmi->name->name
-              , pmi->event_list->count
-              , pmi->state_list->count
+              , pmi->name->name
+              , pmi->name->name
              );
 
    }
@@ -2549,19 +2652,19 @@ static void declareCMachineStruct(pCMachineData pcmw, pMACHINE_INFO pmi, char *c
    fprintf(pcmw->hFile, "\t%s_STATE\t\t\t\t\tstate;\n",
            cp);
 
-   fprintf(pcmw->hFile, "\t%s_ACTION_%s const\t(*actionArray)[%d][%d];\n"
+   fprintf(pcmw->hFile, "\t%s_ACTION_%s const\t(*actionArray)[%s_numEvents][%s_numStates];\n"
            , cp
            , (pmi->modFlags & mfActionsReturnStates) ? "FN" : "TRANS"
-           , pmi->event_list->count
-           , pmi->state_list->count
+           , pmi->name->name
+           , pmi->name->name
           );
 
    if (pmi->machine_list)
    {
       fprintf(pcmw->hFile
-              , "\tp%s_SUB_FSM_IF\t(*subMachineArray)[%d];\n\tunsigned\tactive_sub_machine;\n"
+              , "\tp%s_SUB_FSM_IF\t(*subMachineArray)[%s_numSubMachines];\n"
               , cp
-              , pmi->machine_list->count
+              , pmi->name->name
              );
    }
 
@@ -2585,9 +2688,9 @@ static void declareCSwitchMachineStruct(pCMachineData pcmw, pMACHINE_INFO pmi, c
    fprintf(pcmw->hFile, "\t%s_STATE\t\t\t\t\tstate;\n",
            cp);
 
-   fprintf(pcmw->hFile, "\t%s_STATE_FN const\t(*statesArray)[%d];\n"
+   fprintf(pcmw->hFile, "\t%s_STATE_FN const\t(*statesArray)[%s_numStates];\n"
            , cp
-           , pmi->state_list->count
+           , pmi->name->name
           );
 
    fprintf(pcmw->hFile, "\t%s_FSM\t\t\t\t\t\tfsm;\n};\n\n",
@@ -2602,9 +2705,37 @@ static bool print_sub_machine_if(pLIST_ELEMENT pelem, void *data)
 
    fprintf(pich->pcmw->cFile
            ,"\t%s&%s_sub_fsm_if\n"
-           ,pich->first ? (pich->first = false, "") : ","
+           ,pich->first ? (pich->first = false, "") : ", "
            ,pmi->name->name
           );
+
+   return false;
+}
+
+static bool print_sub_machine_as_enum_member(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO pmi    = (pMACHINE_INFO) pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   fprintf(pih->fout
+           , "\t%s %s_%s\n"
+           , pih->first ? "" : ", "
+           , pih->pparent->name->name
+           , pmi->name->name
+          );
+
+   if (pih->first)
+   {
+      pih->first = false;
+
+      fprintf(pih->fout
+              , "\t, %s_firstSubMachine = %s_%s\n"
+              , pih->pparent->name->name
+              , pih->pparent->name->name
+              , pmi->name->name
+              );
+
+   }
 
    return false;
 }
@@ -2630,10 +2761,10 @@ static void defineSubMachineArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *c
    if (pmi->machine_list)
    {
       fprintf(pcmw->cFile
-              , "\np%s_SUB_FSM_IF %s_sub_fsm_if_array[%u] =\n{\n"
+              , "\np%s_SUB_FSM_IF %s_sub_fsm_if_array[%s_numSubMachines] =\n{\n"
               , cp
               , pmi->name->name
-              , pmi->machine_list->count
+              , pmi->name->name
              );
 
       ich.pcmw  = pcmw;
@@ -2677,8 +2808,22 @@ static void defineSubMachineIF(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
              );
 
      fprintf(pcmw->cFile
-             , "\t%s_sub_machine_fn\n"
+             , "\t.subFSM = %s_sub_machine_fn\n"
              , pmi->name->name
+             );
+
+     fprintf(pcmw->cFile
+             , "\t, .first_event = %s_%s_%s\n"
+             , pmi->parent->name->name
+             , pmi->name->name
+             , eventNameByIndex(pmi, 0)
+             );
+
+     fprintf(pcmw->cFile
+             , "\t, .last_event = %s_%s_%s\n"
+             , pmi->parent->name->name
+             , pmi->name->name
+             , eventNameByIndex(pmi, pmi->event_list->count - 1)
              );
 
      fprintf(pcmw->cFile
@@ -2703,12 +2848,12 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
    }
 
    fprintf(pcmw->cFile
-           , "const %s_ACTION_%s %s_action_array[%d][%d] =\n{\n"
+           , "const %s_ACTION_%s %s_action_array[%s_numEvents][%s_numStates] =\n{\n"
            , cp
            , (pmi->modFlags & mfActionsReturnStates) ? "FN" : "TRANS"
            , pmi->name->name
-           , pmi->event_list->count
-           , pmi->state_list->count
+           , pmi->name->name
+           , pmi->name->name
           );
    for (int i = 0; i < pmi->event_list->count; i++)
    {
@@ -2725,7 +2870,7 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
                  stateNameByIndex(pmi, j)
                 );
 
-         if (j) fprintf(pcmw->cFile, ",");
+         if (j) fprintf(pcmw->cFile, ", ");
 
          if (pmi->actionArray[i][j])
          {
@@ -2817,10 +2962,10 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
                fprintf(pcmw->cFile, "%s_noTransition%s\n",
                        pmi->name->name
                        , compact_action_array
-                       ? "_e"
-                       : pmi->transition_fn_list->count
-                       ? "Fn"
-                       : ""
+                         ? "_e"
+                         : pmi->transition_fn_list->count
+                           ? "Fn"
+                           : ""
                       );
 
             }
@@ -2835,13 +2980,13 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
                        , compact_action_array ? "_e" : ""
                        , pmi->name->name
                        , (pmi->transition_fn_list->count == 0)
-                       ? stateNameByIndex(pmi, j)
-                       : "noTransition"
+                         ? stateNameByIndex(pmi, j)
+                         : "noTransition"
                        , compact_action_array
-                       ? "_e"
-                       : pmi->transition_fn_list->count
-                       ? "Fn"
-                       : ""
+                         ? "_e"
+                         : pmi->transition_fn_list->count
+                           ? "Fn"
+                           : ""
                       );
 
                fprintf(pcmw->cFile, "}\n");
@@ -2861,10 +3006,10 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 static void defineStateFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    fprintf(pcmw->cFile
-           , "const %s_STATE_FN %s_state_fn_array[%d] = \n{\n"
+           , "const %s_STATE_FN %s_state_fn_array[%s_numStates] = \n{\n"
            , cp
            , pmi->name->name
-           , pmi->state_list->count
+           , pmi->name->name
           );
 
 
@@ -2900,7 +3045,7 @@ static void generateInstance(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, ch
    if (pmi->machine_list)
    {
       fprintf(pcmw->cFile
-              , "\t&%s_sub_fsm_if_array,\n\t0,\n"
+              , "\t&%s_sub_fsm_if_array,\n"
               , pmi->name->name
               );
    }
@@ -2916,6 +3061,13 @@ static void generateInstance(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, ch
 
 static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
+
+   fprintf(pcmw->cFile
+           , "static %s_EVENT findAndRunSubMachine(p%s, %s_EVENT);\n\n"
+           , cp
+           , cp
+           , cp
+           );
 
    fprintf(pcmw->cFile
            , "void %sFSM(p%s pfsm, %s_EVENT event)\n{\n"
@@ -3179,6 +3331,48 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
    }
 
    fprintf(pcmw->cFile, "\n");
+}
+
+static void defineSubMachineFinder(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   fprintf(pcmw->cFile
+           , "\nstatic %s_EVENT findAndRunSubMachine(p%s pfsm, %s_EVENT e)\n{\n"
+           , cp
+           , cp
+           , cp
+          );
+
+   fprintf(pcmw->cFile
+           , "\tfor (%s_SUB_MACHINES machineIterator = %s_firstSubMachine;\n\t     machineIterator < %s_numSubMachines;\n\t     machineIterator++\n\t    )\n\t{\n"
+           , cp
+           , pmi->name->name
+           , pmi->name->name
+           );
+
+   fprintf(pcmw->cFile
+           , "\t\t\tif (\n\t\t\t   ((*pfsm->subMachineArray)[machineIterator]->first_event <= e)\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\t\t\t   && ((*pfsm->subMachineArray)[machineIterator]->last_event >= e)\n\t\t\t    )\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\t\t\t{\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\t\t\t\treturn ((*(*pfsm->subMachineArray)[machineIterator]->subFSM)(e));\n"
+          );
+
+   fprintf(pcmw->cFile
+           , "\t\t\t}\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\t}\n\n\treturn %s_noEvent;\n\n}\n\n"
+           , pmi->name->name
+          );
 }
 
 static void writeOriginalSwitchFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)

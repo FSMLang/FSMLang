@@ -261,7 +261,11 @@ char *hungarianToUnderbarCaps(char *str)
 				continue;
 			}
 
-			if (!(*cp1 & 0x20)) {
+			if (
+          !(*cp1 & 0x20)
+          && (*cp1 != '_')
+          )
+      {
 
 				if (!consecutive) {
 
