@@ -74,6 +74,13 @@ const char rev_string[] = "version 1.7";
 /*
    Revision 1.8:
       * introduces Hierarchical state machines.
-*/
 const char rev_string[] = "version 1.8";
+*/
 
+/*
+   Revision 1.9:
+ 
+   Removed the concept of an "active" sub state machine; all sub-machines can
+   run based on the event given to the top level machine.
+*/
+const char rev_string[] = "version 1.9";
