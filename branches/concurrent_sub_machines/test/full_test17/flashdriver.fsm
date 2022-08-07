@@ -1,8 +1,13 @@
 native{
-	
-	#define BUFFER 1024
 
-	typedef char flashPage[128];
+#ifndef DBG_PRINTF
+#include <stdio.h>
+#define DBG_PRINTF printf
+#endif
+	
+#define BUFFER 1024
+
+typedef char flashPage[128];
 	
 }
 /**
