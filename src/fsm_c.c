@@ -2646,7 +2646,7 @@ static void declareCSwitchMachineStateFnArray(pCMachineData pcmw, pMACHINE_INFO 
    }
 
    fprintf(pcmw->hFile
-           , "extern const %s_STATE_FN %s_state_fn_array[%s_numSubMachines];\n\n"
+           , "extern const %s_STATE_FN %s_state_fn_array[%s_numStates];\n\n"
            , cp
            , pmi->name->name
            , pmi->name->name
