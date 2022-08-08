@@ -82,5 +82,15 @@ const char rev_string[] = "version 1.8";
  
    Removed the concept of an "active" sub state machine; all sub-machines can
    run based on the event given to the top level machine.
-*/
 const char rev_string[] = "version 1.9";
+*/
+
+/*
+   Revision 1.10:
+ 
+   Create weakly linked stubs for all user functions.  Cygwin
+   seems to have trouble with this.  It works for Mingwsa. Have
+   not tested Linux.
+*/
+const char rev_string[] = "version 1.10";
+
