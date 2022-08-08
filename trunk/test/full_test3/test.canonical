@@ -2,7 +2,7 @@ hello, world
 event: newMachine_e1
 state: newMachine_s1
 newMachine_a1
-newMachine_transitionTos2
+weak: newMachine_transitionTos2
 event: newMachine_e2
 state: newMachine_s2
 newMachine_noAction

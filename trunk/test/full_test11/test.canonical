@@ -12,7 +12,7 @@ event: newMachine_e3; start state: newMachine_s2
 newMachine_transitionFn1
 end state: newMachine_s2
 event: newMachine_e4; start state: newMachine_s2
-newMachine_transitionTos3
+weak: newMachine_transitionTos3
 newMachine_machineTransitionFn
 	old state: newMachine_s2
 	new state: newMachine_s3
