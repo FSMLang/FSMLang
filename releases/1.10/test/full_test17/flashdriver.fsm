@@ -1,0 +1,85 @@
+native{
+
+#ifndef DBG_PRINTF
+#include <stdio.h>
+#define DBG_PRINTF printf
+#endif
+	
+#define BUFFER 1024
+
+typedef char flashPage[128];
+	
+}
+/**
+ <p>This machine manages writes to  the QN9080s internal flash.
+ </p>
+
+ <p>The flash is set to be interrupt driven and this
+ machine is called with the opComplete event when the write
+ and erase interrupts fire.  Error indications are not
+ handled, but need to be.
+ </p>
+
+ <p>This machine requires an interface to a FIFO managing  
+ buffers waiting to be written to flash.  
+ </p>
+
+*/
+machine FlashDriver
+{
+	data{
+		
+		flashPage * queue[1024];
+		
+		int head;
+
+		int tail;
+
+	}
+
+   /** Our client has something to write to flash */
+   event write;
+
+   /** the last flash operation (write, erase) has completed */
+   event opComplete;
+
+   /** the queue check found something waiting to be written */
+   event queueNotEmpty;
+
+   /** the flash check found that an erase operation is needed before the write */
+   event flashDirty;
+
+   /** the flash check found that the flash is ready to be written */
+   event flashClean;
+
+   /** Just hangin' */
+   state ready;
+
+   /** a write operation is in process */
+   state waitingForWrite;
+
+   /** an erase operation is in process */
+   state waitingForErase;
+
+   /** check to see if the range to be written is clean or dirty */
+   action checkFlashState[(write, queueNotEmpty), ready];
+
+   /** start the flash write operation */
+   action writeFlash[flashClean, ready] transition waitingForWrite;
+   action writeFlash[opComplete, waitingForErase] transition waitingForWrite;
+
+   /** start the flash erase operation */
+   action eraseFlash[flashDirty, ready] transition waitingForErase;
+
+   /** check the status of the queue */
+   action checkQueue[opComplete, waitingForWrite] transition ready;
+
+   /** queue the data to be written */
+   action addToQueue[write,(waitingForWrite, waitingForErase)];
+
+   checkFlashState returns flashClean, flashDirty;
+   checkQueue      returns queueNotEmpty, noEvent;
+   writeFlash      returns noEvent;
+   eraseFlash      returns noEvent;
+
+}
