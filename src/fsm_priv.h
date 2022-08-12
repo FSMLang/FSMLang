@@ -119,6 +119,7 @@ struct _id_info_ {
 	pACTION_INFO	  actionInfo;
   pLIST         	action_returns_decl;
   pLIST        	  transition_fn_returns_decl;
+  pMACHINE_INFO   powningMachine;
 };
 
 struct _action_se_info_ {
@@ -194,7 +195,7 @@ bool populate_action_array(pMACHINE_INFO,FILE*);
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_or_event_list(pLIST,FILE*);
 void parser_debug_print_id_list_names(pLIST,FILE*,char*);
-void parser_debug_print_action_list_deep(pLIST,FILE*);
+void parser_debug_print_action_list_deep(pLIST,pMACHINE_INFO,FILE*);
 void parser_debug_print_transition_list(pLIST,FILE*);
 void parser_debug_print_transition_fn_list(pLIST,FILE*);
 #endif

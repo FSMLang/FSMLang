@@ -259,6 +259,22 @@ void {
 					#endif
 				}
 
+parent {
+					#ifndef LEX_DEBUG
+					return PARENT;
+					#else
+					printf("%s\n",strings[PARENT]);
+					#endif
+				}
+
+:: {
+					#ifndef LEX_DEBUG
+					return NAMESPACE;
+					#else
+					printf("%s\n",strings[NAMESPACE]);
+					#endif
+				}
+
 
 [](){}=] | 
 [[]		{ 
