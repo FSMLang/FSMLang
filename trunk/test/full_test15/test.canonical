@@ -1,23 +1,26 @@
 hello, world
-event: newMachine_e1
-state: newMachine_s1
+event: newMachine_e1; state: newMachine_s1
 newMachine_a1
+
 weak: newMachine_transitionTos2
 newMachine_machineTransitionFn
 	old state: newMachine_s1
 	new state: newMachine_s2
-event: newMachine_e2
-state: newMachine_s2
+
+event: newMachine_e2; state: newMachine_s2
 newMachine_noAction
 newMachine_TransitionFn1
-event: newMachine_e3
-state: newMachine_s2
+
+event: newMachine_e3; state: newMachine_s2
 newMachine_noAction
 newMachine_TransitionFn1
-event: newMachine_e4
-state: newMachine_s2
+
+event: newMachine_e4; state: newMachine_s2
 newMachine_a2
+
 newMachine_TransitionFn
+
 newMachine_machineTransitionFn
 	old state: newMachine_s2
 	new state: newMachine_s3
+

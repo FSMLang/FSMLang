@@ -199,7 +199,7 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                 );
 
          fprintf(pich->pcmw->cFile
-                 , "\tDBG_PRINTF(\"weak: %s_%s\\n\");\n"
+                 , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
                  , pich->pmi->name->name
                  , pid_info->name
                  );
@@ -218,7 +218,7 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\tDBG_PRINTF(\"weak: %s_%s\\n\");\n"
+                    , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
                     , pich->pmi->name->name
                     , pid_info->name
                     );
@@ -240,7 +240,7 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\tDBG_PRINTF(\"weak: %s_%s\\n\");\n"
+                    , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
                     , pich->pmi->name->name
                     , pid_info->name
                     );
@@ -280,7 +280,7 @@ static bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *d
                 );
 
          fprintf(pich->pcmw->cFile
-                 , "\tDBG_PRINTF(\"weak: %s_%s\\n\");\n"
+                 , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
                  , pich->pmi->name->name
                  , pid_info->name
                  );
@@ -299,7 +299,7 @@ static bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *d
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\tDBG_PRINTF(\"weak: %s_%s\\n\");\n"
+                    , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
                     , pich->pmi->name->name
                     , pid_info->name
                     );
@@ -321,7 +321,7 @@ static bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *d
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\tDBG_PRINTF(\"weak: %s_%s\\n\");\n"
+                    , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
                     , pich->pmi->name->name
                     , pid_info->name
                     );
@@ -2036,7 +2036,7 @@ static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
            cp);
 
    fprintf(pcmw->cFile
-           , "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\\n\"\n\t\t,%s_EVENT_NAMES[event]\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+           , "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,%s_EVENT_NAMES[event]\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
            , cp
            , cp
           );
@@ -2066,7 +2066,7 @@ static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
           );
 
    fprintf(pcmw->cFile
-           , "\n\tDBG_PRINTF(\"end state: %%s\\n\"\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+           , "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
            , cp
           );
 
@@ -2083,7 +2083,7 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmw, pMACHINE_INFO p
            cp);
 
    fprintf(pcmw->cFile
-           , "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\\n\"\n\t\t,%s_EVENT_NAMES[event]\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+           , "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,%s_EVENT_NAMES[event]\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
            , cp
            , cp
           );
@@ -2112,7 +2112,7 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmw, pMACHINE_INFO p
           );
 
    fprintf(pcmw->cFile
-           , "\n\tDBG_PRINTF(\"end state: %%s\\n\"\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+           , "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
            , cp
           );
 
@@ -2144,7 +2144,7 @@ static void writeStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char *c
                           , cp
                          );
                   fprintf(pcmw->cFile
-                          , "\t(void) pfsm;\n\n\tDBG_PRINTF(\"weak: %s_transitionTo%s\\n\");\n\treturn %s_%s;\n}\n"
+                          , "\t(void) pfsm;\n\n\tDBG_PRINTF(\"weak: %s_transitionTo%s\");\n\treturn %s_%s;\n}\n"
                           , pmi->name->name
                           , pmi->actionArray[e][s]->transition->name
                           , pmi->name->name
@@ -2171,7 +2171,7 @@ static void writeStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char *c
                     , cp
                    );
             fprintf(pcmw->cFile
-                    , "\t(void) pfsm;\n\t(void) e;\n\tDBG_PRINTF(\"weak: %s_transitionTo%s\\n\");\n\treturn %s_%s;\n}\n"
+                    , "\t(void) pfsm;\n\t(void) e;\n\tDBG_PRINTF(\"weak: %s_transitionTo%s\");\n\treturn %s_%s;\n}\n"
                     , pmi->name->name
                     , pid_info->name
                     , pmi->name->name
@@ -2193,7 +2193,7 @@ static void writeNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
               , cp
              );
       fprintf(pcmw->cFile
-              , "\tDBG_PRINTF(\"%s_noTransitionFn\\n\");\n\treturn %s_noTransition;\n}\n\n"
+              , "\tDBG_PRINTF(\"%s_noTransitionFn\");\n\treturn %s_noTransition;\n}\n\n"
               , pmi->name->name
               , pmi->name->name
              );
@@ -2208,7 +2208,7 @@ static void writeNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
               , cp
              );
       fprintf(pcmw->cFile
-              , "\t(void) e;\n\tDBG_PRINTF(\"%s_noTransitionFn\\n\");\n\treturn pfsm->state;\n}\n\n"
+              , "\t(void) e;\n\tDBG_PRINTF(\"%s_noTransitionFn\");\n\treturn pfsm->state;\n}\n\n"
               , pmi->name->name
              );
    }
@@ -2463,7 +2463,7 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s\\nstate: %%s\\n\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            , cp
@@ -2509,7 +2509,7 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char 
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s\\nstate: %%s\\n\"\n,%s_EVENT_NAMES[%s - %s_%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - %s_%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            , pmi->name->name
@@ -3452,7 +3452,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                else
                {
                   fprintf(pcmw->cFile
-                          , "#ifdef %s_DEBUG\n\t\tDBG_PRINTF(\"%s_noAction\\n\");\n#endif\n"
+                          , "#ifdef %s_DEBUG\n\t\tDBG_PRINTF(\"%s_noAction\");\n#endif\n"
                           , cp
                           , pmi->name->name
                          );
@@ -3498,7 +3498,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
          else
          {
             fprintf(pcmw->cFile
-                    , "#ifdef %s_DEBUG\n\tcase %s_%s:\n\t\tDBG_PRINTF(\"%s_noAction\\n\");\n\t\tbreak;\n#endif\n"
+                    , "#ifdef %s_DEBUG\n\tcase %s_%s:\n\t\tDBG_PRINTF(\"%s_noAction\");\n\t\tbreak;\n#endif\n"
                     , cp
                     , pmi->name->name
                     , eventNameByIndex(pmi, j)
@@ -3511,7 +3511,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
       if (events_handled < pmi->event_list->count)
       {
          fprintf(pcmw->cFile
-                 , "\tdefault:\n\t\tDBG_PRINTF(\"%s_noAction\\n\");\n\t\tbreak;\n"
+                 , "\tdefault:\n\t\tDBG_PRINTF(\"%s_noAction\");\n\t\tbreak;\n"
                  , pmi->name->name
                 );
       }
@@ -3606,7 +3606,7 @@ static void writeOriginalSwitchFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, ch
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s\\nstate: %%s\\n\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            , cp
@@ -3679,7 +3679,7 @@ static void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pm
               , cp
              );
       fprintf(pcmw->cFile
-              , "{\n\tDBG_PRINTF(\"weak: %s_noAction\\n\");\n}\n\n"
+              , "{\n\tDBG_PRINTF(\"weak: %s_noAction\");\n}\n\n"
               , pmi->name->name
               );
    }
@@ -3694,7 +3694,7 @@ static void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pm
                  , cp
                 );
          fprintf(pcmw->cFile
-                 , "{\n\tDBG_PRINTF(\"weak: %s_noAction\\n\");\n"
+                 , "{\n\tDBG_PRINTF(\"weak: %s_noAction\");\n"
                  , pmi->name->name
                  );
          fprintf(pcmw->cFile
@@ -3711,7 +3711,7 @@ static void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pm
                  , cp
                 );
          fprintf(pcmw->cFile
-                 , "{\n\tDBG_PRINTF(\"weak: %s_noAction\\n\");\n"
+                 , "{\n\tDBG_PRINTF(\"weak: %s_noAction\");\n"
                  , pmi->name->name
                  );
          fprintf(pcmw->cFile
