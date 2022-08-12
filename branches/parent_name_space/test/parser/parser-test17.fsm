@@ -91,8 +91,6 @@ machine top_level
            machine completion.
        */
 		   action a3[e3, s3] transition s1;
-
-       a3 returns parent::e3;
 		}
 		
     /**
@@ -158,9 +156,6 @@ machine top_level
            the current action sequence to an end.
        */
 		   action a3[e3, s3] transition s1;
-
-       a3 returns parent::noEvent;
-
 		}
 		
     /**

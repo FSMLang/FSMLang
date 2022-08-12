@@ -62,7 +62,7 @@ void yyerror(char *);
  pMACHINE_PREFIX          pmachine_prefix;
 }
 
-%token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON
+%token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON PARENT NAMESPACE
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID
 %token <charData>	NATIVE_KEY
 %token <charData>	DATA_KEY
@@ -74,6 +74,7 @@ void yyerror(char *);
 %token <pid_info> TRANSITION_FN
 %token <pid_info> ID
 
+%type <plist>                    returns_comma_list
 %type <plist>                    event_comma_list
 %type <plist>                    event_vector
 %type <plist>                    state_comma_list
@@ -103,6 +104,7 @@ void yyerror(char *);
 %type <pmachine_qualifier>       machine_qualifier      
 %type <plist>                    machine_list
 %type <pmachine_prefix>          machine_prefix
+%type <pid_info>                 parent_event_ref
 
 %%
 
@@ -261,7 +263,7 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
  					parser_debug_print_state_or_event_list($$->event_list,yyout);
 
 						fprintf(yyout,"The actions :\n");
- 					parser_debug_print_action_list_deep($$->action_list,yyout);
+ 					parser_debug_print_action_list_deep($$->action_list,$$,yyout);
 
            fprintf(yyout,"\nThe %d transitions :\n"
                    , $$->transition_list->count
@@ -298,6 +300,7 @@ machine_qualifier:
            found as an event id for return decls.
            */
 						add_id(id_list, EVENT,"noEvent",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
 
  					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
  						yyerror("Out of memory");
@@ -350,6 +353,7 @@ action_return_spec:
            found as an event id for return decls.
            */
 						add_id(id_list, EVENT,"noEvent",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
 
  					$$ = 0;
         }
@@ -608,6 +612,7 @@ transition_matrix:	TRANSITION_KEY matrix STATE ';'
 						//first, we have to add an id_info struct to the id list
 						//we treat it as a "null action"
 						add_id(id_list, ACTION,"",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
 
 						//second, we grab a struct to hold the info
 						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
@@ -636,6 +641,7 @@ transition_matrix:	TRANSITION_KEY matrix STATE ';'
 						//first, we have to add an id_info struct to the id list
 						//we treat it as a "null action"
 						add_id(id_list, ACTION,"",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
 
 						//second, we grab a struct to hold the info
 						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
@@ -662,6 +668,7 @@ transition_matrix:	TRANSITION_KEY matrix STATE ';'
 						//first, we have to add an id_info struct to the id list
 						//we treat it as a "null action"
 						add_id(id_list, ACTION,"",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
 
 						//second, we grab a struct to hold the info
 						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
@@ -849,6 +856,7 @@ action_matrix: ID matrix
 						#endif
 
            set_id_type($1,ACTION);
+           $1->powningMachine = pmachineInfo;
 
 						/* 
 							grab an ACTION_INFO struct
@@ -1001,6 +1009,7 @@ event_vector: '(' event_comma_list EVENT ')'
 					}
 	;
 
+
 event_comma_list:	EVENT ',' 	
 					{
 
@@ -1008,7 +1017,7 @@ event_comma_list:	EVENT ','
 						fprintf(yyout,"found the begining of an event comma list: %s\n",$1->name);
 						#endif
 
-						/* grab a state/event info record */
+						/* start a list */
 						if (($$ = init_list()) == NULL) 
 							yyerror("out of memory");
 
@@ -1089,6 +1098,7 @@ state_decl_list:	STATE_KEY ID
  						yyerror("Out of memory");
 
            set_id_type($2,STATE);
+           $2->powningMachine = pmachineInfo;
 
  					if (NULL == (add_to_list($$,$2)))
  						yyerror("Out of memory");
@@ -1104,6 +1114,7 @@ state_decl_list:	STATE_KEY ID
 						$$ = $1;
 
            set_id_type($3,STATE);
+           $3->powningMachine = pmachineInfo;
 
  					if (NULL == (add_to_list($$,$3)))
  						yyerror("Out of memory");
@@ -1133,6 +1144,7 @@ event_decl_list:	EVENT_KEY ID external_designation
 
            set_id_type($2,EVENT);
            $2->externalDesignation = $3;
+           $2->powningMachine = pmachineInfo;
 
 //todo: deal with this when machine is finally assembled
 //           if ($4)
@@ -1155,6 +1167,7 @@ event_decl_list:	EVENT_KEY ID external_designation
 
            set_id_type($3,EVENT);
            $3->externalDesignation = $4;
+           $3->powningMachine = pmachineInfo;
 
 //todo: deal with this when machine is finally assembled
 //           if ($4)
@@ -1208,8 +1221,66 @@ data:	{
 
 	;
  
+namespace: PARENT NAMESPACE
+  {
+    if (!pmachineInfo->parent)
+        yyerror("parent namespace invoked in top-level machine");
+
+    id_list = pmachineInfo->parent->id_list;
+  }
+  ;
+
+parent_event_ref: namespace EVENT
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found a parent event reference\n");
+    #endif
+
+    $$ = $2;
+    id_list = pmachineInfo->id_list;
+  }
+  ;
+
+returns_comma_list: parent_event_ref ','
+    {
+						/* start a list */
+						if (($$ = init_list()) == NULL) 
+							yyerror("out of memory");
+
+ 					if (add_to_list($$,$1) == NULL)
+							yyerror("out of memory");
+
+    }
+    | EVENT ','
+    {
+						/* start a list */
+						if (($$ = init_list()) == NULL) 
+							yyerror("out of memory");
+
+ 					if (add_to_list($$,$1) == NULL)
+							yyerror("out of memory");
+
+    }
+    | returns_comma_list parent_event_ref ','
+    {
+           $$ = $1;
+
+ 					if (add_to_list($$,$2) == NULL)
+							yyerror("out of memory");
+
+    }
+    | returns_comma_list EVENT ','
+    {
+           $$ = $1;
+
+ 					if (add_to_list($$,$2) == NULL)
+							yyerror("out of memory");
+
+    }
+    ;
+
 action_return_decl: 
-  ACTION RETURNS event_comma_list EVENT ';'
+  ACTION RETURNS returns_comma_list EVENT ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
@@ -1229,6 +1300,22 @@ action_return_decl:
 
   }
   | ACTION RETURNS EVENT ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found an action return declaration\n");
+    #endif
+
+ 	 if (!$1->action_returns_decl)
+		 {
+		    if (($1->action_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+		 if (add_unique_to_list($1->action_returns_decl,$3) == NULL)
+				yyerror("out of memory");
+
+  }
+  | ACTION RETURNS parent_event_ref ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
