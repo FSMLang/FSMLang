@@ -91,6 +91,13 @@ const char rev_string[] = "version 1.9";
    Create weakly linked stubs for all user functions.  Cygwin
    seems to have trouble with this.  It works for Mingwsa. Have
    not tested Linux.
-*/
 const char rev_string[] = "version 1.10";
+*/
+
+/*
+   Revision 1.10:
+ 
+   Remove line-endings from generated DBG_PRINTF statements.
+*/
+const char rev_string[] = "version 1.11";
 
