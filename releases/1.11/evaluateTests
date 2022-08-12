@@ -1,0 +1,109 @@
+# 	bash
+# NAME: evaluateTests -- runs and evaluates the tests
+#
+# LONG DESCRIPTION:
+#
+# BUGS:
+#
+# HISTORY:
+# --Who--	--When--		-- What -----
+# sstanton		Jan-16-2002		Written.
+#
+# -------------------------------------------------------------
+
+# strip root of path of /home/sstanton/bin/newbash, leaving only head
+command=${0##*/}
+
+exedir="."
+
+while [ -n "$1" ]; do
+
+	case $1 in
+
+ 	 edit | -edit) 		# Self Edit
+		vi $0
+		exit 1
+		;;		
+
+ 	 help | -help)			# Help
+		echo -e "usage: $command \n"
+ 	       exit 1
+		;;
+
+ 	  -p | parser | -parser)   # Do the parser tests
+ 	   parser=TRUE;
+ 	   ;;
+
+ 	  -l | lexer | -lexer)     # Do the lexer tests
+ 	   lexer=TRUE;
+ 	   ;;
+
+		-f | full_test | -full_test)	# Do a full test
+		 full=TRUE;
+		 ;;
+
+ 	  -b | both | -both)       # Do both tests
+ 	   parser=TRUE;
+ 	   lexer=TRUE;
+ 	   ;;
+
+		-d | -exedir)            #directory for executables
+			shift
+			exedir=$1
+			;;
+
+	esac
+
+	shift;
+
+done
+
+if [ -n "$parser" ]
+then
+
+	for f in $(ls parser*.fsm); do 
+		base=${f%%.fsm};
+		${exedir}/fsm ${f} &> test.out
+		if ! diff ${base}.out test.out > ${base}.result
+		then
+			echo -e "${base} failed\n";
+		fi
+		rm test.out;
+	done
+
+fi
+
+if [ -n "$lexer" ]
+then
+
+	for f in $(ls lexer*.txt); do 
+		base=${f%%.txt};
+		${exedir}/lexer < ${f} &> test.out
+		if ! diff ${base}.out test.out > ${base}.result
+		then
+			echo -e "${exedir}/lexer ${base} failed\n";
+		fi
+		rm test.out;
+	done
+
+fi
+
+if [ -n "$full" ]
+then
+
+	./full_test1 &> test.out;
+	if diff full_test1.out test.out > full_test1.result
+	then
+		echo -e "full_test1 failed\n";
+	fi
+	rm test.out;
+
+	./full_test2 &> test.out;
+	if diff full_test2.out test.out > full_test2.result
+	then
+		echo -e "full_test2 failed\n";
+	fi
+	rm test.out;
+
+fi
+

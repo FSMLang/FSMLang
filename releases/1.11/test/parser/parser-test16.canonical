@@ -1,0 +1,566 @@
+Native
+
+
+#ifdef TOP_LEVEL_DEBUG
+#include <stdio.h>
+#define DBG_PRINTF printf
+#endif
+
+The 1 events in this list:
+	0:	e1
+
+     This event causes the machine to initialize itself, then
+     transition to state s2.  State s2 is the state from which
+     the initial sub machines are invoked.  When those machines
+     are finished, the top level machine will transition to
+     its "steady state."
+   
+The 1 events in this list:
+	0:	e2
+
+     sub_machine1 is finished.
+   
+The 1 events in this list:
+	0:	e3
+
+     sub_machine2 is finished.
+   
+The 1 events in this list:
+	0:	e4
+
+     sub_machine3 is finished.
+   
+The 1 events in this list:
+	0:	e5
+
+     It is time to do the periodic chore.  This chore requires that 
+     sub machine 2 be run, followed by sub machine 3.
+   
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s1
+
+     startup state; initialize the machine when e1 happens.
+   
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s2
+
+     Execute the first two sub machines in this state
+   
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s3
+
+     When e5 is received in this state, execute sub machines 2 and 3.
+   
+The 1 events in this list:
+	0:	e1
+
+         This event starts sub_machine1.
+       
+The 1 events in this list:
+	0:	e2
+
+The 1 events in this list:
+	0:	e3
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s1
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s2
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s3
+
+         Arriving in this state means sub_machine1's job is done.
+       
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a1
+found a scalar event : e2
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a2
+found a scalar event : e3
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a3
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+process_action_info: a2
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s2
+process_action_info: a3
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s3
+populate_action_array returning false
+found a machine named sub_machine1
+	with 3 events and 3 states
+Actions return events
+The states :
+	0:	s1
+
+	1:	s2
+
+	2:	s3
+
+         Arriving in this state means sub_machine1's job is done.
+       
+The events :
+	0:	e1
+
+         This event starts sub_machine1.
+       
+	1:	e2
+
+	2:	e3
+
+The actions :
+	a1
+		which occurs in these events
+				e1
+		and states
+				s1
+		and transitions to state s2
+	a2
+		which occurs in these events
+				e2
+		and states
+				s2
+		and transitions to state s3
+	a3
+		which occurs in these events
+				e3
+		and states
+				s3
+		and transitions to state s1
+Doc Comments:
+
+         This action returns the parent's event e3 to signal sub
+           machine completion.
+       
+
+The 3 transitions :
+	s2
+	s3
+	s1
+
+The 1 events in this list:
+	0:	e1
+
+         This event starts sub_machine2.
+       
+The 1 events in this list:
+	0:	e2
+
+The 1 events in this list:
+	0:	e3
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s1
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s2
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s3
+
+         Arriving in this state means sub_machine1's job is done.
+       
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a1
+found a scalar event : e2
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a2
+found a scalar event : e3
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a3
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+process_action_info: a2
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s2
+process_action_info: a3
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s3
+populate_action_array returning false
+found a machine named sub_machine2
+	with 3 events and 3 states
+Actions return events
+The states :
+	0:	s1
+
+	1:	s2
+
+	2:	s3
+
+         Arriving in this state means sub_machine1's job is done.
+       
+The events :
+	0:	e1
+
+         This event starts sub_machine2.
+       
+	1:	e2
+
+	2:	e3
+
+The actions :
+	a1
+		which occurs in these events
+				e1
+		and states
+				s1
+		and transitions to state s2
+	a2
+		which occurs in these events
+				e2
+		and states
+				s2
+		and transitions to state s3
+	a3
+		which occurs in these events
+				e3
+		and states
+				s3
+		and transitions to state s1
+Doc Comments:
+
+         This action returns the parent's event e4 to signal sub
+           machine completion.
+       
+
+The 3 transitions :
+	s2
+	s3
+	s1
+
+The 1 events in this list:
+	0:	e1
+
+         This event starts sub_machine3.
+       
+The 1 events in this list:
+	0:	e2
+
+The 1 events in this list:
+	0:	e3
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s1
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s2
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s3
+
+         Arriving in this state means sub_machine1's job is done.
+       
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a1
+found a scalar event : e2
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a2
+found a scalar event : e3
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a3
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+process_action_info: a2
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s2
+process_action_info: a3
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s3
+populate_action_array returning false
+found a machine named sub_machine3
+	with 3 events and 3 states
+Actions return events
+The states :
+	0:	s1
+
+	1:	s2
+
+	2:	s3
+
+         Arriving in this state means sub_machine1's job is done.
+       
+The events :
+	0:	e1
+
+         This event starts sub_machine3.
+       
+	1:	e2
+
+	2:	e3
+
+The actions :
+	a1
+		which occurs in these events
+				e1
+		and states
+				s1
+		and transitions to state s2
+	a2
+		which occurs in these events
+				e2
+		and states
+				s2
+		and transitions to state s3
+	a3
+		which occurs in these events
+				e3
+		and states
+				s3
+		and transitions to state s1
+Doc Comments:
+
+         This machine will return the parent's "noEvent" bringing
+           the current action sequence to an end.
+       
+
+The 3 transitions :
+	s2
+	s3
+	s1
+
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a1
+found a scalar event : e2
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	activate_sub_machine1
+found a scalar event : e3
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	activate_sub_machine2
+found a scalar event : e4
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	activate_sub_machine3
+found a scalar event : e5
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	activate_sub_machine2
+found a scalar event : e4
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	activate_sub_machine3
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+process_action_info: activate_sub_machine1
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s2
+process_action_info: activate_sub_machine2
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s2
+process_action_info: activate_sub_machine3
+	iterate_matrix_states: event: e4
+		add_to_action_array: state: s2
+process_action_info: activate_sub_machine2
+	iterate_matrix_states: event: e5
+		add_to_action_array: state: s3
+process_action_info: activate_sub_machine3
+	iterate_matrix_states: event: e4
+		add_to_action_array: state: s3
+populate_action_array returning false
+found a machine named top_level
+	with 5 events and 3 states
+Actions return events
+The states :
+	0:	s1
+
+     startup state; initialize the machine when e1 happens.
+   
+	1:	s2
+
+     Execute the first two sub machines in this state
+   
+	2:	s3
+
+     When e5 is received in this state, execute sub machines 2 and 3.
+   
+The events :
+	0:	e1
+
+     This event causes the machine to initialize itself, then
+     transition to state s2.  State s2 is the state from which
+     the initial sub machines are invoked.  When those machines
+     are finished, the top level machine will transition to
+     its "steady state."
+   
+	1:	e2
+
+     sub_machine1 is finished.
+   
+	2:	e3
+
+     sub_machine2 is finished.
+   
+	3:	e4
+
+     sub_machine3 is finished.
+   
+	4:	e5
+
+     It is time to do the periodic chore.  This chore requires that 
+     sub machine 2 be run, followed by sub machine 3.
+   
+The actions :
+	a1
+		which occurs in these events
+				e1
+		and states
+				s1
+		and transitions to state s2
+Doc Comments:
+
+      Do a top level action
+    
+	activate_sub_machine1
+		which occurs in these events
+				e2
+		and states
+				s2
+Doc Comments:
+
+     Make sub_machine1 the active machine, then
+       start it working by returning its first
+       event.
+   
+	activate_sub_machine2
+		which occurs in these events
+				e5
+		and states
+				s3
+		and which occurs in these events
+				e3
+		and states
+				s2
+Doc Comments:
+
+     In the steady state, e5 triggers us to re-run sub
+     machines 2 and 3.
+   
+	activate_sub_machine3
+		which occurs in these events
+				e4
+		and states
+				s3
+		and which occurs in these events
+				e4
+		and states
+				s2
+		and transitions to state s3
+Doc Comments:
+
+     Make sub_machine3 the active machine, then
+       start it working by returning its first
+       event.  Trasition to s3, which is the
+       "steady state" for this machine.
+   
+
+The 2 transitions :
+	s2
+	s3
+this machine has 3 sub-machines
+
+found a single machine
