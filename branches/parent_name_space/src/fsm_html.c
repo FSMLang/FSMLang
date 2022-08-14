@@ -98,10 +98,10 @@ bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
    pID_INFO                pid        = (pID_INFO) pelem->mbr;
 
    fprintf(pfsmhtmlog->pmd->htmlFile
-           , (pid->powningMachine != pfsmhtmlog->pmd->pmi)
+           , (pid->powningMachine && (pid->powningMachine != pfsmhtmlog->pmd->pmi))
                ? "\t\t<li>%s::%s</li>\n"
                : "\t\t<li>%s%s</li>\n"
-           , (pid->powningMachine != pfsmhtmlog->pmd->pmi) 
+           , (pid->powningMachine && (pid->powningMachine != pfsmhtmlog->pmd->pmi))
                ? pid->powningMachine->name->name
                : ""
            , pid->name

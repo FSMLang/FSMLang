@@ -87,7 +87,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a1
+	a1
 found a scalar event : e2
 found a state scalar
 found a matrix
@@ -96,7 +96,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a2
+	a2
 found a scalar event : e3
 found a state scalar
 found a matrix
@@ -105,7 +105,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a3
+	a3
 process_action_info: a1
 	iterate_matrix_states: event: e1
 		add_to_action_array: state: s1
@@ -163,9 +163,9 @@ Doc Comments:
        
 
 The 3 transitions :
-	parent::s2
-	parent::s3
-	parent::s1
+	s2
+	s3
+	s1
 
 The 1 events in this list:
 	0:	e1
@@ -200,7 +200,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a1
+	a1
 found a scalar event : e2
 found a state scalar
 found a matrix
@@ -209,7 +209,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a2
+	a2
 found a scalar event : e3
 found a state scalar
 found a matrix
@@ -218,8 +218,8 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a3
-Found a parent event reference
+	a3
+Found a namespace event reference
 Found an action return declaration
 process_action_info: a1
 	iterate_matrix_states: event: e1
@@ -272,7 +272,7 @@ The actions :
 				s3
 		and transitions to state s1
 		and which returns
-				parent::e4
+				namespace::e4
 Doc Comments:
 
          This action returns the parent's event e4 to signal sub
@@ -280,9 +280,9 @@ Doc Comments:
        
 
 The 3 transitions :
-	parent::s2
-	parent::s3
-	parent::s1
+	s2
+	s3
+	s1
 
 The 1 events in this list:
 	0:	e1
@@ -317,7 +317,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a1
+	a1
 found a scalar event : e2
 found a state scalar
 found a matrix
@@ -326,7 +326,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a2
+	a2
 found a scalar event : e3
 found a state scalar
 found a matrix
@@ -335,7 +335,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a3
+	a3
 process_action_info: a1
 	iterate_matrix_states: event: e1
 		add_to_action_array: state: s1
@@ -393,9 +393,9 @@ Doc Comments:
        
 
 The 3 transitions :
-	parent::s2
-	parent::s3
-	parent::s1
+	s2
+	s3
+	s1
 
 found a scalar event : e1
 found a state scalar
@@ -405,7 +405,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::a1
+	a1
 found a scalar event : e2
 found a state scalar
 found a matrix
@@ -413,7 +413,7 @@ found an action matrix
 found an action without transition
 started an action declaration
 The actions in this list:
-	parent::activate_sub_machine1
+	activate_sub_machine1
 found a scalar event : e3
 found a state scalar
 found a matrix
@@ -421,7 +421,7 @@ found an action matrix
 found an action without transition
 started an action declaration
 The actions in this list:
-	parent::activate_sub_machine2
+	activate_sub_machine2
 found a scalar event : e4
 found a state scalar
 found a matrix
@@ -430,7 +430,7 @@ found a transition to known state
 found an action with transition
 started an action declaration
 The actions in this list:
-	parent::activate_sub_machine3
+	activate_sub_machine3
 found a scalar event : e5
 found a state scalar
 found a matrix
@@ -438,7 +438,7 @@ found an action matrix
 found an action without transition
 started an action declaration
 The actions in this list:
-	parent::activate_sub_machine2
+	activate_sub_machine2
 found a scalar event : e4
 found a state scalar
 found a matrix
@@ -446,7 +446,13 @@ found an action matrix
 found an action without transition
 started an action declaration
 The actions in this list:
-	parent::activate_sub_machine3
+	activate_sub_machine3
+Found a namespace event reference
+Found an action return declaration
+Found a namespace event reference
+Found an action return declaration
+Found a namespace event reference
+Found an action return declaration
 process_action_info: a1
 	iterate_matrix_states: event: e1
 		add_to_action_array: state: s1
@@ -524,6 +530,8 @@ Doc Comments:
 				e2
 		and states
 				s2
+		and which returns
+				namespace::e1
 Doc Comments:
 
      Make sub_machine1 the active machine, then
@@ -539,6 +547,8 @@ Doc Comments:
 				e3
 		and states
 				s2
+		and which returns
+				namespace::e1
 Doc Comments:
 
      In the steady state, e5 triggers us to re-run sub
@@ -554,6 +564,8 @@ Doc Comments:
 		and states
 				s2
 		and transitions to state s3
+		and which returns
+				namespace::e1
 Doc Comments:
 
      Make sub_machine3 the active machine, then
@@ -563,8 +575,8 @@ Doc Comments:
    
 
 The 2 transitions :
-	parent::s2
-	parent::s3
+	s2
+	s3
 this machine has 3 sub-machines
 
 found a single machine

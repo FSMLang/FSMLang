@@ -192,5 +192,9 @@ machine top_level
    action activate_sub_machine2[e5, s3];
    action activate_sub_machine3[e4, s3];
 
+   activate_sub_machine1 returns sub_machine1::e1;
+   activate_sub_machine2 returns sub_machine2::e1;
+   activate_sub_machine3 returns sub_machine3::e1;
+
 }
 
