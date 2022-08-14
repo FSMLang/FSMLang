@@ -835,9 +835,15 @@ static bool print_pid_name(pLIST_ELEMENT pelem, void *data)
                    ? pid->name 
                    : phelper->nullName;
 
-   fprintf(phelper->fout,"\t%s%s%s\n"
+   fprintf(phelper->fout
+           , "\t%s%s%s\n"
            , phelper->indenture ? phelper->indenture : ""
-           , (pid->powningMachine != phelper->pmi) ? "parent::" : ""
+           , (pid->powningMachine 
+              && phelper->pmi
+              && (pid->powningMachine != phelper->pmi)
+              )
+               ? "namespace::"
+               : ""
            , name
            );
 
@@ -863,12 +869,16 @@ static bool print_pid_name(pLIST_ELEMENT pelem, void *data)
  *
  * all input parameters must be valid.  The format used is simply "%s\n".
  ***********************************************************************************************************************/
-void parser_debug_print_id_list_names(pLIST plist, FILE *file, char *nullName)
+void parser_debug_print_id_list_names(pLIST plist
+                                      , pMACHINE_INFO pmi
+                                      , FILE *file
+                                      , char *nullName)
 {
    DEBUG_LIST_HELPER helper = {0};
 
-   helper.fout = file;
+   helper.fout     = file;
    helper.nullName = nullName;
+   helper.pmi      = pmi;
 
    iterate_list(plist,print_pid_name,&helper);
 }

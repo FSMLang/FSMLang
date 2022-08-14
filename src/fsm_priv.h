@@ -194,7 +194,7 @@ bool populate_action_array(pMACHINE_INFO,FILE*);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_or_event_list(pLIST,FILE*);
-void parser_debug_print_id_list_names(pLIST,FILE*,char*);
+void parser_debug_print_id_list_names(pLIST,pMACHINE_INFO,FILE*,char*);
 void parser_debug_print_action_list_deep(pLIST,pMACHINE_INFO,FILE*);
 void parser_debug_print_transition_list(pLIST,FILE*);
 void parser_debug_print_transition_fn_list(pLIST,FILE*);

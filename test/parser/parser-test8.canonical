@@ -67,7 +67,6 @@ found a state vector
 found a matrix
 found a transition matrix with new transition function
 Found an action return declaration
-found the begining of an event comma list: e2
 Found an action return declaration
 found the beginning of a state comma list
 Found a transition_fn return declaration

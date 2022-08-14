@@ -104,7 +104,7 @@ void yyerror(char *);
 %type <pmachine_qualifier>       machine_qualifier      
 %type <plist>                    machine_list
 %type <pmachine_prefix>          machine_prefix
-%type <pid_info>                 parent_event_ref
+%type <pid_info>                 namespace_event_ref
 
 %%
 
@@ -206,11 +206,19 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
 
            free($1);
 
+           $2->powningMachine = pmachineInfo;
+
            /* reset context */
            pmachineInfo = $$->parent;
            if ($$->parent)
            {
+            pID_INFO pid;
+
             id_list = $$->parent->id_list;
+
+            add_id(id_list,MACHINE,$2->name,&pid);
+            pid->powningMachine = $$;
+
            }
 
 						#ifdef PARSER_DEBUG
@@ -694,7 +702,7 @@ action_decl:	action_decl_list ';'
 						pID_INFO	pid;
 
 						fprintf(yyout,"The actions in this list:\n");
-						parser_debug_print_id_list_names($1->action_list,yyout,"noAction");
+						parser_debug_print_id_list_names($1->action_list,pmachineInfo,yyout,"noAction");
 						#endif
 
 						$$ = $1;
@@ -930,7 +938,7 @@ state_vector:
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a state vector\n");
- 					parser_debug_print_id_list_names($$,yyout,"");
+ 					parser_debug_print_id_list_names($$,pmachineInfo,yyout,"");
 						#endif
 
 					}
@@ -989,7 +997,7 @@ event_vector: '(' event_comma_list EVENT ')'
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found an event vector\n");
- 					parser_debug_print_id_list_names($$,yyout,"");
+ 					parser_debug_print_id_list_names($$,pmachineInfo,yyout,"");
 						#endif
 
 					}
@@ -1228,12 +1236,19 @@ namespace: PARENT NAMESPACE
 
     id_list = pmachineInfo->parent->id_list;
   }
+  | MACHINE NAMESPACE
+  {
+    if (pmachineInfo->parent)
+        yyerror("sub-machine namespace invoked in sub-machine");
+
+    id_list = $1->powningMachine->id_list;
+  }
   ;
 
-parent_event_ref: namespace EVENT
+namespace_event_ref: namespace EVENT
   {
     #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found a parent event reference\n");
+    fprintf(yyout,"Found a namespace event reference\n");
     #endif
 
     $$ = $2;
@@ -1241,7 +1256,7 @@ parent_event_ref: namespace EVENT
   }
   ;
 
-returns_comma_list: parent_event_ref ','
+returns_comma_list: namespace_event_ref ','
     {
 						/* start a list */
 						if (($$ = init_list()) == NULL) 
@@ -1261,7 +1276,7 @@ returns_comma_list: parent_event_ref ','
 							yyerror("out of memory");
 
     }
-    | returns_comma_list parent_event_ref ','
+    | returns_comma_list namespace_event_ref ','
     {
            $$ = $1;
 
@@ -1315,7 +1330,7 @@ action_return_decl:
 				yyerror("out of memory");
 
   }
-  | ACTION RETURNS parent_event_ref ';'
+  | ACTION RETURNS namespace_event_ref ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
