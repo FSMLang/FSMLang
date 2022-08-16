@@ -4,28 +4,22 @@
  * Revision information. 
  */
 
-//const char rev_string[] = "version 1.0";
-
-
 /* 
   Revision 1.1 separates the action/transition array from the machine structure.  Two
   benefits proceed from this: first, the array can be made constant; and second, the machine
   structure can now be instantiated multiple times.  A macro is provided by which machines may
   be easily declared.
-const char rev_string[] = "version 1.1";
 */ 
 
 /*
    Revision 1.2 adds a new option: "-i0" will inhibit the creation of an instance of the machine.
    Any other argument to -i, or not having -i0 will cause the creation of an instance, which is
    the historical behavior.
-const char rev_string[] = "version 1.2";
 */
 
 /*
    Revision 1.3 quiets a warning about  the shadowing of a global variable by a local variable; the warning
    was correct, but the shadowing was not consequential.  In the spirit of "no warnings are the only good warnings"....
-const char rev_string[] = "version 1.3";
 */
 
 /*
@@ -36,7 +30,6 @@ const char rev_string[] = "version 1.3";
       * both actions and transitions may be given return declarations.  These are in the form of "name returns ...;"
         where "name" is a previously seen action or transition function name.  Presently, this information is used
         only to enhance the HTML page.
-const char rev_string[] = "version 1.4";
 */
 
 /*
@@ -46,7 +39,6 @@ const char rev_string[] = "version 1.4";
       purely code.
  
       Also, the "actions return states" machine is fixed.
-const char rev_string[] = "version 1.5";
 */
 
 /*
@@ -59,7 +51,6 @@ const char rev_string[] = "version 1.5";
    is only 2 bytes.
  
    When transition functions are used, a similar table/enum pair is constructed.
-const char rev_string[] = "version 1.6";
 */
 
 /*
@@ -68,13 +59,11 @@ const char rev_string[] = "version 1.6";
       * extends the -c option to machines having actions which return void.  This required no code changes.
       * introduces a new machine qualifier: 'on transition ID;' where ID names a function which will be called
         whenever the state changes.  The function takes a pointer to the machine, and the value of the new state.
-const char rev_string[] = "version 1.7";
 */
 
 /*
    Revision 1.8:
       * introduces Hierarchical state machines.
-const char rev_string[] = "version 1.8";
 */
 
 /*
@@ -82,7 +71,6 @@ const char rev_string[] = "version 1.8";
  
    Removed the concept of an "active" sub state machine; all sub-machines can
    run based on the event given to the top level machine.
-const char rev_string[] = "version 1.9";
 */
 
 /*
@@ -91,14 +79,12 @@ const char rev_string[] = "version 1.9";
    Create weakly linked stubs for all user functions.  Cygwin
    seems to have trouble with this.  It works for Mingwsa. Have
    not tested Linux.
-const char rev_string[] = "version 1.10";
 */
 
 /*
    Revision 1.11:
  
    Remove line-endings from generated DBG_PRINTF statements.
-const char rev_string[] = "version 1.11";
 */
 
 /*
@@ -108,5 +94,11 @@ const char rev_string[] = "version 1.11";
    and "parent" events.
  
 */
-const char rev_string[] = "version 1.12";
+
+/*
+   Revision 1.13:
+ 
+   RUN_STATE_MACHINE and DECLARE_%s_MACHINE now enclose parameters in parentheses. 
+*/
+const char rev_string[] = "version 1.13";
 
