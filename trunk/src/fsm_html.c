@@ -57,12 +57,9 @@ typedef struct _html_machine_data_ HTMLMachineData, *pHTMLMachineData;
 
 struct _html_machine_data_ {
 
-	FILE	*htmlFile
-				;
-
-	char	*htmlName
-				;
-
+	FILE	        *htmlFile;
+	char	        *htmlName;
+  pMACHINE_INFO pmi;
 };
 
 struct _fsm_html_output_generator_
@@ -98,10 +95,16 @@ static pHTMLMachineData newHTMLMachineData(char *);
 bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
 {
    pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
+   pID_INFO                pid        = (pID_INFO) pelem->mbr;
 
    fprintf(pfsmhtmlog->pmd->htmlFile
-           , "\t\t<li>%s</li>\n"
-           , ((pID_INFO)pelem->mbr)->name
+           , (pid->powningMachine && (pid->powningMachine != pfsmhtmlog->pmd->pmi))
+               ? "\t\t<li>%s::%s</li>\n"
+               : "\t\t<li>%s%s</li>\n"
+           , (pid->powningMachine && (pid->powningMachine != pfsmhtmlog->pmd->pmi))
+               ? pid->powningMachine->name->name
+               : ""
+           , pid->name
            );
 
    return false;
@@ -225,6 +228,8 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	if (!pmi)
 
 		return;
+
+  pfsmhtmlog->pmd->pmi = pmi;
 
 	fprintf(pfsmhtmlog->pmd->htmlFile,"<h2>%s</h2>\n"
 		, pmi->name->name

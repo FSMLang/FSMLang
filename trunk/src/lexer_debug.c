@@ -55,5 +55,7 @@ char *strings[]  = {
   , "EXTERNAL"
   , "ON"
   , "VOID"
+  , "PARENT"
+  , "NAMESPACE"
 };
 

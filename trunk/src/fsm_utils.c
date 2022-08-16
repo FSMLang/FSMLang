@@ -785,10 +785,11 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
 typedef struct _debug_list_helper_ DEBUG_LIST_HELPER, *pDEBUG_LIST_HELPER;
 struct _debug_list_helper_
 {
-   FILE     *fout;
-   unsigned counter;
-   char     *nullName;
-   char     *indenture;
+   FILE          *fout;
+   unsigned      counter;
+   char          *nullName;
+   char          *indenture;
+   pMACHINE_INFO pmi;
 };
 
 static bool print_state_or_event_id_info(pLIST_ELEMENT pelem, void *data)
@@ -815,11 +816,11 @@ static bool print_state_or_event_id_info(pLIST_ELEMENT pelem, void *data)
    return false;  //do not quit
 }
 
-void parser_debug_print_state_or_event_list(pLIST plist,FILE *file)
+void parser_debug_print_state_or_event_list(pLIST plist, FILE *file)
 {
    DEBUG_LIST_HELPER helper;
 
-   helper.fout = file;
+   helper.fout    = file;
    helper.counter = 0;
 
    iterate_list(plist,print_state_or_event_id_info,&helper);
@@ -828,13 +829,21 @@ void parser_debug_print_state_or_event_list(pLIST plist,FILE *file)
 static bool print_pid_name(pLIST_ELEMENT pelem, void *data)
 {
    pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
+   pID_INFO           pid     = (pID_INFO) pelem->mbr;
 
-   char *name = strlen(((pID_INFO)pelem->mbr)->name)
-                   ? ((pID_INFO)pelem->mbr)->name 
+   char *name = strlen(pid->name)
+                   ? pid->name 
                    : phelper->nullName;
 
-   fprintf(phelper->fout,"\t%s%s\n"
+   fprintf(phelper->fout
+           , "\t%s%s%s\n"
            , phelper->indenture ? phelper->indenture : ""
+           , (pid->powningMachine 
+              && phelper->pmi
+              && (pid->powningMachine != phelper->pmi)
+              )
+               ? "namespace::"
+               : ""
            , name
            );
 
@@ -860,12 +869,16 @@ static bool print_pid_name(pLIST_ELEMENT pelem, void *data)
  *
  * all input parameters must be valid.  The format used is simply "%s\n".
  ***********************************************************************************************************************/
-void parser_debug_print_id_list_names(pLIST plist, FILE *file, char *nullName)
+void parser_debug_print_id_list_names(pLIST plist
+                                      , pMACHINE_INFO pmi
+                                      , FILE *file
+                                      , char *nullName)
 {
    DEBUG_LIST_HELPER helper = {0};
 
-   helper.fout = file;
+   helper.fout     = file;
    helper.nullName = nullName;
+   helper.pmi      = pmi;
 
    iterate_list(plist,print_pid_name,&helper);
 }
@@ -929,11 +942,12 @@ static bool print_full_action_info(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-void parser_debug_print_action_list_deep(pLIST plist, FILE *file)
+void parser_debug_print_action_list_deep(pLIST plist, pMACHINE_INFO pmi, FILE *file)
 {
    DEBUG_LIST_HELPER helper = {0};
 
    helper.fout = file;
+   helper.pmi  = pmi;
 
    iterate_list(plist,print_full_action_info,&helper);
 }

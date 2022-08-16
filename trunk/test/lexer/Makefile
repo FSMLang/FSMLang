@@ -4,6 +4,11 @@
 #
 #
 
+ifdef OUTPUT_DIR
+include $(OUTPUT_DIR)/system.mk
+#include $(OUTPUT_DIR)/source.mk
+endif
+
 VPATH=../../src
 
 override CFLAGS += -DLEX_DEBUG -I../ -I$(VPATH)
