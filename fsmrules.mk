@@ -27,7 +27,7 @@ FSM ?= fsm
 
 .fsm.html:
 	@echo "FSM:" $(FSM)
-	$(FSM) $(FSM_FLAGS) -th $< > fsmout
+	$(FSM) $(FSM_FLAGS) -th $<
 
 $(FSM_SRC:.fsm=.html): $(FSM_SRC) $(FSM)
 

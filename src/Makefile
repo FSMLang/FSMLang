@@ -39,8 +39,8 @@ $(addsuffix .testonly, $(ARCHITECTURES)): $$(basename $$@)
 	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) testonly
 
 $(addsuffix .lexer, $(ARCHITECTURES)):
-	$(MAKE) NEED_RINDEX=$(NEED_RINDEX) -C ../test lexer
+	$(MAKE) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test lexer
 
 $(addsuffix .parser, $(ARCHITECTURES)):
-	$(MAKE) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) -C ../test parser
+	$(MAKE) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test parser
 
