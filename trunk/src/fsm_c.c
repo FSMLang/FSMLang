@@ -1057,14 +1057,14 @@ static char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arra
 
    /* put the "call the state machine" macro into the header */
    fprintf(pcmw->hFile, "\n#define RUN_STATE_MACHINE(A,B) \\\n");
-   fprintf(pcmw->hFile, "\t((*A->fsm)(A,B))\n\n");
+   fprintf(pcmw->hFile, "\t((*A->fsm)((A),(B)))\n\n");
 
    /* put the "declare a state machine" macro into the header */
    fprintf(pcmw->hFile, "#define DECLARE_%s_MACHINE(A) \\\n"
            , cp
           );
    fprintf(pcmw->hFile
-           , "%s A =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
+           , "%s (A) =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
            , cp
            , pmi->data ? "\t{0},\\\n" : ""
            , pmi->name->name
