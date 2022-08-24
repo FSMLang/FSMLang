@@ -106,5 +106,10 @@
  
    returns statements with multiple entries can now end with a namespace event reference.
 */
-const char rev_string[] = "version 1.14";
 
+/*
+   Revision 1.15:
+ 
+   Compact table generation correctly references states and state transition functions.
+*/
+const char rev_string[] = "version 1.15";
