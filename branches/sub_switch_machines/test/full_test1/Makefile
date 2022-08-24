@@ -1,0 +1,17 @@
+##########################################
+#
+# makefile for individual test
+#
+#
+
+override CFLAGS += -DFSM_DEBUG -DTEST_FSM_DEBUG -I../
+
+FSM_SRC = parser-test2.fsm
+
+SRC = pt2-actions.c
+
+include ../test.mk
+
+include ../../fsmrules.mk
+
+
