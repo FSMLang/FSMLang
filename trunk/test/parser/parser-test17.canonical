@@ -549,6 +549,7 @@ Doc Comments:
 				s2
 		and which returns
 				namespace::e1
+				noEvent
 Doc Comments:
 
      In the steady state, e5 triggers us to re-run sub
@@ -565,6 +566,7 @@ Doc Comments:
 				s2
 		and transitions to state s3
 		and which returns
+				noEvent
 				namespace::e1
 Doc Comments:
 

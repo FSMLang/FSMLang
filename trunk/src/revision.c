@@ -100,5 +100,11 @@
  
    RUN_STATE_MACHINE and DECLARE_%s_MACHINE now enclose parameters in parentheses. 
 */
-const char rev_string[] = "version 1.13";
+
+/*
+   Revision 1.14:
+ 
+   returns statements with multiple entries can now end with a namespace event reference.
+*/
+const char rev_string[] = "version 1.14";
 
