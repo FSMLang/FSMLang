@@ -3204,11 +3204,11 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
                        , (pmi->transition_fn_list->count == 0)
                          ? stateNameByIndex(pmi, j)
                          : "noTransition"
-                       , compact_action_array
-                         ? "_e"
-                         : pmi->transition_fn_list->count
-                           ? "Fn"
-                           : ""
+                       , pmi->transition_fn_list->count
+                         ? compact_action_array 
+                           ? "_e"
+                           : "Fn"
+                         : ""
                       );
 
                fprintf(pcmw->cFile, "}\n");
