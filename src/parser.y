@@ -1314,6 +1314,25 @@ action_return_decl:
  		free_list($3);
 
   }
+  | ACTION RETURNS returns_comma_list namespace_event_ref ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found an action return declaration\n");
+    #endif
+
+ 	 if (!$1->action_returns_decl)
+		 {
+		    if (($1->action_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+			if (add_to_list($3,$4) == NULL)
+				 yyerror("out of memory");
+
+			move_list_unique($1->action_returns_decl, $3);
+ 		free_list($3);
+
+  }
   | ACTION RETURNS EVENT ';'
   {
     #ifdef PARSER_DEBUG
