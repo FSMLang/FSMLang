@@ -1,0 +1,4 @@
+for f in `ls lexer-test*.txt`; do
+ cygwin/lexer < $f > foo;
+ mv foo ${f%%.txt}.out; 
+done

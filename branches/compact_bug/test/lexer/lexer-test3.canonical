@@ -1,0 +1,83 @@
+MACHINE_KEY
+Added : newMachine of type ID
+newMachine : ID
+{
+STATE_KEY
+Added : s1 of type ID
+s1 : ID
+,
+Added : s2 of type ID
+s2 : ID
+,
+Added : s3 of type ID
+s3 : ID
+;
+EVENT_KEY
+Added : e1 of type ID
+e1 : ID
+,
+Added : e2 of type ID
+e2 : ID
+,
+Added : e3 of type ID
+e3 : ID
+;
+ACTION_KEY
+Added : a1 of type ID
+a1 : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+Found : s1 of type ID
+s1 : ID
+]
+TRANSITION_KEY
+Found : s1 of type ID
+s1 : ID
+,
+Added : a2 of type ID
+a2 : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+(
+Found : s2 of type ID
+s2 : ID
+,
+Found : s3 of type ID
+s3 : ID
+)
+]
+TRANSITION_KEY
+Found : s3 of type ID
+s3 : ID
+,
+Added : a3 of type ID
+a3 : ID
+[
+(
+Found : e2 of type ID
+e2 : ID
+,
+Found : e3 of type ID
+e3 : ID
+)
+,
+(
+Found : s1 of type ID
+s1 : ID
+,
+Found : s2 of type ID
+s2 : ID
+,
+Found : s3 of type ID
+s3 : ID
+)
+]
+TRANSITION_KEY
+Found : s2 of type ID
+s2 : ID
+;
+}
