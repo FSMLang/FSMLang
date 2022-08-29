@@ -38,6 +38,5 @@
 #include "fsm_priv.h"
 
 extern pFSMOutputGenerator pCMachineWriter;
-extern pFSMOutputGenerator pCSwitchMachineWriter;
 
 #endif /* ------------------- Nothing below this line ---------------------- */
