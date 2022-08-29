@@ -112,4 +112,11 @@
  
    Compact table generation correctly references states and state transition functions.
 */
-const char rev_string[] = "version 1.15";
+
+/*
+   Revision 1.16:
+ 
+   C Switch Machines now generate any sub-machines.
+*/
+const char rev_string[] = "version 1.16";
+
