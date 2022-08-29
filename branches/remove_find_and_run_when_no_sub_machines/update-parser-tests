@@ -1,0 +1,4 @@
+for f in `ls parser-test*.fsm`; do
+ cygwin/fsm $f > foo;
+ mv foo ${f%%.fsm}.out; 
+done
