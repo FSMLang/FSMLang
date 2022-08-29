@@ -122,13 +122,17 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    fprintf(pcmw->hFile, "\t((*A->fsm)((A),(B)))\n\n");
 
    /* put the "declare a state machine" macro into the header */
+   fprintf(pcmw->hFile
+           , "#ifndef INIT_FSM_DATA\n#define INIT_FSM_DATA {0}\n#endif\n"
+           );
+
    fprintf(pcmw->hFile, "#define DECLARE_%s_MACHINE(A) \\\n"
            , cp
           );
    fprintf(pcmw->hFile
            , "%s (A) =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
            , cp
-           , pmi->data ? "\t{0},\\\n" : ""
+           , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
            , pmi->name->name
            , stateNameByIndex(pmi, 0)
            , pmi->name->name
@@ -589,7 +593,7 @@ void generateInstance(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *arr
    fprintf(pcmw->cFile, "%s %s = {%s\n\t%s_%s,\n",
            cp,
            pmi->name->name,
-           pmi->data ? "\n\t{0}," : "",
+           pmi->data ? "\n\tINIT_FSM_DATA," : "",
            pmi->name->name,
            stateNameByIndex(pmi, 0));
 
@@ -1228,7 +1232,7 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
    fprintf(pcmw->hFile
            , "%s A =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
            , cp
-           , pmi->data ? "\t{0},\\\n" : ""
+           , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
            , pmi->name->name
            , stateNameByIndex(pmi, 0)
            , pmi->name->name
