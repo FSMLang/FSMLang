@@ -25,6 +25,7 @@
 #include "fsm_priv.h"
 
 #include "fsm_c.h"
+#include "fsm_cswitch.h"
 #include "fsm_html.h"
 
 #include "list.h"
