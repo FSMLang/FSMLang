@@ -118,5 +118,11 @@
  
    C Switch Machines now generate any sub-machines.
 */
-const char rev_string[] = "version 1.16";
+
+/*
+   Revision 1.17:
+ 
+   Data initialization is mediated through a macro.
+*/
+const char rev_string[] = "version 1.17";
 
