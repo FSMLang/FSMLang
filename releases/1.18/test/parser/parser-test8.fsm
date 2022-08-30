@@ -1,0 +1,22 @@
+/**
+	testing transition functions
+*/
+machine newMachine
+{
+	state s1, s2, s3;
+	event e1, e2, e3, e4;
+	event e5 =BAR;
+
+	action a1[e1,s1] transition s1;
+	action a1[e4,s1] transition transitionFn;
+
+	action a2[e4,(s2,s3)] transition transitionFn;
+	transition[(e2,e3),(s1,s2,s3)] transitionFn1;
+
+	a1 returns noEvent;
+	a2 returns e2, e3;
+
+	transitionFn1 returns s2, s3;
+
+}
+
