@@ -1270,12 +1270,15 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
 
-   fprintf(pcmw->cFile
-           , "static %s_EVENT findAndRunSubMachine(p%s, %s_EVENT);\n\n"
-           , cp
-           , cp
-           , cp
-           );
+   if (pmi->machine_list)
+   {
+      fprintf(pcmw->cFile
+              , "static %s_EVENT findAndRunSubMachine(p%s, %s_EVENT);\n\n"
+              , cp
+              , cp
+              , cp
+              );
+   }
 
    fprintf(pcmw->cFile
            , "void %sFSM(p%s pfsm, %s_EVENT event)\n{\n"
