@@ -124,5 +124,11 @@
  
    Data initialization is mediated through a macro.
 */
+
+/*
+   Revision 1.17:
+ 
+   Data initialization is mediated through a macro.
+*/
 const char rev_string[] = "version 1.17";
 
