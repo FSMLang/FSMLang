@@ -126,9 +126,9 @@
 */
 
 /*
-   Revision 1.17:
+   Revision 1.18:
  
-   Data initialization is mediated through a macro.
+   findAndRunSubMachine not declared when no sub-machines are present.
 */
-const char rev_string[] = "version 1.17";
+const char rev_string[] = "version 1.18";
 
