@@ -12,18 +12,30 @@ include ../../depends.mk
 
 OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o) $(GENERATED_SRC:.c=.o)
 
+TARGET ?= do_runtest
+
 ifndef NO_RUNTEST
-runtest: test
+runtest: $(TARGET)
+	@echo "Test successful"
+endif
+
+do_runtest: test
 	@./test > test.out 2> test.stderr
 	@cat test.stderr >> test.out
 	@cat fsmout >> test.out
 	@$(DIFF) test.out test.canonical > test.result
-	@echo "Test successful"
 	@rm test.out test.result test.stderr
-endif
 
 test: $(OBJS)
 	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+
+fail_is_pass: $(OBJS)
+	@$(CC) -o $@ $(OBJS) $(LDFLAGS); \
+	if [ $$? -ne 0 ]; \
+	then \
+		echo "expected failure; test passes"; \
+		true; \
+	fi
 
 clean::
 	-@rm *.exe 2> /dev/null

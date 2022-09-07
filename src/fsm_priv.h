@@ -204,6 +204,7 @@ void parser_debug_print_transition_fn_list(pLIST,FILE*);
 extern char *me;	/* main will set this to the program name (argv[0]) */
 extern bool generate_instance;
 extern bool compact_action_array;
+extern bool generate_weak_fns;
 
 
 #define LOOKUP	0	/* default - not defined in the parser */

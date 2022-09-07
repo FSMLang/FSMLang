@@ -227,10 +227,13 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
    defineCSwitchMachineStateFns(pcmw, pmi, cp);
 
-   defineWeakActionFunctionStubs(pcmw, pmi, cp);
+   if (generate_weak_fns)
+   {
+      defineWeakActionFunctionStubs(pcmw, pmi, cp);
 
-   /* ... and for the noAction case */
-   defineWeakNoActionFunctionStubs(pcmw, pmi, cp);
+      /* ... and for the noAction case */
+      defineWeakNoActionFunctionStubs(pcmw, pmi, cp);
+   }
 
    /* write our transition functions, if needed */
    if (pmi->transition_fn_list->count)
@@ -309,7 +312,10 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
    defineCSwitchSubMachineStateFns(pcmw, pmi, cp);
 
-   defineSubMachineWeakActionFunctionStubs(pcmw, pmi, cp);
+   if (generate_weak_fns)
+   {
+      defineSubMachineWeakActionFunctionStubs(pcmw, pmi, cp);
+   }
 
    /* write our transition functions, if needed */
    if (pmi->transition_fn_list->count)
