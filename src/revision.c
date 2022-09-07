@@ -130,5 +130,11 @@
  
    findAndRunSubMachine not declared when no sub-machines are present.
 */
-const char rev_string[] = "version 1.18";
+
+/*
+   Revision 1.19:
+ 
+   --generate-weak-fns=false suppresses the generation of weak function stubs.
+*/
+const char rev_string[] = "version 1.19";
 
