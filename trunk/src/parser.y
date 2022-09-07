@@ -1447,6 +1447,7 @@ transition_fn_return_decl:
 #if defined(CYGWIN) || defined (LINUX)
 #include <unistd.h>
 #include <string.h>
+#include <getopt.h>
 #endif
 
 #ifdef VS
@@ -1456,6 +1457,48 @@ transition_fn_return_decl:
 
 void usage(void);
 char *dotfsm = ".fsm";
+
+/*
+  use these as needed for the val param of the long options
+  when flag is set to &longval.  Otherwise, set the val param to the
+  short option character and set flag to NULL.
+*/
+typedef enum {
+    lo_css_content_filename
+    , lo_css_content_internal
+    , lo_weak_fns
+} LONG_OPTIONS;
+
+int longindex = 0;
+int longval;
+const struct option longopts[] =
+{
+    {
+        .name      = "help"
+        , .has_arg = no_argument
+        , .flag    = NULL
+        , .val     = '?'
+    }
+    , {
+        .name      = "css-content-filename"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_css_content_filename
+    }
+    , {
+        .name      = "css-content-internal"
+        , .has_arg = no_argument
+        , .flag    = &longval
+        , .val     = lo_css_content_internal
+    }
+    , {
+        .name      = "generate-weak-fns"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_weak_fns
+    }
+    , {0}
+};
 
 int main(int argc, char **argv)
 {
@@ -1478,9 +1521,24 @@ int main(int argc, char **argv)
 	/* default to writing a c machine */
 	pfsmog = pCMachineWriter;
 
-	while ((c = getopt(argc,argv,"vht:o:i:c")) != -1) {
+	while ((c = getopt_long(argc,argv,"vht:o:i:c", longopts, &longindex)) != -1) {
 
 		switch(c) {
+
+     case 0:
+
+        switch (longval)
+        {
+            case lo_weak_fns:
+                generate_weak_fns 
+                    = !strcmp(optarg,"false") ? false : true;
+                break;
+            default:
+                usage();
+                return(0);
+                break;
+        }
+        break;
 
 			case 'h':
 				usage();
@@ -1629,12 +1687,13 @@ void usage(void)
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
- fprintf(stdout,"\t%s -i0 inhibits the creation of a machine instance\n",me);
+ fprintf(stdout,"\t-i0 inhibits the creation of a machine instance\n");
  fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n");
  fprintf(stdout,"\t\tthis is the default\n");
- fprintf(stdout,"\t%s -c will create a more compact event/state table when -tc is used\n",me);
+ fprintf(stdout,"\t-c will create a more compact event/state table when -tc is used\n");
  fprintf(stdout,"\t\twith machines having actions which return states\n");
- fprintf(stdout,"\t%s -v prints the version and exits\n",me);
+ fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
+ fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }
 

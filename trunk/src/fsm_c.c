@@ -240,8 +240,11 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
    defineCSubMachineFSM(pcmw, pmi, cp);
 
-   /* write weak stubs for our action functions */
-   defineSubMachineWeakActionFunctionStubs(pcmw, pmi, cp);
+   if (generate_weak_fns)
+   {
+      /* write weak stubs for our action functions */
+      defineSubMachineWeakActionFunctionStubs(pcmw, pmi, cp);
+   }
 
    /* write our transition functions, if needed */
    if (pmi->transition_fn_list->count)
@@ -294,11 +297,14 @@ static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       defineSubMachineFinder(pcmw, pmi, cp);
    }
 
-   /* write weak stubs for our action functions */
-   defineWeakActionFunctionStubs(pcmw, pmi, cp);
+   if (generate_weak_fns)
+   {
+      /* write weak stubs for our action functions */
+      defineWeakActionFunctionStubs(pcmw, pmi, cp);
 
-   /* ... and for the noAction case */
-   defineWeakNoActionFunctionStubs(pcmw, pmi, cp);
+      /* ... and for the noAction case */
+      defineWeakNoActionFunctionStubs(pcmw, pmi, cp);
+   }
 
    /* write our transition functions, if needed */
    if (pmi->transition_fn_list->count)

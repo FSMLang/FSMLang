@@ -53,6 +53,8 @@
 #include "parser.h"
 #endif
 
+bool generate_weak_fns = true;
+
 static bool            print_sub_machine_as_enum_member (pLIST_ELEMENT,void*);
 static bool            declare_sub_machine_if           (pLIST_ELEMENT,void*);
 static bool            declare_action_function          (pLIST_ELEMENT,void*);
