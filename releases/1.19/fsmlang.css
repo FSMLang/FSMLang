@@ -1,0 +1,84 @@
+.machine {
+	border-collapse: collapse;
+	border-style   : solid;
+	border-width   : .5px;
+	border-color   : black;
+}
+
+.machine td, .machine th {
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
+	padding     : 10px;
+}
+
+.eventLabel, .stateLabel, .blankCorner {
+	background-color: rgb(96,182,255);
+	padding         : 10px;
+}
+
+.eventName, .stateName {
+	background-color: rgb(96,182,255);
+	border-style    : solid;
+	border-width    : .5px;
+	border-color    : black;
+}
+
+
+.action {
+	color: green;
+}
+
+.nullAction {
+	color: orange;
+}
+
+.noAction {
+	color: green;
+}
+
+.elements {
+	margin         : 10px;
+	border-style   : solid;
+	border-collapse: collapse;
+	border-width   : .5px;
+	border-color   : black;
+	width          : 75%;
+}
+
+.elements th {
+	background-color: rgb(96,182,255);
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
+	padding: 3px;
+}
+
+.elements td {
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
+	padding: 3px;
+}
+
+.label {
+	font-weight: bold;
+	padding: 3px;
+}
+
+.action .return_decl {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.action .return_decl li {
+  margin-top: 0px;
+}
+
+.action ul + br {
+	content: "";
+	margin: 0px;
+	display: block;
+	font-size: 0px;
+}
+
