@@ -205,6 +205,7 @@ extern char *me;	/* main will set this to the program name (argv[0]) */
 extern bool generate_instance;
 extern bool compact_action_array;
 extern bool generate_weak_fns;
+extern bool core_logging_only;
 
 
 #define LOOKUP	0	/* default - not defined in the parser */

@@ -1467,6 +1467,7 @@ typedef enum {
     lo_css_content_filename
     , lo_css_content_internal
     , lo_weak_fns
+    , lo_core_logging
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -1496,6 +1497,12 @@ const struct option longopts[] =
         , .has_arg = required_argument
         , .flag    = &longval
         , .val     = lo_weak_fns
+    }
+    , {
+        .name      = "core-logging-only"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_core_logging
     }
     , {0}
 };
@@ -1531,6 +1538,10 @@ int main(int argc, char **argv)
         {
             case lo_weak_fns:
                 generate_weak_fns 
+                    = !strcmp(optarg,"false") ? false : true;
+                break;
+            case lo_core_logging:
+                core_logging_only 
                     = !strcmp(optarg,"false") ? false : true;
                 break;
             default:
@@ -1693,6 +1704,7 @@ void usage(void)
  fprintf(stdout,"\t-c will create a more compact event/state table when -tc is used\n");
  fprintf(stdout,"\t\twith machines having actions which return states\n");
  fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
+ fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }
