@@ -136,5 +136,5 @@
  
    --generate-weak-fns=false suppresses the generation of weak function stubs.
 */
-const char rev_string[] = "version 1.19";
+const char rev_string[] = "version 1.19+0";
 

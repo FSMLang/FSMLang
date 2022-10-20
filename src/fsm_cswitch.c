@@ -597,8 +597,9 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                else
                {
                   fprintf(pcmw->cFile
-                          , "#ifdef %s_DEBUG\n\t\tDBG_PRINTF(\"%s_noAction\");\n#endif\n"
+                          , "#ifdef %s_DEBUG\n\t\t%s(\"%s_noAction\");\n#endif\n"
                           , cp
+                          , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                           , pmi->name->name
                          );
                }
@@ -646,7 +647,8 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
       if (events_handled < pmi->event_list->count)
       {
          fprintf(pcmw->cFile
-                 , "\tdefault:\n\t\tDBG_PRINTF(\"%s_noAction\");\n\t\tbreak;\n"
+                 , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
+                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                 );
       }
@@ -844,7 +846,8 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
       if (events_handled < pmi->event_list->count)
       {
          fprintf(pcmw->cFile
-                 , "\tdefault:\n\t\tDBG_PRINTF(\"%s_noAction\");\n\t\tbreak;\n"
+                 , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
+                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                 );
       }
