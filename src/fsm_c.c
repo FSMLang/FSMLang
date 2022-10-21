@@ -511,7 +511,8 @@ static void writeNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
               , cp
              );
       fprintf(pcmw->cFile
-              , "\tDBG_PRINTF(\"%s_noTransitionFn\");\n\treturn %s_noTransition;\n}\n\n"
+              , "\t%s(\"%s_noTransitionFn\");\n\treturn %s_noTransition;\n}\n\n"
+              , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
               , pmi->name->name
              );
@@ -526,7 +527,8 @@ static void writeNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
               , cp
              );
       fprintf(pcmw->cFile
-              , "\t(void) e;\n\tDBG_PRINTF(\"%s_noTransitionFn\");\n\treturn pfsm->state;\n}\n\n"
+              , "\t(void) e;\n\t%s(\"%s_noTransitionFn\");\n\treturn pfsm->state;\n}\n\n"
+              , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
              );
    }

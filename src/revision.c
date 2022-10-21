@@ -136,5 +136,11 @@
  
    --generate-weak-fns=false suppresses the generation of weak function stubs.
 */
-const char rev_string[] = "version 1.19";
+
+/*
+   Revision 1.20:
+ 
+   --core-logging-only=true suppresses the generation of debug logging outside of the core fsm function.
+*/
+const char rev_string[] = "version 1.20";
 
