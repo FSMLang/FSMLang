@@ -54,6 +54,7 @@
 #endif
 
 bool generate_weak_fns = true;
+bool core_logging_only = false;
 
 static bool            print_sub_machine_as_enum_member (pLIST_ELEMENT,void*);
 static bool            declare_sub_machine_if           (pLIST_ELEMENT,void*);
@@ -118,6 +119,11 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    fprintf(pcmw->hFile, "#include <stdio.h>\n");
    fprintf(pcmw->hFile, "#include <stdlib.h>\n");
    fprintf(pcmw->hFile, "#endif\n\n");
+
+   if (core_logging_only)
+   {
+      fprintf(pcmw->hFile, "#ifndef NON_CORE_DEBUG_PRINTF\n#define NON_CORE_DEBUG_PRINTF(...) \n#endif\n\n");
+   }
 
    /* put the "call the state machine" macro into the header */
    fprintf(pcmw->hFile, "\n#define RUN_STATE_MACHINE(A,B) \\\n");
@@ -641,7 +647,8 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
               , cp
              );
       fprintf(pcmw->cFile
-              , "{\n\tDBG_PRINTF(\"weak: %s_noAction\");\n}\n\n"
+              , "{\n\t%s(\"weak: %s_noAction\");\n}\n\n"
+              , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
               );
    }
@@ -656,7 +663,8 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
                  , cp
                 );
          fprintf(pcmw->cFile
-                 , "{\n\tDBG_PRINTF(\"weak: %s_noAction\");\n"
+                 , "{\n\t%s(\"weak: %s_noAction\");\n"
+                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                  );
          fprintf(pcmw->cFile
@@ -673,7 +681,8 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
                  , cp
                 );
          fprintf(pcmw->cFile
-                 , "{\n\tDBG_PRINTF(\"weak: %s_noAction\");\n"
+                 , "{\n\t%s(\"weak: %s_noAction\");\n"
+                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                  );
          fprintf(pcmw->cFile
@@ -710,7 +719,8 @@ void writeStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
                           , cp
                          );
                   fprintf(pcmw->cFile
-                          , "\t(void) pfsm;\n\n\tDBG_PRINTF(\"weak: %s_transitionTo%s\");\n\treturn %s_%s;\n}\n"
+                          , "\t(void) pfsm;\n\n\t%s(\"weak: %s_transitionTo%s\");\n\treturn %s_%s;\n}\n"
+                          , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                           , pmi->name->name
                           , pmi->actionArray[e][s]->transition->name
                           , pmi->name->name
@@ -737,7 +747,8 @@ void writeStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
                     , cp
                    );
             fprintf(pcmw->cFile
-                    , "\t(void) pfsm;\n\t(void) e;\n\tDBG_PRINTF(\"weak: %s_transitionTo%s\");\n\treturn %s_%s;\n}\n"
+                    , "\t(void) pfsm;\n\t(void) e;\n\t%s(\"weak: %s_transitionTo%s\");\n\treturn %s_%s;\n}\n"
+                    , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pmi->name->name
                     , pid_info->name
                     , pmi->name->name
@@ -1144,7 +1155,8 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                 );
 
          fprintf(pich->pcmw->cFile
-                 , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
+                 , "\t%s(\"weak: %s_%s\");\n"
+                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pich->pmi->name->name
                  , pid_info->name
                  );
@@ -1163,7 +1175,8 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
+                    , "\t%s(\"weak: %s_%s\");\n"
+                    , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
                     );
@@ -1185,7 +1198,8 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
+                    , "\t%s(\"weak: %s_%s\");\n"
+                    , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
                     );
@@ -1808,7 +1822,8 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                 );
 
          fprintf(pich->pcmw->cFile
-                 , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
+                 , "\t%s(\"weak: %s_%s\");\n"
+                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pich->pmi->name->name
                  , pid_info->name
                  );
@@ -1827,7 +1842,8 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
+                    , "\t%s(\"weak: %s_%s\");\n"
+                    , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
                     );
@@ -1849,7 +1865,8 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\tDBG_PRINTF(\"weak: %s_%s\");\n"
+                    , "\t%s(\"weak: %s_%s\");\n"
+                    , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
                     );
