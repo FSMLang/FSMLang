@@ -21,6 +21,10 @@ Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.pa
 Linux  Linux.clean  Linux.test  Linux.testonly Linux.lexer  Linux.parser  : ARCH=LINUX
 
 Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : NEED_RINDEX=TRUE
+Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  : NEED_RINDEX=TRUE
+
+Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : WEAK_FNS=FALSE
+Cygwin  Cygwin.clean  Cygwin.test  Cygwin.testonly Cygwin.lexer  Cygwin.parser  : WEAK_FNS=FALSE
 
 all:
 	@echo You must choose a target.
@@ -33,10 +37,10 @@ $(addsuffix .clean, $(ARCHITECTURES)):
 	$(MAKE) -C ../test clean
 
 $(addsuffix .test, $(ARCHITECTURES)): $$(basename $$@)
-	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) test
+	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) test
 
 $(addsuffix .testonly, $(ARCHITECTURES)): $$(basename $$@)
-	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) testonly
+	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) testonly
 
 $(addsuffix .lexer, $(ARCHITECTURES)):
 	$(MAKE) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test lexer
