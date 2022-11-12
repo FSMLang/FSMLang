@@ -956,7 +956,6 @@ void destroyCMachineData(pCMachineData pcmw, int good)
 
    fclose(pcmw->hFile);
    fclose(pcmw->cFile);
-   fclose(pcmw->cFile);
 
    if (!good)
    {
