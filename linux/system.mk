@@ -2,6 +2,6 @@
 #make sure that that's what we are using.
 LEX = flex -I
 YACC = bison -d -y
-CC = gcc -g -std=c99
-DIFF = diff
+CC = gcc -g -ggdb
+DIFF = diff --strip-trailing-cr
 

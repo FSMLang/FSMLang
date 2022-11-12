@@ -5,6 +5,7 @@
 
 #include "fsm_priv.h"
 #include <string.h>
+#include <strings.h>
 #ifndef LEX_DEBUG
 #if defined (CYGWIN) || defined (LINUX)
 #include "y.tab.h"

@@ -9,9 +9,9 @@ ifdef OUTPUT_DIR
 FSM=$(OUTPUT_DIR)/fsm
 endif
 
-#ifeq ($(WEAK_FNS),FALSE)
-#FSM_FLAGS += --generate-weak-fns=false
-#endif
+ifeq ($(WEAK_FNS),FALSE)
+FSM_FLAGS += --generate-weak-fns=false
+endif
 
 
 
