@@ -1612,15 +1612,18 @@ void subMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool n
               , cp
              );
 
-      iterate_list(pmi->transition_fn_list
-                   , declare_transition_fn_for_when_actions_return_states
-                   , &ich
-                   );
+      if (pmi->transition_fn_list->count)
+      {
+         iterate_list(pmi->transition_fn_list
+                      , declare_transition_fn_for_when_actions_return_states
+                      , &ich
+                      );
 
-      iterate_list(pmi->transition_list
-                   , declare_state_only_transition_functions_for_when_actions_return_states
-                   , &ich
-                   );
+         iterate_list(pmi->transition_list
+                      , declare_state_only_transition_functions_for_when_actions_return_states
+                      , &ich
+                      );
+      }
 
       fprintf(pcmw->cFile, "\n");
 
@@ -1628,14 +1631,17 @@ void subMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool n
    else
    {
 
-      iterate_list(pmi->transition_fn_list
-                   , declare_transition_fn_for_when_actions_return_events
-                   , &ich
-                   );
-      iterate_list(pmi->transition_list
-                   , declare_state_only_transition_functions_for_when_actions_return_events
-                   , &ich
-                   );
+      if (pmi->transition_fn_list->count)
+      {
+         iterate_list(pmi->transition_fn_list
+                      , declare_transition_fn_for_when_actions_return_events
+                      , &ich
+                      );
+         iterate_list(pmi->transition_list
+                      , declare_state_only_transition_functions_for_when_actions_return_events
+                      , &ich
+                      );
+      }
 
       fprintf(pcmw->cFile, "\n");
 
