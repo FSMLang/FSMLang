@@ -86,14 +86,19 @@ void            generateInstance(pCMachineData, pMACHINE_INFO, char *, char *);
 void            defineWeakActionFunctionStubs(pCMachineData, pMACHINE_INFO, char *);
 void            defineWeakNoActionFunctionStubs(pCMachineData, pMACHINE_INFO, char *);
 void            writeStateTransitions(pCMachineData, pMACHINE_INFO, char *);
+void            subMachineWriteStateTransitions(pCMachineData, pMACHINE_INFO, char *);
 void            writeDebugInfo(pCMachineData, pMACHINE_INFO, char *);
 pCMachineData   newCMachineData(char *);
 void            destroyCMachineData(pCMachineData, int);
 bool            assignExternalEventValues(pMACHINE_INFO);
 bool            declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT,void*);
+bool            sub_machine_declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT,void*);
 bool            declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
+bool            sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
 bool            declare_state_only_transition_functions_for_when_actions_return_states(pLIST_ELEMENT,void*);
+bool            sub_machine_declare_state_only_transition_functions_for_when_actions_return_states(pLIST_ELEMENT,void*);
 bool            declare_state_only_transition_functions_for_when_actions_return_events(pLIST_ELEMENT,void*);
+bool            sub_machine_declare_state_only_transition_functions_for_when_actions_return_events(pLIST_ELEMENT,void*);
 
 char          * subMachineHeaderStart(pCMachineData, pMACHINE_INFO, char *);
 void            subMachineHeaderEnd(pCMachineData, pMACHINE_INFO, char *, bool);
@@ -103,6 +108,7 @@ bool            declare_sub_machine_action_function(pLIST_ELEMENT,void*);
 bool            print_sub_machine_if(pLIST_ELEMENT,void*);
 void            defineSubMachineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineFinder(pCMachineData, pMACHINE_INFO, char *);
+bool            declare_action_function(pLIST_ELEMENT,void*);
 
 #endif
 
