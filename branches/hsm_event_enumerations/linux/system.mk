@@ -3,5 +3,5 @@
 LEX = flex -I
 YACC = bison -d -y
 CC = gcc -g -ggdb
-DIFF = diff --strip-trailing-cr
+DIFF = diff --strip-trailing-cr --ignore-space-change
 
