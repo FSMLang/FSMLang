@@ -195,6 +195,7 @@ static void            writeOriginalSubFSMLoop(pCMachineData, pMACHINE_INFO, cha
 static void            writeOriginalFSMLoopInnards(pCMachineData, pMACHINE_INFO, char *, char *);
 static void            writeOriginalSubFSMLoopInnards(pCMachineData, pMACHINE_INFO, char *, char *);
 static void            writeNoTransition(pCMachineData, pMACHINE_INFO, char *);
+static void            subMachineWriteNoTransition(pCMachineData, pMACHINE_INFO, char *);
 static void            writeReentrantFSM(pCMachineData, pMACHINE_INFO, char *);
 static void            writeActionsReturnStateFSM(pCMachineData, pMACHINE_INFO, char *);
 static void            declareCMachineActionArray(pCMachineData, pMACHINE_INFO, char *);
@@ -216,6 +217,14 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    if (!pmi || !pcmw) return 1;
 
    if ((cp = subMachineHeaderStart(pcmw, pmi, "action")) == NULL) return 1;
+
+   /* we need our count of events */
+   fprintf(pcmw->hFile
+           , "typedef enum { %s_numEvents = %u} %s_EVENTS;\n"
+           , pmi->name->name
+           , pmi->event_list->count
+           , cp
+           );
 
    declareCMachineActionArray(pcmw, pmi, cp);
 
@@ -249,8 +258,8 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    /* write our transition functions, if needed */
    if (pmi->transition_fn_list->count)
    {
-      writeStateTransitions(pcmw, pmi, cp);
-      writeNoTransition(pcmw, pmi, cp);
+      subMachineWriteStateTransitions(pcmw, pmi, cp);
+      subMachineWriteNoTransition(pcmw, pmi, cp);
    }
 
    writeDebugInfo(pcmw, pmi, cp);
@@ -391,6 +400,8 @@ static void writeOriginalFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 */
 static void writeOriginalSubFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
+   char *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
+
    #ifdef FSMLANG_DEVELOP
    fprintf(pcmw->cFile
            , "/* writeOriginalSubFSM */\n"
@@ -400,13 +411,15 @@ static void writeOriginalSubFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
       fprintf(pcmw->cFile, "\t%s_EVENT new_e;\n\n"
-              , cp
+              , parent_cp
              );
 
       fprintf(pcmw->cFile, "\t%s_EVENT e = event;\n\n"
-              , cp
+              , parent_cp
              );
    }
+
+   FREE_AND_CLEAR(parent_cp);
 
    if (pmi->machineTransition)
    {
@@ -418,9 +431,7 @@ static void writeOriginalSubFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
    writeOriginalSubFSMLoop(pcmw, pmi, cp);
 
    fprintf(pcmw->cFile
-           , "\n\treturn e == %s_noEvent ? %s_noEvent : e;"
-           , pmi->name->name
-           , pmi->parent->name->name
+           , "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"
            );
 
    fprintf(pcmw->cFile, "\n\n}\n\n");
@@ -532,6 +543,44 @@ static void writeNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
               , pmi->name->name
              );
    }
+}
+
+static void subMachineWriteNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   char *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
+
+   if (pmi->modFlags & mfActionsReturnStates)
+   {
+      fprintf(pcmw->cFile
+              , "\n%s_STATE %s_noTransitionFn(p%s pfsm)\n{\n"
+              , cp
+              , pmi->name->name
+              , cp
+             );
+      fprintf(pcmw->cFile
+              , "\t%s(\"%s_noTransitionFn\");\n\treturn %s_noTransition;\n}\n\n"
+              , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+              , pmi->name->name
+              , pmi->name->name
+             );
+   }
+   else
+   {
+      fprintf(pcmw->cFile
+              , "\n%s_STATE %s_noTransitionFn(p%s pfsm,%s_EVENT e)\n{\n"
+              , cp
+              , pmi->name->name
+              , cp
+              , parent_cp
+             );
+      fprintf(pcmw->cFile
+              , "\t(void) e;\n\t%s(\"%s_noTransitionFn\");\n\treturn pfsm->state;\n}\n\n"
+              , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+              , pmi->name->name
+             );
+   }
+
+   free(parent_cp);
 }
 
 static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *tabstr)
@@ -653,9 +702,8 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi
       if (compact_action_array)
       {
          fprintf(pcmw->cFile
-                 , "%s\tnew_e = (*%s_action_fns[(*pfsm->actionArray)[e - %s_%s][pfsm->state].action])(pfsm);\n\n"
+                 , "%s\tnew_e = (*%s_action_fns[(*pfsm->actionArray)[e - THIS(%s)][pfsm->state].action])(pfsm);\n\n"
                  , tabstr
-                 , pmi->name->name
                  , pmi->name->name
                  , eventNameByIndex(pmi,0)
                 );
@@ -663,9 +711,8 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi
       else
       {
          fprintf(pcmw->cFile
-                 , "%s\tnew_e = ((* (*pfsm->actionArray)[e - %s_%s][pfsm->state].action)(pfsm));\n\n"
+                 , "%s\tnew_e = ((* (*pfsm->actionArray)[e - THIS(%s)][pfsm->state].action)(pfsm));\n\n"
                  , tabstr
-                 , pmi->name->name
                  , eventNameByIndex(pmi,0)
                  );
       }
@@ -696,11 +743,10 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi
    if (!pmi->transition_fn_list->count)
    {
       fprintf(pcmw->cFile
-              , "%s\t%s = (*pfsm->actionArray)[%s - %s_%s][pfsm->state].transition;\n\n"
+              , "%s\t%s = (*pfsm->actionArray)[%s - THIS(%s)][pfsm->state].transition;\n\n"
               , tabstr
               , pmi->machineTransition ? "new_s" : "pfsm->state"
               , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-              , pmi->name->name
               , eventNameByIndex(pmi,0)
              );
    }
@@ -709,12 +755,11 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi
       if (compact_action_array)
       {
          fprintf(pcmw->cFile
-                 , "%s\t%s = (*%s_transition_fns[(*pfsm->actionArray)[%s - %s_%s][pfsm->state].transition])(pfsm,%s);\n\n"
+                 , "%s\t%s = (*%s_transition_fns[(*pfsm->actionArray)[%s - THIS(%s)][pfsm->state].transition])(pfsm,%s);\n\n"
                  , tabstr
                  , pmi->machineTransition ? "new_s" : "pfsm->state"
                  , pmi->name->name
                  , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-                 , pmi->name->name
                  , eventNameByIndex(pmi,0)
                  , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
                 );
@@ -722,11 +767,10 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi
       else
       {
          fprintf(pcmw->cFile
-                 , "%s\t%s = ((* (*pfsm->actionArray)[%s - %s_%s][pfsm->state].transition)(pfsm,%s));\n\n"
+                 , "%s\t%s = ((* (*pfsm->actionArray)[%s - THIS(%s)][pfsm->state].transition)(pfsm,%s));\n\n"
                  , tabstr
                  , pmi->machineTransition ? "new_s" : "pfsm->state"
                  , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-                 , pmi->name->name
                  , eventNameByIndex(pmi,0)
                  , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
                 );
@@ -821,18 +865,15 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char 
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
       fprintf(pcmw->cFile
-              , "\twhile (\n\t\t(e != %s_noEvent)\n\t\t&& (e >= %s_%s)\n\t)\n\t{\n\n"
-              , pmi->name->name
-              , pmi->name->name
+              , "\twhile (\n\t\t(e != THIS(noEvent))\n\t\t&& (e >= THIS(%s))\n\t)\n\t{\n\n"
               , eventNameByIndex(pmi, 0)
               );
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - %s_%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-           , pmi->name->name
            , eventNameByIndex(pmi, 0)
            , cp
           );
@@ -841,8 +882,7 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char 
    if (pmi->machine_list)
    {
       fprintf(pcmw->cFile
-              , "\t\tif (e < %s_noEvent)\n\t\t{\n\n"
-              , pmi->name->name
+              , "\t\tif (e < THIS(noEvent))\n\t\t{\n\n"
               );
       tabstr = "\t\t";
    }
