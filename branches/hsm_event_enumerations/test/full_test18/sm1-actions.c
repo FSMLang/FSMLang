@@ -25,18 +25,4 @@ NEW_MACHINE_EVENT subMachine1_noAction(pSUB_MACHINE1 pfsm1)
 
 
 
-SUB_MACHINE1_STATE subMachine1_transitionToss2(pSUB_MACHINE1 pfsm1,SUB_MACHINE1_EVENT e)
-{
-	printf("subMachine1_transitionToss2\n");
-
-	return subMachine1_ss2;
-}
-
-SUB_MACHINE1_STATE subMachine1_transitionToss3(pSUB_MACHINE1 pfsm1,SUB_MACHINE1_EVENT e)
-{
-	printf("subMachine1_transitionToss3\n");
-
-	return subMachine1_ss3;
-}
-
 
