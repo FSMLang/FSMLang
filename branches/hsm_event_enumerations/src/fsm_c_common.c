@@ -58,7 +58,6 @@ bool core_logging_only = false;
 
 static bool            print_sub_machine_as_enum_member (pLIST_ELEMENT,void*);
 static bool            declare_sub_machine_if           (pLIST_ELEMENT,void*);
-static bool            declare_action_function          (pLIST_ELEMENT,void*);
 static bool            define_weak_action_function      (pLIST_ELEMENT,void*);
 static bool            define_sub_machine_weak_action_function(pLIST_ELEMENT,void*);
 
@@ -149,6 +148,11 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
            , cp
           );
 
+   fprintf(pcmw->hFile
+           , "#undef THIS\n#define THIS(A) %s_##A\n"
+           , pmi->name->name
+           );
+
    /* put the event enum into the header file */
    fprintf(pcmw->hFile, "typedef enum _%s_EVENT_ %s_EVENT;\n"
            , cp
@@ -204,15 +208,6 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
              );
    }
 
-   if (pmi->machine_list)
-   {
-      helper.first   = false;
-      helper.pparent = pmi;
-      helper.fout    = pcmw->hFile;
-
-      iterate_list(pmi->machine_list,print_sub_machine_events,&helper);
-   }
-
    if (assignExternalEventValues(pmi))
    {
       fprintf(pcmw->hFile
@@ -227,6 +222,15 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
               , "\t, %s_numEvents\n"
               , pmi->name->name
               );
+   }
+
+   if (pmi->machine_list)
+   {
+      helper.first   = false;
+      helper.pparent = pmi;
+      helper.fout    = pcmw->hFile;
+
+      iterate_list(pmi->machine_list,print_sub_machine_events,&helper);
    }
 
    fprintf(pcmw->hFile
@@ -542,6 +546,7 @@ void commonHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needN
                       , declare_transition_fn_for_when_actions_return_states
                       , &ich
                       );
+
          iterate_list(pmi->transition_list
                       , declare_state_only_transition_functions_for_when_actions_return_states 
                       , &ich
@@ -560,6 +565,7 @@ void commonHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needN
                       , declare_transition_fn_for_when_actions_return_events
                       , &ich
                       );
+
          iterate_list(pmi->transition_list
                       , declare_state_only_transition_functions_for_when_actions_return_events
                       , &ich
@@ -759,6 +765,75 @@ void writeStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
    }
 }
 
+void subMachineWriteStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   pID_INFO pid_info;
+   char *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
+
+   if (pmi->modFlags & mfActionsReturnStates)
+   {
+      /* grab state transitions from action array */
+      for (int e = 0; e < pmi->event_list->count; e++)
+      {
+         for (int s = 0; s < pmi->state_list->count; s++)
+         {
+            if (pmi->actionArray[e][s])
+            {
+               if (
+                   (!strlen(pmi->actionArray[e][s]->action->name))
+                   && (pmi->actionArray[e][s]->transition->type == STATE)
+                  )
+               {
+                  fprintf(pcmw->cFile
+                          , "\n%s_STATE __attribute__((weak)) %s_transitionTo%s(p%s pfsm)\n{\n"
+                          , cp
+                          , pmi->name->name
+                          , pmi->actionArray[e][s]->transition->name
+                          , cp
+                         );
+                  fprintf(pcmw->cFile
+                          , "\t(void) pfsm;\n\n\t%s(\"weak: %s_transitionTo%s\");\n\treturn %s_%s;\n}\n"
+                          , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+                          , pmi->name->name
+                          , pmi->actionArray[e][s]->transition->name
+                          , pmi->name->name
+                          , pmi->actionArray[e][s]->transition->name
+                         );
+               }
+            }
+         }
+      }
+   }
+   else
+   {
+      for (int i = 0; i < pmi->transition_list->count; i++)
+      {
+         pid_info = transitionPidByIndex(pmi, i);
+         if (pid_info->type == STATE)
+         {
+            fprintf(pcmw->cFile
+                    , "\n%s_STATE __attribute__((weak)) %s_transitionTo%s(p%s pfsm,%s_EVENT e)\n{\n"
+                    , cp
+                    , pmi->name->name
+                    , pid_info->name
+                    , cp
+                    , parent_cp
+                   );
+            fprintf(pcmw->cFile
+                    , "\t(void) pfsm;\n\t(void) e;\n\t%s(\"weak: %s_transitionTo%s\");\n\treturn %s_%s;\n}\n"
+                    , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+                    , pmi->name->name
+                    , pid_info->name
+                    , pmi->name->name
+                    , pid_info->name
+                   );
+         }
+      }
+   }
+
+   FREE_AND_CLEAR(parent_cp);
+}
+
 void writeDebugInfo(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    int i;
@@ -779,8 +854,6 @@ void writeDebugInfo(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
       fprintf(pcmw->cFile, "\t, \"%s_%s\"\n"
               , pmi->name->name
               , eventNameByIndex(pmi, i)
-              , pmi->name->name,
-              eventNameByIndex(pmi, i)
               );
    }
 
@@ -789,6 +862,9 @@ void writeDebugInfo(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
       fprintf(pcmw->cFile, "\t, \"%s_noEvent\"\n",
               pmi->name->name);
    }
+
+   fprintf(pcmw->cFile, "\t, \"%s_numEvents\"\n",
+           pmi->name->name);
 
    if (pmi->machine_list)
    {
@@ -1025,7 +1101,7 @@ static bool declare_sub_machine_if(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-static bool declare_action_function(pLIST_ELEMENT pelem, void *data)
+bool declare_action_function(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
@@ -1087,6 +1163,22 @@ bool declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT pelem, v
    return false;
 }
 
+bool sub_machine_declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+
+   fprintf(pich->pcmw->hFile
+           , "%s_STATE %s_%s(p%s);\n"
+           , pich->cp
+           , pich->pmi->name->name
+           , pid_info->name
+           , pich->parent_cp
+          );
+
+   return false;
+}
+
 bool declare_state_only_transition_functions_for_when_actions_return_states(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
@@ -1098,6 +1190,21 @@ bool declare_state_only_transition_functions_for_when_actions_return_states(pLIS
            , pich->pmi->name->name
            , pid_info->name
            , pich->cp
+           );
+   return false;
+}
+
+bool sub_machine_declare_state_only_transition_functions_for_when_actions_return_states(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+
+   fprintf(pich->pcmw->hFile
+           , "%s_STATE %s_transitionTo%s(p%s);\n"
+           , pich->cp
+           , pich->pmi->name->name
+           , pid_info->name
+           , pich->parent_cp
            );
    return false;
 }
@@ -1119,6 +1226,23 @@ bool declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT pelem, v
    return false;
 }
 
+bool sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+
+   fprintf(pich->pcmw->hFile
+           , "%s_STATE %s_%s(p%s,%s_EVENT);\n"
+           , pich->cp
+           , pich->pmi->name->name
+           , pid_info->name
+           , pich->cp
+           , pich->parent_cp
+          );
+
+   return false;
+}
+
 bool declare_state_only_transition_functions_for_when_actions_return_events(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
@@ -1131,6 +1255,23 @@ bool declare_state_only_transition_functions_for_when_actions_return_events(pLIS
            , pid_info->name
            , pich->cp
            , pich->cp
+          );
+
+   return false;
+}
+
+bool sub_machine_declare_state_only_transition_functions_for_when_actions_return_events(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+
+   fprintf(pich->pcmw->hFile
+           , "%s_STATE %s_transitionTo%s(p%s,%s_EVENT);\n"
+           , pich->cp
+           , pich->pmi->name->name
+           , pid_info->name
+           , pich->cp
+           , pich->parent_cp
           );
 
    return false;
@@ -1204,8 +1345,7 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                     );
 
             fprintf(pich->pcmw->cFile
-                    , "\treturn %s_noEvent;\n"
-                    , pich->pmi->name->name
+                    , "\treturn THIS(noEvent);\n"
                     );
 
          }
@@ -1256,88 +1396,32 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
            , cp
           );
 
-   /* put the event enum into the header file */
-   fprintf(pcmw->hFile, "typedef enum _%s_EVENT_ %s_EVENT;\n"
-           , cp
-           , cp
-          );
    fprintf(pcmw->hFile
-           , "enum _%s_EVENT_\n{\n"
-           , cp
-          );
+           , "/*\n\tsub-machine events are included in the top-level machine event enumeration.\n"
+           );
 
+   fprintf(pcmw->hFile
+           , "\tThese macros set the appropriate names for events from THIS machine\n"
+           );
 
-   if ((canAssignExternals = (pmi->external_event_designation_count > 0)) == true)
-   {
-      if ((canAssignExternals = assignExternalEventValues(pmi)) == false)
-      {
-         printf("warning: cannot use external event designations\n");
-      }
-   }
+   fprintf(pcmw->hFile
+           , "\tand those from the PARENT machine.\n*/\n"
+           );
 
-   fprintf(pcmw->hFile 
-           , "\t %s_%s = %s_%s_%s\n"
-           , pmi->name->name
-           , eventNameByIndex(pmi, 0)
+   fprintf(pcmw->hFile
+           , "#undef THIS\n#define THIS(A) %s_%s_##A\n"
            , pmi->parent->name->name
            , pmi->name->name
-           , eventNameByIndex(pmi, 0)
-          );
-
-   for (i = 1; i < pmi->event_list->count; i++)
-   {
-      fprintf(pcmw->hFile
-              , assignExternalEventValues(pmi)
-              ? "\t, %s_%s = %s\n"
-              : "\t, %s_%s%s\n"
-              , pmi->name->name
-              , eventNameByIndex(pmi, i)
-              , assignExternalEventValues(pmi)
-              ? (eventPidByIndex(pmi, i))->externalDesignation->name
-              : ""
-             );
-   }
-
-   if (
-       !(pmi->modFlags & mfActionsReturnStates)
-       && !(pmi->modFlags & mfActionsReturnVoid)
-      )
-   {
-      fprintf(pcmw->hFile
-              , "\t, %s_noEvent\n"
-              , pmi->name->name
-             );
-   }
-
-   if (pmi->machine_list)
-   {
-      helper.first   = false;
-      helper.pparent = pmi;
-      helper.fout    = pcmw->hFile;
-
-      iterate_list(pmi->machine_list,print_sub_machine_events,&helper);
-   }
-
-   if (assignExternalEventValues(pmi))
-   {
-      fprintf(pcmw->hFile
-              , "\t, %s_numEvents = %u\n"
-              , pmi->name->name
-              , pmi->event_list->count
-              );
-   }
-   else
-   {
-      fprintf(pcmw->hFile
-              , "\t, %s_numEvents\n"
-              , pmi->name->name
-              );
-   }
+           );
 
    fprintf(pcmw->hFile
-           , "}%s;\n\n"
-           , compact_action_array ? " __attribute__((__packed__))" : ""
-          );
+           , "#define PARENT(A) %s_##A\n"
+           , pmi->parent->name->name
+           );
+
+   fprintf(pcmw->hFile
+           ,"\n"
+           );
 
    fprintf(pcmw->hFile, "#ifdef %s_DEBUG\n", cp);
    fprintf(pcmw->hFile, "extern char *%s_EVENT_NAMES[];\n", cp);
@@ -1461,7 +1545,7 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
               , cp
               , cp
               , cp
-              , cp
+              , parent_cp
              );
 
    }
@@ -1615,12 +1699,12 @@ void subMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool n
       if (pmi->transition_fn_list->count)
       {
          iterate_list(pmi->transition_fn_list
-                      , declare_transition_fn_for_when_actions_return_states
+                      , sub_machine_declare_transition_fn_for_when_actions_return_states
                       , &ich
                       );
 
          iterate_list(pmi->transition_list
-                      , declare_state_only_transition_functions_for_when_actions_return_states
+                      , sub_machine_declare_state_only_transition_functions_for_when_actions_return_states
                       , &ich
                       );
       }
@@ -1634,11 +1718,12 @@ void subMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool n
       if (pmi->transition_fn_list->count)
       {
          iterate_list(pmi->transition_fn_list
-                      , declare_transition_fn_for_when_actions_return_events
+                      , sub_machine_declare_transition_fn_for_when_actions_return_events
                       , &ich
                       );
+
          iterate_list(pmi->transition_list
-                      , declare_state_only_transition_functions_for_when_actions_return_events
+                      , sub_machine_declare_state_only_transition_functions_for_when_actions_return_events
                       , &ich
                       );
       }
@@ -1652,11 +1737,12 @@ void subMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool n
                     , cp
                     , pmi->name->name
                     , cp
-                    , cp
+                    , ich.parent_cp
                    );
       }
    }
 
+   FREE_AND_CLEAR(ich.parent_cp);
 
    /* if the machine has data, declare the data init function
  
@@ -1877,8 +1963,7 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                     );
 
             fprintf(pich->pcmw->cFile
-                    , "\treturn %s_noEvent;\n"
-                    , pich->pmi->name->name
+                    , "\treturn THIS(noEvent);\n"
                     );
 
          }
