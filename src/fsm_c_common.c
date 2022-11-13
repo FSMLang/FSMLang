@@ -56,10 +56,11 @@
 bool generate_weak_fns = true;
 bool core_logging_only = false;
 
-static bool            print_sub_machine_as_enum_member (pLIST_ELEMENT,void*);
-static bool            declare_sub_machine_if           (pLIST_ELEMENT,void*);
-static bool            define_weak_action_function      (pLIST_ELEMENT,void*);
-static bool            define_sub_machine_weak_action_function(pLIST_ELEMENT,void*);
+static bool  print_sub_machine_as_enum_member        (pLIST_ELEMENT,void*);
+static bool  declare_sub_machine_if                  (pLIST_ELEMENT,void*);
+static bool  define_weak_action_function             (pLIST_ELEMENT,void*);
+static bool  define_sub_machine_weak_action_function (pLIST_ELEMENT,void*);
+static bool  print_event_macro                       (pLIST_ELEMENT,void*);
 
 int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
@@ -109,6 +110,10 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    bool            canAssignExternals;
    ITERATOR_HELPER helper;
 
+   helper.first   = false;
+   helper.pparent = pmi;
+   helper.fout    = pcmw->hFile;
+
    /* put the native code segment out to the header */
    if (pmi->native) fprintf(pcmw->hFile, "%s\n", pmi->native);
 
@@ -149,9 +154,21 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
           );
 
    fprintf(pcmw->hFile
+           , "/* Event naming convenience macros. */\n"
+           );
+
+   fprintf(pcmw->hFile
            , "#undef THIS\n#define THIS(A) %s_##A\n"
            , pmi->name->name
            );
+
+   if (pmi->machine_list)
+   {
+      iterate_list(pmi->machine_list, print_event_macro, &helper);
+      fprintf(pcmw->hFile
+              , "\n"
+              );
+   }
 
    /* put the event enum into the header file */
    fprintf(pcmw->hFile, "typedef enum _%s_EVENT_ %s_EVENT;\n"
@@ -227,9 +244,6 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    if (pmi->machine_list)
    {
       helper.first   = false;
-      helper.pparent = pmi;
-      helper.fout    = pcmw->hFile;
-
       iterate_list(pmi->machine_list,print_sub_machine_events,&helper);
    }
 
@@ -2033,5 +2047,25 @@ void defineSubMachineFinder(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
            , "\t}\n\n\treturn %s_noEvent;\n\n}\n\n"
            , pmi->name->name
           );
+}
+
+bool print_event_macro(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO    pmi = ((pMACHINE_INFO)    pelem->mbr);
+   pITERATOR_HELPER pih = ((pITERATOR_HELPER) data      );
+
+   char *cp = hungarianToUnderbarCaps(pmi->name->name);
+
+   fprintf(pih->fout
+           , "#undef %s\n#define %s(A) %s_%s_##A\n"
+           , cp
+           , cp
+           , pih->pparent->name->name
+           , pmi->name->name
+           );
+
+   free(cp);
+   return false;
+
 }
 
