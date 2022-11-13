@@ -164,7 +164,15 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    if (pmi->machine_list)
    {
+      fprintf(pcmw->hFile
+              , "#undef %s\n#define %s(A) %s_##A\n"
+              , cp
+              , cp
+              , pmi->name->name
+              );
+
       iterate_list(pmi->machine_list, print_event_macro, &helper);
+
       fprintf(pcmw->hFile
               , "\n"
               );
