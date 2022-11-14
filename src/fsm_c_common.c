@@ -1427,7 +1427,15 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
            );
 
    fprintf(pcmw->hFile
-           , "\tand those from the PARENT machine.\n*/\n"
+           , "\tand those from the PARENT machine.\n"
+           );
+
+   fprintf(pcmw->hFile
+           , "\n\tThey may be turned off as needed.\n*/\n"
+           );
+
+   fprintf(pcmw->hFile
+           , "#ifndef NO_EVENT_CONVENIENCE_MACROS\n"
            );
 
    fprintf(pcmw->hFile
@@ -1442,10 +1450,10 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
            );
 
    fprintf(pcmw->hFile
-           ,"\n"
+           , "#endif\n"
            );
 
-   fprintf(pcmw->hFile, "#ifdef %s_DEBUG\n", cp);
+   fprintf(pcmw->hFile, "\n#ifdef %s_DEBUG\n", cp);
    fprintf(pcmw->hFile, "extern char *%s_EVENT_NAMES[];\n", cp);
    fprintf(pcmw->hFile, "#endif\n\n");
 
