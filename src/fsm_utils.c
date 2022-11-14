@@ -732,7 +732,7 @@ bool print_sub_machine_component(pLIST_ELEMENT pelem, void *data)
 
    fprintf(pih->fout
            , "\t%s%s_%s_%s\n"
-           , pih->first ? "" : ","
+           , pih->first ? "" : ", "
            , pih->pparent->name->name
            , pih->pmi->name->name
            , pid->name
@@ -765,6 +765,12 @@ bool print_sub_machine_events(pLIST_ELEMENT pelem, void *data)
 
    iterate_list(pih->pmi->event_list,print_sub_machine_component,pih);
 
+   fprintf(pih->fout
+           , "\t, %s_%s_noEvent\n"
+           , pih->pparent->name->name
+           , pih->pmi->name->name
+           );
+
    return false;
 }
 
@@ -776,6 +782,12 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    pih->first = false;
 
    iterate_list(pih->pmi->event_list,print_sub_machine_component_name,pih);
+
+   fprintf(pih->fout
+           , "\t, \"%s_%s_noEvent\"\n"
+           , pih->pparent->name->name
+           , pih->pmi->name->name
+           );
 
    return false;
 }
