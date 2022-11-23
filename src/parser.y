@@ -1599,7 +1599,7 @@ int main(int argc, char **argv)
 
      case 'v':
 
-        fprintf(stdout,"%s\n",rev_string);
+        fprintf(stdout,"version %s\n",rev_string);
         return (0);
 
 			case '?':
