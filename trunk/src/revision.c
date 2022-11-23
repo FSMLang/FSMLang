@@ -152,5 +152,5 @@
  
    Sub-machines no longer generate unnecessary state transition function declarations.
 */
-const char rev_string[] = "version 1.21";
+const char rev_string[] = "1.21";
 
