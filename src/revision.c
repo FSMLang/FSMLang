@@ -152,5 +152,11 @@
  
    Sub-machines no longer generate unnecessary state transition function declarations.
 */
-const char rev_string[] = "1.21";
+
+/*
+   Revision 1.22:
+ 
+   Revision string now available as a macro in generated header file.  String itself shortened to just the numerics.
+*/
+const char rev_string[] = "1.22";
 
