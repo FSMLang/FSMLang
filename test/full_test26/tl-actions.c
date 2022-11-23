@@ -24,6 +24,8 @@ int main (int argc, char **argv)
 {
    DBG_PRINTF("Hello, world.\n");
 
+   DBG_PRINTF("FSM version: %s\n",FSM_VERSION);
+
    RUN_STATE_MACHINE(ptop_level, TOP_LEVEL(e1));
    RUN_STATE_MACHINE(ptop_level, TOP_LEVEL(e2));
    RUN_STATE_MACHINE(ptop_level, TOP_LEVEL(e5));

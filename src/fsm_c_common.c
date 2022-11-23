@@ -53,6 +53,8 @@
 #include "parser.h"
 #endif
 
+#include "revision.h"
+
 bool generate_weak_fns = true;
 bool core_logging_only = false;
 
@@ -123,6 +125,11 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    fprintf(pcmw->hFile, "#include <stdio.h>\n");
    fprintf(pcmw->hFile, "#include <stdlib.h>\n");
    fprintf(pcmw->hFile, "#endif\n\n");
+
+   fprintf(pcmw->hFile
+           , "#define FSM_VERSION \"%s\"\n"
+           , rev_string
+           );
 
    if (core_logging_only)
    {

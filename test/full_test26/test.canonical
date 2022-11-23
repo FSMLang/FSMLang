@@ -1,5 +1,7 @@
 Hello, world.
 
+FSM version: 1.21
+
 event: top_level_e1; state: top_level_s1
 event: top_level_e2; state: top_level_s2
 top_level_activate_sub_machine1
