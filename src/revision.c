@@ -158,5 +158,12 @@
  
    Revision string now available as a macro in generated header file.  String itself shortened to just the numerics.
 */
-const char rev_string[] = "1.22";
+
+/*
+   Revision 1.23:
+ 
+   enum typedefs now C++ compliant.
+   Sub-machine typedefs precede data structure declaration.
+*/
+const char rev_string[] = "1.23";
 
