@@ -186,13 +186,8 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    }
 
    /* put the event enum into the header file */
-   fprintf(pcmw->hFile, "typedef enum _%s_EVENT_ %s_EVENT;\n"
-           , cp
-           , cp
-          );
    fprintf(pcmw->hFile
-           , "enum _%s_EVENT_\n{\n"
-           , cp
+           , "typedef enum {\n"
           );
 
 
@@ -263,8 +258,9 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    }
 
    fprintf(pcmw->hFile
-           , "}%s;\n\n"
-           , compact_action_array ? " __attribute__((__packed__))" : ""
+           , "}%s%s_EVENT;\n\n"
+           , compact_action_array ? "__attribute__((__packed__)) " : " "
+           , cp
           );
 
    fprintf(pcmw->hFile, "#ifdef %s_DEBUG\n", cp);
@@ -273,12 +269,7 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    /* put the state enum into the header file */
    fprintf(pcmw->hFile
-           , "typedef enum _%s_STATE_ %s_STATE;\n"
-           , cp
-           , cp
-          );
-   fprintf(pcmw->hFile
-           , "enum _%s_STATE_\n{\n"
+           , "typedef enum {\n"
            , cp
           );
 
@@ -315,8 +306,9 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
            );
 
    fprintf(pcmw->hFile
-           , "}%s;\n\n"
-           , compact_action_array ? " __attribute__((__packed__))" : ""
+           , "}%s%s_STATE;\n\n"
+           , compact_action_array ? " __attribute__((__packed__))" : " "
+           , cp
           );
 
    fprintf(pcmw->hFile, "#ifdef %s_DEBUG\n", cp);
@@ -406,15 +398,6 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
            cp,
            cp);
 
-   /* put the data structure definition into the header */
-   if (pmi->data)
-   {
-      fprintf(pcmw->hFile
-              , "struct _%s_data_struct_ {%s};\n\n"
-              , pmi->name->name
-              , pmi->data);
-   }
-
    if (pmi->machine_list)
    {
       helper.first = true;
@@ -422,7 +405,7 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
       fprintf(pcmw->hFile,"/* Sub Machine Declarations */\n\n");
       fprintf(pcmw->hFile
-              ,"%s\ntypedef enum _%s_SUB_MACHINES_ %s_SUB_MACHINES;\nenum _%s_SUB_MACHINES_\n{\n"
+              ,"%s\ntypedef enum {\n"
               ,"/* enumerate sub-machines */"
               , cp
               , cp
@@ -435,8 +418,9 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
                    );
 
       fprintf(pcmw->hFile
-              , "\t, %s_numSubMachines\n};\n\n"
+              , "\t, %s_numSubMachines\n} %s_SUB_MACHINES;\n\n"
               , pmi->name->name
+              , cp
               );
 
       fprintf(pcmw->hFile
@@ -490,6 +474,15 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
               , "\n"
               );
 
+   }
+
+   /* put the data structure definition into the header */
+   if (pmi->data)
+   {
+      fprintf(pcmw->hFile
+              , "struct _%s_data_struct_ {%s};\n\n"
+              , pmi->name->name
+              , pmi->data);
    }
 
    return cp;
@@ -1466,13 +1459,7 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
 
    /* put the state enum into the header file */
    fprintf(pcmw->hFile
-           , "typedef enum _%s_STATE_ %s_STATE;\n"
-           , cp
-           , cp
-          );
-   fprintf(pcmw->hFile
-           , "enum _%s_STATE_\n{\n"
-           , cp
+           , "typedef enum {\n"
           );
 
    fprintf(pcmw->hFile, "\t %s_%s\n",
@@ -1508,8 +1495,9 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
            );
 
    fprintf(pcmw->hFile
-           , "}%s;\n\n"
-           , compact_action_array ? " __attribute__((__packed__))" : ""
+           , "}%s%s_STATE;\n\n"
+           , compact_action_array ? " __attribute__((__packed__))" : " "
+           , cp
           );
 
    fprintf(pcmw->hFile, "#ifdef %s_DEBUG\n", cp);
