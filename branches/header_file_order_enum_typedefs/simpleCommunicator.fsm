@@ -1,0 +1,38 @@
+/**
+   This machine manages communications using a "stop and wait" protocol.
+      Only one message is allowed to be outstanding.
+*/
+machine simpleCommunicator {
+
+	state	IDLE,
+				AWAITING_ACK;
+
+	event	SEND_MESSAGE,
+				ACK;
+
+  /**
+   Transmit message to the peer.
+  */
+	action	sendMessage[SEND_MESSAGE,IDLE] transition AWAITING_ACK;
+
+  /**
+   Place message into queue.
+  */
+	action	queueMessage[SEND_MESSAGE,AWAITING_ACK];
+
+  /**
+   Check queue for messages; if found pop from queue and return SEND_MESSAGE.
+   If no message is found in the queue return noEvent.
+  */
+	action	checkQueue[ACK,AWAITING_ACK] transition IDLE;
+
+  /* these lines are informational; they affect the html output,
+      but do not affect any code generated.
+  */
+  queueMessage returns noEvent;
+  sendMessage  returns noEvent;
+  checkQueue   returns SEND_MESSAGE, noEvent;
+
+}
+
+
