@@ -1,0 +1,289 @@
+found the start of a state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+The 4 states in this list :
+	0:	s1
+
+	1:	s2
+
+	2:	s3
+
+	3:	s4
+
+added another id to the event declaration list
+added another id to the event declaration list
+added another id to the event declaration list
+The 4 events in this list:
+	0:	e1
+
+	1:	e2
+
+	2:	e3
+
+	3:	e4
+
+found the begining of an event comma list: e1
+found an event vector
+	e1
+	e2
+found the beginning of a state comma list
+found a state vector
+	s1
+	s2
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+found a scalar event : e3
+found the beginning of a state comma list
+found a state vector
+	s1
+	s2
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+added another action declarations
+found the begining of an event comma list: e1
+found an event vector
+	e1
+	e2
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+added another action declarations
+found a scalar event : e4
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+added another action declarations
+The actions in this list:
+	a1
+	a2
+	a3
+	a4
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+process_action_info: a2
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+process_action_info: a3
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s3
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s3
+process_action_info: a4
+	iterate_matrix_states: event: e4
+		add_to_action_array: state: s4
+populate_action_array returning false
+found a machine named newMachine
+	with 4 events and 4 states
+Actions return events
+The states :
+	0:	s1
+
+	1:	s2
+
+	2:	s3
+
+	3:	s4
+
+The events :
+	0:	e1
+
+	1:	e2
+
+	2:	e3
+
+	3:	e4
+
+The actions :
+	a1
+		which occurs in these events
+				e1
+				e2
+		and states
+				s1
+				s2
+		and transitions to state s2
+	a2
+		which occurs in these events
+				e3
+		and states
+				s1
+				s2
+		and transitions to state s2
+	a3
+		which occurs in these events
+				e1
+				e2
+		and states
+				s3
+	a4
+		which occurs in these events
+				e4
+		and states
+				s4
+		and transitions to state s2
+
+The 1 transitions :
+	s2
+
+found a single machine
+found the start of a state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+The 4 states in this list :
+	0:	anmS1
+
+	1:	anmS2
+
+	2:	anmS3
+
+	3:	anmS4
+
+added another id to the event declaration list
+added another id to the event declaration list
+added another id to the event declaration list
+The 4 events in this list:
+	0:	anmE1
+
+	1:	anmE2
+
+	2:	anmE3
+
+	3:	anmE4
+
+found the begining of an event comma list: anmE1
+found an event vector
+	anmE1
+	anmE2
+found the beginning of a state comma list
+found a state vector
+	anmS1
+	anmS2
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	anmA1
+found a scalar event : anmE3
+found the beginning of a state comma list
+found a state vector
+	anmS1
+	anmS2
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	anmA2
+found the begining of an event comma list: anmE1
+found an event vector
+	anmE1
+	anmE2
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	anmA3
+found a scalar event : anmE4
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	anmA4
+process_action_info: anmA1
+	iterate_matrix_states: event: anmE1
+		add_to_action_array: state: anmS1
+		add_to_action_array: state: anmS2
+	iterate_matrix_states: event: anmE2
+		add_to_action_array: state: anmS1
+		add_to_action_array: state: anmS2
+process_action_info: anmA2
+	iterate_matrix_states: event: anmE3
+		add_to_action_array: state: anmS1
+		add_to_action_array: state: anmS2
+process_action_info: anmA3
+	iterate_matrix_states: event: anmE1
+		add_to_action_array: state: anmS3
+	iterate_matrix_states: event: anmE2
+		add_to_action_array: state: anmS3
+process_action_info: anmA4
+	iterate_matrix_states: event: anmE4
+		add_to_action_array: state: anmS4
+populate_action_array returning false
+found a machine named anotherNewMachine
+	with 4 events and 4 states
+Actions return events
+The states :
+	0:	anmS1
+
+	1:	anmS2
+
+	2:	anmS3
+
+	3:	anmS4
+
+The events :
+	0:	anmE1
+
+	1:	anmE2
+
+	2:	anmE3
+
+	3:	anmE4
+
+The actions :
+	anmA1
+		which occurs in these events
+				anmE1
+				anmE2
+		and states
+				anmS1
+				anmS2
+	anmA2
+		which occurs in these events
+				anmE3
+		and states
+				anmS1
+				anmS2
+		and transitions to state anmS2
+	anmA3
+		which occurs in these events
+				anmE1
+				anmE2
+		and states
+				anmS3
+		and transitions to state anmS2
+	anmA4
+		which occurs in these events
+				anmE4
+		and states
+				anmS4
+		and transitions to state anmS2
+
+The 1 transitions :
+	anmS2
+
+making a list of machines
