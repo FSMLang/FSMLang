@@ -59,6 +59,7 @@ struct _html_machine_data_ {
 
 	FILE	        *htmlFile;
 	char	        *htmlName;
+  char          *baseName;
   pMACHINE_INFO pmi;
 };
 
@@ -178,6 +179,7 @@ int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
      else {
 
        pfsmhtmlog->pmd->htmlName = createFileName(baseFileName,".html");
+       pfsmhtmlog->pmd->baseName = strdup(baseFileName);
 
        if (!(pfsmhtmlog->pmd->htmlFile = openFile(pfsmhtmlog->pmd->htmlName,"w"))) {
 
@@ -242,7 +244,7 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
   {
      fprintf(pfsmhtmlog->pmd->htmlFile
              , "<img src=\"%s.svg\" alt=\"PlantUML diagram separately generated.\"/>\n"
-             , pmi->name->name
+             , pfsmhtmlog->pmd->baseName
              );
   }
 
