@@ -206,6 +206,7 @@ extern bool generate_instance;
 extern bool compact_action_array;
 extern bool generate_weak_fns;
 extern bool core_logging_only;
+extern bool include_svg_img;
 
 
 #define LOOKUP	0	/* default - not defined in the parser */
