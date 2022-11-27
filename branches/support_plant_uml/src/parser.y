@@ -27,6 +27,7 @@
 #include "fsm_c.h"
 #include "fsm_cswitch.h"
 #include "fsm_html.h"
+#include "fsm_plantuml.h"
 
 #include "list.h"
 
@@ -1468,6 +1469,7 @@ typedef enum {
     , lo_css_content_internal
     , lo_weak_fns
     , lo_core_logging
+    , lo_include_svg_img
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -1503,6 +1505,12 @@ const struct option longopts[] =
         , .has_arg = required_argument
         , .flag    = &longval
         , .val     = lo_core_logging
+    }
+    , {
+        .name      = "include-svg-img"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_include_svg_img
     }
     , {0}
 };
@@ -1544,6 +1552,10 @@ int main(int argc, char **argv)
                 core_logging_only 
                     = !strcmp(optarg,"false") ? false : true;
                 break;
+            case lo_include_svg_img:
+                include_svg_img
+                    = !strcmp(optarg,"false") ? false : true;
+                break;
             default:
                 usage();
                 return(0);
@@ -1571,6 +1583,10 @@ int main(int argc, char **argv)
 
          case 's':
            pfsmog = pCSwitchMachineWriter;
+						break;
+
+         case 'p':
+           pfsmog = pPlantUMLMachineWriter;
 						break;
 
 					default:
@@ -1698,6 +1714,7 @@ void usage(void)
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
+	fprintf(stdout,"\t and 'p' gets you PlantUML output\n");
  fprintf(stdout,"\t-i0 inhibits the creation of a machine instance\n");
  fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n");
  fprintf(stdout,"\t\tthis is the default\n");
