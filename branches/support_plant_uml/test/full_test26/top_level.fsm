@@ -80,6 +80,7 @@ pTOP_LEVEL_SUB_FSM_IF current_sub_machine;
 		   event e1;
        event e2;
        event e3;
+		 event e4;
 
 		   state s1;
        state s2;
@@ -97,6 +98,11 @@ pTOP_LEVEL_SUB_FSM_IF current_sub_machine;
            machine completion.
        */
 		   action a3[e3, s3] transition s1;
+
+       /**
+         a single loop back to test that feature of the plantuml generator
+       */
+       action a4[e3, s1];
 
        a3 returns parent::e3;
 

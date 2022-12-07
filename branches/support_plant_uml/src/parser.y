@@ -1722,6 +1722,7 @@ void usage(void)
  fprintf(stdout,"\t\twith machines having actions which return states\n");
  fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
  fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
+ fprintf(stdout,"\t--include-svg-img=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }
