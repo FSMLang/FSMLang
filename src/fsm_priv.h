@@ -71,6 +71,7 @@ struct _iterator_helper_
    bool          error;
    bool          first;
    char          *cp;
+   int           event;
 };
 
 

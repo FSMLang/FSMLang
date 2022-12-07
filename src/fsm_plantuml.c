@@ -59,6 +59,7 @@ void closePlantUMLWriter(pFSMOutputGenerator,int);
 
 typedef struct _fsm_puml_output_generator_ FSMPlantUMLOutputGenerator, *pFSMPlantUMLOutputGenerator;
 typedef struct _puml_machine_data_ PlantUMLMachineData, *pPlantUMLMachineData;
+typedef struct _loop_back_event_ LOOP_BACK_EVENT, *pLOOP_BACK_EVENT;
 
 struct _puml_machine_data_ {
 
@@ -71,6 +72,12 @@ struct _fsm_puml_output_generator_
 {
    FSMOutputGenerator fsmog;
    pPlantUMLMachineData   pmd;
+};
+
+struct _loop_back_event_
+{
+   int      e;
+   pID_INFO action;
 };
 
 FSMPlantUMLOutputGenerator PlantUMLMachineWriter = {
@@ -97,6 +104,20 @@ pFSMOutputGenerator pPlantUMLSubMachineWriter = (pFSMOutputGenerator) &PlantUMLS
 static pPlantUMLMachineData newPlantUMLMachineData(char *);
 
 /* list iteration callbacks */
+static bool print_loop_back_event(pLIST_ELEMENT pelem, void *data)
+{
+   pLOOP_BACK_EVENT            ple        = (pLOOP_BACK_EVENT) pelem->mbr;
+   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
+
+   fprintf(pfsmpumlog->pmd->pumlFile
+           ,"%s: %s\n"
+           , eventNameByIndex(pfsmpumlog->pmd->pmi, ple->e)
+           , ple->action ? ple->action->name : ""
+           );
+
+   return false;
+}
+
 static bool print_state_name(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO pid                           = ((pID_INFO)pelem->mbr);
@@ -172,7 +193,7 @@ int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
      }
      else {
 
-       pfsmpumlog->pmd->pumlName = createFileName(baseFileName,".txt");
+       pfsmpumlog->pmd->pumlName = createFileName(baseFileName,".plantuml");
 
        if (!(pfsmpumlog->pmd->pumlFile = openFile(pfsmpumlog->pmd->pumlName,"w"))) {
 
@@ -226,6 +247,8 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	for (s = 0; s < pmi->state_list->count; s++) {
 
+     pLIST loopBackEvents = init_list();
+
 			for (e = 0; e < pmi->event_list->count; e++) {
 
         if (
@@ -269,7 +292,6 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
                  if (pmi->actionArray[e][s]->transition->transition_fn_returns_decl)
                  {
-                    ITERATOR_HELPER ih;
                     ih.pid = pmi->actionArray[e][s]->transition;
                     ih.fout = pfsmpumlog->pmd->pumlFile;
 
@@ -290,20 +312,51 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
            }
            else
            {
-              /* simple "no transition" */
-              fprintf(pfsmpumlog->pmd->pumlFile
-                      , "%s --> %s : %s\\n%s\n"
-                      , stateNameByIndex(pmi, s)
-                      , stateNameByIndex(pmi, s)
-                      , eventNameByIndex(pmi, e)
-                      , pmi->actionArray[e][s]->action
-                          ? pmi->actionArray[e][s]->action->name
-                          : ""
-                      );
+              /* simple "no transition" 
+              */
+              pLOOP_BACK_EVENT plbe = malloc(sizeof(LOOP_BACK_EVENT));
+
+              plbe->e      = e;
+              plbe->action = pmi->actionArray[e][s]->action;
+
+              add_to_list(loopBackEvents, plbe);
            }
 				}
 
 			}
+
+      /* now write any loop back events */
+      switch (loopBackEvents->count)
+      {
+      case 0:
+         //do nothing
+         break;
+      case 1:
+         fprintf(pfsmpumlog->pmd->pumlFile
+                 , "%s --> %s : %s\\n%s\n"
+                 , stateNameByIndex(pmi, s)
+                 , stateNameByIndex(pmi, s)
+                 , eventNameByIndex(pmi, ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->e)
+                 , ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->action
+                     ? ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->action->name
+                     : ""
+                 );
+         break;
+      default:
+         fprintf(pfsmpumlog->pmd->pumlFile
+                 , "\nnote left of %s\nThese events loop back:\n\n"
+                 , stateNameByIndex(pmi, s)
+                 );
+
+         iterate_list(loopBackEvents, print_loop_back_event, pfsmpumlog);
+
+         fprintf(pfsmpumlog->pmd->pumlFile
+                 , "end note\n"
+                 );
+         break;
+      }
+
+      free_list(loopBackEvents);
 
 	}
 	
