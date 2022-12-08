@@ -57,6 +57,7 @@
 
 bool generate_weak_fns = true;
 bool core_logging_only = false;
+bool include_svg_img   = false;
 
 static bool  print_sub_machine_as_enum_member        (pLIST_ELEMENT,void*);
 static bool  declare_sub_machine_if                  (pLIST_ELEMENT,void*);
@@ -270,7 +271,6 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    /* put the state enum into the header file */
    fprintf(pcmw->hFile
            , "typedef enum {\n"
-           , cp
           );
 
    fprintf(pcmw->hFile, "\t %s_%s\n",
@@ -407,9 +407,6 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
       fprintf(pcmw->hFile
               ,"%s\ntypedef enum {\n"
               ,"/* enumerate sub-machines */"
-              , cp
-              , cp
-              , cp
               );
 
       iterate_list(pmi->machine_list
