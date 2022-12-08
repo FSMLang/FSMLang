@@ -59,6 +59,7 @@ struct _html_machine_data_ {
 
 	FILE	        *htmlFile;
 	char	        *htmlName;
+  char          *baseName;
   pMACHINE_INFO pmi;
 };
 
@@ -92,7 +93,7 @@ pFSMOutputGenerator pHTMLSubMachineWriter = (pFSMOutputGenerator) &HTMLSubMachin
 static pHTMLMachineData newHTMLMachineData(char *);
 
 /* list iteration callbacks */
-bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
+static bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
 {
    pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
    pID_INFO                pid        = (pID_INFO) pelem->mbr;
@@ -110,7 +111,7 @@ bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
+static bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO pid = ((pID_INFO)pelem->mbr);
    pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
@@ -134,7 +135,7 @@ bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
+static bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO           pmi        = ((pMACHINE_INFO)pelem->mbr);
    pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
@@ -178,6 +179,7 @@ int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
      else {
 
        pfsmhtmlog->pmd->htmlName = createFileName(baseFileName,".html");
+       pfsmhtmlog->pmd->baseName = strdup(baseFileName);
 
        if (!(pfsmhtmlog->pmd->htmlFile = openFile(pfsmhtmlog->pmd->htmlName,"w"))) {
 
@@ -236,7 +238,15 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 		);
 
 	if (pmi->name->docCmnt)
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<p>%s<p>\n",pmi->name->docCmnt);
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<p>%s</p>\n",pmi->name->docCmnt);
+
+  if (include_svg_img)
+  {
+     fprintf(pfsmhtmlog->pmd->htmlFile
+             , "<img src=\"%s.svg\" alt=\"PlantUML diagram separately generated.\"/>\n"
+             , pfsmhtmlog->pmd->baseName
+             );
+  }
 
 	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=machine>\n");
 
