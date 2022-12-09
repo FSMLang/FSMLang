@@ -165,5 +165,12 @@
    enum typedefs now C++ compliant.
    Sub-machine typedefs precede data structure declaration.
 */
-const char rev_string[] = "1.23";
 
+/*
+   Revision 1.24:
+ 
+   support PlantUML with -tp
+   include html image tag with --include-svg-img=true to add
+   <img src="[filename].svg" -alt "PlantUML diagram separately generated."/> before the event-state table.
+*/
+const char rev_string[] = "1.24";
