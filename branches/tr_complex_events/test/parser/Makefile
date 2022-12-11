@@ -30,7 +30,9 @@ TESTS=parser-test1  \
 			parser-test9  \
 			parser-test10 \
 			parser-test11 \
-			parser-test12
+			parser-test12 \
+			parser-test13 \
+			parser-test14
 
 NO_RUNTEST=TRUE
 include ../test.mk
