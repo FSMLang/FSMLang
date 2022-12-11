@@ -49,6 +49,8 @@ typedef enum {
   , mfMachineTransition   = 8
 } MOD_FLAGS;
 
+#define MF_ACTION_SPEC_MASK (mfActionsReturnStates | mfActionsReturnVoid)
+
 typedef struct _id_info_				ID_INFO, *pID_INFO;
 typedef struct _action_se_info_	ACTION_SE_INFO, *pACTION_SE_INFO;
 typedef struct _matrix_info_	  MATRIX_INFO, *pMATRIX_INFO;

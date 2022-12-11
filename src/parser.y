@@ -1264,6 +1264,35 @@ complex_event_decl: complex_event_decl_start action_return_spec complex_event_li
             }
             #endif
         }
+        | complex_event_decl_start complex_event_list '}'
+        {
+
+            $$ = $1;
+
+            $$->complexInfo->members    = $2;
+
+            namespace = DEFAULT_NAME_SPACE;
+            complex_parent = NULL;
+
+            #ifdef PARSER_DEBUG
+						 fprintf(yyout
+                    ,"found a complex event declaration %s\n"
+                    , $$->name
+                    );
+            fprintf(yyout,"members:\n");
+            pID_INFO pid;
+            for (pid=$$->complexInfo->members; pid; pid = pid->complexInfo->nextEvent)
+            {
+                fprintf(yyout
+                        ,"\t%s%s\n"
+                        , pid->name
+                        , (get_id_type(pid) == COMPLEX_EVENT_KEY)
+                            ? " (complex)" 
+                            : ""
+                        );
+            }
+            #endif
+        }
         ;
 
 nested_complex_event_decl_start: ID external_designation prefix '{'
@@ -1293,6 +1322,35 @@ nested_complex_event_decl: nested_complex_event_decl_start complex_event_list '}
             $$ = $1;
 
             $$->complexInfo->members = $2;
+
+            #ifdef PARSER_DEBUG
+						 fprintf(yyout
+                    ,"found a nested complex event declaration %s\n"
+                    , $$->name
+                    );
+            fprintf(yyout,"members:\n");
+            pID_INFO pid;
+            for (pid=$$->complexInfo->members; pid; pid = pid->complexInfo->nextEvent)
+            {
+                fprintf(yyout
+                        ,"\t%s%s\n"
+                        , pid->name
+                        , (get_id_type(pid) == COMPLEX_EVENT_KEY)
+                            ? " (complex)"
+                            : ""
+                        );
+            }
+            #endif
+        }
+        | nested_complex_event_decl_start action_return_spec complex_event_list '}'
+        {
+            #ifdef PARSER_DEBUG
+            #endif
+
+            $$ = $1;
+
+            $$->complexInfo->mod_flags |= $2;
+            $$->complexInfo->members    = $3;
 
             #ifdef PARSER_DEBUG
 						 fprintf(yyout
@@ -1773,10 +1831,10 @@ void usage(void)
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
  fprintf(stdout,"\t%s -i0 inhibits the creation of a machine instance\n",me);
- fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n",me);
- fprintf(stdout,"\t\tthis is the default\n",me);
+ fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n");
+ fprintf(stdout,"\t\tthis is the default\n");
  fprintf(stdout,"\t%s -c will create a more compact event/state table when -tc is used\n",me);
- fprintf(stdout,"\t\twith machines having actions which return states\n",me);
+ fprintf(stdout,"\t\twith machines having actions which return states\n");
  fprintf(stdout,"\t%s -v prints the version and exits\n",me);
 	
 }

@@ -2548,7 +2548,7 @@ static void write_complex_event_state_handler(pID_INFO pid, void *p)
          fprintf(pcecb->fp
                  , "}\n\n");
 
-   }
+      }
    }
 }
 

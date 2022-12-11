@@ -36,10 +36,14 @@ machine systemManager
               {
                   e2 = RUN_SETUP_USER_ACTION_NOTICE prefix: "RSA_"
                          {
+
+  													actions return events;
+
                              e1 = setup_started
                            , e2 = new_kit
                            , e3 = run_setup_cancelled
                            , e4 = run_completion_acknowledged
+
                          }
 
                 , e11 = PUMP_ON_TOO_LONG_ERROR_NOTICE
