@@ -3,7 +3,7 @@
 #  .fsm rules
 #
 
-.SUFFIXES: .fsm .html .txt 
+.SUFFIXES: .fsm .html .plantuml 
 
 ifdef OUTPUT_DIR
 FSM=$(OUTPUT_DIR)/fsm
@@ -19,7 +19,7 @@ FSM ?= fsm
 
 .fsm.o:
 	@echo "FSM:" $(FSM) $(FSM_FLAGS)
-	$(FSM) $< > fsmout
+	$(FSM) $(FSM_FLAGS) $< > fsmout
 	$(CC) -c $(CFLAGS) $*.c
 	rm $*.c
 
@@ -35,7 +35,7 @@ FSM ?= fsm
 	@echo "FSM:" $(FSM)
 	$(FSM) $(FSM_HTML_FLAGS) -th $< > fsmout
 
-.fsm.txt:
+.fsm.plantuml:
 	@echo "FSM:" $(FSM)
 	$(FSM) $(FSM_PLANTUML_FLAGS) -tp $< > fsmout
 
