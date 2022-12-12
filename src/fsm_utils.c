@@ -792,6 +792,34 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+/**
+ * Opens the file indicated by src and copies the contents into 
+ * the file indicated by dest (which must be open).
+ */
+int copyFileContents(const FILE *fDest, const char *src)
+{
+    FILE *fSrc;
+    char buf[256];
+    int numBytes;
+
+    if (NULL == (fSrc = openFile((char*)src,"r")))
+    {
+        return 1;
+    }
+
+    while (!feof(fSrc) && !ferror(fSrc) && !ferror((FILE*)fDest))
+    {
+        if (0 < (numBytes = fread(buf,sizeof(char), sizeof(buf), fSrc)))
+        {
+            numBytes = fwrite(buf, sizeof(char), numBytes, (FILE*)fDest);
+        }
+    }
+
+    fclose(fSrc);
+
+    return ferror(fSrc) + ferror((FILE*)fDest);
+}
+
 #ifdef PARSER_DEBUG
 
 typedef struct _debug_list_helper_ DEBUG_LIST_HELPER, *pDEBUG_LIST_HELPER;
