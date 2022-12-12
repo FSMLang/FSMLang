@@ -173,4 +173,15 @@
    include html image tag with --include-svg-img=true to add
    <img src="[filename].svg" -alt "PlantUML diagram separately generated."/> before the event-state table.
 */
-const char rev_string[] = "1.24";
+
+/*
+   Revision 1.25:
+ 
+   The event-state table now scrolls when needed.
+ 
+   --css-content-internal=true with -th option copies css content into the html file.  The default is to reference the styleshet externally.
+
+   --css-content-filename=&lt;filename&gt; with -th option uses the indicated file for css content.
+
+*/
+const char rev_string[] = "1.25";
