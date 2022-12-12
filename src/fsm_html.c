@@ -248,31 +248,24 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
              );
   }
 
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=machine>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<div class=\"scrollable\">\n<table class=\"machine\">\n");
 
 	/* first row */
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tr>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=blankCorner rowspan=2 colspan=2>&nbsp;</th>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=eventLabel colspan=%d>%s</th>\n"
-		,pmi->event_list->count	
-		,"Events"
-		);
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t</tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<thead>\n\t\t<tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t\t<th class=\"blankCorner\">&nbsp;</th>\n");
 
-	/* event names row */
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tr>\n");
+	/* event names */
 	for (e = 0;e < pmi->event_list->count;e++)
-		fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=eventName>%s</th>\n"
-			, eventNameByIndex(pmi,e)
+  {
+    char *eventName = eventNameByIndex(pmi, e);
+		fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t\t<th class=eventName>%s</th>\n"
+			, eventName
 			);
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t</tr>\n");
+  }
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t</tr>\n\t</thead>\n");
 
 	/* State Label column */
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tr>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=stateLabel rowspan=%d>%s</th>\n"
-		, pmi->state_list->count
-		, "S<br/>t<br/>a<br/>t<br/>e<br/>s"
-		);
+	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tbody>\n\t\t<tr>\n");
 
 	/* now, it gets a bit tricky with the row breaks */
 	for (s = 0; s < pmi->state_list->count; s++) {
@@ -410,7 +403,7 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	}
 	
-	fprintf(pfsmhtmlog->pmd->htmlFile,"</table>\n<p>\n");
+  fprintf(pfsmhtmlog->pmd->htmlFile, "\t</tbody>\n</table>\n</div>\n");
 
 	/*
     Now, list the events, states, actions, and any transition functions
