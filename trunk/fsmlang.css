@@ -14,18 +14,34 @@
 
 .eventLabel, .stateLabel, .blankCorner {
 	background-color: rgb(96,182,255);
-	padding         : 10px;
+	padding         : 20px;
 }
 
-.eventName, .stateName {
+.stateLabel {
+    writing-mode:     vertical-rl;
+    text-orientation: upright;
+    position: -webkit-sticky; /* for Safari */
+    position: sticky;
+    left: 0;
+}
+
+.eventName th, .stateName th {
 	background-color: rgb(96,182,255);
 	border-style    : solid;
 	border-width    : .5px;
 	border-color    : black;
 }
 
+.eventName a, .stateName a {
+	color: black;
+}
 
 .action {
+	color: green;
+}
+
+
+.action a {
 	color: green;
 }
 
@@ -81,4 +97,70 @@
 	display: block;
 	font-size: 0px;
 }
+
+.noAction .return_decl {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.noAction .return_decl li {
+  margin-top: 0px;
+}
+
+.noAction ul + br {
+	content: "";
+	margin: 0px;
+	display: block;
+	font-size: 0px;
+}
+
+a:link {
+	text-decoration: none;
+}
+
+a:visited {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:active {
+	text-decoration: underline;
+}
+
+
+/* 
+  The .scrollable styles enable scrolling of the
+   event-state table
+*/
+.scrollable {
+  max-height: 600px;
+  overflow: scroll;
+}
+
+
+.scrollable thead th {
+	background-color: rgb(96,182,255);
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  top: 0;
+}
+
+.scrollable tbody th {
+	background-color: rgb(96,182,255);
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  left: 0;
+}
+
+
+/* To have the header in the first column stick to the left: */
+
+.scrollable thead th:first-child {
+  left: 0;
+  z-index: 1;
+}
+
 
