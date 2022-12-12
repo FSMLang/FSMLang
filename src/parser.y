@@ -1717,7 +1717,7 @@ void yyerror(char *s)
 void usage(void)
 {
 
-	fprintf(stdout,"Usage : %s [-tc|s|h] filename, where filename ends with '.fsm'\n",me);
+	fprintf(stdout,"Usage : %s [-tc|s|h|p] filename, where filename ends with '.fsm'\n",me);
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
