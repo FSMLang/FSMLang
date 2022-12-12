@@ -1490,7 +1490,7 @@ const struct option longopts[] =
     }
     , {
         .name      = "css-content-internal"
-        , .has_arg = no_argument
+        , .has_arg = required_argument
         , .flag    = &longval
         , .val     = lo_css_content_internal
     }
@@ -1546,15 +1546,22 @@ int main(int argc, char **argv)
         {
             case lo_weak_fns:
                 generate_weak_fns 
-                    = !strcmp(optarg,"false") ? false : true;
+                    = !strcmp(optarg,"true") ? true : false;
                 break;
             case lo_core_logging:
                 core_logging_only 
-                    = !strcmp(optarg,"false") ? false : true;
+                    = !strcmp(optarg,"true") ? true : false;
                 break;
             case lo_include_svg_img:
                 include_svg_img
-                    = !strcmp(optarg,"false") ? false : true;
+                    = !strcmp(optarg,"true") ? true : false;
+                break;
+            case lo_css_content_filename:
+                css_content_filename = optarg;
+                break;
+            case lo_css_content_internal:
+                css_content_internal
+                    = !strcmp(optarg,"true") ? true : false;
                 break;
             default:
                 usage();
@@ -1723,6 +1730,9 @@ void usage(void)
  fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
  fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
+ fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
+ fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
+ fprintf(stdout,"\t\tfor the content copy.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }
