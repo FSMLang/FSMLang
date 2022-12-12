@@ -192,6 +192,7 @@ char *getFileNameNoDir(const char *);
 void enumerate_pid_list(pLIST);
 void count_external_declarations(pLIST,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
+int  copyFileContents(const FILE*,const char*);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_or_event_list(pLIST,FILE*);
