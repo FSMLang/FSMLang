@@ -1,0 +1,23 @@
+native {
+#include "foo.h"
+}
+
+machine pptp {
+
+	state			initial
+					, ifSent
+					, ifRspRcvd
+					, tdHandoffRcvd
+					;
+
+	event			CFG_ADD_DYNAMIC_IF_REQ
+					,	CFG_ADD_DYNAMIC_IF_RSP
+					,	TUNDISP_HANDOFF_REQ
+					,	DRV_ADD_PORTAL_REQ
+					;
+
+	action		PptpRecvAddIcbReq [CFG_ADD_DYNAMIC_IF_REQ,initial] transition ifSent
+					,	sendAddPortalRsp [DRV_ADD_PORTAL_REQ,ifRspRcvd]
+					;
+}
+
