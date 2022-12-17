@@ -83,8 +83,11 @@ void yyerror(char *);
 %token <pid_info> TRANSITION_FN
 %token <pid_info> ID
 %token <charData> STRING
+<<<<<<< HEAD
 %token <pid_info> TYPE_NAME
 %token <pid_info> FIELD_NAME
+=======
+>>>>>>> aa4487e (interim for rebase)
 
 %type <plist>                    returns_comma_list
 %type <plist>                    event_comma_list
@@ -1500,6 +1503,7 @@ data_field : STRING STRING data_field_dimension ';'
             );
 		 #endif
 
+<<<<<<< HEAD
     pID_INFO pfield_name;
     pID_INFO pfield_type;
 
@@ -1513,6 +1517,14 @@ data_field : STRING STRING data_field_dimension ';'
 
     $$->pdata_field->data_type  = pfield_type;
     $$->pdata_field->dimension  = $3;
+=======
+    if (NULL == ($$ = calloc(1, sizeof(DATA_FIELD))))
+        yyerror("out of memory");
+
+    $$->field_type.name       = $1;
+    $$->field_name.name       = $2;
+    $$->field_name.dimension  = $3;
+>>>>>>> aa4487e (interim for rebase)
 
   }
   | STRING '*' STRING data_field_dimension ';'
@@ -1526,6 +1538,7 @@ data_field : STRING STRING data_field_dimension ';'
             );
 		 #endif
 
+<<<<<<< HEAD
     pID_INFO pfield_name;
     pID_INFO pfield_type;
 
@@ -1589,6 +1602,15 @@ data_field : STRING STRING data_field_dimension ';'
     $$->pdata_field->data_type  = $1;
     $$->pdata_field->dimension  = $4;
     $$->pdata_field->isPointer  = true;
+=======
+    if (NULL == ($$ = calloc(1, sizeof(DATA_FIELD))))
+        yyerror("out of memory");
+
+    $$->field_type.name       = $1;
+    $$->field_type.isPointer  = true;
+    $$->field_name.name       = $3;
+    $$->field_name.dimension  = $4;
+>>>>>>> aa4487e (interim for rebase)
 
   }
   ;

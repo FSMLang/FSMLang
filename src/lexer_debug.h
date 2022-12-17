@@ -70,6 +70,8 @@ enum states {
   , ALL
   , ENTRY
   , EXIT
+  , DATA_KEY
+  , STRING
 };
 
 extern char *strings[];

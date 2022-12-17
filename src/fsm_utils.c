@@ -1051,6 +1051,34 @@ void printAncestry(pMACHINE_INFO pmi, FILE *fout)
    }
 }
 
+bool print_data_field(pLIST_ELEMENT pelem, void *data)
+{
+   FILE *file       = (FILE*) data;
+   pDATA_FIELD pdf = (pDATA_FIELD) pelem->mbr;
+
+   if (pdf->field_name.dimension == NULL)
+   {
+      fprintf(file
+             , "%s %s %s;\n"
+             , pdf->field_type.name
+             , pdf->field_type.isPointer ? "*" : ""
+             , pdf->field_name.name
+             );
+   }
+   else
+   {
+      fprintf(file
+             , "%s %s %s[%s];\n"
+             , pdf->field_type.name
+             , pdf->field_type.isPointer ? "*" : ""
+             , pdf->field_name.name
+             , pdf->field_name.dimension
+             );
+   }
+
+   return false;
+}
+
 #ifdef PARSER_DEBUG
 
 typedef struct _debug_list_helper_ DEBUG_LIST_HELPER, *pDEBUG_LIST_HELPER;

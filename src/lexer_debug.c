@@ -69,5 +69,7 @@ char *strings[]  = {
   , "ALL"
   , "ENTRY"
   , "EXIT"
+  , "DATA_KEY"
+  , "STRING"
 };
 

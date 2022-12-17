@@ -82,6 +82,10 @@ struct _data_field_
 
 typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
 typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
+typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
+typedef struct _data_field_type_         DATA_FIELD_TYPE,         *pDATA_FIELD_TYPE;
+typedef struct _data_field_name_         DATA_FIELD_NAME,         *pDATA_FIELD_NAME;
+
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
@@ -108,6 +112,24 @@ union _pid_type_data_
 {
    EVENT_DATA    event_data;
    STATE_DATA    state_data;
+};
+
+struct _data_field_type_
+{
+   char * name;
+   bool   isPointer;
+};
+
+struct _data_field_name_
+{
+   char * name;
+   char * dimension;
+};
+
+struct _data_field_              
+{
+   DATA_FIELD_TYPE field_type;
+   DATA_FIELD_NAME field_name;
 };
 
 struct _iterator_helper_
@@ -173,6 +195,7 @@ struct _id_info_ {
   pACTION_INFO    actionInfo;
   pLIST           action_returns_decl;
   pLIST           transition_fn_returns_decl;
+  pID_INFO        pfield_type;
 };
 
 struct _action_se_info_ {
