@@ -61,6 +61,27 @@ typedef struct _action_decl_             ACTION_DECL,             *pACTION_DECL;
 typedef struct _machine_qualifier_       MACHINE_QUALIFIER,       *pMACHINE_QUALIFIER;
 typedef struct _machine_prefix_          MACHINE_PREFIX,          *pMACHINE_PREFIX;
 typedef struct _iterator_helper_         ITERATOR_HELPER,         *pITERATOR_HELPER;
+typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
+typedef struct _data_field_type_         DATA_FIELD_TYPE,         *pDATA_FIELD_TYPE;
+typedef struct _data_field_name_         DATA_FIELD_NAME,         *pDATA_FIELD_NAME;
+
+struct _data_field_type_
+{
+   char * name;
+   bool   isPointer;
+};
+
+struct _data_field_name_
+{
+   char * name;
+   char * dimension;
+};
+
+struct _data_field_              
+{
+   DATA_FIELD_TYPE field_type;
+   DATA_FIELD_NAME field_name;
+};
 
 struct _iterator_helper_
 {
@@ -121,6 +142,7 @@ struct _id_info_ {
   pLIST         	action_returns_decl;
   pLIST        	  transition_fn_returns_decl;
   pMACHINE_INFO   powningMachine;
+  pID_INFO        pfield_type;
 };
 
 struct _action_se_info_ {
@@ -158,7 +180,7 @@ struct _machine_info_ {
 	pID_INFO			name;
   pLIST         action_info_list;
 	pACTION_INFO	**actionArray;
-	char					*data;
+	pLIST					data;
 	char					*native;
 	MOD_FLAGS			modFlags;
   pID_INFO      machineTransition;
@@ -199,6 +221,7 @@ void parser_debug_print_id_list_names(pLIST,pMACHINE_INFO,FILE*,char*);
 void parser_debug_print_action_list_deep(pLIST,pMACHINE_INFO,FILE*);
 void parser_debug_print_transition_list(pLIST,FILE*);
 void parser_debug_print_transition_fn_list(pLIST,FILE*);
+void parser_debug_print_data_block(pLIST,FILE*);
 #endif
 
 /* general use data */
@@ -251,5 +274,6 @@ bool print_sub_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component_name(pLIST_ELEMENT,void*);
 bool print_sub_machine_events(pLIST_ELEMENT,void*);
 bool print_sub_machine_event_names(pLIST_ELEMENT,void*);
+bool print_data_field(pLIST_ELEMENT,void*);
 
 #endif /* ----------- nothing below this line ---------------- */

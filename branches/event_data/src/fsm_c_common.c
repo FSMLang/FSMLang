@@ -477,9 +477,15 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    if (pmi->data)
    {
       fprintf(pcmw->hFile
-              , "struct _%s_data_struct_ {%s};\n\n"
+              , "struct _%s_data_struct_ {\n"
               , pmi->name->name
-              , pmi->data);
+              );
+
+      iterate_list(pmi->data, print_data_field, pcmw->hFile);
+
+      fprintf(pcmw->hFile 
+              , "};\n\n"
+              );
    }
 
    return cp;
@@ -1594,9 +1600,14 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
    if (pmi->data)
    {
       fprintf(pcmw->hFile
-              , "struct _%s_data_struct_ {%s};\n\n"
+              , "struct _%s_data_struct_ {\n"
               , pmi->name->name
-              , pmi->data
+              );
+
+      iterate_list(pmi->data, print_data_field, pcmw->hFile);
+
+      fprintf(pcmw->hFile 
+              , "};\n\n"
               );
    }
 

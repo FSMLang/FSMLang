@@ -58,6 +58,8 @@ enum states {
   , VOID
   , PARENT
   , NAMESPACE
+  , DATA_KEY
+  , STRING
 };
 
 extern char *strings[];
