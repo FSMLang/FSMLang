@@ -78,36 +78,6 @@ int	charOffset = 0;						/* the character offset */
 
 \/\/.*	;
 
-	/* data declarations */
-data	{
-
-				BEGIN DATA;
-				charOffset = 0;
-
-			}
-<DATA>"{"	;
-<DATA>"}"	{
-					BEGIN INITIAL;
-					charData[charOffset] = 0;
-					#ifdef LEX_DEBUG
-					printf("Data:\n%s\n",charData);
-					#else
-
-					yylval.charData = strdup(charData);
-					return DATA_KEY;
-					#endif
-
-				}
-<DATA>.	charData[charOffset++] = *yytext;
-<DATA>\n	{
-					charData[charOffset++] = *yytext;
-					#ifndef LEX_DEBUG
-					lineno++;
-					#else
-					;
-					#endif
-					}
-
 	/* native language declarations */
 native	{
 
@@ -137,6 +107,93 @@ native	{
 					;
 					#endif
 					}
+
+ /* special handling for data block */
+data {
+					BEGIN DATA;
+					#ifndef LEX_DEBUG
+					return DATA_KEY;
+					#else
+					printf("%s\n",strings[DATA_KEY]);
+					#endif
+				}
+
+<DATA>[](){*=] { 
+		#ifndef LEX_DEBUG
+		return yytext[0];
+		#else
+		printf("%c\n",yytext[0]);
+		#endif
+  }
+
+<DATA>[[]		{ 
+		#ifndef LEX_DEBUG
+		return yytext[0];
+		#else
+		printf("%c\n",yytext[0]);
+		#endif
+  }
+
+<DATA>\n	{
+			#ifndef LEX_DEBUG
+			lineno++;
+			#else
+			;
+			#endif
+		}
+
+<DATA>[}] {
+    BEGIN INITIAL;
+		#ifndef LEX_DEBUG
+		return yytext[0];
+		#else
+		printf("%c\n",yytext[0]);
+		#endif
+  }
+
+   /* integers - which we will treat as strings */
+<DATA>[0-9]+ {
+
+        #ifdef LEX_DEBUG
+        printf("%s: %s\n"
+               , yytext
+               , strings[STRING]
+               );
+        #else
+
+        yylval.charData = strdup(yytext);
+
+        return STRING;
+
+        #endif
+
+   }
+
+<DATA>[a-zA-Z_][a-zA-Z0-9_]+	{ 
+
+        #ifdef LEX_DEBUG
+        printf("%s: %s\n"
+               , yytext
+               , strings[STRING]
+               );
+        #else
+
+        yylval.charData = strdup(yytext);
+
+        return STRING;
+
+        #endif
+
+   }
+
+<DATA>;	{
+		#ifndef LEX_DEBUG
+		return yytext[0];
+		#else
+		printf("%c\n",yytext[0]);
+		#endif
+	}
+
 
 	/* statement end */
 ;	{
@@ -339,7 +396,7 @@ parent {
 		}
 
 		/* ignore anything else */
-.	;
+<*>.	;
 
 %%
 

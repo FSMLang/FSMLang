@@ -62,19 +62,20 @@ void yyerror(char *);
  pACTION_DECL						 paction_decl;
  pMACHINE_QUALIFIER       pmachine_qualifier;
  pMACHINE_PREFIX          pmachine_prefix;
+ pDATA_FIELD              pdata_field;
 }
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON PARENT NAMESPACE
-%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID
-%token <charData>	NATIVE_KEY
-%token <charData>	DATA_KEY
-%token <charData>	DOC_COMMENT
+%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID DATA_KEY
+%token <charData> NATIVE_KEY
+%token <charData> DOC_COMMENT
 %token <pid_info> MACHINE
 %token <pid_info> STATE
 %token <pid_info> EVENT
 %token <pid_info> ACTION
 %token <pid_info> TRANSITION_FN
 %token <pid_info> ID
+%token <charData> STRING
 
 %type <plist>                    returns_comma_list
 %type <plist>                    event_comma_list
@@ -95,7 +96,11 @@ void yyerror(char *);
 %type <paction_decl>             action_decl_list
 %type <action_info>              transition_matrix
 %type <action_info>              transition_matrix_list
-%type <charData>                 data
+%type <plist>                    data
+%type <plist>                    data_start
+%type <pdata_field>              data_field
+%type <plist>                    data_fields
+%type <charData>                 data_field_dimension
 %type <charData>                 native
 %type <mod_flags>                machine_modifier
 %type <pmachineInfo>             machine
@@ -287,6 +292,16 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
                       );
 
 								parser_debug_print_transition_fn_list($$->transition_fn_list,yyout);
+           }
+
+           if ($$->data)
+           {
+             fprintf(yyout
+                     , "this machine has data\n"
+                     );
+
+             parser_debug_print_data_block($$->data, yyout);
+
            }
 
             if ($$->machine_list)
@@ -1217,19 +1232,82 @@ native:	{
 
 	;
  
-data:	{
-						$$ = NULL;
-			}
-	| DATA_KEY
-					{
-						#ifdef PARSER_DEBUG
-						fprintf(yyout,"Data\n%s\n",$1);
-						#else
-						$$ = $1;
-						#endif
-					}
-
+data:	{ $$ = NULL; }
+ | data_fields '}'
+	{
+			#ifdef PARSER_DEBUG
+			fprintf(yyout,"Data block done\n");
+			#else
+			$$ = $1;
+			#endif
+	}
 	;
+
+data_field : STRING STRING data_field_dimension ';'
+  {
+		 #ifdef PARSER_DEBUG
+		 fprintf(yyout
+            ,"found data field: TYPE: %s; NAME: %s; dimension: %s\n"
+            , $1
+            , $2
+            , $3 ? $3 : "none"
+            );
+		 #endif
+
+    if (NULL == ($$ = calloc(1, sizeof(DATA_FIELD))))
+        yyerror("out of memory");
+
+    $$->field_type.name       = $1;
+    $$->field_name.name       = $2;
+    $$->field_name.dimension  = $3;
+
+  }
+  | STRING '*' STRING data_field_dimension ';'
+  {
+		 #ifdef PARSER_DEBUG
+		 fprintf(yyout
+            ,"found data field: TYPE: * %s; NAME: %s; dimension: %s\n"
+            , $1
+            , $3
+            , $4 ? $4 : "none"
+            );
+		 #endif
+
+    if (NULL == ($$ = calloc(1, sizeof(DATA_FIELD))))
+        yyerror("out of memory");
+
+    $$->field_type.name       = $1;
+    $$->field_type.isPointer  = true;
+    $$->field_name.name       = $3;
+    $$->field_name.dimension  = $4;
+
+  }
+  ;
+
+data_start : DATA_KEY '{' { $$ = init_list(); };
+
+data_field_dimension:
+   {
+       $$ = NULL;
+   }
+   | '[' STRING ']'
+   {
+       $$ = $2;
+   }
+   ;
+
+
+data_fields: data_start data_field
+  {
+    add_to_list($1, $2);
+    $$ = $1;
+  }
+  | data_fields data_field
+  {
+    add_to_list($1, $2);
+    $$ = $1;
+  }
+  ;
  
 namespace: PARENT NAMESPACE
   {

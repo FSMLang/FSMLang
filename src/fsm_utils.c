@@ -792,6 +792,34 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+bool print_data_field(pLIST_ELEMENT pelem, void *data)
+{
+   FILE *file       = (FILE*) data;
+   pDATA_FIELD pdf = (pDATA_FIELD) pelem->mbr;
+
+   if (pdf->field_name.dimension == NULL)
+   {
+      fprintf(file
+             , "%s %s %s;\n"
+             , pdf->field_type.name
+             , pdf->field_type.isPointer ? "*" : ""
+             , pdf->field_name.name
+             );
+   }
+   else
+   {
+      fprintf(file
+             , "%s %s %s[%s];\n"
+             , pdf->field_type.name
+             , pdf->field_type.isPointer ? "*" : ""
+             , pdf->field_name.name
+             , pdf->field_name.dimension
+             );
+   }
+
+   return false;
+}
+
 #ifdef PARSER_DEBUG
 
 typedef struct _debug_list_helper_ DEBUG_LIST_HELPER, *pDEBUG_LIST_HELPER;
@@ -992,6 +1020,8 @@ static bool print_transition_info(pLIST_ELEMENT pelem, void *data)
        iterate_list(pid->transition_fn_returns_decl, print_pid_name, phelper);
    }
 
+    return false;
+
 }
 
 void parser_debug_print_transition_fn_list(pLIST plist, FILE *file)
@@ -1001,6 +1031,11 @@ void parser_debug_print_transition_fn_list(pLIST plist, FILE *file)
    helper.fout = file;
 
    iterate_list(plist,print_transition_info,&helper);
+}
+
+void parser_debug_print_data_block(pLIST plist, FILE *file)
+{
+   iterate_list(plist,print_data_field,file);
 }
 #endif
 
