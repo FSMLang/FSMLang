@@ -186,8 +186,9 @@
 */
 
 /*
-   Revision 1.25:
+   Revision 1.26:
  
    RUN_STATE_MACHINE and DECLARE_xxx_MACHINE comply with MISRA C:2012:20.7
 */
-const char rev_string[] = "1.25_E1";
+const char rev_string[] = "1.26";
+
