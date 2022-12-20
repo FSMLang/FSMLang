@@ -139,7 +139,7 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    /* put the "call the state machine" macro into the header */
    fprintf(pcmw->hFile, "\n#define RUN_STATE_MACHINE(A,B) \\\n");
-   fprintf(pcmw->hFile, "\t((*A->fsm)((A),(B)))\n\n");
+   fprintf(pcmw->hFile, "\t((*(A)->fsm)((A),(B)))\n\n");
 
    /* put the "declare a state machine" macro into the header */
    fprintf(pcmw->hFile
@@ -1410,7 +1410,7 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
            , cp
           );
    fprintf(pcmw->hFile
-           , "%s A =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
+           , "%s A =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &(A);\n\n"
            , cp
            , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
            , pmi->name->name
