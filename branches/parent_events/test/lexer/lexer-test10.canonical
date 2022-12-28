@@ -1,0 +1,542 @@
+Native:
+
+
+#ifdef TOP_LEVEL_DEBUG
+#include <stdio.h>
+#define DBG_PRINTF printf
+#endif
+
+Doc Comment:
+
+  After its own initialization, this machine transitions to its
+    second state, in which it uses the first two of its sub machines
+    to acommplish other initialization chores.  The third sub machine
+    is then run, and the top level transitions into its third state.
+
+    The machine remains in its third state for the rest of its life
+    responding to e5 by re-running sub machine 2, followed by sub
+    machine 3.
+
+MACHINE_KEY
+Added : top_level of type ID
+top_level : ID
+{
+Doc Comment:
+
+     This event causes the machine to initialize itself, then
+     transition to state s2.  State s2 is the state from which
+     the initial sub machines are invoked.  When those machines
+     are finished, the top level machine will transition to
+     its "steady state."
+   
+EVENT_KEY
+Added : e1 of type ID
+e1 : ID
+;
+Doc Comment:
+
+     sub_machine1 is finished.
+   
+EVENT_KEY
+Added : e2 of type ID
+e2 : ID
+;
+Doc Comment:
+
+     sub_machine2 is finished.
+   
+EVENT_KEY
+Added : e3 of type ID
+e3 : ID
+;
+Doc Comment:
+
+     sub_machine3 is finished.
+   
+EVENT_KEY
+Added : e4 of type ID
+e4 : ID
+;
+Doc Comment:
+
+     It is time to do the periodic chore.  This chore requires that 
+     sub machine 2 be run, followed by sub machine 3.
+   
+EVENT_KEY
+Added : e5 of type ID
+e5 : ID
+;
+Doc Comment:
+
+      This is the "dispatch loop" event.
+   
+EVENT_KEY
+Added : e6 of type ID
+e6 : ID
+;
+Doc Comment:
+
+     This is another event to be passed to some sub-machines.
+   
+EVENT_KEY
+Added : e7 of type ID
+e7 : ID
+;
+Doc Comment:
+
+     startup state; initialize the machine when e1 happens.
+   
+STATE_KEY
+Added : s1 of type ID
+s1 : ID
+;
+Doc Comment:
+
+     Execute the first two sub machines in this state
+   
+STATE_KEY
+Added : s2 of type ID
+s2 : ID
+;
+Doc Comment:
+
+     When e5 is received in this state, execute sub machines 2 and 3.
+   
+STATE_KEY
+Added : s3 of type ID
+s3 : ID
+;
+Doc Comment:
+
+      This machine's happy path is e1 then e2, finishing with e3.
+    
+MACHINE_KEY
+Added : sub_machine1 of type ID
+sub_machine1 : ID
+{
+Doc Comment:
+
+         This event starts sub_machine1.
+       
+EVENT_KEY
+Found : e1 of type ID
+e1 : ID
+;
+EVENT_KEY
+Found : e2 of type ID
+e2 : ID
+;
+EVENT_KEY
+Found : e3 of type ID
+e3 : ID
+;
+EVENT_KEY
+PARENT
+NAMESPACE
+Found : e6 of type ID
+e6 : ID
+,
+PARENT
+NAMESPACE
+Found : e7 of type ID
+e7 : ID
+TRANSLATOR_KEY
+Added : translate_e7_data of type ID
+translate_e7_data : ID
+;
+STATE_KEY
+Found : s1 of type ID
+s1 : ID
+;
+STATE_KEY
+Found : s2 of type ID
+s2 : ID
+;
+Doc Comment:
+
+         Arriving in this state means sub_machine1's job is done.
+       
+STATE_KEY
+Found : s3 of type ID
+s3 : ID
+;
+ACTION_KEY
+Added : a1 of type ID
+a1 : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+Found : s1 of type ID
+s1 : ID
+]
+TRANSITION_KEY
+Found : s2 of type ID
+s2 : ID
+;
+ACTION_KEY
+Added : a2 of type ID
+a2 : ID
+[
+Found : e2 of type ID
+e2 : ID
+,
+Found : s2 of type ID
+s2 : ID
+]
+TRANSITION_KEY
+Found : s3 of type ID
+s3 : ID
+;
+Doc Comment:
+
+         This action returns the parent's event e3 to signal sub
+           machine completion.
+       
+ACTION_KEY
+Added : a3 of type ID
+a3 : ID
+[
+Found : e3 of type ID
+e3 : ID
+,
+Found : s3 of type ID
+s3 : ID
+]
+TRANSITION_KEY
+Found : s1 of type ID
+s1 : ID
+;
+}
+Doc Comment:
+
+      This machine's happy path is e1 then e2, finishing with e3.
+    
+MACHINE_KEY
+Added : sub_machine2 of type ID
+sub_machine2 : ID
+{
+Doc Comment:
+
+         This event starts sub_machine2.
+       
+EVENT_KEY
+Found : e1 of type ID
+e1 : ID
+;
+EVENT_KEY
+Found : e2 of type ID
+e2 : ID
+;
+EVENT_KEY
+Found : e3 of type ID
+e3 : ID
+,
+PARENT
+NAMESPACE
+Found : e6 of type ID
+e6 : ID
+;
+STATE_KEY
+Found : s1 of type ID
+s1 : ID
+;
+STATE_KEY
+Found : s2 of type ID
+s2 : ID
+;
+Doc Comment:
+
+         Arriving in this state means sub_machine1's job is done.
+       
+STATE_KEY
+Found : s3 of type ID
+s3 : ID
+;
+ACTION_KEY
+Found : a1 of type ID
+a1 : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+Found : s1 of type ID
+s1 : ID
+]
+TRANSITION_KEY
+Found : s2 of type ID
+s2 : ID
+;
+ACTION_KEY
+Found : a2 of type ID
+a2 : ID
+[
+Found : e2 of type ID
+e2 : ID
+,
+Found : s2 of type ID
+s2 : ID
+]
+TRANSITION_KEY
+Found : s3 of type ID
+s3 : ID
+;
+Doc Comment:
+
+         This action returns the parent's event e4 to signal sub
+           machine completion.
+       
+ACTION_KEY
+Found : a3 of type ID
+a3 : ID
+[
+Found : e3 of type ID
+e3 : ID
+,
+Found : s3 of type ID
+s3 : ID
+]
+TRANSITION_KEY
+Found : s1 of type ID
+s1 : ID
+;
+Found : a3 of type ID
+a3 : ID
+RETURNS
+PARENT
+NAMESPACE
+Found : e4 of type ID
+e4 : ID
+;
+}
+Doc Comment:
+
+      This machine's happy path is e1 then e2, finishing with e3.
+
+      It is not necessary to inform the parent when this machine
+        is finished.
+    
+MACHINE_KEY
+Added : sub_machine3 of type ID
+sub_machine3 : ID
+{
+Doc Comment:
+
+         This event starts sub_machine3.
+       
+EVENT_KEY
+Found : e1 of type ID
+e1 : ID
+;
+EVENT_KEY
+Found : e2 of type ID
+e2 : ID
+;
+EVENT_KEY
+Found : e3 of type ID
+e3 : ID
+;
+EVENT_KEY
+PARENT
+NAMESPACE
+Found : e7 of type ID
+e7 : ID
+;
+STATE_KEY
+Found : s1 of type ID
+s1 : ID
+;
+STATE_KEY
+Found : s2 of type ID
+s2 : ID
+;
+Doc Comment:
+
+         Arriving in this state means sub_machine1's job is done.
+       
+STATE_KEY
+Found : s3 of type ID
+s3 : ID
+;
+ACTION_KEY
+Found : a1 of type ID
+a1 : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+Found : s1 of type ID
+s1 : ID
+]
+TRANSITION_KEY
+Found : s2 of type ID
+s2 : ID
+;
+ACTION_KEY
+Found : a2 of type ID
+a2 : ID
+[
+Found : e2 of type ID
+e2 : ID
+,
+Found : s2 of type ID
+s2 : ID
+]
+TRANSITION_KEY
+Found : s3 of type ID
+s3 : ID
+;
+Doc Comment:
+
+         This machine will return the parent's "noEvent" bringing
+           the current action sequence to an end.
+       
+ACTION_KEY
+Found : a3 of type ID
+a3 : ID
+[
+Found : e3 of type ID
+e3 : ID
+,
+Found : s3 of type ID
+s3 : ID
+]
+TRANSITION_KEY
+Found : s1 of type ID
+s1 : ID
+;
+}
+Doc Comment:
+
+      Do a top level action
+    
+ACTION_KEY
+Found : a1 of type ID
+a1 : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+Found : s1 of type ID
+s1 : ID
+]
+TRANSITION_KEY
+Found : s2 of type ID
+s2 : ID
+;
+Doc Comment:
+
+     Make sub_machine1 the active machine, then
+       start it working by returning its first
+       event.
+   
+ACTION_KEY
+Added : activate_sub_machine1 of type ID
+activate_sub_machine1 : ID
+[
+Found : e2 of type ID
+e2 : ID
+,
+Found : s2 of type ID
+s2 : ID
+]
+;
+Doc Comment:
+
+     Make sub_machine2 the active machine, then
+       start it working by returning its first
+       event.
+   
+ACTION_KEY
+Added : activate_sub_machine2 of type ID
+activate_sub_machine2 : ID
+[
+Found : e3 of type ID
+e3 : ID
+,
+Found : s2 of type ID
+s2 : ID
+]
+;
+Doc Comment:
+
+     Make sub_machine3 the active machine, then
+       start it working by returning its first
+       event.  Trasition to s3, which is the
+       "steady state" for this machine.
+   
+ACTION_KEY
+Added : activate_sub_machine3 of type ID
+activate_sub_machine3 : ID
+[
+Found : e4 of type ID
+e4 : ID
+,
+Found : s2 of type ID
+s2 : ID
+]
+TRANSITION_KEY
+Found : s3 of type ID
+s3 : ID
+;
+Doc Comment:
+
+     In the steady state, e5 triggers us to re-run sub
+     machines 2 and 3.
+   
+ACTION_KEY
+Found : activate_sub_machine2 of type ID
+activate_sub_machine2 : ID
+[
+Found : e5 of type ID
+e5 : ID
+,
+Found : s3 of type ID
+s3 : ID
+]
+;
+ACTION_KEY
+Found : activate_sub_machine3 of type ID
+activate_sub_machine3 : ID
+[
+Found : e4 of type ID
+e4 : ID
+,
+Found : s3 of type ID
+s3 : ID
+]
+;
+Found : activate_sub_machine1 of type ID
+activate_sub_machine1 : ID
+RETURNS
+Found : sub_machine1 of type ID
+sub_machine1 : ID
+NAMESPACE
+Found : e1 of type ID
+e1 : ID
+;
+Found : activate_sub_machine2 of type ID
+activate_sub_machine2 : ID
+RETURNS
+Found : sub_machine2 of type ID
+sub_machine2 : ID
+NAMESPACE
+Found : e1 of type ID
+e1 : ID
+,
+Added : noEvent of type ID
+noEvent : ID
+;
+Found : activate_sub_machine3 of type ID
+activate_sub_machine3 : ID
+RETURNS
+Found : noEvent of type ID
+noEvent : ID
+,
+Found : sub_machine3 of type ID
+sub_machine3 : ID
+NAMESPACE
+Found : e1 of type ID
+e1 : ID
+;
+}

@@ -98,6 +98,17 @@ data	{
 					#endif
 
 				}
+<DATA>translator {
+					BEGIN INITIAL;
+
+         #ifdef LEX_DEBUG
+         printf("%s\n",strings[TRANSLATOR_KEY]);
+         #else
+         return TRANSLATOR_KEY;
+         #endif
+
+       }
+
 <DATA>.	charData[charOffset++] = *yytext;
 <DATA>\n	{
 					charData[charOffset++] = *yytext;

@@ -240,6 +240,8 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
    defineSubMachineIF(pcmw, pmi, cp);
 
+   possiblyDefineSubMachineSharedEventStructures(pcmw, pmi, cp);
+
    defineSubMachineArray(pcmw, pmi, cp);
 
    if (generate_instance)
@@ -253,6 +255,9 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    {
       /* write weak stubs for our action functions */
       defineSubMachineWeakActionFunctionStubs(pcmw, pmi, cp);
+
+      /* write weak stubs for any data translators */
+      defineSubMachineWeakDataTranslatorStubs(pcmw, pmi, cp);
    }
 
    /* write our transition functions, if needed */
@@ -473,7 +478,7 @@ static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
            cp);
 
    fprintf(pcmw->cFile
-           , "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,%s_EVENT_NAMES[event]\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+           , "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\\n\"\n\t\t,%s_EVENT_NAMES[event]\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
            , cp
            , cp
           );
@@ -827,7 +832,7 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\\n\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            , cp
@@ -871,7 +876,7 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char 
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\\n\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            , eventNameByIndex(pmi, 0)
