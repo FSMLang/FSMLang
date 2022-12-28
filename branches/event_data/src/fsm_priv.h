@@ -62,25 +62,12 @@ typedef struct _machine_qualifier_       MACHINE_QUALIFIER,       *pMACHINE_QUAL
 typedef struct _machine_prefix_          MACHINE_PREFIX,          *pMACHINE_PREFIX;
 typedef struct _iterator_helper_         ITERATOR_HELPER,         *pITERATOR_HELPER;
 typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
-typedef struct _data_field_type_         DATA_FIELD_TYPE,         *pDATA_FIELD_TYPE;
-typedef struct _data_field_name_         DATA_FIELD_NAME,         *pDATA_FIELD_NAME;
-
-struct _data_field_type_
-{
-   char * name;
-   bool   isPointer;
-};
-
-struct _data_field_name_
-{
-   char * name;
-   char * dimension;
-};
 
 struct _data_field_              
 {
-   DATA_FIELD_TYPE field_type;
-   DATA_FIELD_NAME field_name;
+   pID_INFO data_type;
+   bool     isPointer;
+   char   * dimension;
 };
 
 struct _iterator_helper_
@@ -142,7 +129,7 @@ struct _id_info_ {
   pLIST         	action_returns_decl;
   pLIST        	  transition_fn_returns_decl;
   pMACHINE_INFO   powningMachine;
-  pID_INFO        pfield_type;
+  pDATA_FIELD     pdata_field;
 };
 
 struct _action_se_info_ {
@@ -214,6 +201,7 @@ char *getFileNameNoDir(const char *);
 void enumerate_pid_list(pLIST);
 void count_external_declarations(pLIST,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
+int  copyFileContents(const FILE*,const char*);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_or_event_list(pLIST,FILE*);

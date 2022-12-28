@@ -62,7 +62,7 @@ void yyerror(char *);
  pACTION_DECL						 paction_decl;
  pMACHINE_QUALIFIER       pmachine_qualifier;
  pMACHINE_PREFIX          pmachine_prefix;
- pDATA_FIELD              pdata_field;
+ pID_INFO                 pdata_field;
 }
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON PARENT NAMESPACE
@@ -76,6 +76,8 @@ void yyerror(char *);
 %token <pid_info> TRANSITION_FN
 %token <pid_info> ID
 %token <charData> STRING
+%token <pid_info> TYPE_NAME
+%token <pid_info> FIELD_NAME
 
 %type <plist>                    returns_comma_list
 %type <plist>                    event_comma_list
@@ -1171,12 +1173,6 @@ event_decl_list:	EVENT_KEY ID external_designation
            $2->externalDesignation = $3;
            $2->powningMachine = pmachineInfo;
 
-//todo: deal with this when machine is finally assembled
-//           if ($4)
-//           {
-//						   pmachineInfo->external_event_designation_count++;
-//           }
-
  					if (NULL == (add_to_list($$,$2)))
  						yyerror("Out of memory");
 
@@ -1193,12 +1189,6 @@ event_decl_list:	EVENT_KEY ID external_designation
            set_id_type($3,EVENT);
            $3->externalDesignation = $4;
            $3->powningMachine = pmachineInfo;
-
-//todo: deal with this when machine is finally assembled
-//           if ($4)
-//           {
-//						   pmachineInfo->external_event_designation_count++;
-//           }
 
  					if (NULL == (add_to_list($$,$3)))
  						yyerror("Out of memory");
@@ -1254,12 +1244,19 @@ data_field : STRING STRING data_field_dimension ';'
             );
 		 #endif
 
-    if (NULL == ($$ = calloc(1, sizeof(DATA_FIELD))))
+    pID_INFO pfield_name;
+    pID_INFO pfield_type;
+
+    add_id(id_list,FIELD_NAME,$2,&pfield_name);
+    add_id(id_list,TYPE_NAME ,$1,&pfield_type);
+
+    $$ = pfield_name;
+
+    if (NULL == (pfield_name->pdata_field = calloc(1, sizeof(DATA_FIELD))))
         yyerror("out of memory");
 
-    $$->field_type.name       = $1;
-    $$->field_name.name       = $2;
-    $$->field_name.dimension  = $3;
+    $$->pdata_field->data_type  = pfield_type;
+    $$->pdata_field->dimension  = $3;
 
   }
   | STRING '*' STRING data_field_dimension ';'
@@ -1273,13 +1270,69 @@ data_field : STRING STRING data_field_dimension ';'
             );
 		 #endif
 
-    if (NULL == ($$ = calloc(1, sizeof(DATA_FIELD))))
+    pID_INFO pfield_name;
+    pID_INFO pfield_type;
+
+    add_id(id_list,FIELD_NAME,$3,&pfield_name);
+    add_id(id_list,TYPE_NAME ,$1,&pfield_type);
+
+    $$ = pfield_name;
+
+    if (NULL == (pfield_name->pdata_field = calloc(1, sizeof(DATA_FIELD))))
         yyerror("out of memory");
 
-    $$->field_type.name       = $1;
-    $$->field_type.isPointer  = true;
-    $$->field_name.name       = $3;
-    $$->field_name.dimension  = $4;
+    $$->pdata_field->data_type  = pfield_type;
+    $$->pdata_field->dimension  = $4;
+    $$->pdata_field->isPointer  = true;
+
+  }
+  | TYPE_NAME STRING data_field_dimension ';'
+  {
+		 #ifdef PARSER_DEBUG
+		 fprintf(yyout
+            ,"found data field: TYPE (existing): %s; NAME: %s; dimension: %s\n"
+            , $1->name
+            , $2
+            , $3 ? $3 : "none"
+            );
+		 #endif
+
+    pID_INFO pfield_name;
+
+    add_id(id_list,FIELD_NAME,$2,&pfield_name);
+
+    $$ = pfield_name;
+
+    if (NULL == (pfield_name->pdata_field = calloc(1, sizeof(DATA_FIELD))))
+        yyerror("out of memory");
+
+    $$->pdata_field->data_type  = $1;
+    $$->pdata_field->dimension  = $3;
+
+  }
+  | TYPE_NAME '*' STRING data_field_dimension ';'
+  {
+		 #ifdef PARSER_DEBUG
+		 fprintf(yyout
+            ,"found data field: TYPE (existing): * %s; NAME: %s; dimension: %s\n"
+            , $1->name
+            , $3
+            , $4 ? $4 : "none"
+            );
+		 #endif
+
+    pID_INFO pfield_name;
+
+    add_id(id_list,FIELD_NAME,$3,&pfield_name);
+
+    $$ = pfield_name;
+
+    if (NULL == (pfield_name->pdata_field = calloc(1, sizeof(DATA_FIELD))))
+        yyerror("out of memory");
+
+    $$->pdata_field->data_type  = $1;
+    $$->pdata_field->dimension  = $4;
+    $$->pdata_field->isPointer  = true;
 
   }
   ;
@@ -1568,7 +1621,7 @@ const struct option longopts[] =
     }
     , {
         .name      = "css-content-internal"
-        , .has_arg = no_argument
+        , .has_arg = required_argument
         , .flag    = &longval
         , .val     = lo_css_content_internal
     }
@@ -1624,15 +1677,22 @@ int main(int argc, char **argv)
         {
             case lo_weak_fns:
                 generate_weak_fns 
-                    = !strcmp(optarg,"false") ? false : true;
+                    = !strcmp(optarg,"true") ? true : false;
                 break;
             case lo_core_logging:
                 core_logging_only 
-                    = !strcmp(optarg,"false") ? false : true;
+                    = !strcmp(optarg,"true") ? true : false;
                 break;
             case lo_include_svg_img:
                 include_svg_img
-                    = !strcmp(optarg,"false") ? false : true;
+                    = !strcmp(optarg,"true") ? true : false;
+                break;
+            case lo_css_content_filename:
+                css_content_filename = optarg;
+                break;
+            case lo_css_content_internal:
+                css_content_internal
+                    = !strcmp(optarg,"true") ? true : false;
                 break;
             default:
                 usage();
@@ -1788,7 +1848,7 @@ void yyerror(char *s)
 void usage(void)
 {
 
-	fprintf(stdout,"Usage : %s [-tc|s|h] filename, where filename ends with '.fsm'\n",me);
+	fprintf(stdout,"Usage : %s [-tc|s|h|p] filename, where filename ends with '.fsm'\n",me);
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
@@ -1801,6 +1861,9 @@ void usage(void)
  fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
  fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
+ fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
+ fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
+ fprintf(stdout,"\t\tfor the content copy.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }

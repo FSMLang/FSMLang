@@ -1,48 +1,21 @@
-##########################################
 #
-# makefile for individual test
+# manages test suites
 #
 #
 
-VPATH=../../src
+SUITES= $(shell find . -type d -printf "%P ")
 
-ifdef OUTPUT_DIR
-include $(OUTPUT_DIR)/system.mk
-#include $(OUTPUT_DIR)/source.mk
-endif
+CLEAN_SUITES=$(addsuffix .clean, $(SUITES))
 
-SRC =	lexer.c \
-			parser.c \
-			fsm_utils.c \
-			list.c 
+.PHONY: all clean $(SUITES) $(CLEAN_SUITES)
 
-ifdef NEED_RINDEX
-SRC += rindex.c
-endif
+all: $(SUITES)
 
-override CFLAGS += -ggdb -DPARSER_DEBUG -D$(ARCH) -I../ -I$(VPATH) -I .
+clean: $(CLEAN_SUITES)
 
-TESTS = $(basename $(shell find . -name "*.fsm" -printf "%P "))
+$(SUITES):
+	$(MAKE) -C $@ CFLAGS="$(CFLAGS)" OUTPUT_DIR="$(OUTPUT_DIR)" runtest
 
-echotests:
-	@echo $(TESTS)
-
-NO_RUNTEST=TRUE
-include ../test.mk
-
-runtest: $(TESTS)
-
-$(TESTS): test 
-	./test $@.fsm > $@.out 2> $@.stderr
-	cat $@.stderr >> $@.out; rm $@.stderr
-	@$(DIFF) $@.out $@.canonical > $@.result
-	@echo $@ successful
-	@rm $@.out $@.result
-      
-%fsm_utils.o %lexer.o: y.tab.h
-
-y.tab.h: parser.o
-
-clean::
-	-@rm *.[hc] > /dev/null
+$(CLEAN_SUITES):
+	$(MAKE) -C $(basename $@) clean
 

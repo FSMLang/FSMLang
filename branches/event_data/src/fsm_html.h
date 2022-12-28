@@ -39,4 +39,7 @@
 
 extern pFSMOutputGenerator	pHTMLMachineWriter;
 
+extern bool  css_content_internal;
+extern char *css_content_filename;
+
 #endif  /*  ----------------------------- Nothing below this line  -----------------  */

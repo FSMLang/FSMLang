@@ -794,30 +794,58 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
 
 bool print_data_field(pLIST_ELEMENT pelem, void *data)
 {
-   FILE *file       = (FILE*) data;
-   pDATA_FIELD pdf = (pDATA_FIELD) pelem->mbr;
+   FILE *file   = (FILE*) data;
+   pID_INFO pdf = (pID_INFO) pelem->mbr;
 
-   if (pdf->field_name.dimension == NULL)
+   if (pdf->pdata_field->dimension == NULL)
    {
       fprintf(file
              , "%s %s %s;\n"
-             , pdf->field_type.name
-             , pdf->field_type.isPointer ? "*" : ""
-             , pdf->field_name.name
+             , pdf->pdata_field->data_type->name
+             , pdf->pdata_field->isPointer ? "*" : ""
+             , pdf->name
              );
    }
    else
    {
       fprintf(file
              , "%s %s %s[%s];\n"
-             , pdf->field_type.name
-             , pdf->field_type.isPointer ? "*" : ""
-             , pdf->field_name.name
-             , pdf->field_name.dimension
+             , pdf->pdata_field->data_type->name
+             , pdf->pdata_field->isPointer ? "*" : ""
+             , pdf->name
+             , pdf->pdata_field->dimension
              );
    }
 
    return false;
+}
+
+/**
+ * Opens the file indicated by src and copies the contents into 
+ * the file indicated by dest (which must be open).
+ */
+int copyFileContents(const FILE *fDest, const char *src)
+{
+    FILE *fSrc;
+    char buf[256];
+    int numBytes;
+
+    if (NULL == (fSrc = openFile((char*)src,"r")))
+    {
+        return 1;
+    }
+
+    while (!feof(fSrc) && !ferror(fSrc) && !ferror((FILE*)fDest))
+    {
+        if (0 < (numBytes = fread(buf,sizeof(char), sizeof(buf), fSrc)))
+        {
+            numBytes = fwrite(buf, sizeof(char), numBytes, (FILE*)fDest);
+        }
+    }
+
+    fclose(fSrc);
+
+    return ferror(fSrc) + ferror((FILE*)fDest);
 }
 
 #ifdef PARSER_DEBUG

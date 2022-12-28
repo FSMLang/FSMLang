@@ -171,16 +171,38 @@ data {
 
 <DATA>[a-zA-Z_][a-zA-Z0-9_]+	{ 
 
+				 pID_INFO	pid_info;
+        int      word_type;
+
+        word_type = lookup_id(id_list, yytext, &pid_info);
+
         #ifdef LEX_DEBUG
-        printf("%s: %s\n"
-               , yytext
-               , strings[STRING]
-               );
+
+            printf("%s: %s\n"
+                   , yytext
+                   , strings[(word_type == LOOKUP) ? STRING : word_type]
+                   );
+
         #else
 
-        yylval.charData = strdup(yytext);
+            if (LOOKUP == word_type)
+            {
+                word_type = STRING;
+                yylval.charData = strdup(yytext);
+            }
+            else
+            {
+                yylval.pid_info = pid_info;
+            }
 
-        return STRING;
+            #ifdef PARSE_DEBUG
+             printf("found: %s : %s\n"
+                   ,yytext
+                   ,strings[wordType]
+                   );
+            #endif
+
+            return word_type;
 
         #endif
 

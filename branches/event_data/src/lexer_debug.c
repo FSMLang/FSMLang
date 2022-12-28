@@ -59,5 +59,7 @@ char *strings[]  = {
   , "NAMESPACE"
   , "DATA_KEY"
   , "STRING"
+  , "TYPE_NAME"
+  , "FIELD_NAME"
 };
 
