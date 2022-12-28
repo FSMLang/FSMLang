@@ -108,7 +108,7 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmw, pMACHINE_INFO p
            cp);
 
    fprintf(pcmw->cFile
-           , "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,%s_EVENT_NAMES[event]\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+           , "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\\n\"\n\t\t,%s_EVENT_NAMES[event]\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
            , cp
            , cp
           );
@@ -137,7 +137,7 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmw, pMACHINE_INFO p
           );
 
    fprintf(pcmw->cFile
-           , "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+           , "\n\tDBG_PRINTF(\"end state: %%s\\n\"\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
            , cp
           );
 
@@ -234,8 +234,6 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    {
       defineWeakActionFunctionStubs(pcmw, pmi, cp);
 
-      /* ... and for the noAction case */
-      defineWeakNoActionFunctionStubs(pcmw, pmi, cp);
    }
 
    writeDebugInfo(pcmw, pmi, cp);
@@ -298,6 +296,8 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
    defineSubMachineIF(pcmw, pmi, cp);
 
+   possiblyDefineSubMachineSharedEventStructures(pcmw, pmi, cp);
+
    defineSubMachineArray(pcmw, pmi, cp);
 
    if (generate_instance)
@@ -312,6 +312,8 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    if (generate_weak_fns)
    {
       defineSubMachineWeakActionFunctionStubs(pcmw, pmi, cp);
+
+      defineSubMachineWeakDataTranslatorStubs(pcmw, pmi, cp);
    }
 
    writeDebugInfo(pcmw, pmi, cp);
@@ -590,7 +592,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                else
                {
                   fprintf(pcmw->cFile
-                          , "#ifdef %s_DEBUG\n\t\t%s(\"%s_noAction\");\n#endif\n"
+                          , "#ifdef %s_DEBUG\n\t\t%s(\"%s_noAction\\n\");\n#endif\n"
                           , cp
                           , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                           , pmi->name->name
@@ -624,7 +626,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
       if (events_handled < pmi->event_list->count)
       {
          fprintf(pcmw->cFile
-                 , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
+                 , "\tdefault:\n\t\t%s(\"%s_noAction\\n\");\n\t\tbreak;\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                 );
@@ -769,7 +771,7 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
                else
                {
                   fprintf(pcmw->cFile
-                          , "#ifdef %s_DEBUG\n\t\tDBG_PRINTF(\"%s_noAction\");\n#endif\n"
+                          , "#ifdef %s_DEBUG\n\t\tDBG_PRINTF(\"%s_noAction\\n\");\n#endif\n"
                           , cp
                           , pmi->name->name
                          );
@@ -802,7 +804,7 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
       if (events_handled < pmi->event_list->count)
       {
          fprintf(pcmw->cFile
-                 , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
+                 , "\tdefault:\n\t\t%s(\"%s_noAction\\n\");\n\t\tbreak;\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                 );
@@ -887,7 +889,7 @@ static void writeOriginalSwitchFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, ch
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\\n\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            , cp
@@ -929,7 +931,7 @@ static void writeOriginalSwitchSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi,
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\\n\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            , eventNameByIndex(pmi,0)
@@ -1106,7 +1108,6 @@ void cswitchHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool need
       fprintf(pcmw->hFile, "\n");
 
    }
-
 
    /* if the machine has data, declare the data init function
  

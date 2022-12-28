@@ -109,6 +109,49 @@ int add_id(pLIST id_list, int type, char *name, pID_INFO *ppid_info)
 
 }
 
+bool add_unique_id(pLIST id_list, int type, char *name, pID_INFO *ppid_info)
+{
+   bool ret_val = false;
+
+  /* not already defined ? */
+  if ((ret_val = lookup_id(id_list, name, ppid_info)) == LOOKUP)
+  {
+     /* allocate new entry and link to list */
+     if ((*ppid_info = (pID_INFO) malloc(sizeof(ID_INFO))) == NULL) {
+
+       printf("!!!! error : no memory to add name\n");
+       return (0);
+
+     }
+
+     memset(*ppid_info,0,sizeof(ID_INFO));
+
+     #ifdef MEM_DEBUG
+     printf("Adding ID_INFO 0x%x\n",*ppid_info);
+     #endif
+
+     (*ppid_info)->name = strdup(name);
+     (*ppid_info)->type = type;
+
+     add_to_list(id_list,*ppid_info);
+
+     #ifdef LEX_DEBUG
+     printf("Added : %s of type %s\n",name,strings[type]);
+     #endif
+
+     ret_val = true;
+  }
+  #ifdef LEX_DEBUG
+  else
+  {
+     printf("Error : %s of type %s already exists\n",name,strings[type]);
+  }
+  #endif
+
+  return (ret_val);
+
+}
+
 static bool find_id_by_name(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO pid   = (pID_INFO) pelem->mbr;
@@ -614,7 +657,32 @@ void enumerate_pid_list(pLIST plist)
 
 static bool count_external(pLIST_ELEMENT pelem, void *data)
 {
-   if (((pID_INFO)pelem->mbr)->externalDesignation)
+   if (((pID_INFO)pelem->mbr)->type_data.event_data.externalDesignation)
+   {
+      (*((unsigned*)data))++;
+   }
+   return false;
+}
+static bool count_parent_event_refs(pLIST_ELEMENT pelem, void *data)
+{
+   if (((pID_INFO)pelem->mbr)->type_data.event_data.psharing_sub_machines)
+   {
+      (*((unsigned*)data))++;
+   }
+   return false;
+}
+static bool count_shared_evts(pLIST_ELEMENT pelem, void *data)
+{
+   if (((pID_INFO)pelem->mbr)->type_data.event_data.shared_with_parent)
+   {
+      (*((unsigned*)data))++;
+   }
+   return false;
+}
+static bool count_data_xlate(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pevent = (pID_INFO)pelem->mbr;
+   if (((pID_INFO)pelem->mbr)->type_data.event_data.data_translator)
    {
       (*((unsigned*)data))++;
    }
@@ -623,6 +691,20 @@ static bool count_external(pLIST_ELEMENT pelem, void *data)
 void count_external_declarations(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_external, counter);
+}
+void count_parent_event_referenced(pLIST plist, unsigned *counter)
+{
+   iterate_list(plist, count_parent_event_refs, counter);
+}
+
+void count_shared_events(pLIST plist, unsigned *counter)
+{
+   iterate_list(plist, count_shared_evts, counter);
+}
+
+void count_data_translators(pLIST plist, unsigned *counter)
+{
+   iterate_list(plist, count_data_xlate, counter);
 }
 
 /**
@@ -832,7 +914,7 @@ struct _debug_list_helper_
    pMACHINE_INFO pmi;
 };
 
-static bool print_state_or_event_id_info(pLIST_ELEMENT pelem, void *data)
+static bool print_state_id_info(pLIST_ELEMENT pelem, void *data)
 {
    pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
    pID_INFO pid               = (pID_INFO) pelem->mbr;
@@ -843,9 +925,55 @@ static bool print_state_or_event_id_info(pLIST_ELEMENT pelem, void *data)
        ,pid->name
        );
 
-   if (pid->externalDesignation)
+   fprintf(phelper->fout
+       ,"\n%s\n"
+       ,pid->docCmnt ? pid->docCmnt : ""
+       );
+
+   return false;  //do not quit
+}
+
+static bool print_sharing_sub_machine(pLIST_ELEMENT pelem, void *data)
+{
+   pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
+   pMACHINE_INFO      pmi     = (pMACHINE_INFO) pelem->mbr;
+
+   fprintf(phelper->fout
+           , "\t\t\t%s\n"
+           , pmi->name->name
+           );
+
+   return false;
+}
+
+static bool print_event_id_info(pLIST_ELEMENT pelem, void *data)
+{
+   pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
+   pID_INFO pid               = (pID_INFO) pelem->mbr;
+
+   fprintf(phelper->fout
+       ,"\t%d:\t%s"
+       ,phelper->counter++
+       ,pid->name
+       );
+
+   if (pid->type_data.event_data.externalDesignation)
    {
-      fprintf(phelper->fout," = %s", pid->externalDesignation->name);
+      fprintf(phelper->fout," = %s", pid->type_data.event_data.externalDesignation->name);
+   }
+
+   if (pid->type_data.event_data.psharing_sub_machines)
+   {
+      fprintf(phelper->fout
+              ,"; This event is shared by %d sub-machine%s:\n"
+              , pid->type_data.event_data.psharing_sub_machines->count
+              , pid->type_data.event_data.psharing_sub_machines->count != 1 ? "s" : ""
+              );
+
+      iterate_list(pid->type_data.event_data.psharing_sub_machines
+                   , print_sharing_sub_machine
+                   , phelper
+                   );
    }
 
    fprintf(phelper->fout
@@ -856,14 +984,24 @@ static bool print_state_or_event_id_info(pLIST_ELEMENT pelem, void *data)
    return false;  //do not quit
 }
 
-void parser_debug_print_state_or_event_list(pLIST plist, FILE *file)
+void parser_debug_print_event_list(pLIST plist, FILE *file)
 {
    DEBUG_LIST_HELPER helper;
 
    helper.fout    = file;
    helper.counter = 0;
 
-   iterate_list(plist,print_state_or_event_id_info,&helper);
+   iterate_list(plist,print_event_id_info,&helper);
+}
+
+void parser_debug_print_state_list(pLIST plist, FILE *file)
+{
+   DEBUG_LIST_HELPER helper;
+
+   helper.fout    = file;
+   helper.counter = 0;
+
+   iterate_list(plist,print_state_id_info,&helper);
 }
 
 static bool print_pid_name(pLIST_ELEMENT pelem, void *data)

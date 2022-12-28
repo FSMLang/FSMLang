@@ -65,7 +65,7 @@ void yyerror(char *);
 }
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON PARENT NAMESPACE
-%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID
+%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID TRANSLATOR_KEY
 %token <charData>	NATIVE_KEY
 %token <charData>	DATA_KEY
 %token <charData>	DOC_COMMENT
@@ -107,6 +107,7 @@ void yyerror(char *);
 %type <plist>                    machine_list
 %type <pmachine_prefix>          machine_prefix
 %type <pid_info>                 namespace_event_ref
+%type <pid_info>                 event_data
 
 %%
 
@@ -194,8 +195,11 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
  					$$->transition_fn_list = $6->pactions_and_transitions->transition_fn_list;
  					$$->machine_list       = $6->pactions_and_transitions->machine_list;
 
-						count_external_declarations($$->event_list,&($$->external_event_designation_count));
-						count_external_declarations($$->state_list,&($$->external_state_designation_count));
+						count_external_declarations  ($$->event_list,&($$->external_event_designation_count));
+						count_external_declarations  ($$->state_list,&($$->external_state_designation_count));
+						count_parent_event_referenced($$->event_list,&($$->parent_event_reference_count));
+						count_shared_events          ($$->event_list,&($$->shared_event_count));
+						count_data_translators       ($$->event_list,&($$->data_translator_count));
 
 						if (allocateActionArray($$))
  						yyerror("out of memory");
@@ -267,10 +271,17 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
            }
 
 						fprintf(yyout,"The states :\n");
- 					parser_debug_print_state_or_event_list($$->state_list,yyout);
+ 					parser_debug_print_state_list($$->state_list,yyout);
 
 						fprintf(yyout,"The events :\n");
- 					parser_debug_print_state_or_event_list($$->event_list,yyout);
+ 					parser_debug_print_event_list($$->event_list,yyout);
+
+           if ($$->parent_event_reference_count > 0)
+           {
+						   fprintf(yyout
+                      ,"%d events reference the parent machine.\n"
+                      , $$->parent_event_reference_count);
+           }
 
 						fprintf(yyout,"The actions :\n");
  					parser_debug_print_action_list_deep($$->action_list,$$,yyout);
@@ -1027,6 +1038,9 @@ event_comma_list:	EVENT ','
 						fprintf(yyout,"found the begining of an event comma list: %s\n",$1->name);
 						#endif
 
+           if ($1->type_data.event_data.psharing_sub_machines)
+             yyerror("events which are shared by sub-machines may not be part of a vector");
+
 						/* start a list */
 						if (($$ = init_list()) == NULL) 
 							yyerror("out of memory");
@@ -1041,6 +1055,9 @@ event_comma_list:	EVENT ','
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found the continuation of an event comma list. adding %s\n",$2->name);
 						#endif
+
+           if ($2->type_data.event_data.psharing_sub_machines)
+             yyerror("events which are shared by sub-machines may not be part of a vector");
 
  					$$ = $1;
 
@@ -1089,7 +1106,7 @@ state_decl:	state_decl_list ';'
 						/* we should now be able to print a list of the states */
 						fprintf(yyout,"The %d states in this list :\n",$1->count);
 
- 					parser_debug_print_state_or_event_list($1,yyout);
+ 					parser_debug_print_state_list($1,yyout);
 						#endif
 
 						$$ = $1;
@@ -1140,12 +1157,31 @@ event_decl:	event_decl_list ';'
 						#ifdef PARSER_DEBUG
 						/* we should now be able to print a list of the events */
 						fprintf(yyout,"The %d events in this list:\n",$$->count);
- 					parser_debug_print_state_or_event_list($$,yyout);
+ 					parser_debug_print_event_list($$,yyout);
 						#endif
 
 					}
 	;
 
+parent_namespace: PARENT NAMESPACE
+  {
+    if (!pmachineInfo->parent)
+        yyerror("parent namespace invoked in top-level machine");
+
+    id_list = pmachineInfo->parent->id_list;
+  }
+  ;
+
+event_data: { $$ = NULL; }
+  | TRANSLATOR_KEY ID
+     {
+        $$ = $2;
+        
+        #ifdef PARSER_DEBUG
+        fprintf(yyout,"found a data translator: %s\n", $2->name);
+        #endif
+     }
+    
 event_decl_list:	EVENT_KEY ID external_designation
 					{
 
@@ -1153,17 +1189,45 @@ event_decl_list:	EVENT_KEY ID external_designation
  						yyerror("Out of memory");
 
            set_id_type($2,EVENT);
-           $2->externalDesignation = $3;
+           $2->type_data.event_data.externalDesignation = $3;
            $2->powningMachine = pmachineInfo;
-
-//todo: deal with this when machine is finally assembled
-//           if ($4)
-//           {
-//						   pmachineInfo->external_event_designation_count++;
-//           }
 
  					if (NULL == (add_to_list($$,$2)))
  						yyerror("Out of memory");
+
+					}
+ | EVENT_KEY parent_namespace EVENT event_data
+					{
+            #ifdef PARSER_DEBUG
+            fprintf(yyout,"Found a namespace event reference\n");
+            #endif
+
+ 					if (NULL == ($$ = init_list()))
+ 						yyerror("Out of memory");
+
+           pID_INFO pid;
+
+            id_list = pmachineInfo->id_list;
+
+           if (!add_unique_id(id_list,EVENT,$3->name,&pid))
+ 						yyerror("Cannot reference parent event twice");
+
+           pid->type_data.event_data.data_translator     = $4;
+           pid->type_data.event_data.shared_with_parent  = true;
+           pid->powningMachine = pmachineInfo;
+
+ 					if (NULL == (add_to_list($$,pid)))
+ 						yyerror("Out of memory");
+
+           /* let the parent machine event know about us */
+           if (NULL == $3->type_data.event_data.psharing_sub_machines)
+           {
+ 					    if (NULL == ($3->type_data.event_data.psharing_sub_machines = init_list()))
+ 						      yyerror("Out of memory");
+           }
+
+           if (NULL == add_to_list($3->type_data.event_data.psharing_sub_machines, pmachineInfo))
+               yyerror("Out of memory");
 
 					}
 	| event_decl_list ',' ID external_designation
@@ -1176,17 +1240,44 @@ event_decl_list:	EVENT_KEY ID external_designation
 						$$ = $1;
 
            set_id_type($3,EVENT);
-           $3->externalDesignation = $4;
+           $3->type_data.event_data.externalDesignation = $4;
            $3->powningMachine = pmachineInfo;
-
-//todo: deal with this when machine is finally assembled
-//           if ($4)
-//           {
-//						   pmachineInfo->external_event_designation_count++;
-//           }
 
  					if (NULL == (add_to_list($$,$3)))
  						yyerror("Out of memory");
+
+					}
+ | event_decl_list ',' parent_namespace EVENT event_data
+					{
+            #ifdef PARSER_DEBUG
+            fprintf(yyout,"added another namespace event reference to the declaration list\n");
+            #endif
+
+            $$ = $1;
+
+           pID_INFO pid;
+
+            id_list = pmachineInfo->id_list;
+
+           if (!add_unique_id(id_list,EVENT,$4->name,&pid))
+ 						yyerror("Cannot reference parent event twice");
+
+           pid->type_data.event_data.data_translator     = $5;
+           pid->type_data.event_data.shared_with_parent  = true;
+           pid->powningMachine = pmachineInfo;
+
+ 					if (NULL == (add_to_list($$,pid)))
+ 						yyerror("Out of memory");
+
+           /* let the parent machine event know about us */
+           if (NULL == $4->type_data.event_data.psharing_sub_machines)
+           {
+ 					    if (NULL == ($4->type_data.event_data.psharing_sub_machines = init_list()))
+ 						      yyerror("Out of memory");
+           }
+
+           if (NULL == add_to_list($4->type_data.event_data.psharing_sub_machines, pmachineInfo))
+               yyerror("Out of memory");
 
 					}
 	;
@@ -1231,13 +1322,7 @@ data:	{
 
 	;
  
-namespace: PARENT NAMESPACE
-  {
-    if (!pmachineInfo->parent)
-        yyerror("parent namespace invoked in top-level machine");
-
-    id_list = pmachineInfo->parent->id_list;
-  }
+namespace: parent_namespace
   | MACHINE NAMESPACE
   {
     if (pmachineInfo->parent)

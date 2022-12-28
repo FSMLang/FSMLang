@@ -96,6 +96,19 @@ char *css_content_filename = "fsmlang.css";
 static pHTMLMachineData newHTMLMachineData(char *);
 
 /* list iteration callbacks */
+static bool print_machine_name_as_list_element(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO pmi  = (pMACHINE_INFO) pelem->mbr;
+   FILE         *fout = (FILE*) data;
+
+   fprintf(fout
+           , "<li>%s</li>\n"
+           , pmi->name->name
+           );
+
+   return false;
+}
+
 static bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
 {
    pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
@@ -126,14 +139,47 @@ static bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
    fprintf(pfsmhtmlog->pmd->htmlFile,"%s"
            , pid->docCmnt ? pid->docCmnt : "&nbsp;"
            );
-   if (pid->action_returns_decl)
+
+   if (pid->actionInfo)
    {
-      fprintf(pfsmhtmlog->pmd->htmlFile,"\n<br/><br/>Returns:<ul class=\"return_decl\">");
-      iterate_list(pid->action_returns_decl,print_id_info_as_html_list_element,pfsmhtmlog);
-      fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
-              );
+      /* if this action is associated with a shared event, it will have exactly one event */
+      pID_INFO pevent = (pID_INFO)find_nth_list_member(pid->actionInfo->matrix->event_list,0);
+
+      /* and, that event will have a list of sharing machines */
+      if (pevent->type_data.event_data.psharing_sub_machines)
+      {
+         fprintf(pfsmhtmlog->pmd->htmlFile,"\n<br/><br/>Shares event to:<ul class=\"return_decl\">");
+         iterate_list(pevent->type_data.event_data.psharing_sub_machines
+                      , print_machine_name_as_list_element
+                      , pfsmhtmlog->pmd->htmlFile
+                      );
+         fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
+                 );
+      }
+      else
+      {
+         if (pevent->type_data.event_data.shared_with_parent)
+         {
+            fprintf(pfsmhtmlog->pmd->htmlFile
+                    ,"\n<p>Handles an event shared from %s</p>\n"
+                    , pevent->powningMachine->parent->name->name
+                    );
+         }
+         else
+         {
+            if (pid->action_returns_decl)
+            {
+               fprintf(pfsmhtmlog->pmd->htmlFile,"\n<br/><br/>Returns:<ul class=\"return_decl\">");
+               iterate_list(pid->action_returns_decl,print_id_info_as_html_list_element,pfsmhtmlog);
+               fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
+                       );
+            }
+         }
+      }
+
+      fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n</tr>\n");
+
    }
-   fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n</tr>\n");
 
    return false;
 }
@@ -272,10 +318,16 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	/* event names */
 	for (e = 0;e < pmi->event_list->count;e++)
   {
-    char *eventName = eventNameByIndex(pmi, e);
-		fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t\t<th class=eventName>%s</th>\n"
-			, eventName
-			);
+    pid = eventPidByIndex(pmi,e);
+		fprintf(pfsmhtmlog->pmd->htmlFile
+            , pid->type_data.event_data.shared_with_parent
+               ? "\t\t\t<th class=eventName>(%s::) %s</th>\n"
+               : "\t\t\t<th class=eventName>%s%s</th>\n"
+            , pid->type_data.event_data.shared_with_parent
+               ? pmi->parent->name->name
+               : ""
+            , pid->name
+			      );
   }
 	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t</tr>\n\t</thead>\n");
 
@@ -372,16 +424,38 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
           if (
               pmi->actionArray[e][s]
-             && pmi->actionArray[e][s]->action->action_returns_decl
               )
           {
-             fprintf(pfsmhtmlog->pmd->htmlFile
-                     ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
-                     );
-             iterate_list(pmi->actionArray[e][s]->action->action_returns_decl, print_id_info_as_html_list_element, pfsmhtmlog);
-             fprintf(pfsmhtmlog->pmd->htmlFile
-                     , "\t</ul>\n"
-                     );
+             /* if this action is associated with a shared event, it will have exactly one event */
+             pID_INFO paction = pmi->actionArray[e][s]->action;
+             pID_INFO pevent = (pID_INFO)find_nth_list_member(paction->actionInfo->matrix->event_list,0);
+
+             /* and, that event will have a list of sharing machines */
+             if (pevent->type_data.event_data.psharing_sub_machines)
+             {
+                fprintf(pfsmhtmlog->pmd->htmlFile
+                        ,"<br/>shares event with:\n\t<ul class=\"return_decl\">\n"
+                        );
+                iterate_list(pevent->type_data.event_data.psharing_sub_machines
+                             , print_machine_name_as_list_element
+                             , pfsmhtmlog->pmd->htmlFile
+                             );
+                fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
+                        );
+             }
+             else
+             {
+                if (paction->action_returns_decl)
+                {
+                   fprintf(pfsmhtmlog->pmd->htmlFile
+                           ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+                           );
+                   iterate_list(pmi->actionArray[e][s]->action->action_returns_decl, print_id_info_as_html_list_element, pfsmhtmlog);
+                   fprintf(pfsmhtmlog->pmd->htmlFile
+                           , "\t</ul>\n"
+                           );
+                }
+             }
           }
           
           fprintf(pfsmhtmlog->pmd->htmlFile
@@ -435,10 +509,30 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 		pid = eventPidByIndex(pmi,e);
 	
 		fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<td class=\"label\">%s</td>\n"
-			, pid->name);
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<td>%s</td>\n"
+		fprintf(pfsmhtmlog->pmd->htmlFile
+            , pid->type_data.event_data.shared_with_parent
+              ? "<td class=\"label\">(%s::) %s</td>\n"
+              : "<td class=\"label\">%s%s</td>\n"
+            , pid->type_data.event_data.shared_with_parent
+              ? pmi->parent->name->name
+              : ""
+            , pid->name
+            );
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<td>%s\n"
 			, pid->docCmnt ? pid->docCmnt : "&nbsp;");
+    if (pid->type_data.event_data.psharing_sub_machines)
+    {
+       fprintf(pfsmhtmlog->pmd->htmlFile
+               ,"<p>This event is shared with:</p><ul class=\"return_decl\">\n"
+               );
+       iterate_list(pid->type_data.event_data.psharing_sub_machines
+                    , print_machine_name_as_list_element
+                    , pfsmhtmlog->pmd->htmlFile
+                    );
+       fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
+               );
+    }
+		fprintf(pfsmhtmlog->pmd->htmlFile,"</td>\n");
 		fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
 
 	}
