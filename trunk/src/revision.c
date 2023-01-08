@@ -190,5 +190,15 @@
  
    RUN_STATE_MACHINE and DECLARE_xxx_MACHINE comply with MISRA C:2012:20.7
 */
-const char rev_string[] = "1.26";
+
+/*
+   Revision 1.27:
+ 
+   sub-machines can designate events as being shared from the parent machine.  Code is generated to call the sub-machine whenever the pareent experiences the event.
+ 
+   a <i>native impl(ementation)?</i> block can be defined in the machine qualifier section, analogous to the native block preceding the machine, the <i>native
+     implementation</i> block is copied into the source file, rather than the header.
+*/
+
+const char rev_string[] = "1.27";
 
