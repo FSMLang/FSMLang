@@ -211,6 +211,8 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
      Source File
    */
 
+   addNativeImplementationIfThereIsAny(pmi, pcmw->cFile);
+
    defineStateFnArray(pcmw, pmi, cp);
 
    defineSubMachineArray(pcmw, pmi, cp);
@@ -291,6 +293,8 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    /*
      Source File
    */
+
+   addNativeImplementationIfThereIsAny(pmi, pcmw->cFile);
 
    defineStateFnArray(pcmw, pmi, cp);
 

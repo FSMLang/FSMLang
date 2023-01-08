@@ -20,6 +20,8 @@ char	charData[4096];	          /* holder for Document comments */
 char *currDocCmnt = NULL;      /* points to the most recently seen document comment. */
 int	charOffset = 0;						/* the character offset */
 
+
+
 #ifdef LEX_DEBUG
 #include "lexer_debug.h"
 #else
@@ -32,6 +34,7 @@ int	charOffset = 0;						/* the character offset */
 %x DOCCMNT
 %x DATA
 %x NATIVE
+%x NATIVE_BLCK
 
 %%
 
@@ -123,11 +126,44 @@ data	{
 native	{
 
 				BEGIN NATIVE;
-				charOffset = 0;
+
+       #ifndef LEX_DEBUG
+       return NATIVE_KEY;
+       #else
+       printf("%s\n", strings[NATIVE_KEY]);
+       #endif
 
 			}
-<NATIVE>"{"	;
-<NATIVE>"}"	{
+
+<NATIVE>"{"	{
+				BEGIN NATIVE_BLCK;
+				charOffset = 0;
+    }
+
+<NATIVE>impl(ementation)? {
+
+       #ifndef LEX_DEBUG
+       return IMPLEMENTATION_KEY;
+       #else
+       printf("%s\n", strings[IMPLEMENTATION_KEY]);
+       #endif
+
+    }
+
+<NATIVE>\n {
+
+    #ifndef LEX_DEBUG
+    lineno++;
+    #else
+    ;
+    #endif
+
+   }
+
+<NATIVE>. ;
+
+<NATIVE_BLCK>"}"	{
+
 					BEGIN INITIAL;
 					charData[charOffset] = 0;
 					#ifdef LEX_DEBUG
@@ -135,12 +171,12 @@ native	{
 					#else
 
 					yylval.charData = strdup(charData);
-					return NATIVE_KEY;
+					return NATIVE_BLOCK;
 					#endif
 
 				}
-<NATIVE>.	charData[charOffset++] = *yytext;
-<NATIVE>\n	{
+<NATIVE_BLCK>.	charData[charOffset++] = *yytext;
+<NATIVE_BLCK>\n	{
 						charData[charOffset++] = *yytext;
 					#ifndef LEX_DEBUG
 					lineno++;
