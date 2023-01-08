@@ -2451,3 +2451,14 @@ static bool declare_shared_event_lists(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+void addNativeImplementationIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
+{
+   if (pmi->native_impl)
+   {
+      fprintf(fout
+              , "%s\n"
+              , pmi->native_impl
+              );
+   }
+}
+

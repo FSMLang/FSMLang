@@ -53,6 +53,8 @@ The 1 states in this list :
 
      When e5 is received in this state, execute sub machines 2 and 3.
    
+Native
+ /* stuff native to machine1 */
 The 1 events in this list:
 	0:	e1
 
@@ -218,6 +220,8 @@ found an action with transition
 started an action declaration
 The actions in this list:
 	a3
+Found a namespace event reference
+Found an action return declaration
 process_action_info: a1
 	iterate_matrix_states: event: e1
 		add_to_action_array: state: s1
@@ -268,6 +272,8 @@ The actions :
 		and states
 				s3
 		and transitions to state s1
+		and which returns
+				namespace::e4
 Doc Comments:
 
          This action returns the parent's event e4 to signal sub
@@ -442,6 +448,12 @@ found an action without transition
 started an action declaration
 The actions in this list:
 	activate_sub_machine3
+Found a namespace event reference
+Found an action return declaration
+Found a namespace event reference
+Found an action return declaration
+Found a namespace event reference
+Found an action return declaration
 process_action_info: a1
 	iterate_matrix_states: event: e1
 		add_to_action_array: state: s1
@@ -519,6 +531,8 @@ Doc Comments:
 				e2
 		and states
 				s2
+		and which returns
+				namespace::e1
 Doc Comments:
 
      Make sub_machine1 the active machine, then
@@ -534,6 +548,9 @@ Doc Comments:
 				e3
 		and states
 				s2
+		and which returns
+				namespace::e1
+				noEvent
 Doc Comments:
 
      In the steady state, e5 triggers us to re-run sub
@@ -549,6 +566,9 @@ Doc Comments:
 		and states
 				s2
 		and transitions to state s3
+		and which returns
+				noEvent
+				namespace::e1
 Doc Comments:
 
      Make sub_machine3 the active machine, then
