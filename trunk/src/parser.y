@@ -65,8 +65,9 @@ void yyerror(char *);
 }
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON PARENT NAMESPACE
-%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID
-%token <charData>	NATIVE_KEY
+%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID NATIVE_KEY
+%token IMPLEMENTATION_KEY
+%token <charData>	NATIVE_BLOCK
 %token <charData>	DATA_KEY
 %token <charData>	DOC_COMMENT
 %token <pid_info> MACHINE
@@ -97,6 +98,7 @@ void yyerror(char *);
 %type <action_info>              transition_matrix_list
 %type <charData>                 data
 %type <charData>                 native
+%type <charData>                 native_impl
 %type <mod_flags>                machine_modifier
 %type <pmachineInfo>             machine
 %type <pstatement_decl_list>     statement_decl_list
@@ -110,7 +112,7 @@ void yyerror(char *);
 
 %%
 
-fsmlang: native machine 
+fsmlang: machine 
 					{ 
 
 						#ifdef PARSER_DEBUG
@@ -118,8 +120,23 @@ fsmlang: native machine
 
 						#else
 
-						/* grab the native language stuff */
-						$2->native = $1;
+						/* write the machine */
+						(*pfsmog->writeMachine)(pfsmog,$1);
+
+						#endif
+
+						/* get ready for the next machine */
+						freeMachineInfo($1);
+
+						free_ids(id_list);
+
+					}
+	| fsmlang machine	
+					{ 
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"making a list of machines\n"); 
+						#else
 
 						/* write the machine */
 						(*pfsmog->writeMachine)(pfsmog,$2);
@@ -132,30 +149,9 @@ fsmlang: native machine
 						free_ids(id_list);
 
 					}
-	| fsmlang native machine	
-					{ 
-
-						#ifdef PARSER_DEBUG
-						fprintf(yyout,"making a list of machines\n"); 
-						#else
-
-						/* grab the native language stuff */
-						$3->native = $2;
-
-						/* write the machine */
-						(*pfsmog->writeMachine)(pfsmog,$3);
-
-						#endif
-
-						/* get ready for the next machine */
-						freeMachineInfo($3);
-
-						free_ids(id_list);
-
-					}
 	;
 
-machine_prefix: machine_modifier MACHINE_KEY 
+machine_prefix: native machine_modifier MACHINE_KEY 
    {
 
 				if (($$ = (pMACHINE_PREFIX)calloc(1,sizeof(MACHINE_PREFIX))) == NULL)
@@ -164,7 +160,11 @@ machine_prefix: machine_modifier MACHINE_KEY
 				if (($$->pmachineInfo = (pMACHINE_INFO)calloc(1,sizeof(MACHINE_INFO))) == NULL)
 						yyerror("out of memory");
 
- 			$$->pmachineInfo->modFlags = $1;
+				/* grab any native language stuff */
+				$$->pmachineInfo->native = $1;
+
+       /* grab any modifiers */
+ 			$$->pmachineInfo->modFlags = $2;
 
        id_list = $$->pmachineInfo->id_list = init_list();
 
@@ -182,6 +182,7 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
 				    $$->name              = $2;
  			    $$->modFlags          |= $3->modFlags;
  			    $$->machineTransition = $3->machineTransition;
+           $$->native_impl       = $3->native_impl;
 
  					$$->data = $5;
 
@@ -331,21 +332,39 @@ machine_qualifier:
 
  					$$->modFlags = $1;
 		     }
-    | action_return_spec machine_transition_decl
+    | native_impl
 		     {
  					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
  						yyerror("Out of memory");
 
- 					$$->modFlags          = $1;
- 					$$->machineTransition = $2;
+ 					$$->native_impl = $1;
 		     }
-    | machine_transition_decl action_return_spec
+    | machine_qualifier machine_transition_decl
 		     {
- 					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
- 						yyerror("Out of memory");
+           if ($1->machineTransition)
+             yyerror("only one machine transition declaration allowed per machine");
 
- 					$$->machineTransition = $1;
- 					$$->modFlags          = $2;
+ 					$1->machineTransition = $2;
+
+           $$ = $1;
+		     }
+    | machine_qualifier action_return_spec
+		     {
+           if ($1->modFlags != mfNone)
+             yyerror("only one action return spec allowed per machine");
+
+ 					$1->modFlags          = $2;
+
+           $$ = $1;
+		     }
+    | machine_qualifier native_impl
+		     {
+           if ($1->native_impl)
+             yyerror("only one native implementation allowed per machine");
+
+           $1->native_impl = $2;
+
+           $$ = $1;
 		     }
     ;
 
@@ -1206,12 +1225,23 @@ external_designation : {
 native:	{
 						$$ = NULL;
 			}
-	| NATIVE_KEY
+	| NATIVE_KEY NATIVE_BLOCK
 					{
 						#ifdef PARSER_DEBUG
-						fprintf(yyout,"Native\n%s\n",$1);
+						fprintf(yyout,"Native\n%s\n",$2);
 						#else
-						$$ = $1;
+						$$ = $2;
+						#endif
+					}
+
+	;
+ 
+native_impl: NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK
+					{
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"Native implementation\n%s\n",$3);
+						#else
+						$$ = $3;
 						#endif
 					}
 

@@ -236,6 +236,8 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
      Source File
    */
 
+   addNativeImplementationIfThereIsAny(pmi, pcmw->cFile);
+
    defineActionArray(pcmw, pmi, cp);
 
    defineSubMachineIF(pcmw, pmi, cp);
@@ -288,6 +290,8 @@ static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    /*
      Source File
    */
+
+   addNativeImplementationIfThereIsAny(pmi, pcmw->cFile);
 
    defineActionArray(pcmw, pmi, cp);
 

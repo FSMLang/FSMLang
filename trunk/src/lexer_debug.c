@@ -57,5 +57,7 @@ char *strings[]  = {
   , "VOID"
   , "PARENT"
   , "NAMESPACE"
+  , "NATIVE_KEY"
+  , "IMPLEMENTATION_KEY"
 };
 
