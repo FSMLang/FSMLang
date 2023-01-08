@@ -58,6 +58,7 @@ enum states {
   , VOID
   , PARENT
   , NAMESPACE
+  , TRANSLATOR_KEY
   , NATIVE_KEY
   , IMPLEMENTATION_KEY
 };
