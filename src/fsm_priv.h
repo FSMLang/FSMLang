@@ -43,7 +43,8 @@
 		of "machine" and also the action return specifiers.
 */
 typedef enum {
-	mfReentrant             = 1
+  mfNone
+	, mfReentrant           = 1
 	, mfActionsReturnStates = 2
   , mfActionsReturnVoid   = 4
   , mfMachineTransition   = 8
@@ -153,6 +154,7 @@ struct _machine_qualifier_
 {
    MOD_FLAGS			modFlags;
    pID_INFO      machineTransition;
+   char          *native_impl;
 };
 
 struct _machine_info_ {
@@ -169,6 +171,7 @@ struct _machine_info_ {
 	pACTION_INFO	**actionArray;
 	pLIST					data;
 	char					*native;
+	char					*native_impl;
 	MOD_FLAGS			modFlags;
   pID_INFO      machineTransition;
   pLIST         machine_list;
@@ -202,6 +205,7 @@ void enumerate_pid_list(pLIST);
 void count_external_declarations(pLIST,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
+void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_or_event_list(pLIST,FILE*);

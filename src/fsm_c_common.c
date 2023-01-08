@@ -2088,3 +2088,14 @@ bool print_event_macro(pLIST_ELEMENT pelem, void *data)
 
 }
 
+void addNativeImplementationIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
+{
+   if (pmi->native_impl)
+   {
+      fprintf(fout
+              , "%s\n"
+              , pmi->native_impl
+              );
+   }
+}
+

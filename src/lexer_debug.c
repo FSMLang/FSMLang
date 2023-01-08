@@ -61,5 +61,7 @@ char *strings[]  = {
   , "STRING"
   , "TYPE_NAME"
   , "FIELD_NAME"
+  , "NATIVE_KEY"
+  , "IMPLEMENTATION_KEY"
 };
 
