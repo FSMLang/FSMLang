@@ -59,11 +59,18 @@ bool generate_weak_fns = true;
 bool core_logging_only = false;
 bool include_svg_img   = false;
 
-static bool  print_sub_machine_as_enum_member        (pLIST_ELEMENT,void*);
-static bool  declare_sub_machine_if                  (pLIST_ELEMENT,void*);
-static bool  define_weak_action_function             (pLIST_ELEMENT,void*);
-static bool  define_sub_machine_weak_action_function (pLIST_ELEMENT,void*);
-static bool  print_event_macro                       (pLIST_ELEMENT,void*);
+static bool  print_sub_machine_as_enum_member               (pLIST_ELEMENT,void*);
+static bool  declare_sub_machine_if                         (pLIST_ELEMENT,void*);
+static bool  define_weak_action_function                    (pLIST_ELEMENT,void*);
+static bool  define_sub_machine_weak_action_function        (pLIST_ELEMENT,void*);
+static bool  print_event_macro                              (pLIST_ELEMENT,void*);
+static bool  declare_shared_event_lists                     (pLIST_ELEMENT,void*);
+static bool  declare_shared_event_data_blocks               (pLIST_ELEMENT,void*);
+static void  declare_parent_event_reference_data_structures (pCMachineData,pMACHINE_INFO,char*);
+static void  define_parent_event_reference_elements         (pCMachineData,pMACHINE_INFO,char*);
+static bool  define_shared_event_lists                      (pLIST_ELEMENT,void*);
+static bool  define_shared_event_data_blocks                (pLIST_ELEMENT,void*);
+static bool  reference_shared_event_data_blocks             (pLIST_ELEMENT,void*);
 
 int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
@@ -207,7 +214,7 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
            pmi->name->name,
            eventNameByIndex(pmi, 0)
            , assignExternalEventValues(pmi)
-           ? (eventPidByIndex(pmi, 0))->externalDesignation->name
+           ? (eventPidByIndex(pmi, 0))->type_data.event_data.externalDesignation->name
            : ""
           );
 
@@ -220,7 +227,7 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
               , pmi->name->name
               , eventNameByIndex(pmi, i)
               , assignExternalEventValues(pmi)
-              ? (eventPidByIndex(pmi, i))->externalDesignation->name
+              ? (eventPidByIndex(pmi, i))->type_data.event_data.externalDesignation->name
               : ""
              );
    }
@@ -471,6 +478,10 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
               , "\n"
               );
 
+      if (pmi->parent_event_reference_count)
+      {
+         declare_parent_event_reference_data_structures(pcmw, pmi, cp);
+      }
    }
 
    /* put the data structure definition into the header */
@@ -678,7 +689,7 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
               , cp
              );
       fprintf(pcmw->cFile
-              , "{\n\t%s(\"weak: %s_noAction\");\n}\n\n"
+              , "{\n\t%s(\"weak: %s_noAction\\n\");\n}\n\n"
               , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
               );
@@ -694,7 +705,7 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
                  , cp
                 );
          fprintf(pcmw->cFile
-                 , "{\n\t%s(\"weak: %s_noAction\");\n"
+                 , "{\n\t%s(\"weak: %s_noAction\\n\");\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                  );
@@ -712,7 +723,7 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
                  , cp
                 );
          fprintf(pcmw->cFile
-                 , "{\n\t%s(\"weak: %s_noAction\");\n"
+                 , "{\n\t%s(\"weak: %s_noAction\\n\");\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                  );
@@ -1126,6 +1137,181 @@ static bool declare_sub_machine_if(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static void declare_parent_event_reference_data_structures(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   ITERATOR_HELPER ih;
+
+   fprintf(pcmw->hFile
+           ,"/* Some sub-machines share parent events. */\n"
+           );
+
+   fprintf(pcmw->hFile
+           , "typedef void (*%s_DATA_TRANSLATION_FN)(p%s);\n"
+           , cp
+           , cp
+           );
+
+   fprintf(pcmw->hFile
+           ,"typedef struct _%s_shared_event_str_ %s_SHARED_EVENT_STR, *p%s_SHARED_EVENT_STR;\n"
+           , pmi->name->name
+           , cp
+           , cp
+           );
+
+   fprintf(pcmw->hFile
+           , "struct _%s_shared_event_str_\n{"
+           , pmi->name->name
+           );
+
+   fprintf(pcmw->hFile
+           , "\t%s_EVENT                event;\n"
+           , cp
+           );
+
+   fprintf(pcmw->hFile
+           , "\t%s_DATA_TRANSLATION_FN  data_translation_fn;\n"
+           , cp
+           );
+
+   fprintf(pcmw->hFile
+           , "\tp%s_SUB_FSM_IF          psub_fsm_if;\n"
+           , cp
+           );
+
+   fprintf(pcmw->hFile
+           , "};\n"
+           );
+
+   fprintf(pcmw->hFile
+           , "extern %s_EVENT pass_shared_event(p%s,p%s_SHARED_EVENT_STR[]);\n\n"
+           , cp
+           , cp
+           , cp
+           );
+
+   ih.fout = pcmw->hFile;
+   ih.pmi  = pmi;
+   ih.cp   = cp;
+
+   iterate_list(pmi->event_list,declare_shared_event_lists,&ih);
+
+   fprintf(pcmw->hFile
+           , "\n"
+           );
+}
+
+static bool define_shared_event_lists(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pevent      = (pID_INFO)pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   if (pevent->type_data.event_data.psharing_sub_machines)
+   {
+      pih->pid   = pevent;
+      pih->first = true;
+
+      fprintf(pih->fout
+              , "p%s_SHARED_EVENT_STR sharing_%s_%s[] =\n{\n"
+              , pih->cp
+              , pih->pmi->name->name
+              , pevent->name
+              );
+
+      iterate_list(pevent->type_data.event_data.psharing_sub_machines, reference_shared_event_data_blocks, pih);
+
+      fprintf(pih->fout
+              , "\t, NULL\n"
+              );
+
+      fprintf(pih->fout
+              , "};\n\n"
+              );
+
+   }
+
+   return false;
+}
+
+static bool define_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO pmi    = (pMACHINE_INFO)pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   return false;
+}
+
+static bool reference_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO pmi    = (pMACHINE_INFO)pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   fprintf(pih->fout
+           , "\t%s&%s_share_%s_%s_str\n"
+           , pih->first ? "  " : ", "
+           , pmi->name->name
+           , pmi->parent->name->name
+           , pih->pid->name
+           );
+
+   pih->first = false;
+
+   return false;
+}
+
+static void define_parent_event_reference_elements(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   ITERATOR_HELPER ih;
+
+   ih.pmi   = pmi;
+   ih.fout  = pcmw->cFile;
+   ih.cp    = cp;
+   ih.first = true;
+
+   /* define arrays */
+   iterate_list(pmi->event_list, define_shared_event_lists, &ih);
+
+   /* passing function */
+   fprintf(pcmw->cFile
+           , "%s_EVENT pass_shared_event(p%s pfsm, p%s_SHARED_EVENT_STR sharer_list[])\n{\n"
+           , cp
+           , cp
+           , cp
+           );
+
+   fprintf(pcmw->cFile
+           , "\t%s_EVENT return_event = %s_noEvent;\n"
+           , cp
+           , pmi->name->name
+           );
+
+   fprintf(pcmw->cFile
+           , "\tfor (p%s_SHARED_EVENT_STR *pcurrent_sharer = sharer_list;\n\t     *pcurrent_sharer && return_event == %s_noEvent;\n\t     pcurrent_sharer++)\n\t{\n"
+           , cp
+           , pmi->name->name
+           );
+
+   fprintf(pcmw->cFile
+           , "\t\tif ((*pcurrent_sharer)->data_translation_fn)\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\t\t\t(*(*pcurrent_sharer)->data_translation_fn)(pfsm);\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\t\treturn_event = (*(*pcurrent_sharer)->psub_fsm_if->subFSM)((*pcurrent_sharer)->event);\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\t}\n\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\treturn return_event;\n}\n\n"
+           );
+
+}
+
 bool declare_action_function(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
@@ -1285,6 +1471,45 @@ bool declare_state_only_transition_functions_for_when_actions_return_events(pLIS
    return false;
 }
 
+bool declare_data_translator_functions(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pevent                = ((pID_INFO)pelem->mbr);
+
+   if (pevent->type_data.event_data.data_translator)
+   {
+      fprintf(pich->pcmw->hFile
+              , "void %s_%s(p%s);\n"
+              , pich->pmi->name->name
+              , pevent->type_data.event_data.data_translator->name
+              , pich->parent_cp
+             );
+   }
+
+   return false;
+}
+
+bool define_weak_data_translator_functions(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pevent                = ((pID_INFO)pelem->mbr);
+
+   if (pevent->type_data.event_data.data_translator)
+   {
+      fprintf(pich->pcmw->cFile
+              , "void __attribute__((weak)) %s_%s(p%s pfsm)\n{\n\t(void) pfsm;\n\t%s(\"weak: %s_%s\\n\");\n}\n\n"
+              , pich->pmi->name->name
+              , pevent->type_data.event_data.data_translator->name
+              , pich->parent_cp
+              , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+              , pich->pmi->name->name
+              , pevent->type_data.event_data.data_translator->name
+             );
+   }
+
+   return false;
+}
+
 bool sub_machine_declare_state_only_transition_functions_for_when_actions_return_events(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
@@ -1320,7 +1545,7 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                 );
 
          fprintf(pich->pcmw->cFile
-                 , "\t%s(\"weak: %s_%s\");\n"
+                 , "\t%s(\"weak: %s_%s\\n\");\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pich->pmi->name->name
                  , pid_info->name
@@ -1340,7 +1565,7 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\t%s(\"weak: %s_%s\");\n"
+                    , "\t%s(\"weak: %s_%s\\n\");\n"
                     , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
@@ -1363,15 +1588,30 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\t%s(\"weak: %s_%s\");\n"
+                    , "\t%s(\"weak: %s_%s\\n\");\n"
                     , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
                     );
 
-            fprintf(pich->pcmw->cFile
-                    , "\treturn THIS(noEvent);\n"
-                    );
+            /* if this action is associated with a shared event, it will have exactly one event */
+            pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->actionInfo->matrix->event_list,0);
+
+            /* and, that event will have a list of sharing machines */
+            if (pevent->type_data.event_data.psharing_sub_machines)
+            {
+               fprintf(pich->pcmw->cFile
+                       , "\treturn pass_shared_event(pfsm, sharing_%s_%s);\n"
+                       , pich->pmi->name->name
+                       , pevent->name
+                       );
+            }
+            else
+            {
+               fprintf(pich->pcmw->cFile
+                       , "\treturn THIS(noEvent);\n"
+                       );
+            }
 
          }
       }
@@ -1773,7 +2013,11 @@ void subMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool n
                     , ich.parent_cp
                    );
       }
+      fprintf(pcmw->cFile, "\n");
    }
+
+   iterate_list(pmi->event_list, declare_data_translator_functions, &ich);
+   fprintf(pcmw->cFile, "\n");
 
    FREE_AND_CLEAR(ich.parent_cp);
 
@@ -1790,7 +2034,77 @@ void subMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool n
 
 }
 
-void defineSubMachineIF(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static bool define_needed_shared_event_structures(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pevent      = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   if (pevent->type_data.event_data.shared_with_parent)
+   {
+      fprintf(pih->fout
+              , "%s_SHARED_EVENT_STR %s_share_%s_%s_str = {\n"
+              , pih->parent_cp
+              , pih->pmi->name->name
+              , pih->pmi->parent->name->name
+              , pevent->name
+              );
+
+      fprintf(pih->fout
+              , "\t  .event               = THIS(%s)\n"
+              , pevent->name
+              );
+
+      fprintf(pih->fout
+              , "\t, .data_translation_fn = "
+              );
+
+      if (pevent->type_data.event_data.data_translator)
+      {
+         fprintf(pih->fout
+                 , "%s_%s\n"
+                 , pih->pmi->name->name
+                 , pevent->type_data.event_data.data_translator->name
+                 );
+      }
+      else
+      {
+         fprintf(pih->fout
+                 , "NULL\n"
+                 );
+
+      }
+
+      fprintf(pih->fout
+              , "\t, .psub_fsm_if         = &%s_sub_fsm_if\n"
+              , pih->pmi->name->name
+              );
+
+      fprintf(pih->fout
+              , "};\n\n"
+              );
+
+   }
+
+   return false;
+}
+
+void possiblyDefineSubMachineSharedEventStructures (pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   ITERATOR_HELPER ih;
+
+   if (pmi->shared_event_count)
+   {
+      ih.pmi  = pmi;
+      ih.fout = pcmw->cFile;
+      ih.cp   = cp;
+      ih.parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
+
+      iterate_list(pmi->event_list, define_needed_shared_event_structures, &ih);
+   }
+
+}
+
+void defineSubMachineIF (pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    char *parent_cp;
 
@@ -1865,6 +2179,12 @@ void defineSubMachineArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
       fprintf(pcmw->cFile
               ,"};\n\n"
               );
+
+      if (pmi->parent_event_reference_count)
+      {
+         define_parent_event_reference_elements(pcmw, pmi, cp);
+      }
+
    }
 }
 
@@ -1946,7 +2266,7 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                 );
 
          fprintf(pich->pcmw->cFile
-                 , "\t%s(\"weak: %s_%s\");\n"
+                 , "\t%s(\"weak: %s_%s\\n\");\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pich->pmi->name->name
                  , pid_info->name
@@ -1966,7 +2286,7 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\t%s(\"weak: %s_%s\");\n"
+                    , "\t%s(\"weak: %s_%s\\n\");\n"
                     , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
@@ -1989,7 +2309,7 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                    );
 
             fprintf(pich->pcmw->cFile
-                    , "\t%s(\"weak: %s_%s\");\n"
+                    , "\t%s(\"weak: %s_%s\\n\");\n"
                     , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
@@ -2022,6 +2342,21 @@ void defineSubMachineWeakActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO p
 
    iterate_list(pmi->action_list
                 , define_sub_machine_weak_action_function
+                , &ich
+                );
+}
+
+void defineSubMachineWeakDataTranslatorStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
+
+   ich.pcmw      = pcmw;
+   ich.pmi       = pmi;
+   ich.cp        = cp;
+   ich.parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
+
+   iterate_list(pmi->event_list
+                , define_weak_data_translator_functions
                 , &ich
                 );
 }
@@ -2086,6 +2421,45 @@ bool print_event_macro(pLIST_ELEMENT pelem, void *data)
    free(cp);
    return false;
 
+}
+
+static bool declare_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO pmi    = (pMACHINE_INFO)pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   fprintf(pih->fout
+           , "extern %s_SHARED_EVENT_STR %s_share_%s_%s_str;\n"
+           , pih->cp
+           , pmi->name->name
+           , pmi->parent->name->name
+           , pih->pid->name
+           );
+
+   return false;
+}
+
+static bool declare_shared_event_lists(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pevent      = (pID_INFO)pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   if (pevent->type_data.event_data.psharing_sub_machines)
+   {
+
+      pih->pid = pevent;
+      iterate_list(pevent->type_data.event_data.psharing_sub_machines, declare_shared_event_data_blocks, pih);
+
+      fprintf(pih->fout
+              , "extern p%s_SHARED_EVENT_STR sharing_%s_%s[];\n\n"
+              , pih->cp
+              , pih->pmi->name->name
+              , pevent->name
+              );
+
+   }
+
+   return false;
 }
 
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)

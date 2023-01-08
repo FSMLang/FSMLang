@@ -99,14 +99,18 @@ bool            declare_state_only_transition_functions_for_when_actions_return_
 bool            sub_machine_declare_state_only_transition_functions_for_when_actions_return_states(pLIST_ELEMENT,void*);
 bool            declare_state_only_transition_functions_for_when_actions_return_events(pLIST_ELEMENT,void*);
 bool            sub_machine_declare_state_only_transition_functions_for_when_actions_return_events(pLIST_ELEMENT,void*);
+bool            declare_data_translator_functions(pLIST_ELEMENT,void*);
+bool            define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 
 char          * subMachineHeaderStart(pCMachineData, pMACHINE_INFO, char *);
 void            subMachineHeaderEnd(pCMachineData, pMACHINE_INFO, char *, bool);
 void            defineSubMachineIF(pCMachineData, pMACHINE_INFO, char *);
+void            possiblyDefineSubMachineSharedEventStructures(pCMachineData, pMACHINE_INFO, char *);
 void            defineSubMachineArray(pCMachineData, pMACHINE_INFO, char *);
 bool            declare_sub_machine_action_function(pLIST_ELEMENT,void*);
 bool            print_sub_machine_if(pLIST_ELEMENT,void*);
 void            defineSubMachineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
+void            defineSubMachineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineFinder(pCMachineData, pMACHINE_INFO, char *);
 bool            declare_action_function(pLIST_ELEMENT,void*);
 

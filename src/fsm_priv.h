@@ -71,6 +71,23 @@ struct _data_field_
    char   * dimension;
 };
 
+typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
+
+typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
+
+struct _event_data_
+{
+   pID_INFO        externalDesignation;
+   pLIST           psharing_sub_machines;
+   bool            shared_with_parent;
+   pID_INFO        data_translator;
+};
+
+union _pid_type_data_
+{
+   EVENT_DATA    event_data;
+};
+
 struct _iterator_helper_
 {
    FILE          *fout;
@@ -80,6 +97,7 @@ struct _iterator_helper_
    bool          error;
    bool          first;
    char          *cp;
+   char          *parent_cp;
    int           event;
 };
 
@@ -123,14 +141,14 @@ struct _id_info_ {
   char    			  *name;
   int     			  type;
   pID_INFO			  nextID;
-  pID_INFO        externalDesignation;
 	char					  *docCmnt;
   unsigned        order;
-	pACTION_INFO	  actionInfo;
-  pLIST         	action_returns_decl;
-  pLIST        	  transition_fn_returns_decl;
+  PID_TYPE_DATA   type_data;
   pMACHINE_INFO   powningMachine;
   pDATA_FIELD     pdata_field;
+  pACTION_INFO    actionInfo;
+  pLIST           action_returns_decl;
+  pLIST           transition_fn_returns_decl;
 };
 
 struct _action_se_info_ {
@@ -161,6 +179,8 @@ struct _machine_info_ {
   pMACHINE_INFO parent;
   pLIST         state_list;
   int           external_state_designation_count;
+  int           parent_event_reference_count;
+  int           data_translator_count;
   pLIST         event_list;
   int           external_event_designation_count;
 	pLIST   			transition_list;
@@ -175,13 +195,15 @@ struct _machine_info_ {
 	MOD_FLAGS			modFlags;
   pID_INFO      machineTransition;
   pLIST         machine_list;
+  int           shared_event_count;
   pLIST         id_list;
 };
 
 /* lexer id list handlers */
 extern pLIST id_list;
-int add_id(pLIST, int, char *, pID_INFO *);
-int lookup_id(pLIST, char *, pID_INFO *);
+int  add_id(pLIST, int, char *, pID_INFO *);
+bool add_unique_id(pLIST, int, char *, pID_INFO *);
+int  lookup_id(pLIST, char *, pID_INFO *);
 void free_ids(pLIST);
 
 /** _A is pID_INFO; _B is new type (int)   */
@@ -203,12 +225,16 @@ int  allocateActionArray(pMACHINE_INFO);
 char *getFileNameNoDir(const char *);
 void enumerate_pid_list(pLIST);
 void count_external_declarations(pLIST,unsigned*);
+void count_parent_event_referenced(pLIST,unsigned*);
+void count_shared_events(pLIST,unsigned*);
+void count_data_translators(pLIST,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
 
 #ifdef PARSER_DEBUG
-void parser_debug_print_state_or_event_list(pLIST,FILE*);
+void parser_debug_print_state_list(pLIST,FILE*);
+void parser_debug_print_event_list(pLIST,FILE*);
 void parser_debug_print_id_list_names(pLIST,pMACHINE_INFO,FILE*,char*);
 void parser_debug_print_action_list_deep(pLIST,pMACHINE_INFO,FILE*);
 void parser_debug_print_transition_list(pLIST,FILE*);
