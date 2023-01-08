@@ -104,15 +104,47 @@ pFSMOutputGenerator pPlantUMLSubMachineWriter = (pFSMOutputGenerator) &PlantUMLS
 static pPlantUMLMachineData newPlantUMLMachineData(char *);
 
 /* list iteration callbacks */
+static bool print_sharing_machines(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO               pmi        = (pMACHINE_INFO) pelem->mbr;
+   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
+
+   fprintf(pfsmpumlog->pmd->pumlFile
+           , "%s\n"
+           , pmi->name->name
+           );
+
+   return false;
+}
+
 static bool print_loop_back_event(pLIST_ELEMENT pelem, void *data)
 {
    pLOOP_BACK_EVENT            ple        = (pLOOP_BACK_EVENT) pelem->mbr;
    pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
 
+   pID_INFO pevent = eventPidByIndex(pfsmpumlog->pmd->pmi, ple->e);
+
    fprintf(pfsmpumlog->pmd->pumlFile
-           ,"%s: %s\n"
-           , eventNameByIndex(pfsmpumlog->pmd->pmi, ple->e)
+           ,"%s: %s"
+           , pevent->name
            , ple->action ? ple->action->name : ""
+           );
+
+   if (pevent->type_data.event_data.psharing_sub_machines)
+   {
+      fprintf(pfsmpumlog->pmd->pumlFile
+              , "\nShared with:\n"
+              );
+
+      iterate_list(pevent->type_data.event_data.psharing_sub_machines
+                   , print_sharing_machines
+                   , pfsmpumlog
+                   );
+
+   }
+
+   fprintf(pfsmpumlog->pmd->pumlFile
+           , "\n"
            );
 
    return false;
@@ -222,7 +254,7 @@ int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
-	pID_INFO			  pid;
+	pID_INFO			  pevent;
 	pACTION_INFO	  pai;
   pACTION_SE_INFO pasei;
 	int						  e,s;
@@ -255,19 +287,48 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
             pmi->actionArray[e][s]
             )
         {
-           if (pmi->actionArray[e][s]->transition)
+           pai = pmi->actionArray[e][s];
+           pevent = eventPidByIndex(pmi, e);
+
+           if (pai->transition)
            {
-              if (pmi->actionArray[e][s]->transition->type == STATE)
+              if (pai->transition->type == STATE)
               {
                  /* simple state transition */
                  fprintf(pfsmpumlog->pmd->pumlFile
-                         , "%s --> %s : Event: %s\\nAction: %s\n"
+                         , pevent->type_data.event_data.shared_with_parent
+                           ? "%s --> %s : Event: (%s::) %s\\nAction: %s"
+                           : "%s --> %s : Event: %s%s\\nAction: %s"
                          , stateNameByIndex(pmi, s)
                          , pmi->actionArray[e][s]->transition->name
-                         , eventNameByIndex(pmi, e)
-                         , pmi->actionArray[e][s]->action
-                             ? pmi->actionArray[e][s]->action->name
-                             : ""
+                         , pevent->type_data.event_data.shared_with_parent
+                           ? pmi->parent->name->name
+                           : ""
+                         , pevent->name
+                         , pai->action
+                             ? pai->action->name
+                             : "noAction"
+                         );
+
+                 if (pevent->type_data.event_data.psharing_sub_machines)
+                 {
+                    fprintf(pfsmpumlog->pmd->pumlFile
+                            , "\\nEvent shared with:\\n"
+                            );
+
+                    iterate_list(pevent->type_data.event_data.psharing_sub_machines
+                                 , print_sharing_machines
+                                 , pfsmpumlog
+                                 );
+
+                    fprintf(pfsmpumlog->pmd->pumlFile
+                            , "\n"
+                            );
+
+                 }
+
+                 fprintf(pfsmpumlog->pmd->pumlFile
+                         , "\n"
                          );
               }
               else
@@ -290,9 +351,9 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                          , pmi->actionArray[e][s]->transition->name
                          );
 
-                 if (pmi->actionArray[e][s]->transition->transition_fn_returns_decl)
+                 if (pai->transition->transition_fn_returns_decl)
                  {
-                    ih.pid = pmi->actionArray[e][s]->transition;
+                    ih.pid = pai->transition;
                     ih.fout = pfsmpumlog->pmd->pumlFile;
 
                     iterate_list(ih.pid->transition_fn_returns_decl
@@ -304,11 +365,12 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                  {
                     fprintf(stderr
                             , "transition function: %s\n"
-                            , pmi->actionArray[e][s]->transition->name
+                            , pai->transition->name
                             );
                     yyerror("It is required to declare what the transition function returns.");
                  }
               }
+
            }
            else
            {
@@ -317,7 +379,7 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
               pLOOP_BACK_EVENT plbe = malloc(sizeof(LOOP_BACK_EVENT));
 
               plbe->e      = e;
-              plbe->action = pmi->actionArray[e][s]->action;
+              plbe->action = pai->action;
 
               add_to_list(loopBackEvents, plbe);
            }
@@ -332,14 +394,20 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
          //do nothing
          break;
       case 1:
+         pevent = eventPidByIndex(pmi, ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->e);
          fprintf(pfsmpumlog->pmd->pumlFile
-                 , "%s --> %s : %s\\n%s\n"
+                 , pevent->type_data.event_data.shared_with_parent
+                   ? "%s --> %s : Event: (%s::) %s\\nAction: %s\n"
+                   : "%s --> %s : Event: %s%s\\nAction: %s\n"
                  , stateNameByIndex(pmi, s)
                  , stateNameByIndex(pmi, s)
-                 , eventNameByIndex(pmi, ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->e)
+                 , pevent->type_data.event_data.shared_with_parent
+                   ? pmi->parent->name->name
+                   : ""
+                 , pevent->name
                  , ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->action
                      ? ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->action->name
-                     : ""
+                     : "noAction"
                  );
          break;
       default:
