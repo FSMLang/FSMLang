@@ -1,0 +1,19 @@
+machine newMachine
+{
+	state	s1,s2,s3,s4;
+	event	e1,e2,e3,e4;
+	action	a1[(e1,e2),(s1,s2)] transition s2,
+					a2[e3,(s1,s2)] transition s2,
+					a3[(e1,e2),s3],
+					a4[e4,s4] transition s2;
+}
+
+machine anotherNewMachine
+{
+	state	anmS1,anmS2,anmS3,anmS4;
+	event	anmE1,anmE2,anmE3,anmE4;
+	action anmA1[(anmE1,anmE2),(anmS1,anmS2)];
+	action anmA2[anmE3,(anmS1,anmS2)] transition anmS2;
+	action anmA3[(anmE1,anmE2),anmS3] transition anmS2;
+	action anmA4[anmE4,anmS4] transition anmS2;
+}
