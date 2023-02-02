@@ -19,7 +19,7 @@ machine newMachine
   */
   native {/* here could be added header stuff for subMachine1 */}
   machine subMachine1 
-  native implementation
+  native impl
   {
     #undef DBG_PRINTF
     #define DBG_PRINTF(...) printf("sub-machine1: "); printf(__VA_ARGS__); printf("\n");
