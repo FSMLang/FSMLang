@@ -1,0 +1,24 @@
+native
+{
+#include "test.h"
+}
+
+/**
+	Doc comments
+*/
+machine test4FSM
+	actions return states;
+{
+	data {
+		int	 foo;
+		float	bar;
+	}
+
+	event	goodMessage, badMessage;
+	state	initial, working;
+
+	action	processMessage[goodMessage,(initial,working)];
+	action	sendErrorIndication[badMessage,(initial,working)];
+
+}
+
