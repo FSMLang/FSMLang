@@ -1,20 +1,15 @@
 event: test4FSM_goodMessage; start state: test4FSM_initial
-
 processing good message
 end state: test4FSM_working
 event: test4FSM_badMessage; start state: test4FSM_working
-
 sending error indication
 end state: test4FSM_initial
 event: test4FSM_goodMessage; start state: test4FSM_initial
-
 processing good message
 end state: test4FSM_working
 event: test4FSM_goodMessage; start state: test4FSM_working
-
 processing good message
 end state: test4FSM_working
 event: test4FSM_badMessage; start state: test4FSM_working
-
 sending error indication
 end state: test4FSM_initial
