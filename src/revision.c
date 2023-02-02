@@ -200,5 +200,11 @@
      implementation</i> block is copied into the source file, rather than the header.
 */
 
-const char rev_string[] = "1.27";
+/*
+   Revision 1.28:
+ 
+   EOLs which crept back into DBG_PRINTFs removed.
+*/
+
+const char rev_string[] = "1.28";
 
