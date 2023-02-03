@@ -1,0 +1,287 @@
+NATIVE_KEY
+Native:
+
+Copy this to the header file.
+
+MACHINE_KEY
+Added : newMachine of type ID
+newMachine : ID
+ON
+TRANSITION_KEY
+Added : baz of type ID
+baz : ID
+;
+NATIVE_KEY
+IMPLEMENTATION_KEY
+Native:
+ copy this to the source file; 
+{
+STATE_KEY
+Added : s1 of type ID
+s1 : ID
+,
+Added : s2 of type ID
+s2 : ID
+,
+Added : s3 of type ID
+s3 : ID
+;
+EVENT_KEY
+Added : e1 of type ID
+e1 : ID
+,
+Added : e2 of type ID
+e2 : ID
+,
+Added : e3 of type ID
+e3 : ID
+;
+EVENT_KEY
+Added : e4 of type ID
+e4 : ID
+=
+Added : BAR of type ID
+BAR : ID
+;
+Doc Comment:
+ a sub machine 
+MACHINE_KEY
+Added : subMachine1 of type ID
+subMachine1 : ID
+{
+STATE_KEY
+Added : ss1 of type ID
+ss1 : ID
+,
+Added : ss2 of type ID
+ss2 : ID
+,
+Added : ss3 of type ID
+ss3 : ID
+;
+EVENT_KEY
+Added : ee1 of type ID
+ee1 : ID
+,
+Added : ee2 of type ID
+ee2 : ID
+,
+Added : ee3 of type ID
+ee3 : ID
+;
+Doc Comment:
+ a sub-sub machine 
+MACHINE_KEY
+Added : subSubMachine1 of type ID
+subSubMachine1 : ID
+{
+STATE_KEY
+Added : z1 of type ID
+z1 : ID
+,
+Added : z2 of type ID
+z2 : ID
+;
+EVENT_KEY
+Added : y1 of type ID
+y1 : ID
+,
+Added : y2 of type ID
+y2 : ID
+;
+ACTION_KEY
+Added : x1 of type ID
+x1 : ID
+[
+Found : y1 of type ID
+y1 : ID
+,
+Found : z1 of type ID
+z1 : ID
+]
+;
+ACTION_KEY
+Added : x2 of type ID
+x2 : ID
+[
+Found : y2 of type ID
+y2 : ID
+,
+Found : z1 of type ID
+z1 : ID
+]
+TRANSITION_KEY
+Found : z2 of type ID
+z2 : ID
+;
+}
+ACTION_KEY
+Added : aa1 of type ID
+aa1 : ID
+[
+Found : ee1 of type ID
+ee1 : ID
+,
+Found : ss1 of type ID
+ss1 : ID
+]
+TRANSITION_KEY
+Found : ss2 of type ID
+ss2 : ID
+;
+ACTION_KEY
+Added : aa2 of type ID
+aa2 : ID
+[
+Found : ee2 of type ID
+ee2 : ID
+,
+Found : ss1 of type ID
+ss1 : ID
+]
+TRANSITION_KEY
+Found : ss3 of type ID
+ss3 : ID
+;
+}
+Doc Comment:
+ a second sub machine 
+MACHINE_KEY
+Added : subMachine2 of type ID
+subMachine2 : ID
+{
+STATE_KEY
+Added : sss1 of type ID
+sss1 : ID
+,
+Added : sss2 of type ID
+sss2 : ID
+,
+Added : sss3 of type ID
+sss3 : ID
+;
+EVENT_KEY
+Added : eee1 of type ID
+eee1 : ID
+,
+Added : eee2 of type ID
+eee2 : ID
+,
+Added : eee3 of type ID
+eee3 : ID
+;
+ACTION_KEY
+Added : aaa1 of type ID
+aaa1 : ID
+[
+Found : ee1 of type ID
+ee1 : ID
+,
+Found : sss1 of type ID
+sss1 : ID
+]
+TRANSITION_KEY
+Found : sss2 of type ID
+sss2 : ID
+;
+ACTION_KEY
+Added : aaa2 of type ID
+aaa2 : ID
+[
+Found : eee2 of type ID
+eee2 : ID
+,
+Found : sss1 of type ID
+sss1 : ID
+]
+TRANSITION_KEY
+Found : sss3 of type ID
+sss3 : ID
+;
+}
+ACTION_KEY
+Added : a1 of type ID
+a1 : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+Found : s1 of type ID
+s1 : ID
+]
+TRANSITION_KEY
+Found : s1 of type ID
+s1 : ID
+;
+Doc Comment:
+
+		A Document Comment
+	
+ACTION_KEY
+Added : a2 of type ID
+a2 : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+(
+Found : s2 of type ID
+s2 : ID
+,
+Found : s3 of type ID
+s3 : ID
+)
+]
+TRANSITION_KEY
+Added : transitionFn of type ID
+transitionFn : ID
+;
+TRANSITION_KEY
+[
+(
+Found : e2 of type ID
+e2 : ID
+,
+Found : e3 of type ID
+e3 : ID
+)
+,
+(
+Found : s1 of type ID
+s1 : ID
+,
+Found : s2 of type ID
+s2 : ID
+,
+Found : s3 of type ID
+s3 : ID
+)
+]
+Added : transitionFn1 of type ID
+transitionFn1 : ID
+;
+Found : transitionFn of type ID
+transitionFn : ID
+RETURNS
+Found : s1 of type ID
+s1 : ID
+,
+Found : s2 of type ID
+s2 : ID
+;
+Found : transitionFn1 of type ID
+transitionFn1 : ID
+RETURNS
+Found : s2 of type ID
+s2 : ID
+,
+Found : s3 of type ID
+s3 : ID
+;
+Found : a2 of type ID
+a2 : ID
+RETURNS
+Added : noEvent of type ID
+noEvent : ID
+;
+}
