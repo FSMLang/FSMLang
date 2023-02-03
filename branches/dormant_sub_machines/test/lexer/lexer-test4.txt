@@ -1,0 +1,20 @@
+/*
+	Here are some comments
+*/
+machine newMachine
+{
+	state s1, s2, s3;
+	event e1, e2, e3;
+
+	//This is a one-line comment
+	action a1[e1,s1] transition s1;
+	action a1[e1,s1] transition transitionFn;
+
+	/**
+		A Document Comment
+	*/
+	action a2[e1,(s2,s3)] transition transitionFn;
+	transition[(e2,e3),(s1,s2,s3)] transitionFn1;
+
+}
+
