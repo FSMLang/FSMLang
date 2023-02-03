@@ -113,6 +113,7 @@ void            defineSubMachineWeakActionFunctionStubs(pCMachineData,pMACHINE_I
 void            defineSubMachineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineFinder(pCMachineData, pMACHINE_INFO, char *);
 bool            declare_action_function(pLIST_ELEMENT,void*);
+void            declareSubMachineManagers(pCMachineData,pMACHINE_INFO,char*);
 
 #endif
 

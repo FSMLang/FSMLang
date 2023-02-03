@@ -860,6 +860,12 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
               , "\n\t\telse\n\t\t{\n"
               );
 
+      if (pmi->submachine_inhibitor_count)
+      {
+         fprintf(pcmw->cFile
+                 , "\t\t\tif (doNotInhibitSubMachines(pfsm->state))\n\t"
+                 );
+      }
       fprintf(pcmw->cFile
               , "\t\t\te = findAndRunSubMachine(pfsm, e);\n\t\t}\n\n\t}"
               );
@@ -1329,12 +1335,7 @@ static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
    if (pmi->machine_list)
    {
-      fprintf(pcmw->cFile
-              , "static %s_EVENT findAndRunSubMachine(p%s, %s_EVENT);\n\n"
-              , cp
-              , cp
-              , cp
-              );
+      declareSubMachineManagers(pcmw, pmi, cp);
    }
 
    fprintf(pcmw->cFile

@@ -433,11 +433,22 @@ static void defineCSwitchMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char 
    if (pmi->machine_list)
    {
       fprintf(pcmw->cFile
-              , "static %s_EVENT findAndRunSubMachine(p%s, %s_EVENT);\n\n"
+              , "static %s_EVENT findAndRunSubMachine(p%s, %s_EVENT);\n"
               , cp
               , cp
               , cp
               );
+
+      if (pmi->submachine_inhibitor_count)
+      {
+         fprintf(pcmw->cFile
+                 , "static bool doNotInhibitSubMachines(%s_STATE);\n"
+                 , cp
+                 );
+
+      }
+
+      fprintf(pcmw->cFile, "\n");
    }
 
    fprintf(pcmw->cFile
@@ -917,8 +928,18 @@ static void writeOriginalSwitchFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, ch
               , "\t\telse\n\t\t{\n"
               );
 
+      if (pmi->submachine_inhibitor_count)
+      {
+         fprintf(pcmw->cFile
+                 , "\t\t\tif (doNotInhibitSubMachines(pfsm->state))\n\t"
+                 );
+      }
       fprintf(pcmw->cFile
-              , "\t\t\te = findAndRunSubMachine(pfsm, e);\n\t\t}\n\n\t}"
+              , "\t\t\te = findAndRunSubMachine(pfsm, e);"
+              );
+
+      fprintf(pcmw->cFile
+              , "\n\t\t}\n\n\t}"
               );
    }
 
@@ -1209,8 +1230,6 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp,
 
       }
 
-      fprintf(pcmw->cFile, "\n");
-
    }
    else
    {
@@ -1224,9 +1243,11 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp,
 
       }
 
-      fprintf(pcmw->cFile, "\n");
-
    }
+
+   iterate_list(pmi->event_list, declare_data_translator_functions, &ich);
+   fprintf(pcmw->cFile, "\n");
+
 
    FREE_AND_CLEAR(ich.parent_cp);
 
