@@ -1,0 +1,48 @@
+native
+{
+#define DBG_PRINTF(...) printf(__VA_ARGS__); printf("\n")
+}
+
+/*
+	Here are some comments
+*/
+machine newMachine
+ on transition baz;
+{
+	state s1, s2, s3;
+	event e1, e2, e3;
+  event e4 = BAR;
+
+
+	/**
+		a sub-machine
+  */
+  native {/* here could be added header stuff for subMachine1 */}
+  machine subMachine1 
+  native impl
+  {
+    #undef DBG_PRINTF
+    #define DBG_PRINTF(...) printf("sub-machine1: "); printf(__VA_ARGS__); printf("\n");
+  }
+  {
+		state ss1, ss2, ss3;
+		event ee1, ee2, ee3;
+
+		action aa1[ee1,ss1] transition ss2;
+		action aa2[ee2, ss1] transition ss3;
+	}
+
+	//This is a one-line comment
+	action a1[e1,s1] transition s1;
+
+	/**
+		A Document Comment
+	*/
+	action a2[e1,(s2,s3)] transition transitionFn;
+	transition[(e2,e3),(s1,s2,s3)] transitionFn1;
+
+	transitionFn  returns s1,s2;
+	transitionFn1 returns s2,s3;
+
+}
+
