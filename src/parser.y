@@ -176,7 +176,20 @@ machine_prefix: native machine_modifier MACHINE_KEY
    }
  	;
 
-machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}' 
+machine:	machine_prefix ID machine_qualifier 
+         {
+            if (!($3->modFlags & ACTIONS_RETURN_FLAGS))
+            {
+   						pID_INFO pid_info;
+              /* note that this is not added to the machine event list; it is here only to be
+              found as an event id for return decls.
+              */
+   						add_id(id_list, EVENT,"noEvent",&pid_info);
+              pid_info->powningMachine = pmachineInfo;
+   
+            }
+         } 
+        '{' data statement_decl_list '}'
 					{
 
 						$$ = $1->pmachineInfo;
@@ -186,16 +199,16 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
  			    $$->machineTransition = $3->machineTransition;
            $$->native_impl       = $3->native_impl;
 
- 					$$->data = $5;
+ 					$$->data = $6;
 
 						/* harvest the lists */
- 					$$->state_list         = $6->pstate_and_event_decls->state_decls;
- 					$$->event_list         = $6->pstate_and_event_decls->event_decls;
- 					$$->action_list        = $6->pactions_and_transitions->action_list;
- 					$$->action_info_list   = $6->pactions_and_transitions->action_info_list;
- 					$$->transition_list    = $6->pactions_and_transitions->transition_list;
- 					$$->transition_fn_list = $6->pactions_and_transitions->transition_fn_list;
- 					$$->machine_list       = $6->pactions_and_transitions->machine_list;
+ 					$$->state_list         = $7->pstate_and_event_decls->state_decls;
+ 					$$->event_list         = $7->pstate_and_event_decls->event_decls;
+ 					$$->action_list        = $7->pactions_and_transitions->action_list;
+ 					$$->action_info_list   = $7->pactions_and_transitions->action_info_list;
+ 					$$->transition_list    = $7->pactions_and_transitions->transition_list;
+ 					$$->transition_fn_list = $7->pactions_and_transitions->transition_fn_list;
+ 					$$->machine_list       = $7->pactions_and_transitions->machine_list;
 
 						count_external_declarations  ($$->event_list,&($$->external_event_designation_count));
 						count_external_declarations  ($$->state_list,&($$->external_state_designation_count));
@@ -318,16 +331,8 @@ machine:	machine_prefix ID machine_qualifier '{' data statement_decl_list '}'
 
 machine_qualifier:
         {
-						pID_INFO pid_info;
-           /* note that this is not added to the machine event list; it is here only to be
-           found as an event id for return decls.
-           */
-						add_id(id_list, EVENT,"noEvent",&pid_info);
-           pid_info->powningMachine = pmachineInfo;
-
- 					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
- 						yyerror("Out of memory");
-
+    					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
+    						yyerror("Out of memory");
         }
     | machine_transition_decl
 		     {

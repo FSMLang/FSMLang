@@ -44,5 +44,7 @@ machine newMachine
 	transitionFn  returns s1,s2;
 	transitionFn1 returns s2,s3;
 
+	a1 returns noEvent;
+
 }
 

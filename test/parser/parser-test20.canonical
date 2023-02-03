@@ -5,6 +5,8 @@ Native
 #define DBG_PRINTF printf
 #endif
 
+Native implementation
+copy this to the source file
 The 1 events in this list:
 	0:	e1
 
@@ -35,16 +37,6 @@ The 1 events in this list:
      It is time to do the periodic chore.  This chore requires that 
      sub machine 2 be run, followed by sub machine 3.
    
-The 1 events in this list:
-	0:	e6
-
-      This is the "dispatch loop" event.
-   
-The 1 events in this list:
-	0:	e7
-
-     This is another event to be passed to some sub-machines.
-   
 found the start of a state declaration list
 The 1 states in this list :
 	0:	s1
@@ -73,14 +65,6 @@ The 1 events in this list:
 
 The 1 events in this list:
 	0:	e3
-
-Found a namespace event reference
-found a data translator: translate_e7_data
-added another namespace event reference to the declaration list
-The 2 events in this list:
-	0:	e6
-
-	1:	e7
 
 found the start of a state declaration list
 The 1 states in this list :
@@ -134,7 +118,7 @@ process_action_info: a3
 		add_to_action_array: state: s3
 populate_action_array returning false
 found a machine named sub_machine1
-	with 5 events and 3 states
+	with 3 events and 3 states
 Actions return events
 The states :
 	0:	s1
@@ -153,10 +137,6 @@ The events :
 	1:	e2
 
 	2:	e3
-
-	3:	e6
-
-	4:	e7
 
 The actions :
 	a1
@@ -196,11 +176,8 @@ The 1 events in this list:
 The 1 events in this list:
 	0:	e2
 
-added another namespace event reference to the declaration list
-The 2 events in this list:
+The 1 events in this list:
 	0:	e3
-
-	1:	e6
 
 found the start of a state declaration list
 The 1 states in this list :
@@ -256,7 +233,7 @@ process_action_info: a3
 		add_to_action_array: state: s3
 populate_action_array returning false
 found a machine named sub_machine2
-	with 4 events and 3 states
+	with 3 events and 3 states
 Actions return events
 The states :
 	0:	s1
@@ -275,8 +252,6 @@ The events :
 	1:	e2
 
 	2:	e3
-
-	3:	e6
 
 The actions :
 	a1
@@ -320,10 +295,6 @@ The 1 events in this list:
 
 The 1 events in this list:
 	0:	e3
-
-Found a namespace event reference
-The 1 events in this list:
-	0:	e7
 
 found the start of a state declaration list
 The 1 states in this list :
@@ -377,7 +348,7 @@ process_action_info: a3
 		add_to_action_array: state: s3
 populate_action_array returning false
 found a machine named sub_machine3
-	with 4 events and 3 states
+	with 3 events and 3 states
 Actions return events
 The states :
 	0:	s1
@@ -396,8 +367,6 @@ The events :
 	1:	e2
 
 	2:	e3
-
-	3:	e7
 
 The actions :
 	a1
@@ -479,6 +448,7 @@ found an action without transition
 started an action declaration
 The actions in this list:
 	activate_sub_machine3
+Found an action return declaration
 Found a namespace event reference
 Found an action return declaration
 Found a namespace event reference
@@ -505,7 +475,7 @@ process_action_info: activate_sub_machine3
 		add_to_action_array: state: s3
 populate_action_array returning false
 found a machine named top_level
-	with 7 events and 3 states
+	with 5 events and 3 states
 Actions return events
 The states :
 	0:	s1
@@ -546,21 +516,6 @@ The events :
      It is time to do the periodic chore.  This chore requires that 
      sub machine 2 be run, followed by sub machine 3.
    
-	5:	e6; This event is shared by 2 sub-machines:
-			sub_machine1
-			sub_machine2
-
-
-      This is the "dispatch loop" event.
-   
-	6:	e7; This event is shared by 2 sub-machines:
-			sub_machine1
-			sub_machine3
-
-
-     This is another event to be passed to some sub-machines.
-   
-2 events reference the parent machine.
 The actions :
 	a1
 		which occurs in these events
@@ -568,6 +523,8 @@ The actions :
 		and states
 				s1
 		and transitions to state s2
+		and which returns
+				noEvent
 Doc Comments:
 
       Do a top level action
