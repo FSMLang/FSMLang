@@ -17,6 +17,7 @@ native
     machine 3.
 */
 machine top_level
+native impl {copy this to the source file}
 {
    /**
      This event causes the machine to initialize itself, then
@@ -49,16 +50,6 @@ machine top_level
    event e5;
 
    /**
-      This is the "dispatch loop" event.
-   */
-   event e6;
-
-   /**
-     This is another event to be passed to some sub-machines.
-   */
-   event e7;
-
-   /**
      startup state; initialize the machine when e1 happens.
    */
    state s1;
@@ -84,8 +75,6 @@ machine top_level
 		   event e1;
        event e2;
        event e3;
-
-	event parent::e6, parent::e7 data translator translate_e7_data;
 
 		   state s1;
        state s2;
@@ -115,7 +104,7 @@ machine top_level
        */
 		   event e1;
        event e2;
-       event e3, parent::e6;
+       event e3;
 
 		   state s1;
        state s2;
@@ -151,7 +140,6 @@ machine top_level
 		   event e1;
        event e2;
        event e3;
-       event parent::e7;
 
 		   state s1;
        state s2;
@@ -204,6 +192,8 @@ machine top_level
    */
    action activate_sub_machine2[e5, s3];
    action activate_sub_machine3[e4, s3];
+
+   a1 returns noEvent;
 
    activate_sub_machine1 returns sub_machine1::e1;
    activate_sub_machine2 returns sub_machine2::e1, noEvent;
