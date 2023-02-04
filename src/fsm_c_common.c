@@ -159,11 +159,12 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
            , cp
           );
    fprintf(pcmw->hFile
-           , "%s (A) =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
+           , "%s (A) =\\\n{\\\n%s\t%s_%s,\\n\t%s_noEvent,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
            , cp
            , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
            , pmi->name->name
            , stateNameByIndex(pmi, 0)
+           , pmi->name->name
            , pmi->name->name
            , arrayName
            , pmi->name->name
@@ -641,7 +642,26 @@ void generateInstance(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *arr
            pmi->name->name,
            pmi->data ? "\n\tINIT_FSM_DATA," : "",
            pmi->name->name,
-           stateNameByIndex(pmi, 0));
+           stateNameByIndex(pmi, 0)
+           );
+
+   if (pmi->parent)
+   {
+      fprintf(pcmw->cFile
+              , "\t%s_%s_%s,\n"
+              , pmi->parent->name->name
+              , pmi->name->name
+              , eventNameByIndex(pmi, 0)
+              );
+   }
+   else
+   {
+      fprintf(pcmw->cFile
+              , "\t%s_%s,\n"
+              , pmi->name->name
+              , eventNameByIndex(pmi, 0)
+              );
+   }
 
    fprintf(pcmw->cFile, "\t&%s_%s_array,\n"
            , pmi->name->name
@@ -1663,11 +1683,13 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
            , cp
           );
    fprintf(pcmw->hFile
-           , "%s A =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &(A);\n\n"
+           , "%s A =\\\n{\\\n%s\t%s_%s,\\n\t%s_%s_noEvent,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &(A);\n\n"
            , cp
            , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
            , pmi->name->name
            , stateNameByIndex(pmi, 0)
+           , pmi->name->name
+           , pmi->parent->name->name
            , pmi->name->name
            , arrayName
            , pmi->name->name
