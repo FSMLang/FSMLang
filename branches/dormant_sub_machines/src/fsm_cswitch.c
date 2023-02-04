@@ -396,6 +396,8 @@ static void declareCSwitchSubMachineStateFnArray(pCMachineData pcmw, pMACHINE_IN
 
 static void declareCSwitchMachineStruct(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
+   char *parent_cp = NULL;
+
    /* put the machine structure definition into the header */
    fprintf(pcmw->hFile, "struct _%s_struct_ {\n",
            pmi->name->name);
@@ -408,6 +410,15 @@ static void declareCSwitchMachineStruct(pCMachineData pcmw, pMACHINE_INFO pmi, c
 
    fprintf(pcmw->hFile, "\t%s_STATE\t\t\t\t\tstate;\n",
            cp);
+
+   fprintf(pcmw->hFile
+           , "\t%s_EVENT\t\t\t\t\tevent;\n"
+           , pmi->parent 
+             ? (parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name))
+             : cp
+           );
+
+   CHECK_AND_FREE(parent_cp);
 
    fprintf(pcmw->hFile, "\t%s_STATE_FN const\t(*statesArray)[%s_numStates];\n"
            , cp
@@ -911,6 +922,15 @@ static void writeOriginalSwitchFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, ch
           );
    fprintf(pcmw->cFile, "#endif\n\n");
 
+   fprintf(pcmw->cFile
+           , "\t/* This is read-only data to facilitate error reporting in action functions */\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\tpfsm->event = %s;\n\n"
+           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+           );
+
    if (pmi->machine_list)
    {
       fprintf(pcmw->cFile
@@ -963,6 +983,15 @@ static void writeOriginalSwitchSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi,
            , cp
           );
    fprintf(pcmw->cFile, "#endif\n\n");
+
+   fprintf(pcmw->cFile
+           , "\t/* This is read-only data to facilitate error reporting in action functions */\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\tpfsm->event = %s;\n\n"
+           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+           );
 
    if (pmi->modFlags & mfActionsReturnVoid)
    {
