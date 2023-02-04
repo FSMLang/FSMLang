@@ -206,5 +206,15 @@
    EOLs which crept back into DBG_PRINTFs removed.
 */
 
-const char rev_string[] = "1.28";
+/*
+   Revision 1.29:
+ 
+   Declare data translation functions in switch machines
+   Allow states to declare that sub-machines are to be inhibited therein
+   Put the current event into the FSM struct; this should not be used to make
+      decisions (that's what the machine itself is for!), but for refined
+      error reporting (or the like) in actions.
+*/
+
+const char rev_string[] = "1.29";
 

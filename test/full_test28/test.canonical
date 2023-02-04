@@ -1,6 +1,6 @@
 Hello, world.
 
-FSM version: 1.28
+FSM version: 1.29
 
 event: top_level_e1; state: top_level_s1
 weak: top_level_a1
