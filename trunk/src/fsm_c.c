@@ -843,6 +843,15 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
           );
    fprintf(pcmw->cFile, "#endif\n\n");
 
+   fprintf(pcmw->cFile
+           , "\t/* This is read-only data to facilitate error reporting in action functions */\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\tpfsm->event = %s;\n\n"
+           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+           );
+
    if (pmi->machine_list)
    {
       fprintf(pcmw->cFile
@@ -860,6 +869,12 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
               , "\n\t\telse\n\t\t{\n"
               );
 
+      if (pmi->submachine_inhibitor_count)
+      {
+         fprintf(pcmw->cFile
+                 , "\t\t\tif (doNotInhibitSubMachines(pfsm->state))\n\t"
+                 );
+      }
       fprintf(pcmw->cFile
               , "\t\t\te = findAndRunSubMachine(pfsm, e);\n\t\t}\n\n\t}"
               );
@@ -887,6 +902,15 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char 
            , cp
           );
    fprintf(pcmw->cFile, "#endif\n\n");
+
+   fprintf(pcmw->cFile
+           , "\t/* This is read-only data to facilitate error reporting in action functions */\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "\tpfsm->event = %s;\n\n"
+           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+           );
 
    if (pmi->machine_list)
    {
@@ -1119,6 +1143,8 @@ static void defineCMachineTransitionFnArray(pCMachineData pcmw, pMACHINE_INFO pm
 
 static void declareCMachineStruct(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
+   char *parent_cp = NULL;
+
    /* put the machine structure definition into the header */
    fprintf(pcmw->hFile, "struct _%s_struct_ {\n",
            pmi->name->name);
@@ -1131,6 +1157,15 @@ static void declareCMachineStruct(pCMachineData pcmw, pMACHINE_INFO pmi, char *c
 
    fprintf(pcmw->hFile, "\t%s_STATE\t\t\t\t\tstate;\n",
            cp);
+
+   fprintf(pcmw->hFile
+           , "\t%s_EVENT\t\t\t\t\tevent;\n"
+           , pmi->parent 
+             ? (parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name))
+             : cp
+           );
+
+   CHECK_AND_FREE(parent_cp);
 
    fprintf(pcmw->hFile, "\t%s_ACTION_%s const\t(*actionArray)[%s_numEvents][%s_numStates];\n"
            , cp
@@ -1329,12 +1364,7 @@ static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
    if (pmi->machine_list)
    {
-      fprintf(pcmw->cFile
-              , "static %s_EVENT findAndRunSubMachine(p%s, %s_EVENT);\n\n"
-              , cp
-              , cp
-              , cp
-              );
+      declareSubMachineManagers(pcmw, pmi, cp);
    }
 
    fprintf(pcmw->cFile

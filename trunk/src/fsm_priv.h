@@ -50,6 +50,11 @@ typedef enum {
   , mfMachineTransition   = 8
 } MOD_FLAGS;
 
+typedef enum {
+   sfNone
+   , sfInibitSubMachines = 1
+} STATE_FLAGS;
+
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
 
 typedef struct _id_info_				         ID_INFO,                 *pID_INFO;
@@ -65,8 +70,15 @@ typedef struct _machine_qualifier_       MACHINE_QUALIFIER,       *pMACHINE_QUAL
 typedef struct _machine_prefix_          MACHINE_PREFIX,          *pMACHINE_PREFIX;
 typedef struct _iterator_helper_         ITERATOR_HELPER,         *pITERATOR_HELPER;
 typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
+typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
+
+
+struct _state_data_
+{
+   STATE_FLAGS state_flags;
+};
 
 struct _event_data_
 {
@@ -79,6 +91,7 @@ struct _event_data_
 union _pid_type_data_
 {
    EVENT_DATA    event_data;
+   STATE_DATA    state_data;
 };
 
 struct _iterator_helper_
@@ -173,6 +186,7 @@ struct _machine_info_ {
   int           external_state_designation_count;
   int           parent_event_reference_count;
   int           data_translator_count;
+  int           submachine_inhibitor_count;
   pLIST         event_list;
   int           external_event_designation_count;
 	pLIST   			transition_list;
@@ -217,6 +231,7 @@ int  allocateActionArray(pMACHINE_INFO);
 char *getFileNameNoDir(const char *);
 void enumerate_pid_list(pLIST);
 void count_external_declarations(pLIST,unsigned*);
+void count_sub_machine_inhibitors(pLIST,unsigned*);
 void count_parent_event_referenced(pLIST,unsigned*);
 void count_shared_events(pLIST,unsigned*);
 void count_data_translators(pLIST,unsigned*);

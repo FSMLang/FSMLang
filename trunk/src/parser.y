@@ -66,7 +66,7 @@ void yyerror(char *);
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON PARENT NAMESPACE
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID TRANSLATOR_KEY
-%token IMPLEMENTATION_KEY
+%token IMPLEMENTATION_KEY INHIBITS SUBMACHINES
 %token <charData>	NATIVE_KEY
 %token <charData>	NATIVE_BLOCK
 %token <charData>	DATA_KEY
@@ -111,6 +111,7 @@ void yyerror(char *);
 %type <pmachine_prefix>          machine_prefix
 %type <pid_info>                 namespace_event_ref
 %type <pid_info>                 event_data
+%type <pid_info>                 state
 
 %%
 
@@ -211,10 +212,15 @@ machine:	machine_prefix ID machine_qualifier
  					$$->machine_list       = $7->pactions_and_transitions->machine_list;
 
 						count_external_declarations  ($$->event_list,&($$->external_event_designation_count));
-						count_external_declarations  ($$->state_list,&($$->external_state_designation_count));
 						count_parent_event_referenced($$->event_list,&($$->parent_event_reference_count));
 						count_shared_events          ($$->event_list,&($$->shared_event_count));
 						count_data_translators       ($$->event_list,&($$->data_translator_count));
+
+						count_external_declarations  ($$->state_list,&($$->external_state_designation_count));
+ 					if ($$->machine_list)
+						{
+						    count_sub_machine_inhibitors  ($$->state_list,&($$->submachine_inhibitor_count));
+						}
 
 						if (allocateActionArray($$))
  						yyerror("out of memory");
@@ -1139,7 +1145,29 @@ state_decl:	state_decl_list ';'
 					}
 	;
 
-state_decl_list:	STATE_KEY ID	
+state: ID
+         {
+ 				  $$ = $1;
+           set_id_type($$,STATE);
+           $$->powningMachine = pmachineInfo;
+         }
+ 	| state INHIBITS SUBMACHINES
+					{
+         	#ifdef PARSER_DEBUG
+         	fprintf(yyout
+										, "state %s inhibits submachines\n"
+ 									, $1->name
+										);
+         	#endif
+
+ 					$$ = $1;
+
+ 					$$->type_data.state_data.state_flags |= sfInibitSubMachines;
+
+		      }
+ 				;
+
+state_decl_list:	STATE_KEY state	
 					{
 
 						#ifdef PARSER_DEBUG
@@ -1149,14 +1177,12 @@ state_decl_list:	STATE_KEY ID
  					if (NULL == ($$ = init_list()))
  						yyerror("Out of memory");
 
-           set_id_type($2,STATE);
-           $2->powningMachine = pmachineInfo;
 
  					if (NULL == (add_to_list($$,$2)))
  						yyerror("Out of memory");
 
 					}
-	| state_decl_list ',' ID 
+	| state_decl_list ',' state 
 					{
 
 						#ifdef PARSER_DEBUG
