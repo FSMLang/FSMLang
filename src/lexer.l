@@ -383,6 +383,22 @@ parent {
 					#endif
 				}
 
+inhibits {
+					#ifndef LEX_DEBUG
+					return INHIBITS;
+					#else
+					printf("%s\n",strings[INHIBITS]);
+					#endif
+				}
+
+submachines {
+					#ifndef LEX_DEBUG
+					return SUBMACHINES;
+					#else
+					printf("%s\n",strings[SUBMACHINES]);
+					#endif
+				}
+
 :: {
 					#ifndef LEX_DEBUG
 					return NAMESPACE;

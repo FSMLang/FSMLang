@@ -65,6 +65,8 @@ enum states {
   , TRANSLATOR_KEY
   , NATIVE_KEY
   , IMPLEMENTATION_KEY
+  , INHIBITS
+  , SUBMACHINES
 };
 
 extern char *strings[];

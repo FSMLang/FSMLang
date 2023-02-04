@@ -71,6 +71,8 @@ static void  define_parent_event_reference_elements         (pCMachineData,pMACH
 static bool  define_shared_event_lists                      (pLIST_ELEMENT,void*);
 static bool  define_shared_event_data_blocks                (pLIST_ELEMENT,void*);
 static bool  reference_shared_event_data_blocks             (pLIST_ELEMENT,void*);
+static bool  print_inhibited_state_case                     (pLIST_ELEMENT,void*);
+static void  defineSubMachineInhibitor                      (pCMachineData,pMACHINE_INFO,char*);
 
 int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
@@ -157,11 +159,12 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
            , cp
           );
    fprintf(pcmw->hFile
-           , "%s (A) =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
+           , "%s (A) =\\\n{\\\n%s\t%s_%s,\\n\t%s_noEvent,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
            , cp
            , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
            , pmi->name->name
            , stateNameByIndex(pmi, 0)
+           , pmi->name->name
            , pmi->name->name
            , arrayName
            , pmi->name->name
@@ -645,7 +648,26 @@ void generateInstance(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *arr
            pmi->name->name,
            pmi->data ? "\n\tINIT_FSM_DATA," : "",
            pmi->name->name,
-           stateNameByIndex(pmi, 0));
+           stateNameByIndex(pmi, 0)
+           );
+
+   if (pmi->parent)
+   {
+      fprintf(pcmw->cFile
+              , "\t%s_%s_%s,\n"
+              , pmi->parent->name->name
+              , pmi->name->name
+              , eventNameByIndex(pmi, 0)
+              );
+   }
+   else
+   {
+      fprintf(pcmw->cFile
+              , "\t%s_%s,\n"
+              , pmi->name->name
+              , eventNameByIndex(pmi, 0)
+              );
+   }
 
    fprintf(pcmw->cFile, "\t&%s_%s_array,\n"
            , pmi->name->name
@@ -1240,6 +1262,23 @@ static bool define_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static bool print_inhibited_state_case(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid                   = (pID_INFO)pelem->mbr;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+
+   if (pid->type_data.state_data.state_flags & sfInibitSubMachines)
+   {
+      fprintf(pich->pcmw->cFile
+             , "\t\tcase %s_%s:\n"
+             , pich->pmi->name->name
+             , pid->name
+             );
+   }
+
+   return false;
+}
+
 static bool reference_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO pmi    = (pMACHINE_INFO)pelem->mbr;
@@ -1650,11 +1689,13 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
            , cp
           );
    fprintf(pcmw->hFile
-           , "%s A =\\\n{\\\n%s\t%s_%s,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &(A);\n\n"
+           , "%s A =\\\n{\\\n%s\t%s_%s,\\n\t%s_%s_noEvent,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &(A);\n\n"
            , cp
            , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
            , pmi->name->name
            , stateNameByIndex(pmi, 0)
+           , pmi->name->name
+           , pmi->parent->name->name
            , pmi->name->name
            , arrayName
            , pmi->name->name
@@ -2361,8 +2402,43 @@ void defineSubMachineWeakDataTranslatorStubs(pCMachineData pcmw, pMACHINE_INFO p
                 );
 }
 
+static void defineSubMachineInhibitor(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
+
+   ich.pcmw      = pcmw;
+   ich.pmi       = pmi;
+
+   fprintf(pcmw->cFile
+           , "\nstatic bool doNotInhibitSubMachines(%s_STATE s)\n{\n"
+           , cp
+           );
+
+   fprintf(pcmw->cFile
+           , "\tswitch (s)\n\t{\n"
+           );
+
+   iterate_list(pmi->state_list
+                , print_inhibited_state_case
+                , &ich
+                );
+
+   fprintf(pcmw->cFile
+           , "\t\t\treturn false;\n\n\t\tdefault:\n\t\t\treturn true;\n\t}\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "}\n\n"
+           );
+}
+
 void defineSubMachineFinder(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
+   if (pmi->submachine_inhibitor_count)
+   {
+      defineSubMachineInhibitor(pcmw, pmi, cp);
+   }
+
    fprintf(pcmw->cFile
            , "\nstatic %s_EVENT findAndRunSubMachine(p%s pfsm, %s_EVENT e)\n{\n"
            , cp
@@ -2471,5 +2547,26 @@ void addNativeImplementationIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
               , pmi->native_impl
               );
    }
+}
+
+void declareSubMachineManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
+{
+   fprintf(pcmd->cFile
+           , "static %s_EVENT findAndRunSubMachine(p%s, %s_EVENT);\n"
+           , cp
+           , cp
+           , cp
+           );
+
+   if (pmi->submachine_inhibitor_count)
+   {
+      fprintf(pcmd->cFile
+              , "static bool doNotInhibitSubMachines(%s_STATE);\n"
+              , cp
+              );
+
+   }
+
+   fprintf(pcmd->cFile, "\n");
 }
 

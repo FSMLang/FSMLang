@@ -663,6 +663,16 @@ static bool count_external(pLIST_ELEMENT pelem, void *data)
    }
    return false;
 }
+
+static bool count_inhibitors(pLIST_ELEMENT pelem, void *data)
+{
+   if (((pID_INFO)pelem->mbr)->type_data.state_data.state_flags & sfInibitSubMachines)
+   {
+      (*((unsigned*)data))++;
+   }
+   return false;
+}
+
 static bool count_parent_event_refs(pLIST_ELEMENT pelem, void *data)
 {
    if (((pID_INFO)pelem->mbr)->type_data.event_data.psharing_sub_machines)
@@ -688,10 +698,17 @@ static bool count_data_xlate(pLIST_ELEMENT pelem, void *data)
    }
    return false;
 }
+
 void count_external_declarations(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_external, counter);
 }
+
+void count_sub_machine_inhibitors(pLIST plist, unsigned *counter)
+{
+   iterate_list(plist, count_inhibitors, counter);
+}
+
 void count_parent_event_referenced(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_parent_event_refs, counter);
