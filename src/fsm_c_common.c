@@ -159,7 +159,7 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
            , cp
           );
    fprintf(pcmw->hFile
-           , "%s (A) =\\\n{\\\n%s\t%s_%s,\\n\t%s_noEvent,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
+           , "%s (A) =\\\n{\\\n%s\t%s_%s,\\\n\t%s_noEvent,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &A;\n\n"
            , cp
            , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
            , pmi->name->name
