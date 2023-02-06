@@ -216,5 +216,17 @@
       error reporting (or the like) in actions.
 */
 
-const char rev_string[] = "1.29";
+/*
+   Revision 1.28:
+ 
+   EOLs which crept back into DBG_PRINTFs removed.
+*/
+
+/*
+   Revision 1.30:
+ 
+   The DECLARE_%s_MACHINE macro is now properly formed
+*/
+
+const char rev_string[] = "1.30";
 
