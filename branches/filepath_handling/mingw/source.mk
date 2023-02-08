@@ -8,5 +8,6 @@ SRC =	lexer.c \
 			fsm_c.c \
 			fsm_cswitch.c \
 			fsm_c_common.c \
-			list.c
+			list.c \
+			cwalk.c
 
