@@ -1,0 +1,203 @@
+native
+{
+#ifdef TOP_LEVEL_DEBUG
+#include <stdio.h>
+#define DBG_PRINTF printf
+#endif
+}
+
+/**
+  After its own initialization, this machine transitions to its
+    second state, in which it uses the first two of its sub machines
+    to acommplish other initialization chores.  The third sub machine
+    is then run, and the top level transitions into its third state.
+
+    The machine remains in its third state for the rest of its life
+    responding to e5 by re-running sub machine 2, followed by sub
+    machine 3.
+*/
+machine top_level
+native impl {copy this to the source file}
+{
+   /**
+     This event causes the machine to initialize itself, then
+     transition to state s2.  State s2 is the state from which
+     the initial sub machines are invoked.  When those machines
+     are finished, the top level machine will transition to
+     its "steady state."
+   */
+   event e1;
+
+   /**
+     sub_machine1 is finished.
+   */
+   event e2;
+
+   /**
+     sub_machine2 is finished.
+   */
+   event e3;
+
+   /**
+     sub_machine3 is finished.
+   */
+   event e4;
+
+   /**
+     It is time to do the periodic chore.  This chore requires that 
+     sub machine 2 be run, followed by sub machine 3.
+   */
+   event e5;
+
+   /**
+     startup state; initialize the machine when e1 happens.
+   */
+   state s1;
+
+   /**
+     Execute the first two sub machines in this state
+   */
+   state s2;
+
+   /**
+     When e5 is received in this state, execute sub machines 2 and 3.
+   */
+   state s3;
+
+    /**
+      This machine's happy path is e1 then e2, finishing with e3.
+    */
+		machine sub_machine1
+		{
+       /**
+         This event starts sub_machine1.
+       */
+		   event e1;
+       event e2;
+       event e3;
+
+		   state s1;
+       state s2;
+
+       /**
+         Arriving in this state means sub_machine1's job is done.
+       */
+       state s3;
+		
+		   action a1[e1, s1] transition s2;
+		   action a2[e2, s2] transition s3;
+
+       /**
+         This action returns the parent's event e3 to signal sub
+           machine completion.
+       */
+		   action a3[e3, s3] transition s1;
+		}
+		
+    /**
+      This machine's happy path is e1 then e2, finishing with e3.
+    */
+		machine sub_machine2
+		{
+       /**
+         This event starts sub_machine2.
+       */
+		   event e1;
+       event e2;
+       event e3;
+
+		   state s1;
+       state s2;
+
+       /**
+         Arriving in this state means sub_machine1's job is done.
+       */
+       state s3;
+		
+		   action a1[e1, s1] transition s2;
+		   action a2[e2, s2] transition s3;
+
+       /**
+         This action returns the parent's event e4 to signal sub
+           machine completion.
+       */
+		   action a3[e3, s3] transition s1;
+
+       a3 returns parent::e4;
+		}
+		
+    /**
+      This machine's happy path is e1 then e2, finishing with e3.
+
+      It is not necessary to inform the parent when this machine
+        is finished.
+    */
+		machine sub_machine3
+		{
+       /**
+         This event starts sub_machine3.
+       */
+		   event e1;
+       event e2;
+       event e3;
+
+		   state s1;
+       state s2;
+		
+       /**
+         Arriving in this state means sub_machine1's job is done.
+       */
+       state s3;
+		
+		   action a1[e1, s1] transition s2;
+		   action a2[e2, s2] transition s3;
+
+       /**
+         This machine will return the parent's "noEvent" bringing
+           the current action sequence to an end.
+       */
+		   action a3[e3, s3] transition s1;
+		}
+		
+    /**
+      Do a top level action
+    */
+   action a1[e1,s1] transition s2;
+
+   /**
+     Make sub_machine1 the active machine, then
+       start it working by returning its first
+       event.
+   */
+   action activate_sub_machine1[e2, s2];
+
+   /**
+     Make sub_machine2 the active machine, then
+       start it working by returning its first
+       event.
+   */
+   action activate_sub_machine2[e3, s2];
+
+   /**
+     Make sub_machine3 the active machine, then
+       start it working by returning its first
+       event.  Trasition to s3, which is the
+       "steady state" for this machine.
+   */
+   action activate_sub_machine3[e4, s2] transition s3;
+
+   /**
+     In the steady state, e5 triggers us to re-run sub
+     machines 2 and 3.
+   */
+   action activate_sub_machine2[e5, s3];
+   action activate_sub_machine3[e4, s3];
+
+   a1 returns noEvent;
+
+   activate_sub_machine1 returns sub_machine1::e1;
+   activate_sub_machine2 returns sub_machine2::e1, noEvent;
+   activate_sub_machine3 returns noEvent, sub_machine3::e1;
+
+}
+
