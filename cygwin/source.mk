@@ -7,5 +7,6 @@ SRC =	lexer.c \
 			fsm_plantuml.c	\
 			fsm_c.c \
 			fsm_cswitch.c \
-			fsm_c_common.c 
+			fsm_c_common.c \
+			cwalk.c
 
