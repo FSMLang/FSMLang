@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <cwalk.h>
 
 #if defined (LINUX) || defined (CYGWIN)
 #include <stdlib.h>
@@ -1816,7 +1817,7 @@ int main(int argc, char **argv)
 		if (!outFileBase) {
 			/* use the base input file name */
 			*cp1 = 0;
-			outFileBase = cp;
+			cwk_path_get_basename(cp, &outFileBase, NULL);
 		}
 
 		#ifndef PARSER_DEBUG

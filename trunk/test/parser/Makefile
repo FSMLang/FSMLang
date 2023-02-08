@@ -14,7 +14,8 @@ endif
 SRC =	lexer.c \
 			parser.c \
 			fsm_utils.c \
-			list.c 
+			list.c \
+			cwalk.c
 
 ifdef NEED_RINDEX
 SRC += rindex.c
