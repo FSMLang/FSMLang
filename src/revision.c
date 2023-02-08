@@ -228,5 +228,11 @@
    The DECLARE_%s_MACHINE macro is now properly formed
 */
 
-const char rev_string[] = "1.30";
+/*
+   Revision 1.31:
+ 
+   Input filenames can now contain path information.
+*/
+
+const char rev_string[] = "1.31";
 
