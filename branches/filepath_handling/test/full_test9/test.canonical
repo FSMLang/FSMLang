@@ -1,0 +1,19 @@
+hello, world
+event: newMachine_e1; state: newMachine_s1
+newMachine_a1
+
+event: newMachine_e2; state: newMachine_s1
+newMachine_noAction
+newMachine_transitionFn1
+
+newMachine_machineTransitionFn
+	old state: newMachine_s1
+	new state: newMachine_s2
+
+event: newMachine_e3; state: newMachine_s2
+newMachine_noAction
+newMachine_transitionFn1
+
+event: newMachine_e4; state: newMachine_s2
+newMachine_noAction
+warning: cannot use external event designations
