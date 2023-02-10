@@ -234,5 +234,13 @@
    Input filenames can now contain path information.
 */
 
-const char rev_string[] = "1.31";
+/*
+   Revision 1.32:
+ 
+   The macro EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) can be used to exclude
+   events from the main loop debug log.
+ 
+*/
+
+const char rev_string[] = "1.32";
 
