@@ -1,10 +1,22 @@
 # FSMLang
 
+- [FSMLang](#fsmlang)
+	- [Philosophy](#philosophy)
+	- [Example: Simple State Machine](#example-simple-state-machine)
+	- [Hierarchical](#hierarchical)
+	- [Making the FSMLang Executable](#making-the-fsmlang-executable)
+	- [Command Syntax](#command-syntax)
+	- [Basic Language Syntax](#basic-language-syntax)
+	- [More examples](#more-examples)
+
+
 ## Philosophy
 
 FSMLang is designed to allow design work in the problem space of finite state machines without the encumbrances of any particular implementation language. Thus, FSMLang is implemented as a "pre-processor," generating code in any desired general programming language to implement the described finite state machine. FSMLang allows effort to be focused on the definition of events, states, and transitions; indeed, though the action to be taken in any particular event/state intersection is declarable (of course), the actual definition of that action is treated as a detail which falls outside the scope of FSMLang. Moreover, the mechanisms for collecting or determining events are also outside the language scope. FSMLang creates an object or objects in a target programming language which, when inserted into the larger program structure will invoke the correct actions and make the correct transitions for the events handed it.
 
 (Though it is said, "any desired general programming language," implementation of FSMLang output in languages other than C is an exercise currently left to the reader.)
+
+[Top of page](#fsmlang)
 
 ## Example: Simple State Machine
 
@@ -254,6 +266,8 @@ char *SIMPLE_COMMUNICATOR_STATE_NAMES[] = {
 By default, action functions return events, and the main state machine function loops until an action indicates that there are no further events.
 
 The action functions themselves are not generated; instead, they are written by the machine implementor. This allows FSMLang to remain focused on the state machine, rather than the details of the implementation of its purpose for existing.
+
+[Top of page](#fsmlang)
 
 ## Hierarchical
 
@@ -1154,6 +1168,8 @@ Note that the -tp option was used to create PlantUML output, which was then proc
 
 An unrealized goal of the FSMLang effort is to optimize the output machine for speed and size based on an analysis of the event-state matrix. There are command-line switches which force the creation of a compact table, or the use of switch statements instead of a table, but these are manual. One should be able to make those decisions based on the density of the event-state matrix. It may also be possible, using matrix transformations to make some part of the matrix very dense, then use a hybrid table/switch approach in the code.
 
+[Top of page](#fsmlang)
+
 ## Making the FSMLang Executable
 
 The source is in a Git repository at https://github.com/FSMLang/FSMLang.
@@ -1163,6 +1179,8 @@ Four targets are provided to support Linux (RH 6.5 has been tested, but may now 
 simpleCommunicator.fsm is at the top of the tree; it is as shown in this page.
 
 There are irrelevant files at the top of the tree. Ignore them. (Identifying these is an exercise also left to the reader.)
+
+[Top of page](#fsmlang)
 
 ## Command Syntax
 ```
@@ -1183,6 +1201,8 @@ fsm [-tc|s|h] [-c] [-i0] [-v] [-h] [--generate-weak-functions=false|true] filena
 - -v prints the version and exits
 
 The default is to generate C code using an action table.
+
+[Top of page](#fsmlang)
 
 ## Basic Language Syntax
 
@@ -1223,6 +1243,8 @@ It is also possible to declare an actionless transition:
 transition[event_vector, state_vector] state_identifier;
 ```
 
+[Top of page](#fsmlang)
+
 ## More examples
 
 There are many files with the .fsm extension included in the distribution, most found under the test directory. All illustrate valid constructions. Moreover, the tests starting with full_test create executables with action functions supplied. The effects of the use of other keywords not discussed here can also be seen, such as:
@@ -1236,3 +1258,5 @@ assigning values from external enums to the internal event enumerations (this sh
 Also found in the examples is some new functionality involving complex events. The html side of this works, but a full test has not yet been created. This may be of interest to ThreadX fans, since the idea of the complex event comes from a working system running under ThreadX where some events are messages taken from a queue, and can themselves contain enumerations which further refine the event. For example a message to control a subsystem might contain an enumeration indicating whether to activate or deactivate the system. In this way, the actual real events can be tracked in FSMLang (subsystem.activate being an event distinct from subsystem.deactivate).
 
 Finally, the test makefiles show how to add .fsm targets to a makefile.
+
+[Top of page](#fsmlang)
