@@ -1,0 +1,135 @@
+/**
+   <p>This machine manages communications using a "stop and wait" protocol.
+      Only one message is allowed to be outstanding.
+	 </p>
+
+	 <p>Before any message can be exchanged, however, a session must be established
+      with the peer.  Establishing a connection requires several exchanges to
+      authenticate.  The connection will remain active as long as messages
+      continue to be exchanged with a minimum frequency.
+   </p>
+*/
+machine hsmCommunicator {
+
+	state IDLE,
+        ESTABLISHING_SESSION,
+        IN_SESSION;
+
+	event SEND_MESSAGE,
+        SESSION_ESTABLISHED,
+        SESSION_TIMEOUT;
+
+	/**
+		Establish a connection with the peer.
+  */
+	machine establishSession {
+
+		state IDLE,
+          AWAITING_RESPONSE;
+
+		event ESTABLISH_SESSION_REQUEST,
+          STEP0_RESPONSE,
+					STEP1_RESPONSE;
+
+		/**
+			Start the session establishment process.
+		*/
+		action sendStep0Message[ESTABLISH_SESSION_REQUEST, IDLE] transition AWAITING_RESPONSE;
+
+		/**
+			Continue session establisment
+		*/
+		action sendStep1Message[STEP0_RESPONSE, AWAITING_RESPONSE];
+
+		/**
+			Notify parent that session is established.
+    */
+		action notifyParent[STEP1_RESPONSE, AWAITING_RESPONSE] transition IDLE;
+
+	  /* these lines are informational; they affect the html output,
+	      but do not affect any C code generated.
+	  */
+		sendStep0Message returns noEvent;
+		sendStep1Message returns noEvent;
+		notifyParent     returns parent::SESSION_ESTABLISHED;
+
+	}
+
+	machine sendMessage {
+
+		state	IDLE,
+          IN_SESSION,
+					AWAITING_ACK;
+
+		event	SEND_MESSAGE,
+					ACK,
+          SESSION_ESTABLISHED,
+					SESSION_TIMEOUT;
+
+	  /**
+	   Transmit message to the peer.
+	  */
+		action	sendMessage[SEND_MESSAGE,IN_SESSION] transition AWAITING_ACK;
+
+	  /**
+	   Place message into queue.
+	  */
+		action	queueMessage[SEND_MESSAGE,(IDLE, AWAITING_ACK)];
+
+	  /**
+	   Check queue for messages; if found pop from queue and return SEND_MESSAGE.
+	   If no message is found in the queue return noEvent.
+	  */
+		action	checkQueue[ACK,AWAITING_ACK]          transition IN_SESSION,
+		        checkQueue[SESSION_ESTABLISHED, IDLE] transition IN_SESSION;
+
+
+		transition [SESSION_TIMEOUT, (IN_SESSION, AWAITING_ACK)] IDLE;
+
+	  /* these lines are informational; they affect the html output,
+	      but do not affect any C code generated.
+	  */
+	  queueMessage returns noEvent;
+	  sendMessage  returns noEvent;
+	  checkQueue   returns SEND_MESSAGE, noEvent;
+
+	}
+
+	/* these are actions of the top level machine */
+
+	/**
+		Start the session establishment process by activating the <i>establishSession</i> machine.
+  */
+	action startSessionEstablishment[SEND_MESSAGE, IDLE] transition ESTABLISHING_SESSION;
+
+	/**
+		Start the session timer and notify the <i>sendMessage</i> machine that the session is
+		 established.
+	*/
+	action completeSessionStart[SESSION_ESTABLISHED, ESTABLISHING_SESSION] transition IN_SESSION;
+
+	/**
+		Notify the <i>sendMessage</i> machine that the session has timed-out.
+  */
+  action notifySessionTimeout[SESSION_TIMEOUT, (ESTABLISHING_SESSION, IN_SESSION)] transition IDLE;
+
+	/**
+		Extend the session timer and pass the message to be sent to the <i>sendMessage</i> machine.
+	*/
+	action requestMessageTransmission[SEND_MESSAGE, (ESTABLISHING_SESSION, IN_SESSION)];
+
+
+	/* these lines are informational; they affect the html output,
+	    but do not affect any C code generated.
+	*/
+	startSessionEstablishment   returns SEND_MESSAGE;
+
+	completeSessionStart        returns sendMessage::SESSION_ESTABLISHED;
+
+	notifySessionTimeout        returns sendMessage::SESSION_TIMEOUT;
+
+	requestMessageTransmission  returns sendMessage::SEND_MESSAGE;
+
+}
+
+
