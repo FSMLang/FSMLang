@@ -836,7 +836,11 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile
+           , "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
+           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+           );
+   fprintf(pcmw->cFile, "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            , cp
@@ -895,7 +899,11 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char 
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile, "DBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n"
+   fprintf(pcmw->cFile
+           , "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
+           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+           );
+   fprintf(pcmw->cFile, "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
            , cp
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            , eventNameByIndex(pmi, 0)
@@ -1368,6 +1376,18 @@ static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
    }
 
    fprintf(pcmw->cFile
+           , "#ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "#define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e == e)\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "#endif\n"
+           );
+
+   fprintf(pcmw->cFile
            , "void %sFSM(p%s pfsm, %s_EVENT event)\n{\n"
            , pmi->name->name
            , cp
@@ -1383,6 +1403,18 @@ static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 static void defineCSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    char *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
+
+   fprintf(pcmw->cFile
+           , "#ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "#define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e == e)\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "#endif\n"
+           );
 
    fprintf(pcmw->cFile
            , "%s_EVENT %sFSM(p%s pfsm, %s_EVENT event)\n{\n"
