@@ -23,3 +23,6 @@ jobs:
         cd src
         make Linux
 
+    - name: Execute Linux test suite
+      run: |
+        make Linux.tests
