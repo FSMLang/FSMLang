@@ -25,4 +25,5 @@ jobs:
 
     - name: Execute Linux test suite
       run: |
-        make Linux.tests
+        cd src
+        make Linux.test
