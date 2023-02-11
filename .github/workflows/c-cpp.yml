@@ -17,7 +17,7 @@ jobs:
     - name: Update Packages
       run: sudo apt install -y libfl-dev
       
-    - name: Build Linux Configuration
+    - name: Build Linux
       run: |
         cd src
         make Linux
