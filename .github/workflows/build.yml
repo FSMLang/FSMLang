@@ -13,7 +13,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: make
+
+    - name: Update packages
+      run: |
+        sudo apt install -y libfl-dev
+
+    - name: Build Linux configuration
       run: |
         cd src
         make Linux
