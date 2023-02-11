@@ -1,0 +1,29 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Update Packages
+      run: sudo apt install -y libfl-dev
+      
+    - name: Build Linux Configuration
+      run: |
+        cd src
+        make Linux
+        
+    - name: Execute Linux Tests
+      run: |
+        cd src
+        make Linux.testonly
+
