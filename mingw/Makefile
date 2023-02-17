@@ -24,6 +24,7 @@ clean::
 	-@rm -f parser.c lexer.c    2> /dev/nul
 	-@rm -f *.d* *.exe          2> /dev/nul
 	-@rm -f *.stackdump         2> /dev/nul
+	-@rm -f y.output            2> /dev/nul
 
 test: 
 	$(MAKE) -C ../test clean

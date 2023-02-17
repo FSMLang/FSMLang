@@ -26,6 +26,7 @@ clean::
 	-@rm -f *.d*                2> /dev/null
 	-@rm -f *.stackdump         2> /dev/null
 	-@rm -f fsm                 2> /dev/null
+	-@rm -f y.output            2> /dev/null
 
 test: 
 	$(MAKE) -C ../test clean
