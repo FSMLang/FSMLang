@@ -23,6 +23,7 @@ clean::
 	-@rm -f parser.c lexer.c    2> /dev/null
 	-@rm -f *.d* *.exe          2> /dev/null
 	-@rm -f *.stackdump         2> /dev/null
+	-@rm -f *.output            2> /dev/null
 
 test: 
 	@echo mingwsa/Makefile: OUTPUT_DIR: $(OUTPUT_DIR)
