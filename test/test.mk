@@ -57,4 +57,6 @@ clean::
 	-@rm $(GENERATED_SRC:.c=.svg) 2> /dev/null
 	-@rm $(GENERATED_SRC:.c=.plantuml) 2> /dev/null
 	-@rm test
+	-@rm y.output 2> /dev/null
+	-@rm lexer.c 2> /dev/null
 

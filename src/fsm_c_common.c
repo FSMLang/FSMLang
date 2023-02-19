@@ -266,6 +266,11 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    {
       helper.first   = false;
       iterate_list(pmi->machine_list,print_sub_machine_events,&helper);
+
+      fprintf(pcmw->hFile
+              , "\t, %s_numAllEvents\n"
+              , pmi->name->name
+              );
    }
 
    fprintf(pcmw->hFile
