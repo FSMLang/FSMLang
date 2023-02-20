@@ -110,6 +110,19 @@ static bool print_sharing_machines(pLIST_ELEMENT pelem, void *data)
    pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
 
    fprintf(pfsmpumlog->pmd->pumlFile
+           , "%s\\n"
+           , pmi->name->name
+           );
+
+   return false;
+}
+
+static bool print_sharing_machines_in_note(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO               pmi        = (pMACHINE_INFO) pelem->mbr;
+   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
+
+   fprintf(pfsmpumlog->pmd->pumlFile
            , "%s\n"
            , pmi->name->name
            );
@@ -137,7 +150,7 @@ static bool print_loop_back_event(pLIST_ELEMENT pelem, void *data)
               );
 
       iterate_list(pevent->type_data.event_data.psharing_sub_machines
-                   , print_sharing_machines
+                   , print_sharing_machines_in_note
                    , pfsmpumlog
                    );
 
