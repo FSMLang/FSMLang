@@ -242,5 +242,15 @@
  
 */
 
-const char rev_string[] = "1.32";
+/*
+   Revision 1.33:
+ 
+   Fixed bug in PlantUML generation which resulted in malformed
+      transitions when shared events are involved.
+ 
+   Added "numAllEvents" macro to the top level event enumeration.
+ 
+*/
+
+const char rev_string[] = "1.33";
 
