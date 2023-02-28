@@ -1874,24 +1874,23 @@ void yyerror(char *s)
 
 void usage(void)
 {
-
 	fprintf(stdout,"Usage : %s [-tc|s|h|p] filename, where filename ends with '.fsm'\n",me);
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
 	fprintf(stdout,"\t and 'p' gets you PlantUML output\n");
- fprintf(stdout,"\t-i0 inhibits the creation of a machine instance\n");
- fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n");
- fprintf(stdout,"\t\tthis is the default\n");
- fprintf(stdout,"\t-c will create a more compact event/state table when -tc is used\n");
- fprintf(stdout,"\t\twith machines having actions which return states\n");
- fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
- fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
- fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
- fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
- fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
- fprintf(stdout,"\t\tfor the content copy.\n");
- fprintf(stdout,"\t-v prints the version and exits\n");
-	
+	fprintf(stdout,"\t-i0 inhibits the creation of a machine instance\n");
+	fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n");
+	fprintf(stdout,"\t\tthis is the default\n");
+	fprintf(stdout,"\t-c will create a more compact event/state table when -tc is used\n");
+	fprintf(stdout,"\t\twith machines having actions which return states\n");
+	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
+	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
+	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
+	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
+	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
+	fprintf(stdout,"\t\tfor the content copy.\n");
+	fprintf(stdout,"\t--short-debug-names generates machine debug info without name prefix\n");
+	fprintf(stdout,"\t-v prints the version and exits\n");
 }
 
