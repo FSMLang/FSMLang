@@ -1618,6 +1618,7 @@ typedef enum {
     , lo_weak_fns
     , lo_core_logging
     , lo_include_svg_img
+	, lo_short_dbg_names
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -1659,6 +1660,12 @@ const struct option longopts[] =
         , .has_arg = required_argument
         , .flag    = &longval
         , .val     = lo_include_svg_img
+    }
+    , {
+        .name      = "short-debug-names"
+        , .has_arg = no_argument
+        , .flag    = &longval
+        , .val     = lo_short_dbg_names
     }
     , {0}
 };
@@ -1710,6 +1717,9 @@ int main(int argc, char **argv)
             case lo_css_content_internal:
                 css_content_internal
                     = !strcmp(optarg,"true") ? true : false;
+                break;
+            case lo_short_dbg_names:
+                short_dbg_names = true;
                 break;
             default:
                 usage();
