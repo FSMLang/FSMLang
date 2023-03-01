@@ -65,6 +65,7 @@ struct _action_array_population_helper_
 char	*me = "I don't know who I am, but I'm";
 bool generate_instance    = true;
 bool compact_action_array = false;
+bool short_dbg_names   = false;
 
 int add_id(pLIST id_list, int type, char *name, pID_INFO *ppid_info)
 {

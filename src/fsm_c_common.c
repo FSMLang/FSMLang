@@ -58,7 +58,6 @@
 bool generate_weak_fns = true;
 bool core_logging_only = false;
 bool include_svg_img   = false;
-bool short_dbg_names   = false;
 
 static bool  print_sub_machine_as_enum_member               (pLIST_ELEMENT,void*);
 static bool  declare_sub_machine_if                         (pLIST_ELEMENT,void*);
