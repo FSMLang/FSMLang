@@ -891,7 +891,75 @@ void subMachineWriteStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char
    FREE_AND_CLEAR(parent_cp);
 }
 
-void writeDebugInfo(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+/**
+ * @brief Writes machine debug info in a short way - without name prefix
+ * 
+ * @param pcmw 
+ * @param pmi 
+ * @param cp 
+ */
+void writeDebugInfoShort(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   int i;
+   pID_INFO pid_info;
+   ITERATOR_HELPER helper;
+
+   fprintf(pcmw->cFile, "\n#ifdef %s_DEBUG\n", cp);
+
+   fprintf(pcmw->cFile, "char *%s_EVENT_NAMES[] = {\n", cp);
+
+   fprintf(pcmw->cFile, "\t \"%s\"\n", eventNameByIndex(pmi, 0));
+
+   for (i = 1; i < pmi->event_list->count; i++)
+   {
+      fprintf(pcmw->cFile, "\t, \"%s\"\n", eventNameByIndex(pmi, i));
+   }
+
+   if (!(pmi->modFlags & mfActionsReturnStates) && !(pmi->modFlags & mfActionsReturnVoid))
+   {
+      fprintf(pcmw->cFile, "\t, \"noEvent\"\n");
+   }
+
+   fprintf(pcmw->cFile, "\t, \"numEvents\"\n");
+
+   if (pmi->machine_list)
+   {
+      helper.first   = false;
+      helper.pparent = pmi;
+      helper.fout    = pcmw->cFile;
+
+      iterate_list(pmi->machine_list,print_sub_machine_event_names,&helper);
+   }
+
+   fprintf(pcmw->cFile, "};\n\n");
+
+   fprintf(pcmw->cFile, "char *%s_STATE_NAMES[] = {\n", cp);
+
+   fprintf(pcmw->cFile, "\t \"%s\"\n", stateNameByIndex(pmi, 0));
+
+   for (i = 1; i < pmi->state_list->count; i++)
+   {
+      fprintf(pcmw->cFile, "\t,\"%s\"\n", stateNameByIndex(pmi, i));
+   }
+
+   if (pmi->modFlags & mfActionsReturnStates)
+   {
+      fprintf(pcmw->cFile, "\t,\"noTransition\"\n");
+   }
+
+   fprintf(pcmw->cFile, "};\n\n");
+
+   fprintf(pcmw->cFile, "#endif\n");
+}
+
+/**
+ * @brief Writes machine debug information with machine name prefix
+ * 
+ * @param pcmw 
+ * @param pmi 
+ * @param cp 
+ */
+void writeDebugInfoLong(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    int i;
    pID_INFO pid_info;
@@ -961,6 +1029,12 @@ void writeDebugInfo(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
    fprintf(pcmw->cFile, "#endif\n");
 }
+
+void writeDebugInfo(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+    return short_dbg_names ? writeDebugInfoShort(pcmw, pmi, cp) : writeDebugInfoLong(pcmw, pmi, cp);
+}
+
 
 /**
   newpCMachineData
