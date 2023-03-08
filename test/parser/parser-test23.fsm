@@ -1,0 +1,15 @@
+machine test
+{
+	state s1, s2;
+	event e1, e2;
+
+	machine sub
+	{
+		state s3, s4;
+		event e3, e4;
+		transition[e3,     s3] s4;
+         	transition[e4,     s4] s3;
+	}
+    [e1,     s1] transition s2;
+    [e2,     s2] transition s1;
+}

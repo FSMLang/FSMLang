@@ -97,6 +97,7 @@ void yyerror(char *);
 %type <paction_decl>             action_decl
 %type <paction_decl>             action_decl_list
 %type <action_info>              transition_matrix
+%type <action_info>              transition_matrix_start
 %type <action_info>              transition_matrix_list
 %type <charData>                 data
 %type <charData>                 native
@@ -650,87 +651,82 @@ transition_matrix_list: transition_matrix
 					}
 	;
 
-transition_matrix:	TRANSITION_KEY matrix STATE ';'
-					{
-
+transition_matrix_start: matrix TRANSITION_KEY
+        {
 						pID_INFO pid_info;
+
+						//first, we have to add an id_info struct to the id list
+						//we treat it as a "null action"
+						add_id(id_list, ACTION,"",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
+
+						//second, we grab a struct to hold the info
+						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->matrix     = $1;
+						$$->action     = pid_info;
+
+						$$->nextAction = pid_info->actionInfo;
+						pid_info->actionInfo = $$;
+
+        }
+    | TRANSITION_KEY matrix
+        {
+						pID_INFO pid_info;
+
+						//first, we have to add an id_info struct to the id list
+						//we treat it as a "null action"
+						add_id(id_list, ACTION,"",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
+
+						//second, we grab a struct to hold the info
+						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->matrix     = $2;
+						$$->action     = pid_info;
+
+						$$->nextAction = pid_info->actionInfo;
+						pid_info->actionInfo = $$;
+
+        }
+    ;
+
+transition_matrix:	transition_matrix_start STATE ';'
+					{
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition matrix\n");
 						#endif
 
-						//first, we have to add an id_info struct to the id list
-						//we treat it as a "null action"
-						add_id(id_list, ACTION,"",&pid_info);
-           pid_info->powningMachine = pmachineInfo;
+           $$ = $1;
 
-						//second, we grab a struct to hold the info
-						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
-
-							yyerror("out of memory");
-
-						$$->action     = pid_info;
-						$$->matrix     = $2;
-						$$->transition = $3;
-
-						$$->nextAction = pid_info->actionInfo;
-						pid_info->actionInfo = $$;
+						$$->transition = $2;
 
 					}
-   | TRANSITION_KEY matrix ID ';'
+   | transition_matrix_start ID ';'
 					{
-
-						pID_INFO pid_info;
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition matrix with new transition function\n");
 						#endif
 
-           set_id_type($3,TRANSITION_FN);
+           set_id_type($2,TRANSITION_FN);
 
-						//first, we have to add an id_info struct to the id list
-						//we treat it as a "null action"
-						add_id(id_list, ACTION,"",&pid_info);
-           pid_info->powningMachine = pmachineInfo;
-
-						//second, we grab a struct to hold the info
-						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
-
-							yyerror("out of memory");
-
-						$$->action     = pid_info;
-						$$->matrix     = $2;
-						$$->transition = $3;
-
-						$$->nextAction = pid_info->actionInfo;
-						pid_info->actionInfo = $$;
+						$$->transition = $2;
 
 					}
-   | TRANSITION_KEY matrix TRANSITION_FN ';'
+   | transition_matrix_start TRANSITION_FN ';'
 					{
-
-						pID_INFO pid_info;
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition matrix with known transition function\n");
 						#endif
 
-						//first, we have to add an id_info struct to the id list
-						//we treat it as a "null action"
-						add_id(id_list, ACTION,"",&pid_info);
-           pid_info->powningMachine = pmachineInfo;
-
-						//second, we grab a struct to hold the info
-						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
-
-							yyerror("out of memory");
-
-						$$->action     = pid_info;
-						$$->matrix     = $2;
-						$$->transition = $3;
-
-						$$->nextAction = pid_info->actionInfo;
-						pid_info->actionInfo = $$;
+						$$->transition = $2;
 
         }
 
