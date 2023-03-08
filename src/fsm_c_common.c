@@ -63,6 +63,7 @@ static bool  print_sub_machine_as_enum_member               (pLIST_ELEMENT,void*
 static bool  declare_sub_machine_if                         (pLIST_ELEMENT,void*);
 static bool  define_weak_action_function                    (pLIST_ELEMENT,void*);
 static bool  define_sub_machine_weak_action_function        (pLIST_ELEMENT,void*);
+static bool  define_event_passing_actions                   (pLIST_ELEMENT,void*);
 static bool  print_event_macro                              (pLIST_ELEMENT,void*);
 static bool  declare_shared_event_lists                     (pLIST_ELEMENT,void*);
 static bool  declare_shared_event_data_blocks               (pLIST_ELEMENT,void*);
@@ -2440,6 +2441,46 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+
+   if (pid_info->name && strlen(pid_info->name))
+   {
+      /* if this action is associated with a shared event, it will have exactly one event */
+      pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->actionInfo->matrix->event_list,0);
+
+      /* and, that event will have a list of sharing machines */
+      if (pevent->type_data.event_data.psharing_sub_machines)
+      {
+         fprintf(pich->pcmw->cFile
+                 , "%s_EVENT %s_%s(p%s pfsm)\n{\n"
+                 , pich->cp
+                 , pich->pmi->name->name
+                 , pid_info->name
+                 , pich->cp
+                );
+
+         fprintf(pich->pcmw->cFile
+                 , "\t%s(\"weak: %s_%s\");\n"
+                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+                 , pich->pmi->name->name
+                 , pid_info->name
+                 );
+
+         fprintf(pich->pcmw->cFile
+                 , "\treturn pass_shared_event(pfsm, sharing_%s_%s);\n}\n\n"
+                 , pich->pmi->name->name
+                 , pevent->name
+                 );
+      }
+
+   }
+
+   return false;
+}
+
 void defineSubMachineWeakActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    ITERATOR_CALLBACK_HELPER ich = { 0 };
@@ -2451,6 +2492,20 @@ void defineSubMachineWeakActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO p
 
    iterate_list(pmi->action_list
                 , define_sub_machine_weak_action_function
+                , &ich
+                );
+}
+
+void defineEventPassingActions(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
+
+   ich.pcmw      = pcmw;
+   ich.pmi       = pmi;
+   ich.cp        = cp;
+
+   iterate_list(pmi->action_list
+                , define_event_passing_actions
                 , &ich
                 );
 }

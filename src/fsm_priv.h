@@ -253,6 +253,7 @@ extern char *me;	/* main will set this to the program name (argv[0]) */
 extern bool generate_instance;
 extern bool compact_action_array;
 extern bool generate_weak_fns;
+extern bool force_generation_of_event_passing_actions;
 extern bool core_logging_only;
 extern bool include_svg_img;
 extern bool short_dbg_names;

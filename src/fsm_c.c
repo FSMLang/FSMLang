@@ -261,6 +261,10 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       /* write weak stubs for any data translators */
       defineSubMachineWeakDataTranslatorStubs(pcmw, pmi, cp);
    }
+   else if (force_generation_of_event_passing_actions)
+   {
+      defineEventPassingActions(pcmw, pmi, cp);
+   }
 
    /* write our transition functions, if needed */
    if (pmi->transition_fn_list->count)
@@ -322,6 +326,10 @@ static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
       /* ... and for the noAction case */
       defineWeakNoActionFunctionStubs(pcmw, pmi, cp);
+   }
+   else if (force_generation_of_event_passing_actions)
+   {
+      defineEventPassingActions(pcmw, pmi, cp);
    }
 
    /* write our transition functions, if needed */
