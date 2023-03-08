@@ -521,9 +521,6 @@ actions_and_transitions:
  		if (NULL == ($$->transition_fn_list = init_list()))
  			yyerror("out of memory");
 
- 		if (NULL == ($$->machine_list = init_list()))
- 			yyerror("out of memory");
-
 			if (NULL == add_unique_to_list($$->action_list, $1->action))
  				yyerror("out of memory");
 
