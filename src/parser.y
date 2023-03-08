@@ -1901,7 +1901,7 @@ void usage(void)
 	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
 	fprintf(stdout,"\t\tfor the content copy.\n");
 	fprintf(stdout,"\t--short-debug-names generates machine debug info without name prefix\n");
-	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of"
+	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of");
  fprintf(stdout,"\tsuch actions even when weak function generation is inhibited.\n");
  fprintf(stdout,"\tThe generated functions are not weak.\n");
 	fprintf(stdout,"\t-v prints the version and exits\n");
