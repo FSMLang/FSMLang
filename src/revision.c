@@ -271,5 +271,19 @@
    Contributed by maintainer Daniel Jasinsky
 */
 
-const char rev_string[] = "1.35";
+/*
+   Revision 1.36:
+ 
+   braces can now appear inside of native and data blocks
+   
+   matrix transition state is now legal as a transition only statement.
+   
+   transition statements appearing immediately after a sub-machine no longer cause an error.
+ 
+   new command line option --force-generation-of-event-passing-actions forces the generation
+   of event passing actions when weak function generation is inhibited.
+ 
+*/
+
+const char rev_string[] = "1.36";
 
