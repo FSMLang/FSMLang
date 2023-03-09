@@ -63,9 +63,10 @@ struct _action_array_population_helper_
 
 /* the general use data */
 char	*me = "I don't know who I am, but I'm";
-bool generate_instance    = true;
-bool compact_action_array = false;
-bool short_dbg_names      = false;
+bool generate_instance                         = true;
+bool compact_action_array                      = false;
+bool short_dbg_names                           = false;
+bool force_generation_of_event_passing_actions = false;
 
 int add_id(pLIST id_list, int type, char *name, pID_INFO *ppid_info)
 {

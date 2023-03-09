@@ -110,6 +110,7 @@ void            defineSubMachineArray(pCMachineData, pMACHINE_INFO, char *);
 bool            declare_sub_machine_action_function(pLIST_ELEMENT,void*);
 bool            print_sub_machine_if(pLIST_ELEMENT,void*);
 void            defineSubMachineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
+void            defineEventPassingActions(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineFinder(pCMachineData, pMACHINE_INFO, char *);
 bool            declare_action_function(pLIST_ELEMENT,void*);
