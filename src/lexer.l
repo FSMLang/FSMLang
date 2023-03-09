@@ -19,6 +19,7 @@ extern int lineno;
 char	charData[4096];	          /* holder for Document comments */
 char *currDocCmnt = NULL;      /* points to the most recently seen document comment. */
 int	charOffset = 0;						/* the character offset */
+unsigned brace_cnt = 0;
 
 
 
@@ -95,8 +96,15 @@ native	{
 			}
 
 <NATIVE>"{"	{
-				BEGIN NATIVE_BLCK;
-				charOffset = 0;
+       if (0 == brace_cnt++)
+       {
+				   BEGIN NATIVE_BLCK;
+				   charOffset = 0;
+       }
+       else
+       {
+				   charData[charOffset++] = *yytext;
+       }
     }
 
 <NATIVE>impl(ementation)? {
@@ -121,20 +129,31 @@ native	{
 
 <NATIVE>. ;
 
+<NATIVE_BLCK>"{"	{
+        if (0 != brace_cnt++)
+				    charData[charOffset++] = *yytext;
+   }
+
 <NATIVE_BLCK>"}"	{
 
-					BEGIN INITIAL;
-					charData[charOffset] = 0;
-					#ifdef LEX_DEBUG
-					printf("Native:\n%s\n",charData);
-					#else
-
-					yylval.charData = strdup(charData);
-					return NATIVE_BLOCK;
-					#endif
+         if (--brace_cnt == 0)
+         {
+   					BEGIN INITIAL;
+   					charData[charOffset] = 0;
+   					#ifdef LEX_DEBUG
+   					printf("Native:\n%s\n",charData);
+   					#else
+   
+   					yylval.charData = strdup(charData);
+   					return NATIVE_BLOCK;
+   					#endif
+         }
+         else
+         {
+						charData[charOffset++] = *yytext;
+         }
 
 				}
-<NATIVE_BLCK>.	charData[charOffset++] = *yytext;
 <NATIVE_BLCK>\n	{
 						charData[charOffset++] = *yytext;
 					#ifndef LEX_DEBUG
@@ -143,6 +162,7 @@ native	{
 					;
 					#endif
 					}
+<NATIVE_BLCK>.	charData[charOffset++] = *yytext;
 
  /* special handling for data block */
 data {
