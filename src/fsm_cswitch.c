@@ -237,6 +237,10 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       defineWeakActionFunctionStubs(pcmw, pmi, cp);
 
    }
+   else if (force_generation_of_event_passing_actions)
+   {
+      defineEventPassingActions(pcmw, pmi, cp);
+   }
 
    writeDebugInfo(pcmw, pmi, cp);
 
@@ -318,6 +322,10 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       defineSubMachineWeakActionFunctionStubs(pcmw, pmi, cp);
 
       defineSubMachineWeakDataTranslatorStubs(pcmw, pmi, cp);
+   }
+   else if (force_generation_of_event_passing_actions)
+   {
+      defineEventPassingActions(pcmw, pmi, cp);
    }
 
    writeDebugInfo(pcmw, pmi, cp);
