@@ -1,0 +1,118 @@
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states in this list :
+	0:	s1
+
+	1:	s2
+
+added another id to the event declaration list
+The 2 events in this list:
+	0:	e1
+
+	1:	e2
+
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states in this list :
+	0:	s3
+
+	1:	s4
+
+added another id to the event declaration list
+The 2 events in this list:
+	0:	e3
+
+	1:	e4
+
+found a scalar event : e3
+found a state scalar
+found a matrix
+found a transition matrix
+found a scalar event : e4
+found a state scalar
+found a matrix
+found a transition matrix
+process_action_info: noAction
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s3
+process_action_info: noAction
+	iterate_matrix_states: event: e4
+		add_to_action_array: state: s4
+populate_action_array returning false
+found a machine named sub
+	with 2 events and 2 states
+Actions return events
+The states :
+	0:	s3
+
+	1:	s4
+
+The events :
+	0:	e3
+
+	1:	e4
+
+The actions :
+	noAction
+		which occurs in these events
+				e4
+		and states
+				s4
+		and transitions to state s3
+		and which occurs in these events
+				e3
+		and states
+				s3
+		and transitions to state s4
+
+The 2 transitions :
+	s4
+	s3
+
+found a scalar event : e1
+found a state scalar
+found a matrix
+found a transition matrix
+found a scalar event : e2
+found a state scalar
+found a matrix
+found a transition matrix
+process_action_info: noAction
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+process_action_info: noAction
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s2
+populate_action_array returning false
+found a machine named test
+	with 2 events and 2 states
+Actions return events
+The states :
+	0:	s1
+
+	1:	s2
+
+The events :
+	0:	e1
+
+	1:	e2
+
+The actions :
+	noAction
+		which occurs in these events
+				e2
+		and states
+				s2
+		and transitions to state s1
+		and which occurs in these events
+				e1
+		and states
+				s1
+		and transitions to state s2
+
+The 2 transitions :
+	s2
+	s1
+this machine has 1 sub-machines
+
+found a single machine
