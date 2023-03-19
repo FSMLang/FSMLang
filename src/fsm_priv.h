@@ -257,6 +257,7 @@ extern bool force_generation_of_event_passing_actions;
 extern bool core_logging_only;
 extern bool include_svg_img;
 extern bool short_dbg_names;
+extern bool add_machine_name;
 
 
 #define LOOKUP	0	/* default - not defined in the parser */
