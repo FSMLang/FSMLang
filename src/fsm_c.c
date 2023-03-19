@@ -848,11 +848,23 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
            , "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            );
-   fprintf(pcmw->cFile, "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
-           , cp
-           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-           , cp
-          );
+   if (short_dbg_names && add_machine_name)
+   {
+      fprintf(pcmw->cFile, "\tDBG_PRINTF(\"%s: event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
+              , pmi->name->name
+              , cp
+              , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+              , cp
+             );
+   }
+   else
+   {
+      fprintf(pcmw->cFile, "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
+              , cp
+              , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+              , cp
+             );
+   }
    fprintf(pcmw->cFile, "#endif\n\n");
 
    fprintf(pcmw->cFile
@@ -911,12 +923,27 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char 
            , "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            );
-   fprintf(pcmw->cFile, "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
-           , cp
-           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-           , eventNameByIndex(pmi, 0)
-           , cp
-          );
+   if (short_dbg_names && add_machine_name)
+   {
+      fprintf(pcmw->cFile
+              , "\tDBG_PRINTF(\"%s: event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
+              , pmi->name->name
+              , cp
+              , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+              , eventNameByIndex(pmi,0)
+              , cp
+             );
+   }
+   else
+   {
+      fprintf(pcmw->cFile
+              , "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
+              , cp
+              , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+              , eventNameByIndex(pmi,0)
+              , cp
+             );
+   }
    fprintf(pcmw->cFile, "#endif\n\n");
 
    fprintf(pcmw->cFile

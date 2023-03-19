@@ -1756,6 +1756,7 @@ typedef enum {
  , lo_include_svg_img
 	, lo_short_dbg_names
  , lo_force_generation_of_event_passing_actions
+ , lo_add_machine_name
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -1810,6 +1811,12 @@ const struct option longopts[] =
         , .flag    = &longval
         , .val     = lo_force_generation_of_event_passing_actions
     }
+    , {
+        .name      = "add-machine-name"
+        , .has_arg = no_argument
+        , .flag    = &longval
+        , .val     = lo_add_machine_name
+    }
     , {0}
 };
       
@@ -1863,6 +1870,9 @@ int main(int argc, char **argv)
                 break;
             case lo_short_dbg_names:
                 short_dbg_names = true;
+                break;
+            case lo_add_machine_name:
+                add_machine_name = true;
                 break;
             case lo_force_generation_of_event_passing_actions:
                 force_generation_of_event_passing_actions = true;
@@ -2037,9 +2047,10 @@ void usage(void)
 	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
 	fprintf(stdout,"\t\tfor the content copy.\n");
 	fprintf(stdout,"\t--short-debug-names generates machine debug info without name prefix\n");
-	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of");
+	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of\n");
  fprintf(stdout,"\tsuch actions even when weak function generation is inhibited.\n");
  fprintf(stdout,"\tThe generated functions are not weak.\n");
+ fprintf(stdout,"\t--use-machine-name adds the machine name when using the --short-debug-names option\n");
 	fprintf(stdout,"\t-v prints the version and exits\n");
 }
 
