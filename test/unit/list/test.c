@@ -4,16 +4,29 @@
 #include "list.h"
 #include "fsm_priv.h"
 
+typedef struct _comparitor_helper_ COMPARITOR_HELPER, *pCOMPARITOR_HELPER;
+struct _comparitor_helper_ 
+{
+   pID_INFO id_infos;
+   unsigned num_id_infos;
+   unsigned which;
+   bool     identical;
+};
+
+bool comparitor         (pLIST_ELEMENT,void*);
+bool print_id_info_name (pLIST_ELEMENT,void*);
+
 typedef bool (*TEST_FN)(void);
 
 bool add_to_list_test(void);
-bool join_lists(void);
-bool finder_test_0(void);
-bool finder_test_1(void);
-bool finder_test_2(void);
-bool finder_test_3(void);
-bool finder_test_4(void);
-bool finder_test_5(void);
+bool join_lists      (void);
+bool finder_test_0   (void);
+bool finder_test_1   (void);
+bool finder_test_2   (void);
+bool finder_test_3   (void);
+bool finder_test_4   (void);
+bool finder_test_5   (void);
+bool copy_test_1     (void);
 
 TEST_FN tests[] = {
 	add_to_list_test
@@ -24,6 +37,7 @@ TEST_FN tests[] = {
 	, finder_test_3
 	, finder_test_4
 	, finder_test_5
+  , copy_test_1
 	, NULL
 };
 
@@ -60,8 +74,23 @@ bool print_id_info_name(pLIST_ELEMENT piilm, void *data)
 {
 	pID_INFO pid = (pID_INFO) piilm->mbr;
 
+  (void) data;
+
 	printf("%s\n", pid->name);
 	return false;
+}
+
+bool comparitor(pLIST_ELEMENT pelem, void *data)
+{
+   pCOMPARITOR_HELPER pch = (pCOMPARITOR_HELPER) data;
+
+   pch->identical = false;
+   if (pelem->mbr == &pch->id_infos[pch->which++])
+   {
+      pch->identical = true;
+   }
+
+   return pch->identical;
 }
 
 bool add_to_list_test()
@@ -527,6 +556,50 @@ bool finder_test_5()
 
 	return pid == NULL;
 
+}
+
+bool copy_test_1(void)
+{
+   pLIST pdest = init_list();
+   pLIST psrc = init_list();
+   pLIST ptst;
+   COMPARITOR_HELPER ch;
+
+   printf("\ncopy_test_1\n");
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(psrc, &id_infos_0[id_info_counter_0]);
+   }
+
+   printf("the source list:\n");
+   printf("id info list count %u\n", psrc->count);
+
+   iterate_list(psrc,print_id_info_name,NULL);
+
+   ptst = copy_list(pdest, psrc);
+
+   printf("the dest list:\n");
+   printf("id info list count %u\n", pdest->count);
+   iterate_list(pdest,print_id_info_name,NULL);
+
+   ch.id_infos     = id_infos_0;
+   ch.num_id_infos = id_info_count_0;
+   ch.which        = 0;
+   ch.identical    = false;
+
+   iterate_list(pdest, comparitor, &ch);
+
+   return (ptst == pdest)
+          && ch.identical
+          && (pdest->count == psrc->count)
+          && (pdest->count == id_info_count_0)
+          ;
+   
 }
 
 int main(int argc, char **argv)

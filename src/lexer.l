@@ -367,6 +367,14 @@ submachines {
 					#endif
 				}
 
+all {
+					#ifndef LEX_DEBUG
+					return ALL;
+					#else
+					printf("%s\n",strings[ALL]);
+					#endif
+				}
+
 :: {
 					#ifndef LEX_DEBUG
 					return NAMESPACE;

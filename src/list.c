@@ -196,6 +196,44 @@ pLIST move_list_unique(pLIST dest, pLIST src)
    return dest;
 }
 
+static bool list_copier(pLIST_ELEMENT pelem, void *data)
+{
+   pLIST pdest = (pLIST) data;
+
+   add_to_list(pdest, pelem->mbr);
+
+   return false;
+}
+
+/**********************************************************************************************************************/
+/**
+ * @brief copy one list to the end of another
+ * 
+ * @author Steven Stanton (3/25/2023)
+ * 
+ * @param dest the destination list
+ * @param src the sourc list
+ * 
+ *
+ * @ref_global none
+ *
+ * @mod_global none
+ *
+ * @thread_safe yes
+ * 
+ * @return pLIST the destination list
+ *
+ * If destination is null, no copy is done, and src is returned.
+ ***********************************************************************************************************************/
+pLIST copy_list(pLIST dest, pLIST src)
+{
+   if (dest)
+   {
+      iterate_list(src,list_copier,dest);
+   }
+   return dest;
+}
+
 /**********************************************************************************************************************/
 /**
  * @brief Free any list members, then free the list record.  All memory must have been malloced.

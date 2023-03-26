@@ -1,0 +1,28 @@
+native
+{
+#include "test.h"
+#include "external.h"
+}
+
+/**
+	testing transition functions
+*/
+machine newMachine
+   on transition machineTransition;
+	 actions return void;
+{
+	state s1, s2, s3;
+	event e1 = ext1;
+	event e2 = ext2
+        , e3 = ext3
+        , e4 = ext4
+        ;
+
+	action a1[e1,s1] transition s2;
+	action a1[e4,s1] transition transitionFn;
+
+	action a2[e4,(s2,s3)] transition transitionFn;
+	transition[(e2,e3),(all)] transitionFn1;
+
+}
+

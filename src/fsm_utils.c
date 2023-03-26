@@ -400,6 +400,10 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
    else
    {
       paaph->pmi->actionArray[paaph->pevent->order][pstate->order] = paaph->pai;
+      if (paaph->pevent->type_data.event_data.psingle_pai == paaph->pai)
+      {
+         paaph->pevent->type_data.event_data.single_pai_state_count++;
+      }
    }
 
    return paaph->error;
@@ -411,11 +415,25 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
    
    paaph->pevent = (pID_INFO) pelem->mbr;
 
+   /* look for events which are handled identically in all states */
+   paaph->pevent->type_data.event_data.single_pai_state_count = 0;
+   if (!paaph->pevent->type_data.event_data.psingle_pai)
+   {
+      paaph->pevent->type_data.event_data.psingle_pai            = paaph->pai;
+   }
+
    #ifdef PARSER_DEBUG
    fprintf(paaph->fout, "\titerate_matrix_states: event: %s\n", paaph->pevent->name);
    #endif
 
    iterate_list(paaph->pai->matrix->state_list,add_to_action_array,paaph);
+
+   if (paaph->pevent->type_data.event_data.single_pai_state_count == 
+   paaph->pmi->state_list->count)
+   {
+      paaph->pevent->type_data.event_data.single_pai_for_all_states = true;
+      paaph->pmi->has_single_pai_events                             = true;
+   }
 
    return paaph->error;
 }
@@ -432,7 +450,22 @@ static bool process_action_info(pLIST_ELEMENT pelem, void *data)
            );
    #endif
 
-   iterate_list(paaph->pai->matrix->event_list,iterate_matrix_states,paaph);
+   /* first, handle any (ALL) constructs.
+    
+      These cannot be resolved when parsed, because the parser
+      cannot see the machine's state and event lists at that time.
+  */
+   if (!paaph->pai->matrix->event_list->count)
+   {
+      copy_list(paaph->pai->matrix->event_list, paaph->pmi->event_list);
+   }
+   if (!paaph->pai->matrix->state_list->count)
+   {
+      copy_list(paaph->pai->matrix->state_list, paaph->pmi->state_list);
+   }
+
+   /* then, fill in the action array */
+   iterate_list(paaph->pai->matrix->event_list, iterate_matrix_states, paaph);
 
    return paaph->error;
 
@@ -938,6 +971,25 @@ int copyFileContents(const FILE *fDest, const char *src)
     fclose(fSrc);
 
     return ferror(fSrc) + ferror((FILE*)fDest);
+}
+
+void printAncestry(pMACHINE_INFO pmi, FILE *fout)
+{
+   if (!pmi->parent)
+   {
+      fprintf(fout
+              , "%s"
+              , pmi->name->name
+              );
+   }
+   else
+   {
+      printAncestry(pmi->parent, fout);
+      fprintf(fout
+              , "::%s"
+              , pmi->name->name
+              );
+   }
 }
 
 #ifdef PARSER_DEBUG
