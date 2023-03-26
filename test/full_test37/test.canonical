@@ -1,0 +1,90 @@
+event: top_level_e1; state: top_level_s1
+top_level_a1
+event: top_level_e2; state: top_level_s2
+top_level_activate_sub_machine1
+event: top_level_sub_machine1_e1; state: top_level_s2
+event: sub_machine1_e1; state: sub_machine1_s1
+weak: sub_machine1_a1
+event: top_level_e5; state: top_level_s2
+top_level_noAction
+
+0
+
+event: top_level_e5; state: top_level_s2
+top_level_noAction
+weak: top_level_handle_dispatch
+sub_machine1_noAction
+sub_machine2_noAction
+event: top_level_e7; state: top_level_s2
+weak: top_level_handle_other_passed_event
+weak: sub_machine1_translate_e7_data
+event: sub_machine1_e7; state: sub_machine1_s2
+weak: sub_machine1_handle_e7
+event: sub_machine3_e7; state: sub_machine3_s1
+weak: sub_machine3_handle_e7
+
+1
+
+event: top_level_e5; state: top_level_s2
+top_level_noAction
+weak: top_level_handle_dispatch
+sub_machine1_noAction
+sub_machine2_noAction
+event: top_level_e7; state: top_level_s2
+weak: top_level_handle_other_passed_event
+weak: sub_machine1_translate_e7_data
+event: sub_machine1_e7; state: sub_machine1_s2
+weak: sub_machine1_handle_e7
+event: sub_machine3_e7; state: sub_machine3_s1
+weak: sub_machine3_handle_e7
+
+2
+
+event: top_level_e5; state: top_level_s2
+top_level_noAction
+weak: top_level_handle_dispatch
+sub_machine1_noAction
+sub_machine2_noAction
+event: top_level_e7; state: top_level_s2
+weak: top_level_handle_other_passed_event
+weak: sub_machine1_translate_e7_data
+event: sub_machine1_e7; state: sub_machine1_s2
+weak: sub_machine1_handle_e7
+event: sub_machine3_e7; state: sub_machine3_s1
+weak: sub_machine3_handle_e7
+
+3
+
+event: top_level_e5; state: top_level_s2
+top_level_noAction
+weak: top_level_handle_dispatch
+sub_machine1_noAction
+sub_machine2_noAction
+event: top_level_e7; state: top_level_s2
+weak: top_level_handle_other_passed_event
+weak: sub_machine1_translate_e7_data
+event: sub_machine1_e7; state: sub_machine1_s2
+weak: sub_machine1_handle_e7
+event: sub_machine3_e7; state: sub_machine3_s1
+weak: sub_machine3_handle_e7
+
+4
+
+event: top_level_e5; state: top_level_s2
+top_level_noAction
+weak: top_level_handle_dispatch
+sub_machine1_noAction
+sub_machine2_noAction
+event: top_level_e7; state: top_level_s2
+weak: top_level_handle_other_passed_event
+weak: sub_machine1_translate_e7_data
+event: sub_machine1_e7; state: sub_machine1_s2
+weak: sub_machine1_handle_e7
+event: sub_machine3_e7; state: sub_machine3_s1
+weak: sub_machine3_handle_e7
+
+
+event: top_level_e8; state: top_level_s2
+top_level_noAction
+event: top_level_e5; state: top_level_s4
+top_level_noAction

@@ -280,6 +280,11 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
            , cp
           );
 
+   fprintf(pcmw->hFile
+           , "#undef ACTION_RETURN_TYPE\n#define ACTION_RETURN_TYPE %s_EVENT\n"
+           , cp
+          );
+
    fprintf(pcmw->hFile, "#ifdef %s_DEBUG\n", cp);
    fprintf(pcmw->hFile, "extern char *%s_EVENT_NAMES[];\n", cp);
    fprintf(pcmw->hFile, "#endif\n\n");
@@ -346,6 +351,11 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
            pmi->name->name,
            cp,
            cp);
+
+   fprintf(pcmw->hFile
+           , "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
+           , cp
+          );
 
    if (generate_instance)
    {
@@ -1877,6 +1887,11 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
            pmi->name->name,
            cp,
            cp);
+
+   fprintf(pcmw->hFile
+           , "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
+           , cp
+          );
 
    if (generate_instance)
    {
