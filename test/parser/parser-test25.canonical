@@ -2,7 +2,8 @@ found the start of a state declaration list
 added another id to the state declaration list
 added another id to the state declaration list
 added another id to the state declaration list
-The 4 states in this list :
+added another id to the state declaration list
+The 5 states in this list :
 	0:	s1
 
 	1:	s2
@@ -10,6 +11,8 @@ The 4 states in this list :
 	2:	s3
 
 	3:	s4
+
+	4:	s5
 
 added another id to the event declaration list
 added another id to the event declaration list
@@ -276,7 +279,14 @@ found the begining of an event comma list: e2
 found an event vector
 	e2
 	e3
-found an all state vector
+found the beginning of a state comma list
+found the continuation of a state comma list
+found the continuation of a state comma list
+found a state vector
+	s1
+	s2
+	s3
+	s4
 found a matrix
 found a transition matrix with new transition function
 found an all event vector
@@ -290,6 +300,7 @@ The actions in this list:
 found the beginning of a state comma list
 Found a transition_fn return declaration
 found the beginning of a state comma list
+found the continuation of a state comma list
 found the continuation of a state comma list
 Found a transition_fn return declaration
 process_action_info: a1
@@ -312,12 +323,16 @@ process_action_info: noAction
 		add_to_action_array: state: s4
 process_action_info: a3
 	iterate_matrix_states: event: e1
-		add_to_action_array: state: s4
+		add_to_action_array: state: s5
 	iterate_matrix_states: event: e2
-		add_to_action_array: state: s4
-populate_action_array returning true
+		add_to_action_array: state: s5
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s5
+	iterate_matrix_states: event: e4
+		add_to_action_array: state: s5
+populate_action_array returning false
 found a machine named newMachine
-	with 4 events and 4 states
+	with 4 events and 5 states
 Actions return events
 on transition: baz
 The states :
@@ -328,6 +343,8 @@ The states :
 	2:	s3
 
 	3:	s4
+
+	4:	s5
 
 The events :
 	0:	e1
@@ -373,7 +390,7 @@ Doc Comments:
 				e3
 				e4
 		and states
-				s4
+				s5
 
 The 1 transitions :
 	s1
@@ -388,9 +405,7 @@ The 2 transition functions :
 				s2
 				s3
 				s4
+				s5
 this machine has 2 sub-machines
 
 found a single machine
-Machine newMachine: Won't insert action a3 into slot: event e2, state s4 because it is already occupied by 
-./test: Action array population failed
-	line 53 : }

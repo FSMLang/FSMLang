@@ -636,19 +636,18 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                  , cp
                 );
 
-         if (!pmi->machineTransition)
-         {
-            fprintf(pcmw->cFile
-                    , "\t%s_%s retVal = %s_no%s;\n"
-                    , cp
-                    , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
-                    , pmi->name->name
-                    , (pmi->modFlags & mfActionsReturnStates) ? "Transition" : "Event"
-                   );
-         }
+         fprintf(pcmw->cFile
+                 , "\t%s_%s retVal = %s_no%s;\n"
+                 , cp
+                 , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
+                 , pmi->name->name
+                 , (pmi->modFlags & mfActionsReturnStates) ? "Transition" : "Event"
+                );
       }
 
-      if (pmi->machineTransition)
+      if (
+          pmi->machineTransition
+         )
       {
          fprintf(pcmw->cFile
                  , "\t%s_STATE new_s  = pfsm->state;\n"
@@ -679,8 +678,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                if (pmi->modFlags & mfActionsReturnStates)
                {
 
-                  fprintf(pcmw->cFile, "\t\t%s = "
-                          , pmi->machineTransition ? "new_s" : "retVal"
+                  fprintf(pcmw->cFile, "\t\tretVal = "
                          );
 
                   if (strlen(pmi->actionArray[j][i]->action->name))
@@ -788,8 +786,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
       if (!(pmi->modFlags & mfActionsReturnVoid))
       {
          fprintf(pcmw->cFile
-                 , "\n\treturn %s;\n"
-                 , pmi->machineTransition ? "new_s" : "retVal"
+                 , "\n\treturn retVal;\n"
                 );
       }
 
@@ -840,7 +837,7 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
       if (pmi->machineTransition)
       {
          fprintf(pcmw->cFile
-                 , "\t%s_STATE new_s  = pfsm->state;\n"
+                 , "\t%s_STATE new_s = pfsm->state;\n"
                  , cp
                 );
 
@@ -1529,7 +1526,7 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
                     , event->type_data.event_data.psingle_pai->transition->name
                     , event->type_data.event_data.psingle_pai->transition->type == STATE
                        ? ""
-                       : "(pfsm,new_s)"
+                       : pich->pmi->modFlags & mfActionsReturnStates ? "(pfsm)" : "(pfsm,e)"
                     );
          }
          else
@@ -1561,10 +1558,10 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
             }
 
          }
-
+         
          fprintf(pich->pcmw->cFile
-                 , "\t\t\tbreak;\n"
-                 );
+                , "\t\t\thandled = true;\n"
+                );
 
       }
       else
@@ -1585,7 +1582,7 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
          if (strlen(event->type_data.event_data.psingle_pai->action->name))
          {
             fprintf(pich->pcmw->cFile
-                    , "\t\t\treturn %s_%s(pfsm);\n"
+                    , "\t\t\tretVal = %s_%s(pfsm);\n"
                     , pich->pmi->name->name
                     , event->type_data.event_data.psingle_pai->action->name
                     );
@@ -1593,11 +1590,16 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
          else
          {
             fprintf(pich->pcmw->cFile
-                    ,"\t\t\treturn %s_noEvent;\n"
+                    ,"\t\t\tretVal = %s_noEvent;\n"
                     , pich->pmi->name->name
                     );
          }
+
       }
+
+      fprintf(pich->pcmw->cFile
+              , "\t\t\tbreak;\n"
+              );
 
    }
    return false;
@@ -1625,10 +1627,23 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi, char *c
            , cp
            );
 
+   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+   {
+      fprintf(pcmd->cFile
+              , "\t%s_EVENT retVal;\n"
+              , cp
+             );
+   }
+   else
+   {
+      fprintf(pcmd->cFile
+              ,"\tbool handled = false;\n"
+              );
+   }
+
    if (
-       (pmi->modFlags & ACTIONS_RETURN_FLAGS)
-       && pmi->machineTransition
-       )
+       pmi->machineTransition
+      )
    {
       fprintf(pcmd->cFile
               , "\t%s_STATE new_s = pfsm->state;\n\n"
@@ -1645,38 +1660,47 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi, char *c
    if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
    {
       fprintf(pcmd->cFile
-              , "\t\tdefault:\n\t\t\treturn true;\n\t}\n"
-              );
-
-      if (pmi->machineTransition)
-      {
-         fprintf(pcmd->cFile
-                 , "\n\tif (pfsm->state != new_s)\n\t{\n"
-                );
-
-         fprintf(pcmd->cFile
-                 , "\t\t%s_%s(pfsm,new_s);\n"
-                 , pmi->name->name
-                 , pmi->machineTransition->name
-                );
-
-         fprintf(pcmd->cFile
-                 , "\t\tpfsm->state = new_s;\n\n"
-                );
-
-         fprintf(pcmd->cFile
-                 , "\t}\n\n"
-                );
-      }
-
-      fprintf(pcmd->cFile 
-              , "\n\t return false;\n\n}\n\n"
+              , "\t\tdefault:\n\t\t\tbreak;\n\t}\n"
               );
    }
    else
    {
       fprintf(pcmd->cFile
-              , "\t\tdefault:\n\t\t\treturn e;\n\t}\n}\n\n"
+              , "\t\tdefault:\n\t\t\tretVal = e;\n\t\t\tbreak;\n\t}"
+              );
+   }
+
+   if (pmi->machineTransition)
+   {
+      fprintf(pcmd->cFile
+              , "\n\tif (pfsm->state != new_s)\n\t{\n"
+             );
+
+      fprintf(pcmd->cFile
+              , "\t\t%s_%s(pfsm,new_s);\n"
+              , pmi->name->name
+              , pmi->machineTransition->name
+             );
+
+      fprintf(pcmd->cFile
+              , "\t\tpfsm->state = new_s;\n\n"
+             );
+
+      fprintf(pcmd->cFile
+              , "\t}\n\n"
+             );
+   }
+
+   if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
+   {
+      fprintf(pcmd->cFile 
+              , "\n\t return !handled;\n\n}\n\n"
+              );
+   }
+   else
+   {
+      fprintf(pcmd->cFile 
+              , "\n\t return retVal;\n\n}\n\n"
               );
    }
 
