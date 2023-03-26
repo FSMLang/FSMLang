@@ -105,6 +105,7 @@ machine top_level
        event e2;
        event e3;
 
+	/** Is this comment picked up? */
 	event parent::e6, parent::e7 data translator translate_e7_data;
 
 		   state s1;
