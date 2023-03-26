@@ -397,6 +397,10 @@ void {
 
 parent {
 					#ifndef LEX_DEBUG
+
+         yylval.charData = currDocCmnt ? currDocCmnt : NULL;
+         currDocCmnt     = NULL;
+
 					return PARENT;
 					#else
 					printf("%s\n",strings[PARENT]);
