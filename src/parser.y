@@ -67,9 +67,11 @@ void yyerror(char *);
  pMACHINE_PREFIX          pmachine_prefix;
 }
 
-%token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON PARENT NAMESPACE
+%token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON NAMESPACE
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID TRANSLATOR_KEY
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL
+%token <charData>	PARENT
+
 %token <charData>	NATIVE_KEY
 %token <charData>	NATIVE_BLOCK
 %token <charData>	DATA_KEY
@@ -116,6 +118,7 @@ void yyerror(char *);
 %type <pid_info>                 namespace_event_ref
 %type <pid_info>                 event_data
 %type <pid_info>                 state
+%type <charData>                 parent_namespace
 
 %%
 
@@ -1238,6 +1241,9 @@ parent_namespace: PARENT NAMESPACE
         yyerror("parent namespace invoked in top-level machine");
 
     id_list = pmachineInfo->parent->id_list;
+
+    /* this picks up any doc comment */
+ 	 $$ = $1;
   }
   ;
 
@@ -1283,7 +1289,8 @@ event_decl_list:	EVENT_KEY ID external_designation
 
            pid->type_data.event_data.data_translator     = $4;
            pid->type_data.event_data.shared_with_parent  = true;
-           pid->powningMachine = pmachineInfo;
+           pid->powningMachine                           = pmachineInfo;
+ 					pid->docCmnt                                  = $2;
 
  					if (NULL == (add_to_list($$,pid)))
  						yyerror("Out of memory");
@@ -1333,7 +1340,8 @@ event_decl_list:	EVENT_KEY ID external_designation
 
            pid->type_data.event_data.data_translator     = $5;
            pid->type_data.event_data.shared_with_parent  = true;
-           pid->powningMachine = pmachineInfo;
+           pid->powningMachine                           = pmachineInfo;
+ 					pid->docCmnt                                  = $3;
 
  					if (NULL == (add_to_list($$,pid)))
  						yyerror("Out of memory");

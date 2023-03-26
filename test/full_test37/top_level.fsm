@@ -5,6 +5,8 @@ native
 #include "test.h"
 #endif
 #include <stdbool.h>
+
+#define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e != THIS(e6))
 }
 
 /**
@@ -90,6 +92,12 @@ machine top_level
     /**
       This machine's happy path is e1 then e2, finishing with e3.
     */
+    native
+    {
+      
+		#undef EVENT_IS_NOT_EXCLUDED_FROM_LOG
+		#define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e != THIS(e6))
+    }
     machine sub_machine1
     {
         data
@@ -105,7 +113,6 @@ machine top_level
        event e2;
        event e3;
 
-	/** Is this comment picked up? */
 	event parent::e6, parent::e7 data translator translate_e7_data;
 
 		   state s1;
@@ -135,6 +142,12 @@ machine top_level
     /**
       This machine's happy path is e1 then e2, finishing with e3.
     */
+    native
+    {
+      
+		#undef EVENT_IS_NOT_EXCLUDED_FROM_LOG
+		#define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e != THIS(e6))
+    }
 		machine sub_machine2
 		{
        /**
@@ -170,6 +183,11 @@ machine top_level
       It is not necessary to inform the parent when this machine
         is finished.
     */
+    native
+    {
+      
+		#undef EVENT_IS_NOT_EXCLUDED_FROM_LOG
+    }
 		machine sub_machine3
 		{
        /**
