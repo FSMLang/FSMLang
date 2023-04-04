@@ -29,6 +29,7 @@
 #include "fsm_cswitch.h"
 #include "fsm_html.h"
 #include "fsm_plantuml.h"
+#include "fsm_statistics.h"
 
 #include "list.h"
 
@@ -41,8 +42,9 @@ int good=1;
 extern char	*yytext;
 extern FILE	*yyin, *yyout;
  
-pMACHINE_INFO        pmachineInfo = NULL;
-pFSMOutputGenerator	pfsmog;
+pMACHINE_INFO          pmachineInfo = NULL;
+pFSMOutputGenerator	  pfsmog;
+pSTATE_AND_EVENT_DECLS psedecls = NULL;
 
 void yyerror(char *);
 
@@ -68,8 +70,9 @@ void yyerror(char *);
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON PARENT NAMESPACE
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID DATA_KEY TRANSLATOR_KEY
-%token IMPLEMENTATION_KEY INHIBITS SUBMACHINES
+%token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL
 %token <charData>	PARENT
+
 %token <charData>	NATIVE_KEY
 %token <charData>	NATIVE_BLOCK
 %token <charData> DOC_COMMENT
@@ -973,19 +976,27 @@ matrix: '[' event_vector ',' state_vector ']'
          /*
             grab a MATRIX_INFO struct
          */
-						if (($$ = (pMATRIX_INFO)malloc(sizeof(MATRIX_INFO))) == NULL)
+					if (($$ = (pMATRIX_INFO)malloc(sizeof(MATRIX_INFO))) == NULL)
 
-							yyerror("out of memory");
+						yyerror("out of memory");
 
-            $$->event_list = $2;
-            $$->state_list = $4;
+         $$->event_list = $2;
+         $$->state_list = $4;
 
      }
  ;
 
 state_vector: 
-		'(' state_comma_list STATE ')' 
+		'(' ALL ')' 
+		      {
+ 					if (($$ = init_list()) == NULL)
+							yyerror("out of memory");
 
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found an all state vector\n");
+ 					#endif
+		      }
+ 	| '(' state_comma_list STATE ')' 
 					{
 
 						$$ = $2;
@@ -1044,7 +1055,17 @@ state_comma_list:	STATE ','
 					}
 	;
 
-event_vector: '(' event_comma_list EVENT ')' 
+event_vector: 
+		'(' ALL ')' 
+		      {
+ 					if (($$ = init_list()) == NULL)
+							yyerror("out of memory");
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found an all event vector\n");
+ 					#endif
+		      }
+	| '(' event_comma_list EVENT ')' 
 					{
 
 						$$ = $2;
@@ -1119,6 +1140,7 @@ state_and_event_decls:
 
  		 $$->state_decls = $1;
  		 $$->event_decls = init_list();
+      psedecls = $$;
 		}
  | event_decl
 		{
@@ -1127,18 +1149,21 @@ state_and_event_decls:
 
  		 $$->event_decls = $1;
  		 $$->state_decls = init_list();
+      psedecls = $$;
 		}
 	| state_and_event_decls state_decl
 	  {
  		$$ = $1;
 
 			$$->state_decls = move_list($$->state_decls,$2);
+      psedecls = $$;
 	  }
 	| state_and_event_decls event_decl
 	  {
  		$$ = $1;
 
 			$$->event_decls = move_list($$->event_decls,$2);
+      psedecls = $$;
 
 	  }
 	;
@@ -1848,7 +1873,7 @@ int main(int argc, char **argv)
 	/* default to writing a c machine */
 	pfsmog = pCMachineWriter;
 
-	while ((c = getopt_long(argc,argv,"vht:o:i:c", longopts, &longindex)) != -1) {
+	while ((c = getopt_long(argc,argv,"vht:o:i:cs", longopts, &longindex)) != -1) {
 
 		switch(c) {
 
@@ -1894,6 +1919,10 @@ int main(int argc, char **argv)
 			case 'h':
 				usage();
 				return (1);
+
+ 		case 's':
+ 			pfsmog = pMachineStatisticsWriter;
+ 			break;
 
 			case 't':
 
@@ -1950,7 +1979,7 @@ int main(int argc, char **argv)
 			case ':':
 
 				usage();
-				return (1);
+				return (0);
 
 		}
 

@@ -137,6 +137,11 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    fprintf(pcmw->hFile, "#include <stdlib.h>\n");
    fprintf(pcmw->hFile, "#endif\n\n");
 
+   if (pmi->has_single_pai_events)
+   {
+      fprintf(pcmw->hFile, "#include <stdbool.h>\n");
+   }
+
    fprintf(pcmw->hFile
            , "#define FSM_VERSION \"%s\"\n"
            , rev_string
