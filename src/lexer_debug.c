@@ -62,5 +62,6 @@ char *strings[]  = {
   , "IMPLEMENTATION_KEY"
   , "INHIBITS"
   , "SUBMACHINES"
+  , "ALL"
 };
 

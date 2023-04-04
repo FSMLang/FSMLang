@@ -86,6 +86,9 @@ struct _event_data_
    pLIST           psharing_sub_machines;
    bool            shared_with_parent;
    pID_INFO        data_translator;
+   unsigned        single_pai_state_count;
+   pACTION_INFO    psingle_pai;
+   bool            single_pai_for_all_states;
 };
 
 union _pid_type_data_
@@ -203,6 +206,7 @@ struct _machine_info_ {
   pLIST         machine_list;
   int           shared_event_count;
   pLIST         id_list;
+  bool          has_single_pai_events;
 };
 
 /* lexer id list handlers */
@@ -238,6 +242,7 @@ void count_data_translators(pLIST,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
+void printAncestry(pMACHINE_INFO,FILE*);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);
