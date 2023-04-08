@@ -73,7 +73,11 @@ static bool  define_shared_event_lists                      (pLIST_ELEMENT,void*
 static bool  define_shared_event_data_blocks                (pLIST_ELEMENT,void*);
 static bool  reference_shared_event_data_blocks             (pLIST_ELEMENT,void*);
 static bool  print_inhibited_state_case                     (pLIST_ELEMENT,void*);
+static bool  write_state_entry_fn_switch_case               (pLIST_ELEMENT,void*);
+static bool  write_state_exit_fn_switch_case                (pLIST_ELEMENT,void*);
 static void  defineSubMachineInhibitor                      (pCMachineData,pMACHINE_INFO,char*);
+static void  print_exit_fn_signature                        (pID_INFO,pITERATOR_CALLBACK_HELPER);
+static void  print_entry_fn_signature                       (pID_INFO,pITERATOR_CALLBACK_HELPER);
 
 int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
@@ -640,6 +644,13 @@ void commonHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needN
       }
    }
 
+   /* declare any entry or exit functions */
+   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   {
+      iterate_list(pmi->state_list, declare_state_entry_and_exit_functions, &ich);
+      fprintf(pcmw->hFile, "\n");
+   }
+
 
    /* if the machine has data, declare the data init function
  
@@ -770,6 +781,21 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
                  );
       }
    }
+}
+
+void defineWeakStateEntryAndExitFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   ITERATOR_CALLBACK_HELPER ich;
+
+   ich.cp     = cp;
+   ich.pmi    = pmi;
+   ich.pcmw   = pcmw;
+
+   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   {
+      iterate_list(pmi->state_list, define_state_entry_and_exit_functions, &ich);
+   }
+
 }
 
 void writeStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
@@ -1599,6 +1625,144 @@ bool declare_state_only_transition_functions_for_when_actions_return_events(pLIS
    return false;
 }
 
+static void print_entry_fn_signature(pID_INFO pstate, pITERATOR_CALLBACK_HELPER pich)
+{
+   fprintf(pich->define ? pich->pcmw->cFile : pich->pcmw->hFile
+           , "void %s%s_%s%s(%s%s%s%s)%s\n"
+           , pich->define
+             ? "__attribute__((weak)) "
+             : ""
+           , pich->pmi->name->name
+           , pstate->type_data.state_data.entry_fn
+             ? pstate->type_data.state_data.entry_fn->name
+             : "onEntryTo_"
+           , pstate->type_data.state_data.entry_fn
+             ? ""
+             : pstate->name
+           , pich->pmi->data
+             ? "p"
+             : "void"
+           , pich->pmi->data
+             ? pich->cp
+             : ""
+           , pich->pmi->data
+             ? "_DATA"
+             : ""
+           , (pich->pmi->data && pich->define)
+             ? " pdata"
+             : ""
+           , pich->define
+             ? ""
+             : ";"
+           );
+}
+
+static void print_exit_fn_signature(pID_INFO pstate, pITERATOR_CALLBACK_HELPER pich)
+{
+   fprintf(pich->define ? pich->pcmw->cFile : pich->pcmw->hFile
+           , "void %s%s_%s%s(%s%s%s%s)%s\n"
+           , pich->define
+             ? "__attribute__((weak)) "
+             : ""
+           , pich->pmi->name->name
+           , pstate->type_data.state_data.exit_fn
+             ? pstate->type_data.state_data.exit_fn->name
+             : "onExitFrom_"
+           , pstate->type_data.state_data.exit_fn
+             ? ""
+             : pstate->name
+           , pich->pmi->data
+             ? "p"
+             : "void"
+           , pich->pmi->data
+             ? pich->cp
+             : ""
+           , pich->pmi->data
+             ? "_DATA"
+             : ""
+           , (pich->pmi->data && pich->define)
+             ? " pdata"
+             : ""
+           , pich->define
+             ? ""
+             : ";"
+           );
+}
+
+bool declare_state_entry_and_exit_functions(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pstate                = ((pID_INFO)pelem->mbr);
+
+   //we are declaring, not defining
+   pich->define = false;
+
+   if (pstate->type_data.state_data.state_flags & sfHasEntryFn)
+   {
+      print_entry_fn_signature(pstate, pich);
+   }
+
+   if (pstate->type_data.state_data.state_flags & sfHasExitFn)
+   {
+      print_exit_fn_signature(pstate, pich);
+   }
+
+   return false;
+}
+
+bool define_state_entry_and_exit_functions(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pstate                = ((pID_INFO)pelem->mbr);
+
+   //we are defining
+   pich->define = true;
+
+   if (pstate->type_data.state_data.state_flags & sfHasEntryFn)
+   {
+      print_entry_fn_signature(pstate, pich);
+
+      fprintf(pich->pcmw->cFile
+              ,"{\n%s\tDBG_PRINTF(\"weak: %s_%s%s\");\n}\n"
+              , pich->pmi->data
+                ? "\t(void) pdata;\n\n"
+                : ""
+              , pich->pmi->name->name
+              , pstate->type_data.state_data.exit_fn
+                ? pstate->type_data.state_data.exit_fn->name
+                : "onEntryTo_"
+              , pstate->type_data.state_data.exit_fn
+                ? ""
+                : pstate->name
+              );
+
+      fprintf(pich->pcmw->cFile, "\n");
+   }
+
+   if (pstate->type_data.state_data.state_flags & sfHasExitFn)
+   {
+      print_exit_fn_signature(pstate, pich);
+
+      fprintf(pich->pcmw->cFile
+              ,"{\n%s\tDBG_PRINTF(\"weak: %s_%s%s\");\n}\n"
+              , pich->pmi->data
+                ? "\t(void) pdata;\n\n"
+                : ""
+              , pich->pmi->name->name
+              , pstate->type_data.state_data.exit_fn
+                ? pstate->type_data.state_data.exit_fn->name
+                : "onExitFrom_"
+              , pstate->type_data.state_data.exit_fn
+                ? ""
+                : pstate->name
+              );
+
+      fprintf(pich->pcmw->cFile, "\n");
+   }
+
+   return false;
+}
+
 bool declare_data_translator_functions(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
@@ -2148,6 +2312,14 @@ void subMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool n
 
    iterate_list(pmi->event_list, declare_data_translator_functions, &ich);
    fprintf(pcmw->cFile, "\n");
+
+
+   /* declare any entry or exit functions */
+   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   {
+      iterate_list(pmi->state_list, declare_state_entry_and_exit_functions, &ich);
+      fprintf(pcmw->hFile, "\n");
+   }
 
    FREE_AND_CLEAR(ich.parent_cp);
 
@@ -2711,5 +2883,126 @@ void declareSubMachineManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
    }
 
    fprintf(pcmd->cFile, "\n");
+}
+
+void declareStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
+{
+   if (pmi->states_with_entry_fns_count)
+   {
+      fprintf(pcmd->cFile
+              ,"static void runAppropriateEntryFunction(%s%s%s%s_STATE);\n"
+              , pmi->data ? "p" : ""
+              , pmi->data ? cp : ""
+              , pmi->data ? "_DATA, " : ""
+              , cp
+              );
+   }
+   if (pmi->states_with_exit_fns_count)
+   {
+      fprintf(pcmd->cFile
+              ,"static void runAppropriateExitFunction(%s%s%s%s_STATE);\n"
+              , pmi->data ? "p" : ""
+              , pmi->data ? cp : ""
+              , pmi->data ? "_DATA, " : ""
+              , cp
+              );
+   }
+}
+
+static bool write_state_entry_fn_switch_case(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pstate                = (pID_INFO)pelem->mbr;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+
+   if (pstate->type_data.state_data.state_flags & sfHasEntryFn)
+   {
+      fprintf(pich->pcmw->cFile
+              , "\tcase %s_%s:\n\t\t%s_%s%s(%s);\n\t\tbreak;\n"
+              , pich->pmi->name->name
+              , pstate->name
+              , pich->pmi->name->name
+              , pstate->type_data.state_data.entry_fn
+                ? pstate->type_data.state_data.entry_fn->name
+                : "onEntryTo_"
+              , pstate->type_data.state_data.entry_fn
+                ? ""
+                : pstate->name
+              , pich->pmi->data
+                ? "pdata"
+                : ""
+              );
+   }
+
+   return false;
+}
+
+static bool write_state_exit_fn_switch_case(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pstate                = (pID_INFO)pelem->mbr;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+
+   if (pstate->type_data.state_data.state_flags & sfHasExitFn)
+   {
+      fprintf(pich->pcmw->cFile
+              , "\tcase %s_%s:\n\t\t%s_%s%s(%s);\n\t\tbreak;\n"
+              , pich->pmi->name->name
+              , pstate->name
+              , pich->pmi->name->name
+              , pstate->type_data.state_data.entry_fn
+                ? pstate->type_data.state_data.entry_fn->name
+                : "onExitFrom_"
+              , pstate->type_data.state_data.entry_fn
+                ? ""
+                : pstate->name
+              , pich->pmi->data
+                ? "pdata"
+                : ""
+              );
+   }
+
+   return false;
+}
+
+void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
+{
+   ITERATOR_CALLBACK_HELPER ich;
+
+   ich.pmi  = pmi;
+   ich.pcmw = pcmd;
+   ich.cp   = cp;
+
+
+   if (pmi->states_with_entry_fns_count)
+   {
+      fprintf(pcmd->cFile
+              ,"static void runAppropriateEntryFunction(%s%s%s%s_STATE s)\n{\n\tswitch(s)\n\t{\n"
+              , pmi->data ? "p" : ""
+              , pmi->data ? cp : ""
+              , pmi->data ? "_DATA pdata, " : ""
+              , cp
+              );
+
+      iterate_list(pmi->state_list, write_state_entry_fn_switch_case, &ich);
+
+      fprintf(pcmd->cFile
+              , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
+              );
+   }
+   if (pmi->states_with_exit_fns_count)
+   {
+      fprintf(pcmd->cFile
+              ,"static void runAppropriateExitFunction(%s%s%s%s_STATE s)\n{\n\tswitch(s)\n\t{\n"
+              , pmi->data ? "p" : ""
+              , pmi->data ? cp : ""
+              , pmi->data ? "_DATA pdata, " : ""
+              , cp
+              );
+
+      iterate_list(pmi->state_list, write_state_exit_fn_switch_case, &ich);
+
+      fprintf(pcmd->cFile
+              , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
+              );
+   }
 }
 

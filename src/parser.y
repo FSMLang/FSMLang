@@ -69,7 +69,7 @@ void yyerror(char *);
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON NAMESPACE
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID TRANSLATOR_KEY
-%token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL
+%token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT
 %token <charData>	PARENT
 
 %token <charData>	NATIVE_KEY
@@ -218,12 +218,13 @@ machine:	machine_prefix ID machine_qualifier
  					$$->transition_fn_list = $7->pactions_and_transitions->transition_fn_list;
  					$$->machine_list       = $7->pactions_and_transitions->machine_list;
 
-						count_external_declarations  ($$->event_list,&($$->external_event_designation_count));
-						count_parent_event_referenced($$->event_list,&($$->parent_event_reference_count));
-						count_shared_events          ($$->event_list,&($$->shared_event_count));
-						count_data_translators       ($$->event_list,&($$->data_translator_count));
+						count_external_declarations     ($$->event_list,&($$->external_event_designation_count));
+						count_parent_event_referenced   ($$->event_list,&($$->parent_event_reference_count));
+						count_shared_events             ($$->event_list,&($$->shared_event_count));
+						count_data_translators          ($$->event_list,&($$->data_translator_count));
+						count_external_declarations     ($$->state_list,&($$->external_state_designation_count));
+ 					count_states_with_entry_exit_fns($$->state_list,&($$->states_with_entry_fns_count),&($$->states_with_exit_fns_count));
 
-						count_external_declarations  ($$->state_list,&($$->external_state_designation_count));
  					if ($$->machine_list)
 						{
 						    count_sub_machine_inhibitors  ($$->state_list,&($$->submachine_inhibitor_count));
@@ -1184,6 +1185,70 @@ state: ID
  					$$ = $1;
 
  					$$->type_data.state_data.state_flags |= sfInibitSubMachines;
+
+		      }
+   | state ON ENTRY
+					{
+         	#ifdef PARSER_DEBUG
+         	fprintf(yyout
+										, "state %s has anonymous entry function\n"
+ 									, $1->name
+										);
+         	#endif
+
+ 					$$ = $1;
+
+ 					$$->type_data.state_data.state_flags |= sfHasEntryFn;
+
+		      }
+   | state ON ENTRY ID
+					{
+         	#ifdef PARSER_DEBUG
+         	fprintf(yyout
+										, "state %s has entry function %s\n"
+ 									, $1->name
+ 									, $4->name
+										);
+         	#endif
+
+ 					$$ = $1;
+
+ 					$$->type_data.state_data.state_flags |= sfHasEntryFn;
+ 					$$->type_data.state_data.entry_fn     = $4;
+
+ 					set_id_type($4, ENTRY);
+
+		      }
+   | state ON EXIT
+					{
+         	#ifdef PARSER_DEBUG
+         	fprintf(yyout
+										, "state %s has anonymous exit function\n"
+ 									, $1->name
+										);
+         	#endif
+
+ 					$$ = $1;
+
+ 					$$->type_data.state_data.state_flags |= sfHasExitFn;
+
+		      }
+   | state ON EXIT ID
+					{
+         	#ifdef PARSER_DEBUG
+         	fprintf(yyout
+										, "state %s has exit function %s\n"
+ 									, $1->name
+ 									, $4->name
+										);
+         	#endif
+
+ 					$$ = $1;
+
+ 					$$->type_data.state_data.state_flags |= sfHasExitFn;
+ 					$$->type_data.state_data.exit_fn     = $4;
+
+ 					set_id_type($4, EXIT);
 
 		      }
  				;

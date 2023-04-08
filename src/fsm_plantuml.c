@@ -201,11 +201,75 @@ static bool print_state_docCmnt(pLIST_ELEMENT pelem, void *data)
                   fputc(*cp, pfsmpumlog->pmd->pumlFile);
          }
       }
+      fputc('\\', pfsmpumlog->pmd->pumlFile);
+      fputc('n', pfsmpumlog->pmd->pumlFile);
       fputc('\n', pfsmpumlog->pmd->pumlFile);
    }
 
    return false;
 }
+
+
+static bool print_state_entry_fn(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid                           = ((pID_INFO)pelem->mbr);
+   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
+
+   if (pid->type_data.state_data.state_flags & sfHasEntryFn)
+   {
+      fprintf(pfsmpumlog->pmd->pumlFile
+              , "%s: **Entry Function:** %s%s\n"
+              , pid->name
+              , pid->type_data.state_data.entry_fn
+                ? pid->type_data.state_data.entry_fn->name
+                : "onEntryTo_"
+              , pid->type_data.state_data.entry_fn
+                ? ""
+                : pid->name
+              );
+   }
+
+   return false;
+}
+
+static bool print_state_exit_fn(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid                           = ((pID_INFO)pelem->mbr);
+   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
+
+   if (pid->type_data.state_data.state_flags & sfHasExitFn)
+   {
+      fprintf(pfsmpumlog->pmd->pumlFile
+              , "%s: **Exit Function:** %s%s\n"
+              , pid->name
+              , pid->type_data.state_data.exit_fn
+                ? pid->type_data.state_data.exit_fn->name
+                : "onExitFrom_"
+              , pid->type_data.state_data.exit_fn
+                ? ""
+                : pid->name
+              );
+   }
+
+   return false;
+}
+
+static bool print_state_inhibitions(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid                           = ((pID_INFO)pelem->mbr);
+   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
+
+   if (pid->type_data.state_data.state_flags & sfInibitSubMachines)
+   {
+      fprintf(pfsmpumlog->pmd->pumlFile
+              , "%s: Inhibits sub-machines\n"
+              , pid->name
+              );
+   }
+
+   return false;
+}
+
 
 static bool print_transition_options(pLIST_ELEMENT pelem, void *data)
 {
@@ -283,6 +347,9 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
   iterate_list(pmi->state_list, print_state_name, pfsmpumlog);
   iterate_list(pmi->state_list, print_state_docCmnt, pfsmpumlog);
+  iterate_list(pmi->state_list, print_state_entry_fn, pfsmpumlog);
+  iterate_list(pmi->state_list, print_state_exit_fn, pfsmpumlog);
+  iterate_list(pmi->state_list, print_state_inhibitions, pfsmpumlog);
 
   /* show the initial state */
   fprintf(pfsmpumlog->pmd->pumlFile
@@ -310,8 +377,8 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                  /* simple state transition */
                  fprintf(pfsmpumlog->pmd->pumlFile
                          , pevent->type_data.event_data.shared_with_parent
-                           ? "%s --> %s : Event: (%s::) %s\\nAction: %s"
-                           : "%s --> %s : Event: %s%s\\nAction: %s"
+                           ? "%s --> %s : **Event:** (%s::) %s\\n**Action:** %s"
+                           : "%s --> %s : **Event:** %s%s\\n**Action:** %s"
                          , stateNameByIndex(pmi, s)
                          , pmi->actionArray[e][s]->transition->name
                          , pevent->type_data.event_data.shared_with_parent
@@ -326,7 +393,7 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                  if (pevent->type_data.event_data.psharing_sub_machines)
                  {
                     fprintf(pfsmpumlog->pmd->pumlFile
-                            , "\\nEvent shared with:\\n"
+                            , "\\n**Event shared with:**\\n"
                             );
 
                     iterate_list(pevent->type_data.event_data.psharing_sub_machines
@@ -354,7 +421,7 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
                  /* then the state that transitions via the choice */
                  fprintf(pfsmpumlog->pmd->pumlFile
-                         , "%s --> %s : Event: %s\\nAction: %s\\nChoice: %s\n"
+                         , "%s --> %s : **Event:** %s\\n**Action:** %s\\n**Choice:** %s\n"
                          , stateNameByIndex(pmi, s)
                          , pmi->actionArray[e][s]->transition->name
                          , eventNameByIndex(pmi, e)
@@ -377,7 +444,7 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                  else
                  {
                     fprintf(stderr
-                            , "transition function: %s\n"
+                            , "**transition function:** %s\n"
                             , pai->transition->name
                             );
                     yyerror("It is required to declare what the transition function returns.");
@@ -410,8 +477,8 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
          pevent = eventPidByIndex(pmi, ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->e);
          fprintf(pfsmpumlog->pmd->pumlFile
                  , pevent->type_data.event_data.shared_with_parent
-                   ? "%s --> %s : Event: (%s::) %s\\nAction: %s\n"
-                   : "%s --> %s : Event: %s%s\\nAction: %s\n"
+                   ? "%s --> %s : **Event:** (%s::) %s\\n**Action:** %s\n"
+                   : "%s --> %s : **Event:** %s%s\\n**Action:** %s\n"
                  , stateNameByIndex(pmi, s)
                  , stateNameByIndex(pmi, s)
                  , pevent->type_data.event_data.shared_with_parent
@@ -425,7 +492,7 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
          break;
       default:
          fprintf(pfsmpumlog->pmd->pumlFile
-                 , "\nnote left of %s\nThese events loop back:\n\n"
+                 , "\nnote left of %s\n**These events loop back:**\n\n"
                  , stateNameByIndex(pmi, s)
                  );
 
