@@ -1,0 +1,31 @@
+hello, world
+event: newMachine_e1; start state: newMachine_s1
+newMachine_a1
+
+newMachine_machineTransitionFn
+	old state: newMachine_s1
+	new state: newMachine_s2
+
+end state: newMachine_s2
+event: newMachine_e2; start state: newMachine_s2
+newMachine_transitionFn1
+
+end state: newMachine_s2
+event: newMachine_e3; start state: newMachine_s2
+newMachine_transitionFn1
+
+end state: newMachine_s2
+event: newMachine_e4; start state: newMachine_s2
+newMachine_machineTransitionFn
+	old state: newMachine_s2
+	new state: newMachine_s3
+
+end state: newMachine_s3
+event: newMachine_e4; start state: newMachine_s3
+newMachine_machineTransitionFn
+	old state: newMachine_s3
+	new state: newMachine_s1
+
+weak: newMachine_onExitFrom_s3
+weak: newMachine_onEntryTo_s1
+end state: newMachine_s1
