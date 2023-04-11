@@ -110,7 +110,9 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmw, pMACHINE_INFO p
 
    fprintf(pcmw->cFile, "\t%s_STATE s%s;\n"
            , cp
-           , pmi->machineTransition ? " = THIS(noTransition)" : ""
+           , (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+             ? " = THIS(noTransition)" 
+             : ""
            );
 
    fprintf(pcmw->cFile
@@ -135,17 +137,40 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmw, pMACHINE_INFO p
    fprintf(pcmw->cFile, "\tif (s != %s_noTransition)\n\t{\n",
            pmi->name->name);
 
-   if (pmi->machineTransition)
+   if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
       fprintf(pcmw->cFile
               , "\t\tif (s != pfsm->state)\n\t\t{\n"
              );
 
+      if (pmi->machineTransition)
+      {
+         fprintf(pcmw->cFile
+                 , "\t\t\t%s_%s(pfsm,s);\n"
+                 , pmi->name->name
+                 , pmi->machineTransition->name
+                );
+      }
+
+      if (pmi->states_with_exit_fns_count)
+      {
+         fprintf(pcmw->cFile
+                 ,"\t\t\trunAppropriateExitFunction(%spfsm->state);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
+                 );
+      }
+
+      if (pmi->states_with_entry_fns_count)
+      {
+         fprintf(pcmw->cFile
+                 ,"\t\t\trunAppropriateEntryFunction(%ss);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
+                 );
+      }
+
       fprintf(pcmw->cFile
-              , "\t\t\t%s_%s(pfsm,s);\n\t\t}\n"
-              , pmi->name->name
-              , pmi->machineTransition->name
-             );
+              , "\t\t}\n"
+              );
 
    }
 
@@ -252,12 +277,15 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       defineAllStateHandler(pcmw, pmi, cp);
    }
 
+   defineStateEntryAndExitManagers(pcmw, pmi, cp);
+
    defineCSwitchMachineStateFns(pcmw, pmi, cp);
 
    if (generate_weak_fns)
    {
       defineWeakActionFunctionStubs(pcmw, pmi, cp);
 
+      defineWeakStateEntryAndExitFunctionStubs(pcmw, pmi, cp);
    }
    else if (force_generation_of_event_passing_actions)
    {
@@ -342,6 +370,8 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       defineAllStateHandler(pcmw, pmi, parent_cp);
    }
 
+   defineStateEntryAndExitManagers(pcmw, pmi, cp);
+
    defineCSwitchSubMachineStateFns(pcmw, pmi, cp);
 
    if (generate_weak_fns)
@@ -349,6 +379,9 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       defineSubMachineWeakActionFunctionStubs(pcmw, pmi, cp);
 
       defineSubMachineWeakDataTranslatorStubs(pcmw, pmi, cp);
+
+      defineWeakStateEntryAndExitFunctionStubs(pcmw, pmi, cp);
+
    }
    else if (force_generation_of_event_passing_actions)
    {
@@ -501,7 +534,7 @@ static void defineCSwitchMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char 
       fprintf(pcmw->cFile
               , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                   ? "static %s %s(p%s,%s_EVENT);\n"
-                  : "static %s_EVENT %s(p%s,%s_EVENT);"
+                  : "static %s_EVENT %s(p%s,%s_EVENT);\n"
               , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "bool" : cp
               , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                  ? "eventIsNotHandledInAllStates" 
@@ -510,6 +543,8 @@ static void defineCSwitchMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char 
               , cp
               );
    }
+
+   declareStateEntryAndExitManagers(pcmw, pmi, cp);
 
    fprintf(pcmw->cFile, "\n");
 
@@ -558,7 +593,7 @@ static void defineCSwitchSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
       fprintf(pcmw->cFile
               , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                   ? "static %s %s(p%s,%s_EVENT);\n"
-                  : "static %s_EVENT %s(p%s,%s_EVENT);"
+                  : "static %s_EVENT %s(p%s,%s_EVENT);\n"
               , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "bool" : parent_cp
               , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                  ? "eventIsNotHandledInAllStates" 
@@ -581,6 +616,8 @@ static void defineCSwitchSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
    fprintf(pcmw->cFile
            , "#endif\n"
            );
+
+   declareStateEntryAndExitManagers(pcmw, pmi, cp);
 
    fprintf(pcmw->cFile
            , "%s_EVENT %sFSM(p%s pfsm, %s_EVENT event)\n{\n"
@@ -645,13 +682,13 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                 );
       }
 
-      if (
-          pmi->machineTransition
-         )
+      if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
       {
          fprintf(pcmw->cFile
-                 , "\t%s_STATE new_s  = pfsm->state;\n"
+                 , "\t%s_STATE new_s  = %s_%s;\n"
                  , cp
+                 , pmi->name->name
+                 , stateNameByIndex(pmi, i)
                 );
 
       }
@@ -725,7 +762,9 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                   {
                      fprintf(pcmw->cFile
                              , "\t\t%s = "
-                             , pmi->machineTransition ? "new_s" : "pfsm->state"
+                             , (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+                               ? "new_s" 
+                               : "pfsm->state"
                             );
 
                      fprintf(pcmw->cFile, "%s_%s%s;\n"
@@ -762,17 +801,40 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
               , "\t}\n"
              );
 
-      if (pmi->machineTransition)
+      if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
       {
          fprintf(pcmw->cFile
-                 , "\n\tif (pfsm->state != new_s)\n\t{\n"
+                 , "\n\n\tif (%s_%s != new_s)\n\t{\n"
+                 , pmi->name->name
+                 , stateNameByIndex(pmi,i)
                 );
 
-         fprintf(pcmw->cFile
-                 , "\t\t%s_%s(pfsm,new_s);\n"
-                 , pmi->name->name
-                 , pmi->machineTransition->name
-                );
+         if (pmi->machineTransition)
+         {
+            fprintf(pcmw->cFile
+                    , "\t\t%s_%s(pfsm,new_s);\n"
+                    , pmi->name->name
+                    , pmi->machineTransition->name
+                   );
+         }
+
+         if (pmi->states_with_exit_fns_count)
+         {
+            fprintf(pcmw->cFile
+                    ,"\t\trunAppropriateExitFunction(%s%s_%s);\n"
+                    , pmi->data ? "&pfsm->data, " : ""
+                    , pmi->name->name
+                    , stateNameByIndex(pmi, i)
+                    );
+         }
+
+         if (pmi->states_with_entry_fns_count)
+         {
+            fprintf(pcmw->cFile
+                    ,"\t\trunAppropriateEntryFunction(%snew_s);\n"
+                    , pmi->data ? "&pfsm->data, " : ""
+                    );
+         }
 
          fprintf(pcmw->cFile
                  , "\t\tpfsm->state = new_s;\n\n"
@@ -834,7 +896,7 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
                 );
       }
 
-      if (pmi->machineTransition)
+      if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
       {
          fprintf(pcmw->cFile
                  , "\t%s_STATE new_s = pfsm->state;\n"
@@ -907,7 +969,9 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
                {
                   fprintf(pcmw->cFile
                           , "\t\t%s = "
-                          , pmi->machineTransition ? "new_s" : "pfsm->state"
+                          , (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+                            ? "new_s" 
+                            : "pfsm->state"
                          );
 
                   fprintf(pcmw->cFile, "%s_%s%s;\n"
@@ -940,21 +1004,47 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
               , "\t}\n"
              );
 
-      if (pmi->machineTransition)
+      if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
       {
          fprintf(pcmw->cFile
-                 , "\n\tif (pfsm->state != new_s)\n\t{\n"
-                );
-
-         fprintf(pcmw->cFile
-                 , "\t\t%s_%s(pfsm,new_s);\n"
+                 , "\n\n\tif (%s_%s != new_s)\n\t{\n"
                  , pmi->name->name
-                 , pmi->machineTransition->name
+                 , stateNameByIndex(pmi,i)
                 );
 
-         fprintf(pcmw->cFile
-                 , "\t\tpfsm->state = new_s;\n\n"
-                );
+         if (pmi->machineTransition)
+         {
+            fprintf(pcmw->cFile
+                    , "\t\t%s_%s(pfsm,new_s);\n"
+                    , pmi->name->name
+                    , pmi->machineTransition->name
+                   );
+         }
+
+         if (pmi->states_with_exit_fns_count)
+         {
+            fprintf(pcmw->cFile
+                    ,"\t\trunAppropriateExitFunction(%s%s_%s);\n"
+                    , pmi->data ? "&pfsm->data, " : ""
+                    , pmi->name->name
+                    , stateNameByIndex(pmi, i)
+                    );
+         }
+
+         if (pmi->states_with_entry_fns_count)
+         {
+            fprintf(pcmw->cFile
+                    ,"\t\trunAppropriateEntryFunction(%snew_s);\n"
+                    , pmi->data ? "&pfsm->data, " : ""
+                    );
+         }
+
+         if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+         {
+            fprintf(pcmw->cFile
+                    , "\t\tpfsm->state = new_s;\n\n"
+                   );
+         }
 
          fprintf(pcmw->cFile
                  , "\t}\n\n"
@@ -965,7 +1055,9 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
       {
          fprintf(pcmw->cFile
                  , "\n\treturn %s;\n"
-                 , pmi->machineTransition ? "new_s" : "retVal"
+                 , pmi->modFlags & mfActionsReturnStates
+                   ? "new_s" 
+                   : "retVal"
                 );
       }
 
@@ -1352,6 +1444,13 @@ void cswitchHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool need
 
    }
 
+   /* declare any entry or exit functions */
+   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   {
+      iterate_list(pmi->state_list, declare_state_entry_and_exit_functions, &ich);
+      fprintf(pcmw->hFile, "\n");
+   }
+
    /* if the machine has data, declare the data init function
  
      This is pre-mature.  We need to parse the data structure
@@ -1464,8 +1563,15 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp,
    }
 
    iterate_list(pmi->event_list, declare_data_translator_functions, &ich);
+
    fprintf(pcmw->cFile, "\n");
 
+   /* declare any entry or exit functions */
+   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   {
+      iterate_list(pmi->state_list, declare_state_entry_and_exit_functions, &ich);
+      fprintf(pcmw->hFile, "\n");
+   }
 
    FREE_AND_CLEAR(ich.parent_cp);
 
@@ -1521,7 +1627,9 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
          {
             fprintf(pich->pcmw->cFile
                     , "\t\t\t%s = %s_%s%s;\n"
-                    , pich->pmi->machineTransition ? "new_s" : "pfsm->state"
+                    , (pich->pmi->machineTransition || pich->pmi->states_with_entry_fns_count || pich->pmi->states_with_exit_fns_count)
+                      ? "new_s" 
+                      : "pfsm->state"
                     , pich->pmi->name->name
                     , event->type_data.event_data.psingle_pai->transition->name
                     , event->type_data.event_data.psingle_pai->transition->type == STATE
@@ -1537,7 +1645,8 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
                fprintf(pich->pcmw->cFile
                        , "\t\t\t%s%s_%s(pfsm);\n"
                        , pich->pmi->modFlags & mfActionsReturnStates 
-                          ? pich->pmi->machineTransition ? "new_s" : "pfsm->state = " 
+                          ? (pich->pmi->machineTransition || pich->pmi->states_with_entry_fns_count || pich->pmi->states_with_exit_fns_count)
+                            ? "new_s = " : "pfsm->state = " 
                           : ""
                        , pich->pmi->name->name
                        , event->type_data.event_data.psingle_pai->action->name
@@ -1550,7 +1659,8 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
                          ? "\t\t\t%s%s_%s;\n"
                          : "\t\t\t%s%s_%s(pfsm);\n"
                        , pich->pmi->modFlags & mfActionsReturnStates 
-                          ? pich->pmi->machineTransition ? "new_s" : "pfsm->state = "
+                          ? (pich->pmi->machineTransition || pich->pmi->states_with_entry_fns_count || pich->pmi->states_with_exit_fns_count)
+                            ? "new_s = " : "pfsm->state = "
                           : ""
                        , pich->pmi->name->name
                        , event->type_data.event_data.psingle_pai->transition->name
@@ -1570,7 +1680,8 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
          {
             fprintf(pich->pcmw->cFile
                     , "\t\t\t%s = %s_%s%s;\n"
-                    , pich->pmi->machineTransition ? "new_s" : "pfsm->state"
+                    , (pich->pmi->machineTransition || pich->pmi->states_with_entry_fns_count || pich->pmi->states_with_exit_fns_count)
+                      ? "new_s" : "pfsm->state"
                     , pich->pmi->name->name
                     , event->type_data.event_data.psingle_pai->transition->name
                     , event->type_data.event_data.psingle_pai->transition->type == STATE
@@ -1641,9 +1752,7 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi, char *c
               );
    }
 
-   if (
-       pmi->machineTransition
-      )
+   if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
       fprintf(pcmd->cFile
               , "\t%s_STATE new_s = pfsm->state;\n\n"
@@ -1670,17 +1779,36 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi, char *c
               );
    }
 
-   if (pmi->machineTransition)
+   if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
       fprintf(pcmd->cFile
-              , "\n\tif (pfsm->state != new_s)\n\t{\n"
+              , "\n\n\tif (pfsm->state != new_s)\n\t{\n"
              );
 
-      fprintf(pcmd->cFile
-              , "\t\t%s_%s(pfsm,new_s);\n"
-              , pmi->name->name
-              , pmi->machineTransition->name
-             );
+      if (pmi->machineTransition)
+      {
+         fprintf(pcmd->cFile
+                 , "\t\t%s_%s(pfsm,new_s);\n"
+                 , pmi->name->name
+                 , pmi->machineTransition->name
+                );
+      }
+
+      if (pmi->states_with_exit_fns_count)
+      {
+         fprintf(pcmd->cFile
+                 ,"\t\trunAppropriateExitFunction(%spfsm->state);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
+                 );
+      }
+
+      if (pmi->states_with_entry_fns_count)
+      {
+         fprintf(pcmd->cFile
+                 ,"\t\trunAppropriateEntryFunction(%snew_s);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
+                 );
+      }
 
       fprintf(pcmd->cFile
               , "\t\tpfsm->state = new_s;\n\n"

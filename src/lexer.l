@@ -379,6 +379,22 @@ all {
 					#endif
 				}
 
+entry {
+					#ifndef LEX_DEBUG
+					return ENTRY;
+					#else
+					printf("%s\n",strings[ENTRY]);
+					#endif
+				}
+
+exit {
+					#ifndef LEX_DEBUG
+					return EXIT;
+					#else
+					printf("%s\n",strings[EXIT]);
+					#endif
+				}
+
 :: {
 					#ifndef LEX_DEBUG
 					return NAMESPACE;

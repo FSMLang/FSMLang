@@ -735,6 +735,25 @@ static bool count_data_xlate(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static bool count_entry_and_exit_handlers(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO         pstate = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+
+   if (pstate->type_data.state_data.state_flags & sfHasEntryFn)
+   {
+      (*pih->counter0)++;
+   }
+
+   if (pstate->type_data.state_data.state_flags & sfHasExitFn)
+   {
+      (*pih->counter1)++;
+   }
+
+   return false;
+
+}
+
 void count_external_declarations(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_external, counter);
@@ -758,6 +777,18 @@ void count_shared_events(pLIST plist, unsigned *counter)
 void count_data_translators(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_data_xlate, counter);
+}
+
+void count_states_with_entry_exit_fns(pLIST pstate_list, unsigned *entry_counter, unsigned *exit_counter)
+{
+   ITERATOR_HELPER ih;
+
+   *entry_counter = *exit_counter = 0;
+
+   ih.counter0 = entry_counter;
+   ih.counter1 = exit_counter;
+   
+   iterate_list(pstate_list, count_entry_and_exit_handlers, &ih);
 }
 
 /**

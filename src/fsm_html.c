@@ -545,15 +545,66 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
 	
 	for (s = 0; s < pmi->state_list->count; s++) {
+
+     bool something_printed = false;
 	
 		pid = statePidByIndex(pmi,s);
 
 		fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<td class=\"label\">%s</td>\n"
+		fprintf(pfsmhtmlog->pmd->htmlFile,"<td class=\"label\">%s</td>\n<td>\n"
 			, pid->name);
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<td>%s</td>\n"
-			, pid->docCmnt ? pid->docCmnt : "&nbsp;");
-		fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
+
+    if (pid->docCmnt)
+    {
+       fprintf(pfsmhtmlog->pmd->htmlFile
+               , "<p>%s</p>\n"
+               , pid->docCmnt
+               );
+       something_printed = true;
+    }
+
+    if (pid->type_data.state_data.state_flags & sfHasEntryFn)
+    {
+       fprintf(pfsmhtmlog->pmd->htmlFile
+               , "<p>On Entry: %s%s</p>\n"
+               , pid->type_data.state_data.entry_fn
+                 ? pid->type_data.state_data.entry_fn->name
+                 : "onEntryTo_"
+               , pid->type_data.state_data.entry_fn
+                 ? ""
+                 : pid->name
+               );
+       something_printed = true;
+    }
+
+    if (pid->type_data.state_data.state_flags & sfHasExitFn)
+    {
+       fprintf(pfsmhtmlog->pmd->htmlFile
+               , "<p>On Exit: %s%s</p>\n"
+               , pid->type_data.state_data.exit_fn
+                 ? pid->type_data.state_data.exit_fn->name
+                 : "onExitTo_"
+               , pid->type_data.state_data.exit_fn
+                 ? ""
+                 : pid->name
+               );
+       something_printed = true;
+    }
+
+    if (pid->type_data.state_data.state_flags & sfInibitSubMachines)
+    {
+       fprintf(pfsmhtmlog->pmd->htmlFile
+               , "<p>Inhibits Sub-machines</p>\n"
+               );
+       something_printed = true;
+    }
+
+    if (!something_printed)
+    {
+       fprintf(pfsmhtmlog->pmd->htmlFile,"&nbsp;");
+    }
+
+    fprintf(pfsmhtmlog->pmd->htmlFile, "</td></tr>\n");
 
 	}
 

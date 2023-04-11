@@ -64,6 +64,8 @@ enum states {
   , INHIBITS
   , SUBMACHINES
   , ALL
+  , ENTRY
+  , EXIT
 };
 
 extern char *strings[];

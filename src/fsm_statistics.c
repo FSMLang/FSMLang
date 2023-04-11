@@ -186,6 +186,14 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
           , pmi->state_list->count
           );
 
+   printf("number of states with entry fns: %u\n"
+          , pmi->states_with_entry_fns_count
+          );
+
+   printf("number of states with exit fns: %u\n"
+          , pmi->states_with_exit_fns_count
+          );
+
    printf("number of actions: %u\n"
           , pmi->action_list->count
           );
