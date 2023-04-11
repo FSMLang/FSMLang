@@ -2151,7 +2151,7 @@ void usage(void)
 	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of\n");
  fprintf(stdout,"\tsuch actions even when weak function generation is inhibited.\n");
  fprintf(stdout,"\tThe generated functions are not weak.\n");
- fprintf(stdout,"\t--use-machine-name adds the machine name when using the --short-debug-names option\n");
+ fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
 	fprintf(stdout,"\t-v prints the version and exits\n");
 }
 
