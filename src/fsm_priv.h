@@ -53,6 +53,8 @@ typedef enum {
 typedef enum {
    sfNone
    , sfInibitSubMachines = 1
+   , sfHasEntryFn        = 2
+   , sfHasExitFn         = 4
 } STATE_FLAGS;
 
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
@@ -87,6 +89,8 @@ typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DAT
 struct _state_data_
 {
    STATE_FLAGS state_flags;
+   pID_INFO    entry_fn;
+   pID_INFO    exit_fn;
 };
 
 struct _event_data_
@@ -117,6 +121,8 @@ struct _iterator_helper_
    char          *cp;
    char          *parent_cp;
    int           event;
+   unsigned      *counter0;
+   unsigned      *counter1;
 };
 
 
@@ -217,6 +223,8 @@ struct _machine_info_ {
   int           shared_event_count;
   pLIST         id_list;
   bool          has_single_pai_events;
+  bool          states_with_entry_fns_count;
+  bool          states_with_exit_fns_count;
 };
 
 /* lexer id list handlers */
@@ -249,6 +257,7 @@ void count_sub_machine_inhibitors(pLIST,unsigned*);
 void count_parent_event_referenced(pLIST,unsigned*);
 void count_shared_events(pLIST,unsigned*);
 void count_data_translators(pLIST,unsigned*);
+void count_states_with_entry_exit_fns(pLIST,unsigned*,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);

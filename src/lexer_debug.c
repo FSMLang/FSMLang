@@ -67,5 +67,7 @@ char *strings[]  = {
   , "INHIBITS"
   , "SUBMACHINES"
   , "ALL"
+  , "ENTRY"
+  , "EXIT"
 };
 
