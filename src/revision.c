@@ -285,5 +285,24 @@
  
 */
 
-const char rev_string[] = "1.36";
+/*
+   Revision 1.37:
+ 
+   --add-machine-name can be used to have the machine name included when --short-debug-names is used.
+ 
+   Two macros are introduced: ACTION_RETURN_TYPE, which is defined as the return type for action functions;
+     and, FSM_TYPE which is defined as the type of the machine.  These macros can be used to facilitate movement
+     of action functions between sub-machines.
+ 
+   Doc comments are now picked up when used with parent::
+ 
+   A new keyword, "all" is added, which must appear in parentheses, to designate a state or event vector
+     subsuming all events or states.
+ 
+   States may now have entry and exit functions: <i>on (entry|exit) <function_name></i> where <function_name> is
+     optional
+ 
+*/
+
+const char rev_string[] = "1.37";
 
