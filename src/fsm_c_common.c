@@ -1728,10 +1728,10 @@ bool define_state_entry_and_exit_functions(pLIST_ELEMENT pelem, void *data)
                 ? "\t(void) pdata;\n\n"
                 : ""
               , pich->pmi->name->name
-              , pstate->type_data.state_data.exit_fn
-                ? pstate->type_data.state_data.exit_fn->name
+              , pstate->type_data.state_data.entry_fn
+                ? pstate->type_data.state_data.entry_fn->name
                 : "onEntryTo_"
-              , pstate->type_data.state_data.exit_fn
+              , pstate->type_data.state_data.entry_fn
                 ? ""
                 : pstate->name
               );
@@ -2948,10 +2948,10 @@ static bool write_state_exit_fn_switch_case(pLIST_ELEMENT pelem, void *data)
               , pich->pmi->name->name
               , pstate->name
               , pich->pmi->name->name
-              , pstate->type_data.state_data.entry_fn
-                ? pstate->type_data.state_data.entry_fn->name
+              , pstate->type_data.state_data.exit_fn
+                ? pstate->type_data.state_data.exit_fn->name
                 : "onExitFrom_"
-              , pstate->type_data.state_data.entry_fn
+              , pstate->type_data.state_data.exit_fn
                 ? ""
                 : pstate->name
               , pich->pmi->data

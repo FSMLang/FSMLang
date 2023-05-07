@@ -223,7 +223,10 @@ machine:	machine_prefix ID machine_qualifier
 						count_shared_events             ($$->event_list,&($$->shared_event_count));
 						count_data_translators          ($$->event_list,&($$->data_translator_count));
 						count_external_declarations     ($$->state_list,&($$->external_state_designation_count));
- 					count_states_with_entry_exit_fns($$->state_list,&($$->states_with_entry_fns_count),&($$->states_with_exit_fns_count));
+ 					count_states_with_entry_exit_fns($$->state_list
+																						 , &($$->states_with_entry_fns_count)
+																						 , &($$->states_with_exit_fns_count)
+																						 );
 
  					if ($$->machine_list)
 						{

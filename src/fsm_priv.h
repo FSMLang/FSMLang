@@ -213,8 +213,8 @@ struct _machine_info_ {
   int           shared_event_count;
   pLIST         id_list;
   bool          has_single_pai_events;
-  bool          states_with_entry_fns_count;
-  bool          states_with_exit_fns_count;
+  unsigned          states_with_entry_fns_count;
+  unsigned          states_with_exit_fns_count;
 };
 
 /* lexer id list handlers */
