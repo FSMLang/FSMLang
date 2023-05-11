@@ -259,6 +259,7 @@ data {
             #endif
 
             return word_type;
+
         #endif
 
    }

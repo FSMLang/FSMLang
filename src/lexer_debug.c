@@ -71,5 +71,7 @@ char *strings[]  = {
   , "EXIT"
   , "DATA_KEY"
   , "STRING"
+  , "TYPE_NAME"
+  , "FIELD_NAME"
 };
 

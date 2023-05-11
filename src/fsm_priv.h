@@ -128,8 +128,9 @@ struct _data_field_name_
 
 struct _data_field_              
 {
-   DATA_FIELD_TYPE field_type;
-   DATA_FIELD_NAME field_name;
+   pID_INFO data_type;
+   bool     isPointer;
+   char   * dimension;
 };
 
 struct _iterator_helper_
@@ -196,6 +197,7 @@ struct _id_info_ {
   pLIST           action_returns_decl;
   pLIST           transition_fn_returns_decl;
   pID_INFO        pfield_type;
+  pDATA_FIELD     pdata_field;
 };
 
 struct _action_se_info_ {

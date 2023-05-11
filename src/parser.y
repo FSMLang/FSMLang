@@ -83,11 +83,8 @@ void yyerror(char *);
 %token <pid_info> TRANSITION_FN
 %token <pid_info> ID
 %token <charData> STRING
-<<<<<<< HEAD
 %token <pid_info> TYPE_NAME
 %token <pid_info> FIELD_NAME
-=======
->>>>>>> aa4487e (interim for rebase)
 
 %type <plist>                    returns_comma_list
 %type <plist>                    event_comma_list
@@ -1503,7 +1500,6 @@ data_field : STRING STRING data_field_dimension ';'
             );
 		 #endif
 
-<<<<<<< HEAD
     pID_INFO pfield_name;
     pID_INFO pfield_type;
 
@@ -1515,16 +1511,9 @@ data_field : STRING STRING data_field_dimension ';'
     if (NULL == (pfield_name->pdata_field = calloc(1, sizeof(DATA_FIELD))))
         yyerror("out of memory");
 
-    $$->pdata_field->data_type  = pfield_type;
-    $$->pdata_field->dimension  = $3;
-=======
-    if (NULL == ($$ = calloc(1, sizeof(DATA_FIELD))))
-        yyerror("out of memory");
-
     $$->field_type.name       = $1;
     $$->field_name.name       = $2;
     $$->field_name.dimension  = $3;
->>>>>>> aa4487e (interim for rebase)
 
   }
   | STRING '*' STRING data_field_dimension ';'
@@ -1538,7 +1527,6 @@ data_field : STRING STRING data_field_dimension ';'
             );
 		 #endif
 
-<<<<<<< HEAD
     pID_INFO pfield_name;
     pID_INFO pfield_type;
 
@@ -1602,7 +1590,6 @@ data_field : STRING STRING data_field_dimension ';'
     $$->pdata_field->data_type  = $1;
     $$->pdata_field->dimension  = $4;
     $$->pdata_field->isPointer  = true;
-=======
     if (NULL == ($$ = calloc(1, sizeof(DATA_FIELD))))
         yyerror("out of memory");
 
@@ -1610,7 +1597,58 @@ data_field : STRING STRING data_field_dimension ';'
     $$->field_type.isPointer  = true;
     $$->field_name.name       = $3;
     $$->field_name.dimension  = $4;
->>>>>>> aa4487e (interim for rebase)
+    $$->pdata_field->data_type  = pfield_type;
+    $$->pdata_field->dimension  = $4;
+    $$->pdata_field->isPointer  = true;
+
+  }
+  | TYPE_NAME STRING data_field_dimension ';'
+  {
+		 #ifdef PARSER_DEBUG
+		 fprintf(yyout
+            ,"found data field: TYPE (existing): %s; NAME: %s; dimension: %s\n"
+            , $1->name
+            , $2
+            , $3 ? $3 : "none"
+            );
+		 #endif
+
+    pID_INFO pfield_name;
+
+    add_id(id_list,FIELD_NAME,$2,&pfield_name);
+
+    $$ = pfield_name;
+
+    if (NULL == (pfield_name->pdata_field = calloc(1, sizeof(DATA_FIELD))))
+        yyerror("out of memory");
+
+    $$->pdata_field->data_type  = $1;
+    $$->pdata_field->dimension  = $3;
+
+  }
+  | TYPE_NAME '*' STRING data_field_dimension ';'
+  {
+		 #ifdef PARSER_DEBUG
+		 fprintf(yyout
+            ,"found data field: TYPE (existing): * %s; NAME: %s; dimension: %s\n"
+            , $1->name
+            , $3
+            , $4 ? $4 : "none"
+            );
+		 #endif
+
+    pID_INFO pfield_name;
+
+    add_id(id_list,FIELD_NAME,$3,&pfield_name);
+
+    $$ = pfield_name;
+
+    if (NULL == (pfield_name->pdata_field = calloc(1, sizeof(DATA_FIELD))))
+        yyerror("out of memory");
+
+    $$->pdata_field->data_type  = $1;
+    $$->pdata_field->dimension  = $4;
+    $$->pdata_field->isPointer  = true;
 
   }
   ;
@@ -2153,6 +2191,7 @@ void yyerror(char *s)
 
 void usage(void)
 {
+
 	fprintf(stdout,"Usage : %s [-tc|s|h|p] filename, where filename ends with '.fsm'\n",me);
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
@@ -2175,5 +2214,8 @@ void usage(void)
  fprintf(stdout,"\tThe generated functions are not weak.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
 	fprintf(stdout,"\t-v prints the version and exits\n");
+ fprintf(stdout,"\t\tfor the content copy.\n");
+ fprintf(stdout,"\t-v prints the version and exits\n");
+	
 }
 
