@@ -17,15 +17,20 @@ IMPLEMENTATION_KEY
 Native:
  copy this to the source file; 
 {
-Data:
-
-
-struct 
+DATA_KEY
 {
-	int a;
-} foo;
-
-
+STRUCT_KEY
+{
+Added : int of type ID
+int : ID
+Added : a of type ID
+a : ID
+;
+}
+Added : foo of type ID
+foo : ID
+;
+}
 STATE_KEY
 Added : s1 of type ID
 s1 : ID

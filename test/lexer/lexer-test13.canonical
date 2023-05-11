@@ -140,6 +140,7 @@ PARENT
 NAMESPACE
 Found : e7 of type ID
 e7 : ID
+DATA_KEY
 TRANSLATOR_KEY
 Added : translate_e7_data of type ID
 translate_e7_data : ID

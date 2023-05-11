@@ -37,6 +37,7 @@ NO_RUNTEST=TRUE
 include ../test.mk
 
 runtest: $(TESTS)
+	@echo "all lexer tests pass"
 
 $(TESTS): test
 	@./test < $@.txt > $@.out 2> $@.stderr

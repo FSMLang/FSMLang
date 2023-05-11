@@ -71,9 +71,11 @@ enum states {
   , ENTRY
   , EXIT
   , DATA_KEY
-  , STRING
+  , NUMERIC_STRING
   , TYPE_NAME
   , FIELD_NAME
+  , STRUCT_KEY
+  , UNION_KEY
 };
 
 extern char *strings[];

@@ -34,6 +34,8 @@ test: $(OBJS)
 
 fail_is_pass: $(OBJS)
 	@$(CC) -o $@ $(OBJS) $(LDFLAGS) $(CALL_FAILURE_A_SUCCESS)
+
+fsm_fail_is_pass: $(FSM_SRC:.fsm=.c)
 		
 
 clean::

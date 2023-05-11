@@ -33,7 +33,6 @@ unsigned brace_cnt = 0;
 
 %x CMNT
 %x DOCCMNT
-%x DATA
 %x NATIVE
 %x NATIVE_BLCK
 
@@ -81,6 +80,26 @@ unsigned brace_cnt = 0;
 <CMNT>"*/"	BEGIN INITIAL;
 
 \/\/.*	;
+
+data	{
+
+         #ifdef LEX_DEBUG
+         printf("%s\n",strings[DATA_KEY]);
+         #else
+         return DATA_KEY;
+         #endif
+
+			}
+
+translator {
+
+         #ifdef LEX_DEBUG
+         printf("%s\n",strings[TRANSLATOR_KEY]);
+         #else
+         return TRANSLATOR_KEY;
+         #endif
+
+       }
 
 	/* native language declarations */
 native	{
@@ -163,115 +182,6 @@ native	{
 					#endif
 					}
 <NATIVE_BLCK>.	charData[charOffset++] = *yytext;
-
- /* special handling for data block */
-data {
-					BEGIN DATA;
-					#ifndef LEX_DEBUG
-					return DATA_KEY;
-					#else
-					printf("%s\n",strings[DATA_KEY]);
-					#endif
-				}
-
-<DATA>[](){*=] { 
-		#ifndef LEX_DEBUG
-		return yytext[0];
-		#else
-		printf("%c\n",yytext[0]);
-		#endif
-  }
-
-<DATA>[[]		{ 
-		#ifndef LEX_DEBUG
-		return yytext[0];
-		#else
-		printf("%c\n",yytext[0]);
-		#endif
-  }
-
-<DATA>\n	{
-			#ifndef LEX_DEBUG
-			lineno++;
-			#else
-			;
-			#endif
-		}
-
-<DATA>[}] {
-    BEGIN INITIAL;
-		#ifndef LEX_DEBUG
-		return yytext[0];
-		#else
-		printf("%c\n",yytext[0]);
-		#endif
-  }
-
-   /* integers - which we will treat as strings */
-<DATA>[0-9]+ {
-
-        #ifdef LEX_DEBUG
-        printf("%s: %s\n"
-               , yytext
-               , strings[STRING]
-               );
-        #else
-
-        yylval.charData = strdup(yytext);
-
-        return STRING;
-
-        #endif
-
-   }
-
-<DATA>[a-zA-Z_][a-zA-Z0-9_]+	{ 
-
-				 pID_INFO	pid_info;
-        int      word_type;
-
-        word_type = lookup_id(id_list, yytext, &pid_info);
-
-        #ifdef LEX_DEBUG
-
-            printf("%s: %s\n"
-                   , yytext
-                   , strings[(word_type == LOOKUP) ? STRING : word_type]
-                   );
-
-        #else
-
-            if (LOOKUP == word_type)
-            {
-                word_type = STRING;
-                yylval.charData = strdup(yytext);
-            }
-            else
-            {
-                yylval.pid_info = pid_info;
-            }
-
-            #ifdef PARSE_DEBUG
-             printf("found: %s : %s\n"
-                   ,yytext
-                   ,strings[wordType]
-                   );
-            #endif
-
-            return word_type;
-
-        #endif
-
-   }
-
-<DATA>;	{
-		#ifndef LEX_DEBUG
-		return yytext[0];
-		#else
-		printf("%c\n",yytext[0]);
-		#endif
-	}
-
 
 	/* statement end */
 ;	{
@@ -447,6 +357,22 @@ exit {
 					#endif
 				}
 
+struct {
+					#ifndef LEX_DEBUG
+					return STRUCT_KEY;
+					#else
+					printf("%s\n",strings[STRUCT_KEY]);
+					#endif
+				}
+
+union {
+					#ifndef LEX_DEBUG
+					return UNION_KEY;
+					#else
+					printf("%s\n",strings[UNION_KEY]);
+					#endif
+				}
+
 :: {
 					#ifndef LEX_DEBUG
 					return NAMESPACE;
@@ -456,7 +382,7 @@ exit {
 				}
 
 
-[](){}=] | 
+[](){}=*] | 
 [[]		{ 
 				#ifndef LEX_DEBUG
 				return yytext[0];
@@ -474,7 +400,7 @@ exit {
 		}
 
 	/* identifiers */
-[a-zA-Z_][a-zA-Z0-9_]+	{ 
+[a-zA-Z_][a-zA-Z0-9_]*	{ 
 
 					int				wordType;
 					pID_INFO	pid_info;
@@ -508,6 +434,18 @@ exit {
 					#endif
 
 		} 
+
+ /* numeric strings */
+[0-9]+ {
+      #ifndef LEX_DEBUG
+      yylval.charData = strdup(yytext);
+      return NUMERIC_STRING;
+      #else
+      printf("NUMERIC_STRING: %s\n"
+             , yytext
+             );
+      #endif
+   }
 
 \n	{
 			#ifndef LEX_DEBUG

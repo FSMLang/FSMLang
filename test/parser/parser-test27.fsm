@@ -13,23 +13,32 @@ machine newMachine
 {
 data
 {
-struct 
-{
-	int a;
-} foo;
+
+ union
+ {
+  struct 
+  {
+  	int a;
+  } foo;
+  
+  struct
+  {
+   float f;
+  } beep;
+ 
+  int  bop;
+ } u;
 
 }
 
-	state s1, s2, s3, s4 inhibits submachines on entry;
-	event e1, e2, e3;
-  event e4 = BAR;
-
+event e1, e2, e3;
+state s1, s2, s3, s4;
 
 	/** a sub machine */
   machine subMachine1 {
-		state ss1 on entry foo1 on exit bar
+		state ss1 on entry foo on exit bar
            , ss2 on entry on exit
-           , ss3 on entry foo2
+           , ss3 on entry foo1
            , ss4 on exit bar1
            ;
 		event ee1, ee2, ee3;
@@ -52,7 +61,7 @@ struct
 		state sss1, sss2, sss3;
 		event eee1, eee2, eee3;
 
-		action aaa1[ee1,sss1] transition sss2;
+		action aaa1[eee1,sss1] transition sss2;
 		action aaa2[eee2, sss1] transition sss3;
 	}
 

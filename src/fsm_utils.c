@@ -69,6 +69,14 @@ bool short_dbg_names                           = false;
 bool force_generation_of_event_passing_actions = false;
 bool add_machine_name                          = false;
 
+void print_tab_levels(FILE *output, unsigned levels)
+{
+   for (unsigned level = 0; level < levels; level++)
+   {
+      fprintf(output, "\t");
+   }
+}
+
 int add_id(pLIST id_list, int type, char *name, pID_INFO *ppid_info)
 {
    int ret_val;
@@ -727,10 +735,19 @@ static bool count_shared_evts(pLIST_ELEMENT pelem, void *data)
 }
 static bool count_data_xlate(pLIST_ELEMENT pelem, void *data)
 {
-   pID_INFO pevent = (pID_INFO)pelem->mbr;
-   if (((pID_INFO)pelem->mbr)->type_data.event_data.data_translator)
+   pID_INFO pevent      = (pID_INFO)pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   if (pevent->type_data.event_data.puser_event_data)
    {
-      (*((unsigned*)data))++;
+      if (pevent->type_data.event_data.puser_event_data->translator)
+      {
+         (*((unsigned*)pih->counter0))++;
+      }
+      if (pevent->type_data.event_data.puser_event_data->data_fields)
+      {
+         (*((unsigned*)pih->counter1))++;
+      }
    }
    return false;
 }
@@ -774,9 +791,13 @@ void count_shared_events(pLIST plist, unsigned *counter)
    iterate_list(plist, count_shared_evts, counter);
 }
 
-void count_data_translators(pLIST plist, unsigned *counter)
+void count_event_user_data_attributes(pLIST plist, unsigned *translators, unsigned *blocks)
 {
-   iterate_list(plist, count_data_xlate, counter);
+   ITERATOR_HELPER ih;
+
+   ih.counter0 = translators;
+   ih.counter1 = blocks;
+   iterate_list(plist, count_data_xlate, &ih);
 }
 
 void count_states_with_entry_exit_fns(pLIST pstate_list, unsigned *entry_counter, unsigned *exit_counter)
@@ -1053,58 +1074,50 @@ void printAncestry(pMACHINE_INFO pmi, FILE *fout)
 
 bool print_data_field(pLIST_ELEMENT pelem, void *data)
 {
-   FILE *file   = (FILE*) data;
-   pID_INFO pdf = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih       = (pITERATOR_HELPER) data;
+   pDATA_FIELD pdf            = (pDATA_FIELD)      pelem->mbr;
 
-   if (pdf->pdata_field->dimension == NULL)
+   switch (pdf->pdts->dtt)
    {
-      fprintf(file
-             , "%s %s %s;\n"
-             , pdf->pdata_field->data_type->name
-             , pdf->pdata_field->isPointer ? "*" : ""
-             , pdf->name
-             );
-   }
-   else
-   {
-      fprintf(file
-             , "%s %s %s[%s];\n"
-             , pdf->pdata_field->data_type->name
-             , pdf->pdata_field->isPointer ? "*" : ""
-             , pdf->name
-             , pdf->pdata_field->dimension
-             );
+   case dtt_simple:
+      print_tab_levels(pih->fout, pih->tab_level);
+      fprintf(pih->fout
+              , "%s %s %s %s%s%s;\n"
+              , pdf->pdts->dtu.name->name
+              , pdf->isPointer ? "*" : ""
+              , pdf->data_field_name->name
+              , pdf->dimension ? "[" : ""
+              , pdf->dimension ? pdf->dimension : ""
+              , pdf->dimension ? "]" : ""
+              );
+      break;
+   case dtt_struct:
+      print_tab_levels(pih->fout, pih->tab_level);
+      pih->tab_level++;
+      fprintf(pih->fout , "struct {\n" );
+      iterate_list(pdf->pdts->dtu.members, print_data_field, pih);
+      pih->tab_level--;
+      print_tab_levels(pih->fout, pih->tab_level);
+      fprintf(pih->fout
+              , "} %s;\n"
+              , pdf->data_field_name->name
+              );
+      break;
+   case dtt_union:
+      print_tab_levels(pih->fout, pih->tab_level);
+      pih->tab_level++;
+      fprintf(pih->fout , "union {\n" );
+      iterate_list(pdf->pdts->dtu.members, print_data_field, pih);
+      pih->tab_level--;
+      print_tab_levels(pih->fout, pih->tab_level);
+      fprintf(pih->fout
+              , "} %s;\n"
+              , pdf->data_field_name->name
+              );
+      break;
    }
 
    return false;
-}
-
-/**
- * Opens the file indicated by src and copies the contents into 
- * the file indicated by dest (which must be open).
- */
-int copyFileContents(const FILE *fDest, const char *src)
-{
-    FILE *fSrc;
-    char buf[256];
-    int numBytes;
-
-    if (NULL == (fSrc = openFile((char*)src,"r")))
-    {
-        return 1;
-    }
-
-    while (!feof(fSrc) && !ferror(fSrc) && !ferror((FILE*)fDest))
-    {
-        if (0 < (numBytes = fread(buf,sizeof(char), sizeof(buf), fSrc)))
-        {
-            numBytes = fwrite(buf, sizeof(char), numBytes, (FILE*)fDest);
-        }
-    }
-
-    fclose(fSrc);
-
-    return ferror(fSrc) + ferror((FILE*)fDest);
 }
 
 #ifdef PARSER_DEBUG
@@ -1378,7 +1391,14 @@ void parser_debug_print_transition_fn_list(pLIST plist, FILE *file)
 
 void parser_debug_print_data_block(pLIST plist, FILE *file)
 {
-   iterate_list(plist,print_data_field,file);
+   ITERATOR_HELPER ih;
+
+   ih.fout      = file;
+   ih.tab_level = 0;
+
+   iterate_list(plist,print_data_field,&ih);
+
+   fprintf(file, "\n");
 }
 #endif
 

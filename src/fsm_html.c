@@ -531,7 +531,43 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                     );
        fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
                );
+
     }
+
+    if (pid->type_data.event_data.puser_event_data)
+    {
+       if (pid->type_data.event_data.puser_event_data->translator)
+       {
+          fprintf(pfsmhtmlog->pmd->htmlFile, "<p>\n");
+          fprintf(pfsmhtmlog->pmd->htmlFile
+                  , "Data translator: %s\n"
+                  , pid->type_data.event_data.puser_event_data->translator->name
+                  );
+          fprintf(pfsmhtmlog->pmd->htmlFile, "</p>\n");
+       }
+
+       if (pid->type_data.event_data.puser_event_data->data_fields)
+       {
+          ITERATOR_HELPER ih = {
+             .fout = pfsmhtmlog->pmd->htmlFile
+             , .tab_level = 0
+          };
+
+          fprintf(pfsmhtmlog->pmd->htmlFile, "<p>\n");
+          fprintf(pfsmhtmlog->pmd->htmlFile
+                  , "Event data:"
+                  );
+          fprintf(pfsmhtmlog->pmd->htmlFile, "</p>\n");
+
+          fprintf(pfsmhtmlog->pmd->htmlFile, "<code>\n");
+          iterate_list(pid->type_data.event_data.puser_event_data->data_fields
+                       , print_data_field
+                       , &ih
+                       );
+          fprintf(pfsmhtmlog->pmd->htmlFile, "</code>\n");
+       }
+    }
+
 		fprintf(pfsmhtmlog->pmd->htmlFile,"</td>\n");
 		fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
 

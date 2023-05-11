@@ -1,9 +1,21 @@
-found data field: TYPE: int; NAME: foo; dimension: none
-found data field: TYPE: float; NAME: bar; dimension: none
-found data field: TYPE: char; NAME: baz; dimension: 256
-found data field: TYPE: * FILE; NAME: file1; dimension: none
-found data field: TYPE: * FILE; NAME: file2; dimension: none
-found data field: TYPE: * FILE; NAME: file3; dimension: none
+found simple data type id
+found data field: TYPE: simple; NAME: foo; dimension: none
+Starting data_fields list
+found simple data type id
+found data field: TYPE: simple; NAME: bar; dimension: none
+Continuing data_fields list
+found simple data type id
+found data field: TYPE: simple; NAME: baz; dimension: 256
+Continuing data_fields list
+found simple data type id
+found pointer data field: TYPE: simple; NAME: file1; dimension: none
+Continuing data_fields list
+found simple data type name
+found pointer data field: TYPE: simple; NAME: file2; dimension: none
+Continuing data_fields list
+found simple data type name
+found pointer data field: TYPE: simple; NAME: file3; dimension: none
+Continuing data_fields list
 Data block done
 added another id to the event declaration list
 The 2 events in this list:
@@ -78,11 +90,12 @@ The actions :
 
 The 0 transitions :
 this machine has data
-int  foo;
-float  bar;
-char  baz[256];
-FILE * file1;
-FILE * file2;
-FILE * file3;
+int  foo ;
+float  bar ;
+char  baz [256];
+FILE * file1 ;
+FILE * file2 ;
+FILE * file3 ;
+
 
 found a single machine

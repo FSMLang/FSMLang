@@ -32,6 +32,7 @@ NO_RUNTEST=TRUE
 include ../test.mk
 
 runtest: $(TESTS)
+	@echo "all parser tests pass"
 
 $(TESTS): test 
 	./test $@.fsm > $@.out 2> $@.stderr

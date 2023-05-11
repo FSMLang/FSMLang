@@ -83,12 +83,19 @@ struct _data_field_
 typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
 typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
 typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
-typedef struct _data_field_type_         DATA_FIELD_TYPE,         *pDATA_FIELD_TYPE;
+typedef union  _data_type_union_         DATA_TYPE_UNION,         *pDATA_TYPE_UNION;
+typedef struct _data_type_struct_        DATA_TYPE_STRUCT,        *pDATA_TYPE_STRUCT;
 typedef struct _data_field_name_         DATA_FIELD_NAME,         *pDATA_FIELD_NAME;
+typedef struct _user_event_data_         USER_EVENT_DATA,         *pUSER_EVENT_DATA;
 
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
+struct _user_event_data_
+{
+   pLIST    data_fields;
+   pID_INFO translator;
+};
 
 struct _state_data_
 {
@@ -99,13 +106,13 @@ struct _state_data_
 
 struct _event_data_
 {
-   pID_INFO        externalDesignation;
-   pLIST           psharing_sub_machines;
-   bool            shared_with_parent;
-   pID_INFO        data_translator;
-   unsigned        single_pai_state_count;
-   pACTION_INFO    psingle_pai;
-   bool            single_pai_for_all_states;
+   pID_INFO         externalDesignation;
+   pLIST            psharing_sub_machines;
+   bool             shared_with_parent;
+   unsigned         single_pai_state_count;
+   pACTION_INFO     psingle_pai;
+   bool             single_pai_for_all_states;
+   pUSER_EVENT_DATA puser_event_data;
 };
 
 union _pid_type_data_
@@ -114,23 +121,31 @@ union _pid_type_data_
    STATE_DATA    state_data;
 };
 
-struct _data_field_type_
+
+typedef enum
 {
-   char * name;
-   bool   isPointer;
+   dtt_simple
+   , dtt_union 
+   , dtt_struct 
+} DATA_TYPE_TYPE;
+union _data_type_union_
+{
+   pID_INFO         name;
+   pLIST            members;
 };
 
-struct _data_field_name_
+struct _data_type_struct_
 {
-   char * name;
-   char * dimension;
+   DATA_TYPE_TYPE  dtt;
+   DATA_TYPE_UNION dtu;
 };
 
 struct _data_field_              
 {
-   pID_INFO data_type;
-   bool     isPointer;
-   char   * dimension;
+   pID_INFO            data_field_name;
+   pDATA_TYPE_STRUCT   pdts;
+   bool                isPointer;
+   char              * dimension;
 };
 
 struct _iterator_helper_
@@ -146,6 +161,7 @@ struct _iterator_helper_
    int           event;
    unsigned      *counter0;
    unsigned      *counter1;
+   unsigned      tab_level;
 };
 
 
@@ -174,6 +190,7 @@ struct _actions_and_transitions_
 
 struct _statement_decl_list_
 {
+   pLIST                    data;
    pSTATE_AND_EVENT_DECLS   pstate_and_event_decls;
    pACTIONS_AND_TRANSITIONS pactions_and_transitions;
 };
@@ -230,6 +247,7 @@ struct _machine_info_ {
   int           external_state_designation_count;
   int           parent_event_reference_count;
   int           data_translator_count;
+  int           data_block_count;
   int           submachine_inhibitor_count;
   pLIST         event_list;
   int           external_event_designation_count;
@@ -248,8 +266,8 @@ struct _machine_info_ {
   int           shared_event_count;
   pLIST         id_list;
   bool          has_single_pai_events;
-  bool          states_with_entry_fns_count;
-  bool          states_with_exit_fns_count;
+  unsigned      states_with_entry_fns_count;
+  unsigned      states_with_exit_fns_count;
 };
 
 /* lexer id list handlers */
@@ -281,12 +299,14 @@ void count_external_declarations(pLIST,unsigned*);
 void count_sub_machine_inhibitors(pLIST,unsigned*);
 void count_parent_event_referenced(pLIST,unsigned*);
 void count_shared_events(pLIST,unsigned*);
-void count_data_translators(pLIST,unsigned*);
+void count_event_user_data_attributes(pLIST,unsigned*,unsigned*);
 void count_states_with_entry_exit_fns(pLIST,unsigned*,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
 void printAncestry(pMACHINE_INFO,FILE*);
+void print_tab_levels(FILE*,unsigned);
+
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);

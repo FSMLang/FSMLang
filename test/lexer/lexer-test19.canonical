@@ -19,6 +19,8 @@ Native:
 {
 DATA_KEY
 {
+UNION_KEY
+{
 STRUCT_KEY
 {
 Added : int of type ID
@@ -27,8 +29,30 @@ Added : a of type ID
 a : ID
 ;
 }
+Added : str_int of type ID
+str_int : ID
 Added : foo of type ID
 foo : ID
+;
+STRUCT_KEY
+{
+Added : float of type ID
+float : ID
+Added : f of type ID
+f : ID
+;
+}
+Added : str_float of type ID
+str_float : ID
+Added : beep of type ID
+beep : ID
+;
+Found : int of type ID
+int : ID
+Added : bop of type ID
+bop : ID
+;
+}
 ;
 }
 STATE_KEY
@@ -45,6 +69,8 @@ Added : s4 of type ID
 s4 : ID
 INHIBITS
 SUBMACHINES
+ON
+ENTRY
 ;
 EVENT_KEY
 Added : e1 of type ID
@@ -72,12 +98,35 @@ subMachine1 : ID
 STATE_KEY
 Added : ss1 of type ID
 ss1 : ID
+ON
+ENTRY
+Found : foo of type ID
+foo : ID
+ON
+EXIT
+Added : bar of type ID
+bar : ID
 ,
 Added : ss2 of type ID
 ss2 : ID
+ON
+ENTRY
+ON
+EXIT
 ,
 Added : ss3 of type ID
 ss3 : ID
+ON
+ENTRY
+Added : foo1 of type ID
+foo1 : ID
+,
+Added : ss4 of type ID
+ss4 : ID
+ON
+EXIT
+Added : bar1 of type ID
+bar1 : ID
 ;
 EVENT_KEY
 Added : ee1 of type ID
