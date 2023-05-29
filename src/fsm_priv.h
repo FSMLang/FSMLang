@@ -73,13 +73,6 @@ typedef struct _machine_prefix_          MACHINE_PREFIX,          *pMACHINE_PREF
 typedef struct _iterator_helper_         ITERATOR_HELPER,         *pITERATOR_HELPER;
 typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
 
-struct _data_field_              
-{
-   pID_INFO data_type;
-   bool     isPointer;
-   char   * dimension;
-};
-
 typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
 typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
 typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
@@ -209,7 +202,6 @@ struct _id_info_ {
   unsigned        order;
   PID_TYPE_DATA   type_data;
   pMACHINE_INFO   powningMachine;
-  pDATA_FIELD     pdata_field;
   pACTION_INFO    actionInfo;
   pLIST           action_returns_decl;
   pLIST           transition_fn_returns_decl;

@@ -997,34 +997,6 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-bool print_data_field(pLIST_ELEMENT pelem, void *data)
-{
-   FILE *file   = (FILE*) data;
-   pID_INFO pdf = (pID_INFO) pelem->mbr;
-
-   if (pdf->pdata_field->dimension == NULL)
-   {
-      fprintf(file
-             , "%s %s %s;\n"
-             , pdf->pdata_field->data_type->name
-             , pdf->pdata_field->isPointer ? "*" : ""
-             , pdf->name
-             );
-   }
-   else
-   {
-      fprintf(file
-             , "%s %s %s[%s];\n"
-             , pdf->pdata_field->data_type->name
-             , pdf->pdata_field->isPointer ? "*" : ""
-             , pdf->name
-             , pdf->pdata_field->dimension
-             );
-   }
-
-   return false;
-}
-
 /**
  * Opens the file indicated by src and copies the contents into 
  * the file indicated by dest (which must be open).

@@ -70,10 +70,7 @@ enum states {
   , ALL
   , ENTRY
   , EXIT
-  , DATA_KEY
   , NUMERIC_STRING
-  , TYPE_NAME
-  , FIELD_NAME
   , STRUCT_KEY
   , UNION_KEY
 };
