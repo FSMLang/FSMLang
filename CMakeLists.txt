@@ -1,0 +1,21 @@
+cmake_minimum_required(VERSION 3.1...3.26)
+
+project(fsmlang VERSION 1.0 LANGUAGES C CXX)
+
+find_package(FLEX 2.6 REQUIRED)
+find_package(BISON 3.8 REQUIRED)
+
+BISON_TARGET(FSM_PARSER ${CMAKE_CURRENT_SOURCE_DIR}/src/parser.y ${CMAKE_CURRENT_BINARY_DIR}/parser.c
+             DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/y.tab.h)
+
+FLEX_TARGET(FSM_LEXER ${CMAKE_CURRENT_SOURCE_DIR}/src/lexer.l  ${CMAKE_CURRENT_BINARY_DIR}/lexer.c)
+
+ADD_FLEX_BISON_DEPENDENCY(FSM_LEXER FSM_PARSER)
+
+file(GLOB FSM_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
+
+add_executable(fsm ${BISON_FSM_PARSER_OUTPUTS} ${FLEX_FSM_LEXER_OUTPUTS} ${FSM_SOURCES})
+
+target_include_directories(fsm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(fsm PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+target_compile_definitions(fsm PUBLIC LINUX)
