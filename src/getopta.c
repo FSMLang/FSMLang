@@ -22,12 +22,12 @@
  * However, I am not about to post a copy of anything licensed by AT&T.
  */
 
+#include <string.h>
 #if defined(MSDOS) || defined(USG)
 #define index strchr
 #endif
 
-/*LINTLIBRARY*/
-#define NULL	0
+#define STR_EQUAL (0)
 #define EOF	(-1)
 #define ERR(s, c)	if(opterr){\
 	extern int write();\
@@ -44,10 +44,7 @@ int	optind = 1;
 int	optopt;
 char	*optarg;
 
-int
-getopt(argc, argv, opts)
-int	argc;
-char	**argv, *opts;
+int getopt(int argc, char** argv, char** opts)
 {
 	static int sp = 1;
 	register int c;
@@ -57,12 +54,12 @@ char	**argv, *opts;
 		if(optind >= argc ||
 		   argv[optind][0] != '-' || argv[optind][1] == '\0')
 			return(EOF);
-		else if(strcmp(argv[optind], "--") == NULL) {
+		else if(strcmp(argv[optind], "--") == STR_EQUAL) {
 			optind++;
 			return(EOF);
 		}
 	optopt = c = argv[optind][sp];
-	if(c == ':' || (cp=index(opts, c)) == NULL) {
+	if(c == ':' || (cp=index(opts, c)) == STR_EQUAL) {
 		ERR(": illegal option -- ", c);
 		if(argv[optind][++sp] == '\0') {
 			optind++;
