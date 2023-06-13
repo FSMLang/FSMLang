@@ -30,15 +30,17 @@
 #define STR_EQUAL (0)
 #define EOF	(-1)
 #define ERR(s, c)	if(opterr){\
-	extern int write();\
+	extern int write(int fildes, const void *buf, size_t nbyte);\
 	char errbuf[2];\
 	errbuf[0] = c; errbuf[1] = '\n';\
 	(void) write(2, argv[0], (unsigned)strlen(argv[0]));\
 	(void) write(2, s, (unsigned)strlen(s));\
 	(void) write(2, errbuf, 2);}
 
-extern char *index();
+extern char *index(const char *, int);
 
+
+#ifndef MINGW
 int	opterr = 1;
 int	optind = 1;
 int	optopt;
@@ -86,3 +88,4 @@ int getopt(int argc, char** argv, char** opts)
 	}
 	return(c);
 }
+#endif

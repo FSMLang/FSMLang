@@ -22,5 +22,11 @@ add_executable(fsm ${BISON_FSM_PARSER_OUTPUTS} ${FLEX_FSM_LEXER_OUTPUTS} ${FSM_S
 
 target_include_directories(fsm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_include_directories(fsm PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-target_compile_definitions(fsm PUBLIC LINUX FSM_DEBUG)
-target_compile_definitions(fsm PUBLIC _XOPEN_SOURCE=700)
+
+if(WIN32)
+    target_compile_definitions(fsm PUBLIC CYGWIN MINGW MSDOS FSM_DEBUG _XOPEN_SOURCE=700)
+endif()
+
+if(UNIX AND NOT APPLE)
+    target_compile_definitions(fsm PUBLIC LINUX FSM_DEBUG _XOPEN_SOURCE=700)
+endif()
