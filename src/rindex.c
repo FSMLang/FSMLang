@@ -15,7 +15,7 @@ char *rindex(const char *str,int c)
 	
 	while (*cp++) {
 		if (*cp == c)
-			retVal = cp;
+			retVal = (char*) cp;
 	}
 
 	return retVal;
