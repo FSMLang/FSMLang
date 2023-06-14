@@ -101,8 +101,6 @@ FSMPlantUMLOutputGenerator PlantUMLSubMachineWriter = {
 pFSMOutputGenerator pPlantUMLMachineWriter    = (pFSMOutputGenerator) &PlantUMLMachineWriter;
 pFSMOutputGenerator pPlantUMLSubMachineWriter = (pFSMOutputGenerator) &PlantUMLSubMachineWriter;
 
-static pPlantUMLMachineData newPlantUMLMachineData(char *);
-
 /* list iteration callbacks */
 static bool print_sharing_machines(pLIST_ELEMENT pelem, void *data)
 {
