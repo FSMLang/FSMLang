@@ -185,7 +185,7 @@ static bool print_state_docCmnt(pLIST_ELEMENT pelem, void *data)
               , "%s: "
               , pid->name
               );
-      for (char *cp = pid->docCmnt; *cp; *cp++)
+      for (char *cp = pid->docCmnt; *cp; cp++)
       {
          switch (*cp)
          {
@@ -287,7 +287,6 @@ static bool print_transition_options(pLIST_ELEMENT pelem, void *data)
 int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
 
-	time_t		now;
   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
 
   if (NULL != (pfsmpumlog->pmd = calloc(1, sizeof(PlantUMLMachineData))))
@@ -331,7 +330,6 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	pID_INFO			  pevent;
 	pACTION_INFO	  pai;
-  pACTION_SE_INFO pasei;
 	int						  e,s;
   ITERATOR_HELPER ih;
 

@@ -34,6 +34,7 @@
 #include <string.h>
 
 #include "list.h"
+#include "fsm_unused.h"
 
 typedef struct _counter_str_ COUNTER_STR, *pCOUNTER_STR;
 struct _counter_str_
@@ -44,6 +45,7 @@ struct _counter_str_
 
 static bool nth_record(pLIST_ELEMENT pmbr, void *data)
 {
+   FSMLANG_MAYBE_UNUSED(pmbr);
    pCOUNTER_STR pcs = (pCOUNTER_STR) data;
 
    /* returning true means we are done */

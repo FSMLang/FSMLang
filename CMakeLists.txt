@@ -24,9 +24,11 @@ target_include_directories(fsm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_include_directories(fsm PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 if(WIN32)
-    target_compile_definitions(fsm PUBLIC CYGWIN MINGW MSDOS FSM_DEBUG _XOPEN_SOURCE=700)
+    target_compile_definitions(fsm PUBLIC CYGWIN MINGW MSDOS FSM_DEBUG _XOPEN_SOURCE=700 YY_NO_UNPUT YY_NO_INPUT)
 endif()
 
 if(UNIX AND NOT APPLE)
-    target_compile_definitions(fsm PUBLIC LINUX FSM_DEBUG _XOPEN_SOURCE=700)
+    target_compile_definitions(fsm PUBLIC LINUX FSM_DEBUG _XOPEN_SOURCE=700 YY_NO_UNPUT YY_NO_INPUT)
 endif()
+
+target_compile_options(fsm PRIVATE -Wall -Wextra -pedantic -Werror)

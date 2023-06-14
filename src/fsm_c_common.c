@@ -35,6 +35,7 @@
 */
 
 #include "fsm_c_common.h"
+#include "fsm_unused.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 #include <stdio.h>
@@ -70,7 +71,6 @@ static bool  declare_shared_event_data_blocks               (pLIST_ELEMENT,void*
 static void  declare_parent_event_reference_data_structures (pCMachineData,pMACHINE_INFO,char*);
 static void  define_parent_event_reference_elements         (pCMachineData,pMACHINE_INFO,char*);
 static bool  define_shared_event_lists                      (pLIST_ELEMENT,void*);
-static bool  define_shared_event_data_blocks                (pLIST_ELEMENT,void*);
 static bool  reference_shared_event_data_blocks             (pLIST_ELEMENT,void*);
 static bool  print_inhibited_state_case                     (pLIST_ELEMENT,void*);
 static bool  write_state_entry_fn_switch_case               (pLIST_ELEMENT,void*);
@@ -83,7 +83,7 @@ int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
    pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   if (pfsmcog->pcmd = newCMachineData(fileName))
+   if ((pfsmcog->pcmd = newCMachineData(fileName)))
    {
       return 0;
    }
@@ -96,7 +96,7 @@ int initCSubMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
    pFSMCSubMachineOutputGenerator pfsmcsmog = (pFSMCSubMachineOutputGenerator) pfsmog;
 
-   if (pfsmcsmog->pcmd = newCMachineData(fileName))
+   if ((pfsmcsmog->pcmd = newCMachineData(fileName)))
    {
       /* put the call to the parent header file into the header */
       fprintf(pfsmcsmog->pcmd->hFile
@@ -120,10 +120,8 @@ void closeCMachine(pFSMOutputGenerator pfsmog, int how)
 
 char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 {
-   pID_INFO			   pid_info;
-   pACTION_INFO	   pai;
    char					   *cp;
-   int						 i, j;
+   int				            i;
    bool            canAssignExternals;
    ITERATOR_HELPER helper;
 
@@ -527,7 +525,6 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
 void commonHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needNoOp)
 {
-   pID_INFO pid_info;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmw      = pcmw;
@@ -943,7 +940,6 @@ void subMachineWriteStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char
 void writeDebugInfoShort(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    int i;
-   pID_INFO pid_info;
    ITERATOR_HELPER helper;
 
    fprintf(pcmw->cFile, "\n#ifdef %s_DEBUG\n", cp);
@@ -1004,7 +1000,6 @@ void writeDebugInfoShort(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 void writeDebugInfoLong(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    int i;
-   pID_INFO pid_info;
    ITERATOR_HELPER helper;
 
    fprintf(pcmw->cFile, "\n#ifdef %s_DEBUG\n", cp);
@@ -1074,7 +1069,7 @@ void writeDebugInfoLong(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
 void writeDebugInfo(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-    return short_dbg_names ? writeDebugInfoShort(pcmw, pmi, cp) : writeDebugInfoLong(pcmw, pmi, cp);
+    short_dbg_names ? writeDebugInfoShort(pcmw, pmi, cp) : writeDebugInfoLong(pcmw, pmi, cp);
 }
 
 
@@ -1103,7 +1098,6 @@ pCMachineData	newCMachineData(char *baseFileName)
 
    pCMachineData	pcmw;
    char						*cp, *cp1;
-   time_t					now;
 
    if ((pcmw = calloc(sizeof(CMachineData), 1)) != NULL)
    {
@@ -1150,7 +1144,7 @@ pCMachineData	newCMachineData(char *baseFileName)
             for (cp = cp1; *cp; cp++)
 
                /* capitalise things, and change the '.' or '-' to '_' */
-               *cp = ((*cp == '.') || (*cp == '-')) ? '_' : toupper(*cp);
+               *cp = ((*cp == '.') || (*cp == '-')) ? '_' : (char)toupper(*cp);
 
             fprintf(pcmw->hFile
                     , "/**\n\t%s\n\n"
@@ -1365,14 +1359,6 @@ static bool define_shared_event_lists(pLIST_ELEMENT pelem, void *data)
               );
 
    }
-
-   return false;
-}
-
-static bool define_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
-{
-   pMACHINE_INFO pmi    = (pMACHINE_INFO)pelem->mbr;
-   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
    return false;
 }
@@ -1919,12 +1905,8 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
 
 char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 {
-   pID_INFO			   pid_info;
-   pACTION_INFO	   pai;
    char					   *cp;
-   int						 i, j;
-   bool            canAssignExternals;
-   ITERATOR_HELPER helper;
+   int						 i;
    char            *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
 
    /* put the native code segment out to the header */
@@ -2191,7 +2173,6 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
 
 void subMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needNoOp)
 {
-   pID_INFO pid_info;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmw      = pcmw;
@@ -2408,6 +2389,7 @@ void possiblyDefineSubMachineSharedEventStructures (pCMachineData pcmw, pMACHINE
 
 void defineSubMachineIF (pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
+   FSMLANG_MAYBE_UNUSED(cp);
    char *parent_cp;
 
    if (pmi->parent)

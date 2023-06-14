@@ -36,6 +36,7 @@
 
 #include "fsm_cswitch.h"
 #include "fsm_c_common.h"
+#include "fsm_unused.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 #include <stdio.h>
@@ -219,7 +220,7 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    declareCSwitchMachineStruct(pcmw, pmi, cp);
 
    /* declare state fns */
-   for (unsigned i = 0; i < pmi->state_list->count; i++)
+   for (int i = 0; i < pmi->state_list->count; i++)
    {
       if (pmi->modFlags & mfActionsReturnVoid)
       {
@@ -314,7 +315,7 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    declareCSwitchMachineStruct(pcmw, pmi, cp);
 
    /* declare state fns */
-   for (unsigned i = 0; i < pmi->state_list->count; i++)
+   for (int i = 0; i < pmi->state_list->count; i++)
    {
       if (pmi->modFlags & mfActionsReturnVoid)
       {
@@ -647,9 +648,9 @@ static void defineCSwitchSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
 
 static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   unsigned events_handled;
+   int events_handled;
 
-   for (unsigned i = 0; i < pmi->state_list->count; i++)
+   for (int i = 0; i < pmi->state_list->count; i++)
    {
       if (pmi->modFlags & mfActionsReturnVoid)
       {
@@ -861,10 +862,10 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
 
 static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   unsigned events_handled;
+   int      events_handled;
    char     *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
 
-   for (unsigned i = 0; i < pmi->state_list->count; i++)
+   for (int i = 0; i < pmi->state_list->count; i++)
    {
       if (pmi->modFlags & mfActionsReturnVoid)
       {
@@ -1073,6 +1074,9 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
 
 static void writeOriginalSwitchFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *tabstr)
 {
+
+   FSMLANG_MAYBE_UNUSED(cp);
+
    char *local_tabstr = "";
 
    if (pmi->has_single_pai_events)
@@ -1330,7 +1334,7 @@ static void defineStateFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
 
    /* declare state fns */
-   for (unsigned i = 0; i < pmi->state_list->count; i++)
+   for (int i = 0; i < pmi->state_list->count; i++)
    {
       fprintf(pcmw->cFile
               , "\t%s%s_%s_stateFn\n"
@@ -1345,7 +1349,6 @@ static void defineStateFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
 void cswitchHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needNoOp)
 {
-   pID_INFO pid_info;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmw      = pcmw;
@@ -1466,7 +1469,6 @@ void cswitchHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool need
 
 void cswitchSubMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needNoOp)
 {
-   pID_INFO pid_info;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmw      = pcmw;
