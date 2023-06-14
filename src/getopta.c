@@ -61,7 +61,7 @@ int getopt(int argc, char** argv, char** opts)
 			return(EOF);
 		}
 	optopt = c = argv[optind][sp];
-	if(c == ':' || (cp=index(opts, c)) == STR_EQUAL) {
+	if(c == ':' || (cp=index( (const char*) opts, c)) == STR_EQUAL) {
 		ERR(": illegal option -- ", c);
 		if(argv[optind][++sp] == '\0') {
 			optind++;
