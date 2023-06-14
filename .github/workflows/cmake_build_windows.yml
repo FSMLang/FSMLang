@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Update Packages
-      run: choco install winflexbison
+      run: choco install winflexbison3
     - name: configure
       run: cmake -B ./build -G "MinGW Makefiles"
     - name: make
