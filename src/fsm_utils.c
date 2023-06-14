@@ -727,7 +727,6 @@ static bool count_shared_evts(pLIST_ELEMENT pelem, void *data)
 }
 static bool count_data_xlate(pLIST_ELEMENT pelem, void *data)
 {
-   pID_INFO pevent = (pID_INFO)pelem->mbr;
    if (((pID_INFO)pelem->mbr)->type_data.event_data.data_translator)
    {
       (*((unsigned*)data))++;
