@@ -567,14 +567,16 @@ static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
       if (pmi->states_with_exit_fns_count)
       {
          fprintf(pcmw->cFile
-                 ,"\t\trunAppropriateExitFunction(pfsm->state);\n"
+                 ,"\t\trunAppropriateExitFunction(%spfsm->state);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
                  );
       }
 
       if (pmi->states_with_entry_fns_count)
       {
          fprintf(pcmw->cFile
-                 ,"\t\trunAppropriateEntryFunction(s);\n"
+                 ,"\t\trunAppropriateEntryFunction(%ss);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
                  );
       }
 
@@ -767,14 +769,16 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, c
       if (pmi->states_with_exit_fns_count)
       {
          fprintf(pcmw->cFile
-                 ,"\t\trunAppropriateExitFunction(pfsm->state);\n"
+                 ,"\t\trunAppropriateExitFunction(%spfsm->state);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
                  );
       }
 
       if (pmi->states_with_entry_fns_count)
       {
          fprintf(pcmw->cFile
-                 ,"\t\trunAppropriateEntryFunction(new_s);\n"
+                 ,"\t\trunAppropriateEntryFunction(%snew_s);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
                  );
       }
 
@@ -908,14 +912,16 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi
       if (pmi->states_with_exit_fns_count)
       {
          fprintf(pcmw->cFile
-                 ,"\t\trunAppropriateExitFunction(pfsm->state);\n"
+                 ,"\t\trunAppropriateExitFunction(%spfsm->state);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
                  );
       }
 
       if (pmi->states_with_entry_fns_count)
       {
          fprintf(pcmw->cFile
-                 ,"\t\trunAppropriateEntryFunction(new_s);\n"
+                 ,"\t\trunAppropriateEntryFunction(%snew_s);\n"
+                 , pmi->data ? "&pfsm->data, " : ""
                  );
       }
 
