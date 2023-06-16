@@ -1969,7 +1969,7 @@ bool declare_data_translator_functions(pLIST_ELEMENT pelem, void *data)
       if (pevent->type_data.event_data.puser_event_data->translator)
       {
          fprintf(pich->pcmw->hFile
-                 , "void %s_%s(p%s,p%s_%s_DATA);\n"
+                 , "void %s_%s(p%s_DATA,p%s_%s_DATA);\n"
                  , pich->pmi->name->name
                  , pevent->type_data.event_data.puser_event_data->translator->name
                  , pich->cp
@@ -1980,7 +1980,7 @@ bool declare_data_translator_functions(pLIST_ELEMENT pelem, void *data)
       else
       {
          fprintf(pich->pcmw->hFile
-                 , "void %s_translate_%s_data(p%s,p%s_%s_DATA);\n"
+                 , "void %s_translate_%s_data(p%s_DATA,p%s_%s_DATA);\n"
                  , pich->pmi->name->name
                  , pevent->name
                  , pich->cp
@@ -2027,7 +2027,7 @@ bool define_weak_data_translator_functions(pLIST_ELEMENT pelem, void *data)
       if (pevent->type_data.event_data.puser_event_data->translator)
       {
          fprintf(pich->pcmw->cFile
-                 , "void __attribute__((weak)) %s_%s(p%s pfsm, p%s_%s_DATA pdata)\n{\n\t(void) pfsm;\n\t(void) pdata;\n\t%s(\"weak: %s_%s\");\n}\n\n"
+                 , "void __attribute__((weak)) %s_%s(p%s_DATA pfsm_data, p%s_%s_DATA pdata)\n{\n\t(void) pfsm_data;\n\t(void) pdata;\n\t%s(\"weak: %s_%s\");\n}\n\n"
                  , pich->pmi->name->name
                  , pevent->type_data.event_data.puser_event_data->translator->name
                  , pich->cp
@@ -2041,7 +2041,7 @@ bool define_weak_data_translator_functions(pLIST_ELEMENT pelem, void *data)
       else
       {
          fprintf(pich->pcmw->cFile
-                 , "void __attribute__((weak)) %s_translate_%s_data(p%s pfsm, p%s_%s_DATA pdata)\n{\n\t(void) pfsm;\n\t(void) pdata;\n\t%s(\"weak: %s_translate_%s_data\");\n}\n\n"
+                 , "void __attribute__((weak)) %s_translate_%s_data(p%s_DATA pfsm_data, p%s_%s_DATA pdata)\n{\n\t(void) pfsm_data;\n\t(void) pdata;\n\t%s(\"weak: %s_translate_%s_data\");\n}\n\n"
                  , pich->pmi->name->name
                  , pevent->name
                  , pich->cp
@@ -3225,7 +3225,7 @@ void declareSubMachineManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
 void declareEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
 {
    fprintf(pcmd->cFile
-           , "static void translateEventData(p%s,p%s_EVENT);\n\n"
+           , "static void translateEventData(p%s_DATA,p%s_EVENT);\n\n"
            , cp
            , cp
            );
@@ -3246,8 +3246,8 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 
       fprintf(pich->pcmw->cFile
               , pevent->type_data.event_data.puser_event_data->translator
-                 ? "\t\t%s_%s(pfsm, &pevent->event_data.%s_data);\n\t\tbreak;\n"
-                 : "\t\t%s_translate_%s_data(pfsm, &pevent->event_data.%s_data);\n\t\tbreak;\n"
+                 ? "\t\t%s_%s(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
+                 : "\t\t%s_translate_%s_data(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
               , pich->pmi->name->name
               , pevent->type_data.event_data.puser_event_data->translator
                 ? pevent->type_data.event_data.puser_event_data->translator->name
@@ -3269,7 +3269,7 @@ void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
    ich.cp   = cp;
 
    fprintf(pcmd->cFile
-           , "static void translateEventData(p%s pfsm,p%s_EVENT pevent)\n{\n"
+           , "static void translateEventData(p%s_DATA pfsm_data,p%s_EVENT pevent)\n{\n"
            , cp
            , cp
            );

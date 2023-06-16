@@ -4,22 +4,28 @@
 native
 {
 #include "test.h"
-#define INIT_FSM_DATA {.u.bop = {[0 ... 19] = 0}}
-#define NUM_FLOATS 1
+#define NUM_INTS (2)
+#define NUM_CHARS (20)
+#define INIT_FSM_DATA {.u.bop = {[0 ... (NUM_CHARS - 1)] = '\0'}  \
+                       , .u.foo.a = {[0 ... (NUM_INTS - 1)] = 0}  \
+                       , .u.foo.count_ints = 0                    \
+                       , .u.beep.f = 0                            \
+                       }
 }
 
 machine newMachine
  on transition baz;
- native impl {int foo; }
+ native impl {int foo = 0; }
 {
 data
 {
 
- union
+ struct
  {
   struct 
   {
-  	int a[NUM_FLOATS];
+  	int a[NUM_INTS];
+	int count_ints;
   } foo;
   
   struct
@@ -27,7 +33,8 @@ data
    float f;
   } beep;
  
-  int  bop[20];
+  int   e3_int;
+  char  bop[NUM_CHARS];
  } u;
 
 }
@@ -35,7 +42,6 @@ data
 event e1 data 
  {
   char  *  cp;
-  float    f;
  }
 , e2 data
  {
@@ -60,17 +66,28 @@ event e4;
 state s1, s2, s3, s4;
 
 	/** a sub machine */
+  native
+  {
+  #if defined(INIT_FSM_DATA)
+  #undef INIT_FSM_DATA
+  #endif
+  #define INIT_FSM_DATA { .cp = NULL }
+  }
   machine subMachine1 {
+		data
+      {
+			char *cp;
+      }
 		state ss1 on entry foo on exit bar
            , ss2 on entry on exit
            , ss3 on entry foo1
            , ss4 on exit bar1
            ;
-		event ee1 data translator ee1_dt 
+		event parent::e1 data translator ee1_dt 
             , ee2 , ee3
             ;
 
-		action aa1[ee1,ss1] transition ss2;
+		action aa1[e1,ss1] transition ss2;
 		action aa2[ee2, ss1] transition ss3;
 	}
 

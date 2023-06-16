@@ -537,7 +537,7 @@ static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
    if (pmi->data_block_count)
    {
       fprintf(pcmw->cFile
-              , "\ttranslateEventData(pfsm, event);\n\n"
+              , "\ttranslateEventData(&pfsm->data, event);\n\n"
               );
    }
 
@@ -951,7 +951,7 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
    if (pmi->data_block_count)
    {
       fprintf(pcmw->cFile
-              , "\ttranslateEventData(pfsm, event);\n\n"
+              , "\ttranslateEventData(&pfsm->data, event);\n\n"
               );
    }
 
