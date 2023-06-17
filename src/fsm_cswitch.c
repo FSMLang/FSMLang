@@ -141,8 +141,10 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmw, pMACHINE_INFO p
            , tabstr
            );
 
-   fprintf(pcmw->cFile, "\tif (s != %s_noTransition)\n\t{\n",
-           pmi->name->name);
+   fprintf(pcmw->cFile
+           , "\tif (s != %s_noTransition)\n\t{\n"
+           , pmi->name->name
+           );
 
    if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {

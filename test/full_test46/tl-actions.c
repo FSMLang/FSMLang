@@ -84,6 +84,10 @@ int main(int argc, char **argv)
 	RUN_STATE_MACHINE(pnewMachine, &nme);
 	printf("\n");
 
+	nme.event = THIS(eShared);
+	RUN_STATE_MACHINE(pnewMachine, &nme);
+	printf("\n");
+
 	nme.event = THIS(e3);
 	nme.event_data.e3_data.i = 7;
 	nme.event_data.e3_data.s.i = 7;
@@ -92,7 +96,15 @@ int main(int argc, char **argv)
 	RUN_STATE_MACHINE(pnewMachine, &nme);
 	printf("\n");
 
+	nme.event = THIS(eShared);
+	RUN_STATE_MACHINE(pnewMachine, &nme);
+	printf("\n");
+
 	nme.event = THIS(e4);
+	RUN_STATE_MACHINE(pnewMachine, &nme);
+	printf("\n");
+
+	nme.event = THIS(eShared);
 	RUN_STATE_MACHINE(pnewMachine, &nme);
 	printf("\n");
 
@@ -104,7 +116,15 @@ int main(int argc, char **argv)
 	RUN_STATE_MACHINE(pnewMachine, &nme);
 	printf("\n");
 
+	nme.event = THIS(eShared);
+	RUN_STATE_MACHINE(pnewMachine, &nme);
+	printf("\n");
+
 	nme.event = THIS(e4);
+	RUN_STATE_MACHINE(pnewMachine, &nme);
+	printf("\n");
+
+	nme.event = THIS(eShared);
 	RUN_STATE_MACHINE(pnewMachine, &nme);
 	printf("\n");
 
@@ -113,6 +133,10 @@ int main(int argc, char **argv)
 	nme.event_data.e3_data.s.i = 9;
 	nme.event_data.e3_data.s.f = 9.0;
 
+	RUN_STATE_MACHINE(pnewMachine, &nme);
+	printf("\n");
+
+	nme.event = THIS(eShared);
 	RUN_STATE_MACHINE(pnewMachine, &nme);
 	printf("\n");
 
@@ -128,7 +152,15 @@ int main(int argc, char **argv)
 	RUN_STATE_MACHINE(pnewMachine, &nme);
 	printf("\n");
 
+	nme.event = THIS(eShared);
+	RUN_STATE_MACHINE(pnewMachine, &nme);
+	printf("\n");
+
 	nme.event = THIS(e4);
+	RUN_STATE_MACHINE(pnewMachine, &nme);
+	printf("\n");
+
+	nme.event = THIS(eShared);
 	RUN_STATE_MACHINE(pnewMachine, &nme);
 	printf("\n");
 
@@ -141,6 +173,10 @@ int main(int argc, char **argv)
 	printf("\n");
 
 	nme.event = THIS(e4);
+	RUN_STATE_MACHINE(pnewMachine, &nme);
+	printf("\n");
+
+	nme.event = THIS(eShared);
 	RUN_STATE_MACHINE(pnewMachine, &nme);
 	printf("\n");
 
@@ -176,13 +212,14 @@ void newMachine_translate_e3_data(pNEW_MACHINE_DATA pfsm_data, pNEW_MACHINE_E3_D
 NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) e;
-
+	printf("newMachine_transitionFn\n");
 	return pfsm->data.u.foo.count_ints < NUM_INTS ?  THIS(s1) : THIS(s2);
 }
 
 NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) e;
+	printf("newMachine_transitionFn1\n");
 	return pfsm->data.u.beep.f > 0.0f ? THIS(s3) : THIS(s1);
 }
 
@@ -190,6 +227,7 @@ NEW_MACHINE_STATE newMachine_transitionTos1(pNEW_MACHINE pfsm, ACTION_RETURN_TYP
 {
 	(void) pfsm;
 	(void) e;
+	printf("newMachine_transitionTos1\n");
 	return THIS(s1);
 }
 
@@ -250,7 +288,7 @@ static void print_newMachine_data(pNEW_MACHINE_DATA pnmd)
           , pnmd->u.bop[0] ? pnmd->u.bop : "<EMPTY>"
          );
 
-	printf("newMachine data.beep.f: %0.2f\n"
+	printf("newMachine.data.beep.f: %0.2f\n"
           , pnmd->u.beep.f
          );
 
@@ -259,6 +297,10 @@ static void print_newMachine_data(pNEW_MACHINE_DATA pnmd)
            , int_to_print
            , pnmd->u.foo.a[int_to_print]
           );
+
+	printf("newMachine.data.u.e3_int: %d\n"
+          , pnmd->u.e3_int
+         );
 
 	printf("\n\n");
 }
