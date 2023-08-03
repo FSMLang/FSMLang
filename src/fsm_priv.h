@@ -114,7 +114,6 @@ union _pid_type_data_
    STATE_DATA    state_data;
 };
 
-
 typedef enum
 {
    dtt_simple
@@ -298,7 +297,6 @@ int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
 void printAncestry(pMACHINE_INFO,FILE*);
 void print_tab_levels(FILE*,unsigned);
-
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);

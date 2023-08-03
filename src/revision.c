@@ -304,5 +304,11 @@
  
 */
 
-const char rev_string[] = "1.37";
+/*
+   Revision 1.38:
+ 
+   Named entry and exit functions are now handled correctly (rather than being swapped). 
+*/
+
+const char rev_string[] = "1.38";
 

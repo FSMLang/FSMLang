@@ -1555,6 +1555,20 @@ static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
       declareEventDataManager(pcmw, pmi, cp);
    }
 
+   declareStateEntryAndExitManagers(pcmw, pmi, cp);
+
+   fprintf(pcmw->cFile
+           , "#ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "#define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e == e)\n"
+           );
+
+   fprintf(pcmw->cFile
+           , "#endif\n"
+           );
+
    fprintf(pcmw->cFile
            , "#ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG\n"
            );

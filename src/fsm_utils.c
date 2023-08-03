@@ -993,7 +993,6 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    }
 
 
-
    return false;
 }
 

@@ -531,7 +531,6 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                     );
        fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
                );
-
     }
 
     if (pid->type_data.event_data.puser_event_data)
