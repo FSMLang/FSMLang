@@ -235,13 +235,13 @@ struct _machine_qualifier_
 struct _machine_info_ {
   pMACHINE_INFO parent;
   pLIST         state_list;
-  int           external_state_designation_count;
-  int           parent_event_reference_count;
-  int           data_translator_count;
-  int           data_block_count;
-  int           submachine_inhibitor_count;
+  unsigned      external_state_designation_count;
+  unsigned      parent_event_reference_count;
+  unsigned      data_translator_count;
+  unsigned      data_block_count;
+  unsigned      submachine_inhibitor_count;
   pLIST         event_list;
-  int           external_event_designation_count;
+  unsigned      external_event_designation_count;
 	pLIST   			transition_list;
 	pLIST   			transition_fn_list;
 	pLIST         action_list;
@@ -254,7 +254,7 @@ struct _machine_info_ {
 	MOD_FLAGS			modFlags;
   pID_INFO      machineTransition;
   pLIST         machine_list;
-  int           shared_event_count;
+  unsigned      shared_event_count;
   pLIST         id_list;
   bool          has_single_pai_events;
   unsigned      states_with_entry_fns_count;

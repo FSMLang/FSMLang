@@ -122,12 +122,10 @@ void closeCMachine(pFSMOutputGenerator pfsmog, int how)
 
 char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 {
-   pID_INFO			   pid_info;
-   pACTION_INFO	   pai;
    char					*cp;
-   int					i, j;
-   bool            canAssignExternals;
-   ITERATOR_HELPER helper;
+   int					i;
+   bool              canAssignExternals;
+   ITERATOR_HELPER   helper;
 
    /* put the native code segment out to the header */
    if (pmi->native) fprintf(pcmw->hFile, "%s\n", pmi->native);
