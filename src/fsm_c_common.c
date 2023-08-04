@@ -123,7 +123,7 @@ void closeCMachine(pFSMOutputGenerator pfsmog, int how)
 char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 {
    char					*cp;
-   int					i;
+   unsigned				i;
    bool              canAssignExternals;
    ITERATOR_HELPER   helper;
 
@@ -922,9 +922,9 @@ void writeStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
    if (pmi->modFlags & mfActionsReturnStates)
    {
       /* grab state transitions from action array */
-      for (int e = 0; e < pmi->event_list->count; e++)
+      for (unsigned e = 0; e < pmi->event_list->count; e++)
       {
-         for (int s = 0; s < pmi->state_list->count; s++)
+         for (unsigned s = 0; s < pmi->state_list->count; s++)
          {
             if (pmi->actionArray[e][s])
             {
@@ -955,7 +955,7 @@ void writeStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
    }
    else
    {
-      for (int i = 0; i < pmi->transition_list->count; i++)
+      for (unsigned i = 0; i < pmi->transition_list->count; i++)
       {
          pid_info = transitionPidByIndex(pmi, i);
          if (pid_info->type == STATE)
@@ -1121,7 +1121,7 @@ void writeDebugInfoShort(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
  */
 void writeDebugInfoLong(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   int i;
+   unsigned i;
    ITERATOR_HELPER helper;
 
    fprintf(pcmw->cFile, "\n#ifdef %s_DEBUG\n", cp);
