@@ -36,6 +36,7 @@
 
 #include "fsm_c.h"
 #include "fsm_c_common.h"
+#include "fsm_unused.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 #include <stdio.h>
@@ -212,7 +213,6 @@ static void            defineCSubMachineFSM(pCMachineData, pMACHINE_INFO, char *
 static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    char     *cp;
-   pID_INFO pid_info;
 
    if (!pmi || !pcmw) return 1;
 
@@ -292,7 +292,6 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    char     *cp;
-   pID_INFO pid_info;
 
    if (!pmi || !pcmw) return 1;
 
@@ -675,6 +674,7 @@ static void subMachineWriteNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, c
 
 static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *tabstr)
 {
+   FSMLANG_MAYBE_UNUSED(cp);
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
       if (compact_action_array)
@@ -809,6 +809,7 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, c
 
 static void writeOriginalSubFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *tabstr)
 {
+   FSMLANG_MAYBE_UNUSED(cp);
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
       if (compact_action_array)
@@ -1175,7 +1176,6 @@ static void declareCMachineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, ch
 
 static void declareCMachineActionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   pID_INFO pid_info;
    ITERATOR_CALLBACK_HELPER ich = {0};
 
    ich.first = true;;
@@ -1207,7 +1207,6 @@ static void declareCMachineActionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi, c
 
 static void defineCMachineActionFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   pID_INFO pid_info;
    ITERATOR_CALLBACK_HELPER ich = {0};
 
    ich.first = true;
@@ -1239,7 +1238,6 @@ static void defineCMachineActionFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, c
 
 static void declareCMachineTransitionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   pID_INFO pid_info;
    ITERATOR_CALLBACK_HELPER ich = {0};
 
    ich.first = true;
@@ -1271,7 +1269,6 @@ static void declareCMachineTransitionFnEnum(pCMachineData pcmw, pMACHINE_INFO pm
 
 static void defineCMachineTransitionFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   pID_INFO pid_info;
    ITERATOR_CALLBACK_HELPER ich = {0};
 
    ich.first = true;

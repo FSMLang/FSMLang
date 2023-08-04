@@ -41,7 +41,11 @@ int good=1;
 
 extern char	*yytext;
 extern FILE	*yyin, *yyout;
- 
+
+extern int yylex(void);
+
+char *rindex(const char *str,int c);
+
 pMACHINE_INFO          pmachineInfo = NULL;
 pFSMOutputGenerator	  pfsmog;
 pSTATE_AND_EVENT_DECLS psedecls = NULL;
@@ -1897,6 +1901,9 @@ transition_fn_return_decl:
 #if defined(CYGWIN) || defined (LINUX)
 #include <unistd.h>
 #include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <getopt.h>
 #endif
 
@@ -2156,7 +2163,7 @@ int main(int argc, char **argv)
 		if (!outFileBase) {
 			/* use the base input file name */
 			*cp1 = 0;
-			cwk_path_get_basename(cp, &outFileBase, NULL);
+			cwk_path_get_basename(cp, (const char**)&outFileBase, NULL);
 		}
 
 		#ifndef PARSER_DEBUG

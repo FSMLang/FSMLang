@@ -4,6 +4,7 @@
 	*/
 
 #include "fsm_priv.h"
+#include <stdio.h>
 #include <string.h>
 #include <strings.h>
 #ifndef LEX_DEBUG

@@ -93,8 +93,6 @@ pFSMOutputGenerator pHTMLSubMachineWriter = (pFSMOutputGenerator) &HTMLSubMachin
 bool  css_content_internal = false;
 char *css_content_filename = "fsmlang.css";
 
-static pHTMLMachineData newHTMLMachineData(char *);
-
 /* list iteration callbacks */
 static bool print_machine_name_as_list_element(pLIST_ELEMENT pelem, void *data)
 {
@@ -281,10 +279,7 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
 	pID_INFO			  pid;
-	pACTION_INFO	  pai;
-  pACTION_SE_INFO pasei;
 	int						  e,s;
-  ITERATOR_HELPER ih;
 
   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
 

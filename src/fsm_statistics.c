@@ -31,6 +31,7 @@
 */
 
 #include "fsm_statistics.h"
+#include "fsm_unused.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 #include <stdio.h>
@@ -96,6 +97,7 @@ static int initMachineStatisticsWriter(pFSMOutputGenerator pfsmog, char *ofBase)
  ***********************************************************************************************************************/
 static void writeMachineStatistics(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
+   FSMLANG_MAYBE_UNUSED(pfsmog);
    LIST_ELEMENT elem = { .mbr = pmi , .next = NULL };
 
    (void) write_machine_statistics(&elem, NULL);
@@ -203,18 +205,18 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
           );
 
    printf("Action Array:\n");
-   for (unsigned e = 0; e < pmi->event_list->count; e++)
+   for (int e = 0; e < pmi->event_list->count; e++)
    {
 
       printf("event %s: "
              , eventNameByIndex(pmi, e)
              );
 
-      for (unsigned s = 0; s < pmi->state_list->count; s++)
+      for (int s = 0; s < pmi->state_list->count; s++)
       {
          printf("%s%16p"
                 , s ? ", " : "  "
-                , pmi->actionArray[e][s]
+                , (void*) pmi->actionArray[e][s]
                 );
       }
       printf("   %s\n"

@@ -4,6 +4,7 @@
 	- [Philosophy](#philosophy)
 	- [Example: Simple State Machine](#example-simple-state-machine)
 	- [Hierarchical](#hierarchical)
+	- [State Entry and Exit Functions](#state-entry-and-exit-functions)
 	- [Making the FSMLang Executable](#making-the-fsmlang-executable)
 	- [Command Syntax](#command-syntax)
 	- [Basic Language Syntax](#basic-language-syntax)
@@ -15,6 +16,8 @@
 FSMLang is designed to allow design work in the problem space of finite state machines without the encumbrances of any particular implementation language. Thus, FSMLang is implemented as a "pre-processor," generating code in any desired general programming language to implement the described finite state machine. FSMLang allows effort to be focused on the definition of events, states, and transitions; indeed, though the action to be taken in any particular event/state intersection is declarable (of course), the actual definition of that action is treated as a detail which falls outside the scope of FSMLang. Moreover, the mechanisms for collecting or determining events are also outside the language scope. FSMLang creates an object or objects in a target programming language which, when inserted into the larger program structure will invoke the correct actions and make the correct transitions for the events handed it.
 
 (Though it is said, "any desired general programming language," implementation of FSMLang output in languages other than C is an exercise currently left to the reader.)
+
+The created state machine contains a single state variable, which should not be manipulated by any user-written function. This variable is maintained on the heap, not on the machine's function call stack. This means that the machine must not be called recursively; neither from within any action function, nor from separate threads of execution. The keyword *reentrant* can be used to designate machines which are called from different execution threads. Macros will be inserted at the beginning and end of the state machine function which must be defined to properly protect the machine from re-entrance.
 
 [Top of page](#fsmlang)
 
@@ -1167,6 +1170,35 @@ char *SEND_MESSAGE_STATE_NAMES[] = {
 Note that the -tp option was used to create PlantUML output, which was then processed by PlantUML to produce an SVG image. The html was created using the --include-svg-img=true option to include the image in the output.
 
 An unrealized goal of the FSMLang effort is to optimize the output machine for speed and size based on an analysis of the event-state matrix. There are command-line switches which force the creation of a compact table, or the use of switch statements instead of a table, but these are manual. One should be able to make those decisions based on the density of the event-state matrix. It may also be possible, using matrix transformations to make some part of the matrix very dense, then use a hybrid table/switch approach in the code.
+
+[Top of page](#fsmlang)
+
+## State Entry and Exit Functions
+
+Entry and exit functions may be added to states.  For example,
+
+```
+state some_state on entry prepare_some_state;
+```
+
+adds a named entry function to *some_state*.
+
+Similarly,
+
+```
+state some_state on exit tidy_up_some_state;
+```
+adds a named exit function to *some_state*.
+
+When entry or exit functions exist, code will be generated to call them appropriately.  Names given in the .fsm 
+file are prepended with the name of the machine.  "Anonymous" entry or exit functions can be declared simply by
+ommiting the names.  In this case names will be generated using the pattern <machine_name>_onEntryTo_<state_name>
+for entry functions, and similarly, using *onExitFrom* for exit functions.  When weak function generation is not
+disabled, weak versions of these anonymous functions are created.
+
+Because they are powerful, entry and exit functions can be mis-used.  As the names chosen here suggest, they
+should be used only to prepare a state or to leave it in a tidy condition.  They should not be used as a substitue for
+the creation of sub-machines, or well-thought out action sequences.
 
 [Top of page](#fsmlang)
 
