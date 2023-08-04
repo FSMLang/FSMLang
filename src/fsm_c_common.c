@@ -990,9 +990,9 @@ void subMachineWriteStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char
    if (pmi->modFlags & mfActionsReturnStates)
    {
       /* grab state transitions from action array */
-      for (int e = 0; e < pmi->event_list->count; e++)
+      for (unsigned e = 0; e < pmi->event_list->count; e++)
       {
-         for (int s = 0; s < pmi->state_list->count; s++)
+         for (unsigned s = 0; s < pmi->state_list->count; s++)
          {
             if (pmi->actionArray[e][s])
             {
@@ -1023,7 +1023,7 @@ void subMachineWriteStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char
    }
    else
    {
-      for (int i = 0; i < pmi->transition_list->count; i++)
+      for (unsigned i = 0; i < pmi->transition_list->count; i++)
       {
          pid_info = transitionPidByIndex(pmi, i);
          if (pid_info->type == STATE)
@@ -1061,7 +1061,7 @@ void subMachineWriteStateTransitions(pCMachineData pcmw, pMACHINE_INFO pmi, char
  */
 void writeDebugInfoShort(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   int i;
+   unsigned i;
    ITERATOR_HELPER helper;
 
    fprintf(pcmw->cFile, "\n#ifdef %s_DEBUG\n", cp);
@@ -2189,7 +2189,7 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
 char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 {
    char            *cp;
-   int              i;
+   unsigned         i;
    char            *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
    ITERATOR_HELPER  helper;
 
