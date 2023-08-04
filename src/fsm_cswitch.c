@@ -927,7 +927,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
 
 static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   int      events_handled;
+   unsigned  events_handled;
    char     *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
 
    for (unsigned i = 0; i < pmi->state_list->count; i++)
