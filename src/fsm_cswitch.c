@@ -229,7 +229,7 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    declareCSwitchMachineStruct(pcmw, pmi, cp);
 
    /* declare state fns */
-   for (int i = 0; i < pmi->state_list->count; i++)
+   for (unsigned i = 0; i < pmi->state_list->count; i++)
    {
       if (pmi->modFlags & mfActionsReturnVoid)
       {
@@ -338,7 +338,7 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    declareCSwitchMachineStruct(pcmw, pmi, cp);
 
    /* declare state fns */
-   for (int i = 0; i < pmi->state_list->count; i++)
+   for (unsigned i = 0; i < pmi->state_list->count; i++)
    {
       if (pmi->modFlags & mfActionsReturnVoid)
       {
@@ -711,9 +711,9 @@ static void defineCSwitchSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
 
 static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
-   int events_handled;
+   unsigned events_handled;
 
-   for (int i = 0; i < pmi->state_list->count; i++)
+   for (unsigned i = 0; i < pmi->state_list->count; i++)
    {
       if (pmi->modFlags & mfActionsReturnVoid)
       {
@@ -930,7 +930,7 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
    int      events_handled;
    char     *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
 
-   for (int i = 0; i < pmi->state_list->count; i++)
+   for (unsigned i = 0; i < pmi->state_list->count; i++)
    {
       if (pmi->modFlags & mfActionsReturnVoid)
       {
@@ -1408,7 +1408,7 @@ static void defineStateFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
 
    /* declare state fns */
-   for (int i = 0; i < pmi->state_list->count; i++)
+   for (unsigned i = 0; i < pmi->state_list->count; i++)
    {
       fprintf(pcmw->cFile
               , "\t%s%s_%s_stateFn\n"
