@@ -205,14 +205,14 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
           );
 
    printf("Action Array:\n");
-   for (int e = 0; e < pmi->event_list->count; e++)
+   for (unsigned e = 0; e < pmi->event_list->count; e++)
    {
 
       printf("event %s: "
              , eventNameByIndex(pmi, e)
              );
 
-      for (int s = 0; s < pmi->state_list->count; s++)
+      for (unsigned s = 0; s < pmi->state_list->count; s++)
       {
          printf("%s%16p"
                 , s ? ", " : "  "
