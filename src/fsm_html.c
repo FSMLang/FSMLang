@@ -279,7 +279,7 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
 	pID_INFO			  pid;
-	int						  e,s;
+	unsigned				e,s;
 
   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
 
