@@ -1389,7 +1389,7 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
            , pmi->name->name
            , pmi->name->name
           );
-   for (int i = 0; i < pmi->event_list->count; i++)
+   for (unsigned i = 0; i < pmi->event_list->count; i++)
    {
 
       fprintf(pcmw->cFile, "\t{\n");
@@ -1397,7 +1397,7 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
       fprintf(pcmw->cFile, "\t\t/* -- %s -- */\n\n",
               eventNameByIndex(pmi, i));
 
-      for (int j = 0; j < pmi->state_list->count; j++)
+      for (unsigned j = 0; j < pmi->state_list->count; j++)
       {
 
          fprintf(pcmw->cFile, "\t\t/* -- %s -- */\t",
