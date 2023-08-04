@@ -548,7 +548,7 @@ static void defineCSwitchMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char 
 
    if (pmi->data_block_count)
    {
-      declareEventDataManager(pcmw, pmi, cp);
+      declareEventDataManager(pcmw, cp);
    }
 
    if (pmi->has_single_pai_events)

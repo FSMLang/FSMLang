@@ -2,6 +2,6 @@
 #make sure that that's what we are using.
 LEX = flex -I 
 YACC = bison -d -y -v #--debug -d
-CC = gcc -g -ggdb -Wall
+CC = gcc -g -ggdb -Werror #-Wall
 DIFF = diff --strip-trailing-cr --ignore-space-change
 

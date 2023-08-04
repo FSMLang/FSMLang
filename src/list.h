@@ -41,7 +41,7 @@ typedef struct _list_element_	   LIST_ELEMENT, *pLIST_ELEMENT;
 typedef bool (*LIST_ITERATOR_FN)(pLIST_ELEMENT,void*);
 
 struct _list_ {
-   int           count;
+   unsigned      count;
    pLIST_ELEMENT head;
    pLIST_ELEMENT tail;
 };

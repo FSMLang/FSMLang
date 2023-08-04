@@ -3205,7 +3205,7 @@ void declareSubMachineManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
    fprintf(pcmd->cFile, "\n");
 }
 
-void declareEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
+void declareEventDataManager(pCMachineData pcmd, char *cp)
 {
    fprintf(pcmd->cFile
            , "static void translateEventData(p%s_DATA,p%s_EVENT);\n\n"

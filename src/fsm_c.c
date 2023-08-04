@@ -1549,7 +1549,7 @@ static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
    if (pmi->data_block_count)
    {
-      declareEventDataManager(pcmw, pmi, cp);
+      declareEventDataManager(pcmw, cp);
    }
 
    declareStateEntryAndExitManagers(pcmw, pmi, cp);

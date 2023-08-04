@@ -125,7 +125,7 @@ bool            declare_action_function(pLIST_ELEMENT,void*);
 void            declareSubMachineManagers(pCMachineData,pMACHINE_INFO,char*);
 void            declareStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,char*);
 void            defineStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,char*);
-void            declareEventDataManager(pCMachineData,pMACHINE_INFO,char*);
+void            declareEventDataManager(pCMachineData,char*);
 void            defineEventDataManager(pCMachineData,pMACHINE_INFO,char*);
 
 #endif
