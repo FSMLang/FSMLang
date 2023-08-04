@@ -2190,9 +2190,10 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
 
 char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 {
-   char					   *cp;
-   int						 i;
+   char            *cp;
+   int              i;
    char            *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
+   ITERATOR_HELPER  helper;
 
    /* put the native code segment out to the header */
    if (pmi->native) fprintf(pcmw->hFile, "%s\n", pmi->native);

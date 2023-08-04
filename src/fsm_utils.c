@@ -771,22 +771,22 @@ static bool count_entry_and_exit_handlers(pLIST_ELEMENT pelem, void *data)
 
 }
 
-void count_external_declarations(pLIST plist, int *counter)
+void count_external_declarations(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_external, counter);
 }
 
-void count_sub_machine_inhibitors(pLIST plist, int *counter)
+void count_sub_machine_inhibitors(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_inhibitors, counter);
 }
 
-void count_parent_event_referenced(pLIST plist, int *counter)
+void count_parent_event_referenced(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_parent_event_refs, counter);
 }
 
-void count_shared_events(pLIST plist, int *counter)
+void count_shared_events(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_shared_evts, counter);
 }
