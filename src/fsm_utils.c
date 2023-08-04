@@ -199,7 +199,7 @@ void free_ids(pLIST id_list)
 void freeMachineInfo(pMACHINE_INFO pmi)
 {
 
-	int							i;
+	unsigned							i;
 
 	if (!pmi)
 
@@ -363,7 +363,7 @@ char *hungarianToUnderbarCaps(char *str)
 int allocateActionArray(pMACHINE_INFO pmi)
 {
 
-	int i;
+	unsigned i;
 
 	if (!pmi || !pmi->state_list->count || !pmi->event_list->count)
 		return 1;
@@ -519,7 +519,7 @@ char *eventNameByIndex(pMACHINE_INFO pmi, int index)
 	char 			*cp = NULL;
 	pID_INFO	pidi;
 
-	if (pmi && (index >= 0) && (index < pmi->event_list->count)) {
+	if (pmi && index >= 0 && ((unsigned)index < pmi->event_list->count)) {
 
      pidi = (pID_INFO)find_nth_list_member(pmi->event_list,(unsigned)index);
      if (pidi)
@@ -654,7 +654,7 @@ pID_INFO transitionPidByIndex(pMACHINE_INFO pmi, int index)
 
 	pID_INFO	pidi = NULL;
 
-  if (pmi && (index >= 0) && (index < pmi->transition_list->count))
+  if (pmi && (index >= 0) && ((unsigned)index < pmi->transition_list->count))
   {
      pidi = (pID_INFO)find_nth_list_member(pmi->transition_list,(unsigned)index);
 	}

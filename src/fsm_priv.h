@@ -71,7 +71,6 @@ typedef struct _action_decl_             ACTION_DECL,             *pACTION_DECL;
 typedef struct _machine_qualifier_       MACHINE_QUALIFIER,       *pMACHINE_QUALIFIER;
 typedef struct _machine_prefix_          MACHINE_PREFIX,          *pMACHINE_PREFIX;
 typedef struct _iterator_helper_         ITERATOR_HELPER,         *pITERATOR_HELPER;
-typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
 
 typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
 typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
