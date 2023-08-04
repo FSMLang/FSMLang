@@ -764,7 +764,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
              );
 
       events_handled = 0;
-      for (int j = 0; j < pmi->event_list->count; j++)
+      for (unsigned j = 0; j < pmi->event_list->count; j++)
       {
          if (!eventPidByIndex(pmi, j)->type_data.event_data.single_pai_for_all_states)
          {
@@ -978,7 +978,7 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
              );
 
       events_handled = 0;
-      for (int j = 0; j < pmi->event_list->count; j++)
+      for (unsigned j = 0; j < pmi->event_list->count; j++)
       {
          if (pmi->actionArray[j][i])
          {
