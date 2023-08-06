@@ -311,7 +311,8 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
       iterate_list(pmi->event_list, declare_event_user_data_union_mbrs, &helper);
 
       fprintf(pcmw->hFile
-              , "} %s_EVENT_DATA;\n\n"
+              , "} %s_EVENT_DATA, *p%s_EVENT_DATA;\n\n"
+              , cp
               , cp
               );
 
@@ -3258,7 +3259,7 @@ void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
            );
 
    fprintf(pcmd->cFile
-           , "\tswitch(pevent->event)\n\t{"
+           , "\tswitch(pevent->event)\n\t{\n"
            );
 
    iterate_list(pmi->event_list, write_event_data_manager_switch_case, &ich);

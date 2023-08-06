@@ -5,6 +5,7 @@
 	- [Example: Simple State Machine](#example-simple-state-machine)
 	- [Hierarchical](#hierarchical)
 	- [State Entry and Exit Functions](#state-entry-and-exit-functions)
+ - [Event Data](#event_data)
 	- [Making the FSMLang Executable](#making-the-fsmlang-executable)
 	- [Command Syntax](#command-syntax)
 	- [Basic Language Syntax](#basic-language-syntax)
@@ -1199,6 +1200,66 @@ disabled, weak versions of these anonymous functions are created.
 Because they are powerful, entry and exit functions can be mis-used.  As the names chosen here suggest, they
 should be used only to prepare a state or to leave it in a tidy condition.  They should not be used as a substitue for
 the creation of sub-machines, or well-thought out action sequences.
+
+[Top of page](#fsmlang)
+
+## Event Data
+
+Events may be declared to have associated data.  For example:
+
+```
+event data_packet_arrived data {
+   unsigned length;
+   uint8_t  *packet;
+   };
+
+```
+
+When any event is declared with data, FSMLang shifts the event declaration from a simple enumeration to a discriminated structure.  The event enumeration is used as the discriminator of the new event structure; the union contained in that structure is composed of the structures created for each event delaring data.  This structure becomes the method for passing events in from the outside world into the state machine.
+
+Continuing the example, event data_packet_arrived with cause the declaration of this structure for the event's data:
+
+```c
+typedef struct _<machine_name>_data_packet_arrived_ {
+   unsigned length;
+   uint8t_t *packet;
+} <MACHINE_NAME>_DATA_PACKET_ARRIVED_DATA, *p<MACHINE_NAME>_DATA_PACKET_ARRIVED_DATA;
+```
+
+The event data union is declared:
+
+```c
+typedef union {
+   <MACHINE_NAME>_DATA_PACKET_ARRIVED_DATA data_packet_arrived_data;
+   .
+   .
+   .
+} <MACHINE_NAME>_EVENT_DATA, *p<MACHINE_NAME>_EVENT_DATA;
+```
+
+Finally, the machine's event enumeration will be named <MACHINE_NAME>_EVENT_ENUM, and a structure, containing the event enumeration and the event data union will be created:
+
+```c
+typedef struct {
+   <MACHINE_NAME>_EVENT_ENUM event;
+   <MACHINE_NAME>_EVENT_DATA event_data;
+} <MACHINE_NAME>_EVENT, *p<MACHINE_NAME>_EVENT;
+```
+
+As indicated above, this structure is used to communicated external events to the state machine.  It is *not* used to communicate events internally.  Internally, events are communicated *only* through the event enumeration, as is done by machines not having events with data.  Thus, action functions are declared as returning <MACHINE_NAME>_EVENT_ENUM, rather than <MACHINE_NAME>_EVENT.  Because of this, the data communicated by the (external) event must be moved into the machine's data structure, in order to be visible to the action functions.
+
+The movement of data is done through a invocation of a data translator.  The translater can be named in the machine description:
+
+```
+event data_packet_arrived data translator copy_data_packet {
+   unsigned length;
+   uint8t_t *packet;
+};
+```
+
+Otherwise, a translator function will be declared as <machine_name>_translate_<event_name>_data.
+
+In either case, the function arguments are first, a pointer to the machine structure; and second, a pointer to the event data.
 
 [Top of page](#fsmlang)
 
