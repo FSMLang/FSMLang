@@ -58,6 +58,10 @@ enum states {
   , VOID
   , PARENT
   , NAMESPACE
+  , DATA_KEY
+  , STRING
+  , TYPE_NAME
+  , FIELD_NAME
   , TRANSLATOR_KEY
   , NATIVE_KEY
   , IMPLEMENTATION_KEY
@@ -66,6 +70,9 @@ enum states {
   , ALL
   , ENTRY
   , EXIT
+  , NUMERIC_STRING
+  , STRUCT_KEY
+  , UNION_KEY
 };
 
 extern char *strings[];

@@ -13,10 +13,21 @@ machine newMachine
 {
 data
 {
-struct 
-{
-	int a;
-} foo;
+
+ union
+ {
+  struct 
+  {
+  	int a;
+  } str_int foo;
+  
+  struct
+  {
+   float f;
+  } str_float beep;
+ 
+  int  bop;
+ };
 
 }
 
@@ -27,9 +38,9 @@ struct
 
 	/** a sub machine */
   machine subMachine1 {
-		state ss1 on entry foo1 on exit bar
+		state ss1 on entry foo on exit bar
            , ss2 on entry on exit
-           , ss3 on entry foo2
+           , ss3 on entry foo1
            , ss4 on exit bar1
            ;
 		event ee1, ee2, ee3;

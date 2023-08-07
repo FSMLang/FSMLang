@@ -69,23 +69,27 @@ void yyerror(char *);
  pACTION_DECL						 paction_decl;
  pMACHINE_QUALIFIER       pmachine_qualifier;
  pMACHINE_PREFIX          pmachine_prefix;
+ pDATA_FIELD              pdata_field;
+ pDATA_TYPE_STRUCT        pdata_type_struct;
+ pUSER_EVENT_DATA         puser_event_data;
 }
 
 %token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON NAMESPACE
-%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL EQUALS VOID TRANSLATOR_KEY
-%token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT
+%token DATA_KEY TRANSLATOR_KEY
+%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
+%token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
 %token <charData>	PARENT
 
-%token <charData>	NATIVE_KEY
-%token <charData>	NATIVE_BLOCK
-%token <charData>	DATA_KEY
-%token <charData>	DOC_COMMENT
+%token <charData> NATIVE_KEY
+%token <charData> NATIVE_BLOCK
 %token <pid_info> MACHINE
 %token <pid_info> STATE
 %token <pid_info> EVENT
 %token <pid_info> ACTION
 %token <pid_info> TRANSITION_FN
 %token <pid_info> ID
+%token <charData> NUMERIC_STRING
+%token <pid_info> TYPE_NAME
 
 %type <plist>                    returns_comma_list
 %type <plist>                    event_comma_list
@@ -107,7 +111,11 @@ void yyerror(char *);
 %type <action_info>              transition_matrix
 %type <action_info>              transition_matrix_start
 %type <action_info>              transition_matrix_list
-%type <charData>                 data
+%type <plist>                    machine_data
+%type <plist>                    data_block
+%type <pdata_field>              data_field
+%type <plist>                    data_fields
+%type <charData>                 data_field_dimension
 %type <charData>                 native
 %type <charData>                 native_impl
 %type <mod_flags>                machine_modifier
@@ -120,9 +128,10 @@ void yyerror(char *);
 %type <plist>                    machine_list
 %type <pmachine_prefix>          machine_prefix
 %type <pid_info>                 namespace_event_ref
-%type <pid_info>                 event_data
+%type <puser_event_data>         user_event_data
 %type <pid_info>                 state
 %type <charData>                 parent_namespace
+%type <pdata_type_struct>        data_type
 
 %%
 
@@ -201,7 +210,7 @@ machine:	machine_prefix ID machine_qualifier
    
             }
          } 
-        '{' data statement_decl_list '}'
+        '{' statement_decl_list '}'
 					{
 
 						$$ = $1->pmachineInfo;
@@ -211,26 +220,33 @@ machine:	machine_prefix ID machine_qualifier
  			    $$->machineTransition = $3->machineTransition;
            $$->native_impl       = $3->native_impl;
 
- 					$$->data = $6;
 
 						/* harvest the lists */
- 					$$->state_list         = $7->pstate_and_event_decls->state_decls;
- 					$$->event_list         = $7->pstate_and_event_decls->event_decls;
- 					$$->action_list        = $7->pactions_and_transitions->action_list;
- 					$$->action_info_list   = $7->pactions_and_transitions->action_info_list;
- 					$$->transition_list    = $7->pactions_and_transitions->transition_list;
- 					$$->transition_fn_list = $7->pactions_and_transitions->transition_fn_list;
- 					$$->machine_list       = $7->pactions_and_transitions->machine_list;
+ 					$$->data               = $6->data;
+ 					$$->state_list         = $6->pstate_and_event_decls->state_decls;
+ 					$$->event_list         = $6->pstate_and_event_decls->event_decls;
+ 					$$->action_list        = $6->pactions_and_transitions->action_list;
+ 					$$->action_info_list   = $6->pactions_and_transitions->action_info_list;
+ 					$$->transition_list    = $6->pactions_and_transitions->transition_list;
+ 					$$->transition_fn_list = $6->pactions_and_transitions->transition_fn_list;
+ 					$$->machine_list       = $6->pactions_and_transitions->machine_list;
 
 						count_external_declarations     ($$->event_list,&($$->external_event_designation_count));
 						count_parent_event_referenced   ($$->event_list,&($$->parent_event_reference_count));
 						count_shared_events             ($$->event_list,&($$->shared_event_count));
-						count_data_translators          ($$->event_list,&($$->data_translator_count));
-						count_external_declarations     ($$->state_list,&($$->external_state_designation_count));
- 					count_states_with_entry_exit_fns($$->state_list
-																						 , &($$->states_with_entry_fns_count)
-																						 , &($$->states_with_exit_fns_count)
+						count_event_user_data_attributes($$->event_list
+																						 ,&($$->data_translator_count)
+																						 ,&($$->data_block_count)
 																						 );
+
+ 					/* sanity check */
+ 					if ($$->parent && $$->data_block_count)
+						{
+ 					   yyerror("event user data not allowed in sub-machines");
+						}
+
+						count_external_declarations     ($$->state_list,&($$->external_state_designation_count));
+ 					count_states_with_entry_exit_fns($$->state_list,&($$->states_with_entry_fns_count),&($$->states_with_exit_fns_count));
 
  					if ($$->machine_list)
 						{
@@ -336,6 +352,16 @@ machine:	machine_prefix ID machine_qualifier
 								parser_debug_print_transition_fn_list($$->transition_fn_list,yyout);
            }
 
+           if ($$->data)
+           {
+             fprintf(yyout
+                     , "this machine has data\n"
+                     );
+
+             parser_debug_print_data_block($$->data, yyout);
+
+           }
+
             if ($$->machine_list)
             {
                 fprintf(yyout
@@ -438,21 +464,31 @@ machine_modifier:
 	{
  		$$ = 0;
 	}
-	| machine_modifier REENTRANT
+	| REENTRANT
 					{
-						$$ = ($1 | mfReentrant);
+						$$ = mfReentrant;
 					}
 	;
 
 statement_decl_list:	state_and_event_decls actions_and_transitions
-	{
- 	if (NULL == ($$ = (pSTATEMENT_DECL_LIST)calloc(1, sizeof(STATEMENT_DECL_LIST))))
- 		yyerror("Out of memory");
-
- 	$$->pstate_and_event_decls   = $1;
- 	$$->pactions_and_transitions = $2;
-
-	}
+   	{
+    	if (NULL == ($$ = (pSTATEMENT_DECL_LIST)calloc(1, sizeof(STATEMENT_DECL_LIST))))
+    		yyerror("Out of memory");
+   
+    	$$->pstate_and_event_decls   = $1;
+    	$$->pactions_and_transitions = $2;
+   
+   	}
+ | machine_data state_and_event_decls actions_and_transitions
+   	{
+    	if (NULL == ($$ = (pSTATEMENT_DECL_LIST)calloc(1, sizeof(STATEMENT_DECL_LIST))))
+    		yyerror("Out of memory");
+   
+      $$->data                     = $1;
+    	$$->pstate_and_event_decls   = $2;
+    	$$->pactions_and_transitions = $3;
+   
+   	}
 	;
 
 machine_list:
@@ -1319,17 +1355,47 @@ parent_namespace: PARENT NAMESPACE
   }
   ;
 
-event_data: { $$ = NULL; }
-  | TRANSLATOR_KEY ID
-     {
-        $$ = $2;
-        
-        #ifdef PARSER_DEBUG
-        fprintf(yyout,"found a data translator: %s\n", $2->name);
-        #endif
-     }
+user_event_data: { $$ = NULL; }
+  | DATA_KEY TRANSLATOR_KEY ID
+   {
+  		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
+  		   yyerror("out of memory");
+ 
+      $$->translator = $3;
+      
+      #ifdef PARSER_DEBUG
+      fprintf(yyout,"found a data translator: %s\n", $3->name);
+      #endif
+   }
+  | DATA_KEY TRANSLATOR_KEY ID data_block
+   {
+  		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
+  		   yyerror("out of memory");
+ 
+      $$->translator = $3;
+ 		 $$->data_fields = $4;
+      
+      #ifdef PARSER_DEBUG
+      fprintf(yyout,"found a data translator: %s\n", $3->name);
+      fprintf(yyout,"found data fields\n");
+ 		 parser_debug_print_data_block($4,yyout);
+      #endif
+   }
+  | DATA_KEY data_block
+   {
+  		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
+  		   yyerror("out of memory");
+ 
+ 		 $$->data_fields = $2;
+      
+      #ifdef PARSER_DEBUG
+      fprintf(yyout,"found data fields\n");
+ 		 parser_debug_print_data_block($2,yyout);
+      #endif
+   }
+   ;
     
-event_decl_list:	EVENT_KEY ID external_designation
+event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					{
 
  					if (NULL == ($$ = init_list()))
@@ -1337,13 +1403,14 @@ event_decl_list:	EVENT_KEY ID external_designation
 
            set_id_type($2,EVENT);
            $2->type_data.event_data.externalDesignation = $3;
-           $2->powningMachine = pmachineInfo;
+           $2->type_data.event_data.puser_event_data    = $4;
+           $2->powningMachine                           = pmachineInfo;
 
  					if (NULL == (add_to_list($$,$2)))
  						yyerror("Out of memory");
 
 					}
- | EVENT_KEY parent_namespace EVENT event_data
+ | EVENT_KEY parent_namespace EVENT user_event_data
 					{
             #ifdef PARSER_DEBUG
             fprintf(yyout,"Found a namespace event reference\n");
@@ -1359,10 +1426,10 @@ event_decl_list:	EVENT_KEY ID external_designation
            if (!add_unique_id(id_list,EVENT,$3->name,&pid))
  						yyerror("Cannot reference parent event twice");
 
-           pid->type_data.event_data.data_translator     = $4;
-           pid->type_data.event_data.shared_with_parent  = true;
-           pid->powningMachine                           = pmachineInfo;
- 					pid->docCmnt                                  = $2;
+           pid->type_data.event_data.puser_event_data   = $4;
+           pid->type_data.event_data.shared_with_parent = true;
+           pid->powningMachine                          = pmachineInfo;
+ 					pid->docCmnt                                 = $2;
 
  					if (NULL == (add_to_list($$,pid)))
  						yyerror("Out of memory");
@@ -1378,7 +1445,7 @@ event_decl_list:	EVENT_KEY ID external_designation
                yyerror("Out of memory");
 
 					}
-	| event_decl_list ',' ID external_designation
+	| event_decl_list ',' ID external_designation user_event_data
 					{
 
 						#ifdef PARSER_DEBUG
@@ -1389,13 +1456,14 @@ event_decl_list:	EVENT_KEY ID external_designation
 
            set_id_type($3,EVENT);
            $3->type_data.event_data.externalDesignation = $4;
-           $3->powningMachine = pmachineInfo;
+           $3->type_data.event_data.puser_event_data    = $5;
+           $3->powningMachine                           = pmachineInfo;
 
  					if (NULL == (add_to_list($$,$3)))
  						yyerror("Out of memory");
 
 					}
- | event_decl_list ',' parent_namespace EVENT event_data
+ | event_decl_list ',' parent_namespace EVENT user_event_data
 					{
             #ifdef PARSER_DEBUG
             fprintf(yyout,"added another namespace event reference to the declaration list\n");
@@ -1410,7 +1478,7 @@ event_decl_list:	EVENT_KEY ID external_designation
            if (!add_unique_id(id_list,EVENT,$4->name,&pid))
  						yyerror("Cannot reference parent event twice");
 
-           pid->type_data.event_data.data_translator     = $5;
+           pid->type_data.event_data.puser_event_data    = $5;
            pid->type_data.event_data.shared_with_parent  = true;
            pid->powningMachine                           = pmachineInfo;
  					pid->docCmnt                                  = $3;
@@ -1468,20 +1536,160 @@ native_impl: NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK
 
 	;
  
-data:	{
-						$$ = NULL;
-			}
-	| DATA_KEY
-					{
-						#ifdef PARSER_DEBUG
-						fprintf(yyout,"Data\n%s\n",$1);
-						#else
-						$$ = $1;
-						#endif
-					}
+machine_data: DATA_KEY data_block { $$ = $2; };
 
+data_block:	'{' data_fields '}'
+	{
+			#ifdef PARSER_DEBUG
+			fprintf(yyout,"Data block done\n");
+			#endif
+
+			$$ = $2;
+
+	}
 	;
- 
+
+data_fields : data_field
+   {
+      #ifdef PARSER_DEBUG
+    	fprintf(yyout,"Starting data_fields list\n");
+    	#endif
+   
+      if (NULL == ($$ = init_list()))
+    		yyerror("out of memory");
+   
+    	add_to_list($$, $1);
+   
+   }
+   | data_fields data_field
+   {
+      #ifdef PARSER_DEBUG
+    	fprintf(yyout,"Continuing data_fields list\n");
+    	#endif
+   
+ 	  $$ = $1;
+    	add_to_list($$, $2);
+   
+   }
+   ;
+
+data_type : ID
+   {
+		   #ifdef PARSER_DEBUG
+		   fprintf(yyout, "found simple data type id\n");
+ 		 #endif
+
+ 		 if (($$ = (pDATA_TYPE_STRUCT) calloc(1, sizeof(DATA_TYPE_STRUCT))) == NULL)
+ 		    yyerror("out of memory");
+
+    	 set_id_type($1, TYPE_NAME);
+
+ 		 $$->dtt      = dtt_simple;
+    	 $$->dtu.name = $1;
+
+   }
+   | TYPE_NAME
+   {
+		   #ifdef PARSER_DEBUG
+		   fprintf(yyout, "found simple data type name\n");
+ 		 #endif
+
+ 		 if (($$ = (pDATA_TYPE_STRUCT) calloc(1, sizeof(DATA_TYPE_STRUCT))) == NULL)
+ 		    yyerror("out of memory");
+
+ 		 $$->dtt      = dtt_simple;
+    	 $$->dtu.name = $1;
+
+   }
+   | STRUCT_KEY '{' data_fields '}' 
+   {
+		   #ifdef PARSER_DEBUG
+		   fprintf(yyout, "found struct data type\n");
+ 		 #endif
+
+ 		 if (($$ = (pDATA_TYPE_STRUCT) calloc(1, sizeof(DATA_TYPE_STRUCT))) == NULL)
+ 		    yyerror("out of memory");
+
+      $$->dtt         = dtt_struct;
+ 		 $$->dtu.members = $3;
+
+   }
+   | UNION_KEY  '{' data_fields '}' 
+   {
+		   #ifdef PARSER_DEBUG
+		   fprintf(yyout, "found union data type\n");
+ 		 #endif
+
+ 		 if (($$ = (pDATA_TYPE_STRUCT) calloc(1, sizeof(DATA_TYPE_STRUCT))) == NULL)
+ 		    yyerror("out of memory");
+
+      $$->dtt         = dtt_union;
+ 		 $$->dtu.members = $3;
+
+   }
+   ;
+
+data_field : data_type ID data_field_dimension ';'
+  {
+		 #ifdef PARSER_DEBUG
+		 fprintf(yyout
+            ,"found data field: TYPE: %s; NAME: %s; dimension: %s\n"
+            , $1->dtt == dtt_simple ? "simple"
+ 					   : $1->dtt == dtt_struct ? "struct"
+ 					     : "union"
+            , $2->name
+            , $3 ? $3 : "none"
+            );
+		 #endif
+
+ 	 if (($$ = calloc(1, sizeof(DATA_FIELD))) == NULL)
+ 	    yyerror("out of memory");
+
+    $$->pdts            = $1;
+ 	 $$->data_field_name = $2;
+ 	 $$->dimension       = $3;
+
+  }
+  | data_type '*' ID data_field_dimension ';'
+  {
+		 #ifdef PARSER_DEBUG
+		 fprintf(yyout
+            ,"found pointer data field: TYPE: %s; NAME: %s; dimension: %s\n"
+            , $1->dtt == dtt_simple ? "simple"
+ 					   : $1->dtt == dtt_struct ? "struct"
+ 					     : "union"
+            , $3->name
+            , $4 ? $4 : "none"
+            );
+		 #endif
+
+ 	 if (($$ = calloc(1, sizeof(DATA_FIELD))) == NULL)
+ 	    yyerror("out of memory");
+
+    $$->pdts            = $1;
+ 	 $$->isPointer       = true;
+ 	 $$->data_field_name = $3;
+ 	 $$->dimension       = $4;
+
+
+  }
+  ;
+
+data_field_dimension:
+   {
+       $$ = NULL;
+   }
+   | '[' NUMERIC_STRING ']'
+   {
+       $$ = $2;
+   }
+   | '[' ID ']'
+   {
+       $$ = $2->name;
+   }
+   ;
+
+
 namespace: parent_namespace
   | MACHINE NAMESPACE
   {
@@ -1793,6 +2001,10 @@ int main(int argc, char **argv)
 
 	me = argv[0];
 
+#ifdef YYDEBUG
+// yydebug = 1;
+#endif
+
 	/* special case the single '?' */
 	if (argc == 2 && argv[1][0] == '?') {
 
@@ -1998,7 +2210,8 @@ void yyerror(char *s)
 
 void usage(void)
 {
-	fprintf(stdout,"Usage : %s [-tc|s|h|p] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
+
+	fprintf(stdout,"Usage : %s [-tc|s|h|p] filename, where filename ends with '.fsm'\n",me);
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
@@ -2008,9 +2221,6 @@ void usage(void)
 	fprintf(stdout,"\t\tthis is the default\n");
 	fprintf(stdout,"\t-c will create a more compact event/state table when -tc is used\n");
 	fprintf(stdout,"\t\twith machines having actions which return states\n");
- fprintf(stdout,"\t-s prints some useful statistics and exits\n");
- fprintf(stdout,"\t-o <outfile> will use <outfile> as the filename for the top-level machine output.\n");
- fprintf(stdout,"\t\tAny sub-machines will be put into files based on the sub-machine names.\n");
 	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
 	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
@@ -2019,9 +2229,12 @@ void usage(void)
 	fprintf(stdout,"\t\tfor the content copy.\n");
 	fprintf(stdout,"\t--short-debug-names generates machine debug info without name prefix\n");
 	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of\n");
- fprintf(stdout,"\t\tsuch actions even when weak function generation is inhibited.\n");
- fprintf(stdout,"\t\tThe generated functions are not weak.\n");
+ fprintf(stdout,"\tsuch actions even when weak function generation is inhibited.\n");
+ fprintf(stdout,"\tThe generated functions are not weak.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
 	fprintf(stdout,"\t-v prints the version and exits\n");
+ fprintf(stdout,"\t\tfor the content copy.\n");
+ fprintf(stdout,"\t-v prints the version and exits\n");
+	
 }
 

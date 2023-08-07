@@ -57,6 +57,10 @@ char *strings[]  = {
   , "VOID"
   , "PARENT"
   , "NAMESPACE"
+  , "DATA_KEY"
+  , "STRING"
+  , "TYPE_NAME"
+  , "FIELD_NAME"
   , "TRANSLATOR_KEY"
   , "NATIVE_KEY"
   , "IMPLEMENTATION_KEY"
@@ -65,5 +69,8 @@ char *strings[]  = {
   , "ALL"
   , "ENTRY"
   , "EXIT"
+  , "NUMERIC_STRING"
+  , "STRUCT_KEY"
+  , "UNION_KEY"
 };
 

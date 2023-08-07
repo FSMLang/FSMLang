@@ -11,22 +11,19 @@ Starting data_fields list
 found struct data type
 found data field: TYPE: struct; NAME: foo; dimension: none
 Starting data_fields list
+found simple data type id
+found data field: TYPE: simple; NAME: f; dimension: none
+Starting data_fields list
+found struct data type
+found data field: TYPE: struct; NAME: beep; dimension: none
+Continuing data_fields list
+found simple data type name
+found data field: TYPE: simple; NAME: bop; dimension: none
+Continuing data_fields list
+found union data type
+found data field: TYPE: union; NAME: u; dimension: none
+Starting data_fields list
 Data block done
-found the start of a state declaration list
-added another id to the state declaration list
-added another id to the state declaration list
-state s4 inhibits submachines
-state s4 has anonymous entry function
-added another id to the state declaration list
-The 4 states in this list :
-	0:	s1
-
-	1:	s2
-
-	2:	s3
-
-	3:	s4
-
 added another id to the event declaration list
 added another id to the event declaration list
 The 3 events in this list:
@@ -36,9 +33,18 @@ The 3 events in this list:
 
 	2:	e3
 
-External designation = BAR
-The 1 events in this list:
-	0:	e4 = BAR
+found the start of a state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+added another id to the state declaration list
+The 4 states in this list :
+	0:	s1
+
+	1:	s2
+
+	2:	s3
+
+	3:	s4
 
 state ss1 has entry function foo
 state ss1 has exit function bar
@@ -347,11 +353,9 @@ process_action_info: doNothing
 		add_to_action_array: state: s4
 	iterate_matrix_states: event: e3
 		add_to_action_array: state: s4
-	iterate_matrix_states: event: e4
-		add_to_action_array: state: s4
 populate_action_array returning false
 found a machine named newMachine
-	with 4 events and 4 states
+	with 3 events and 4 states
 Actions return events
 on transition: baz
 The states :
@@ -369,8 +373,6 @@ The events :
 	1:	e2
 
 	2:	e3
-
-	3:	e4 = BAR
 
 The actions :
 	a1
@@ -406,7 +408,6 @@ Doc Comments:
 				e1
 				e2
 				e3
-				e4
 		and states
 				s4
 
@@ -423,9 +424,15 @@ The 2 transition functions :
 				s2
 				s3
 this machine has data
-struct {
-	int  a ;
-} foo;
+union {
+	struct {
+		int  a ;
+	} foo;
+	struct {
+		float  f ;
+	} beep;
+	int  bop ;
+} u;
 
 this machine has 2 sub-machines
 

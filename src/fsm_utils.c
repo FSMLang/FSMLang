@@ -69,6 +69,14 @@ bool short_dbg_names                           = false;
 bool force_generation_of_event_passing_actions = false;
 bool add_machine_name                          = false;
 
+void print_tab_levels(FILE *output, unsigned levels)
+{
+   for (unsigned level = 0; level < levels; level++)
+   {
+      fprintf(output, "\t");
+   }
+}
+
 int add_id(pLIST id_list, int type, char *name, pID_INFO *ppid_info)
 {
    int ret_val;
@@ -191,7 +199,7 @@ void free_ids(pLIST id_list)
 void freeMachineInfo(pMACHINE_INFO pmi)
 {
 
-	int							i;
+	unsigned							i;
 
 	if (!pmi)
 
@@ -355,7 +363,7 @@ char *hungarianToUnderbarCaps(char *str)
 int allocateActionArray(pMACHINE_INFO pmi)
 {
 
-	int i;
+	unsigned i;
 
 	if (!pmi || !pmi->state_list->count || !pmi->event_list->count)
 		return 1;
@@ -511,7 +519,7 @@ char *eventNameByIndex(pMACHINE_INFO pmi, int index)
 	char 			*cp = NULL;
 	pID_INFO	pidi;
 
-	if (pmi && (index >= 0) && (index < pmi->event_list->count)) {
+	if (pmi && index >= 0 && ((unsigned)index < pmi->event_list->count)) {
 
      pidi = (pID_INFO)find_nth_list_member(pmi->event_list,(unsigned)index);
      if (pidi)
@@ -646,7 +654,7 @@ pID_INFO transitionPidByIndex(pMACHINE_INFO pmi, int index)
 
 	pID_INFO	pidi = NULL;
 
-  if (pmi && (index >= 0) && (index < pmi->transition_list->count))
+  if (pmi && (index >= 0) && ((unsigned)index < pmi->transition_list->count))
   {
      pidi = (pID_INFO)find_nth_list_member(pmi->transition_list,(unsigned)index);
 	}
@@ -727,9 +735,19 @@ static bool count_shared_evts(pLIST_ELEMENT pelem, void *data)
 }
 static bool count_data_xlate(pLIST_ELEMENT pelem, void *data)
 {
-   if (((pID_INFO)pelem->mbr)->type_data.event_data.data_translator)
+   pID_INFO pevent      = (pID_INFO)pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   if (pevent->type_data.event_data.puser_event_data)
    {
-      (*((unsigned*)data))++;
+      if (pevent->type_data.event_data.puser_event_data->translator)
+      {
+         (*((unsigned*)pih->counter0))++;
+      }
+      if (pevent->type_data.event_data.puser_event_data->data_fields)
+      {
+         (*((unsigned*)pih->counter1))++;
+      }
    }
    return false;
 }
@@ -753,29 +771,33 @@ static bool count_entry_and_exit_handlers(pLIST_ELEMENT pelem, void *data)
 
 }
 
-void count_external_declarations(pLIST plist, int *counter)
+void count_external_declarations(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_external, counter);
 }
 
-void count_sub_machine_inhibitors(pLIST plist, int *counter)
+void count_sub_machine_inhibitors(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_inhibitors, counter);
 }
 
-void count_parent_event_referenced(pLIST plist, int *counter)
+void count_parent_event_referenced(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_parent_event_refs, counter);
 }
 
-void count_shared_events(pLIST plist, int *counter)
+void count_shared_events(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_shared_evts, counter);
 }
 
-void count_data_translators(pLIST plist, int *counter)
+void count_event_user_data_attributes(pLIST plist, unsigned *translators, unsigned *blocks)
 {
-   iterate_list(plist, count_data_xlate, counter);
+   ITERATOR_HELPER ih;
+
+   ih.counter0 = translators;
+   ih.counter1 = blocks;
+   iterate_list(plist, count_data_xlate, &ih);
 }
 
 void count_states_with_entry_exit_fns(pLIST pstate_list, unsigned *entry_counter, unsigned *exit_counter)
@@ -971,7 +993,6 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    }
 
 
-
    return false;
 }
 
@@ -1020,6 +1041,54 @@ void printAncestry(pMACHINE_INFO pmi, FILE *fout)
               , pmi->name->name
               );
    }
+}
+
+bool print_data_field(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_HELPER pih       = (pITERATOR_HELPER) data;
+   pDATA_FIELD pdf            = (pDATA_FIELD)      pelem->mbr;
+
+   switch (pdf->pdts->dtt)
+   {
+   case dtt_simple:
+      print_tab_levels(pih->fout, pih->tab_level);
+      fprintf(pih->fout
+              , "%s %s %s %s%s%s;\n"
+              , pdf->pdts->dtu.name->name
+              , pdf->isPointer ? "*" : ""
+              , pdf->data_field_name->name
+              , pdf->dimension ? "[" : ""
+              , pdf->dimension ? pdf->dimension : ""
+              , pdf->dimension ? "]" : ""
+              );
+      break;
+   case dtt_struct:
+      print_tab_levels(pih->fout, pih->tab_level);
+      pih->tab_level++;
+      fprintf(pih->fout , "struct {\n" );
+      iterate_list(pdf->pdts->dtu.members, print_data_field, pih);
+      pih->tab_level--;
+      print_tab_levels(pih->fout, pih->tab_level);
+      fprintf(pih->fout
+              , "} %s;\n"
+              , pdf->data_field_name->name
+              );
+      break;
+   case dtt_union:
+      print_tab_levels(pih->fout, pih->tab_level);
+      pih->tab_level++;
+      fprintf(pih->fout , "union {\n" );
+      iterate_list(pdf->pdts->dtu.members, print_data_field, pih);
+      pih->tab_level--;
+      print_tab_levels(pih->fout, pih->tab_level);
+      fprintf(pih->fout
+              , "} %s;\n"
+              , pdf->data_field_name->name
+              );
+      break;
+   }
+
+   return false;
 }
 
 #ifdef PARSER_DEBUG
@@ -1278,6 +1347,8 @@ static bool print_transition_info(pLIST_ELEMENT pelem, void *data)
        iterate_list(pid->transition_fn_returns_decl, print_pid_name, phelper);
    }
 
+    return false;
+
 }
 
 void parser_debug_print_transition_fn_list(pLIST plist, FILE *file)
@@ -1287,6 +1358,18 @@ void parser_debug_print_transition_fn_list(pLIST plist, FILE *file)
    helper.fout = file;
 
    iterate_list(plist,print_transition_info,&helper);
+}
+
+void parser_debug_print_data_block(pLIST plist, FILE *file)
+{
+   ITERATOR_HELPER ih;
+
+   ih.fout      = file;
+   ih.tab_level = 0;
+
+   iterate_list(plist,print_data_field,&ih);
+
+   fprintf(file, "\n");
 }
 #endif
 

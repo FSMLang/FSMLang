@@ -71,11 +71,23 @@ typedef struct _action_decl_             ACTION_DECL,             *pACTION_DECL;
 typedef struct _machine_qualifier_       MACHINE_QUALIFIER,       *pMACHINE_QUALIFIER;
 typedef struct _machine_prefix_          MACHINE_PREFIX,          *pMACHINE_PREFIX;
 typedef struct _iterator_helper_         ITERATOR_HELPER,         *pITERATOR_HELPER;
+
 typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
 typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
+typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
+typedef union  _data_type_union_         DATA_TYPE_UNION,         *pDATA_TYPE_UNION;
+typedef struct _data_type_struct_        DATA_TYPE_STRUCT,        *pDATA_TYPE_STRUCT;
+typedef struct _data_field_name_         DATA_FIELD_NAME,         *pDATA_FIELD_NAME;
+typedef struct _user_event_data_         USER_EVENT_DATA,         *pUSER_EVENT_DATA;
+
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
+struct _user_event_data_
+{
+   pLIST    data_fields;
+   pID_INFO translator;
+};
 
 struct _state_data_
 {
@@ -86,19 +98,45 @@ struct _state_data_
 
 struct _event_data_
 {
-   pID_INFO        externalDesignation;
-   pLIST           psharing_sub_machines;
-   bool            shared_with_parent;
-   pID_INFO        data_translator;
-   int             single_pai_state_count;
-   pACTION_INFO    psingle_pai;
-   bool            single_pai_for_all_states;
+   pID_INFO         externalDesignation;
+   pLIST            psharing_sub_machines;
+   bool             shared_with_parent;
+   unsigned         single_pai_state_count;
+   pACTION_INFO     psingle_pai;
+   bool             single_pai_for_all_states;
+   pUSER_EVENT_DATA puser_event_data;
 };
 
 union _pid_type_data_
 {
    EVENT_DATA    event_data;
    STATE_DATA    state_data;
+};
+
+typedef enum
+{
+   dtt_simple
+   , dtt_union 
+   , dtt_struct 
+} DATA_TYPE_TYPE;
+union _data_type_union_
+{
+   pID_INFO         name;
+   pLIST            members;
+};
+
+struct _data_type_struct_
+{
+   DATA_TYPE_TYPE  dtt;
+   DATA_TYPE_UNION dtu;
+};
+
+struct _data_field_              
+{
+   pID_INFO            data_field_name;
+   pDATA_TYPE_STRUCT   pdts;
+   bool                isPointer;
+   char              * dimension;
 };
 
 struct _iterator_helper_
@@ -114,6 +152,7 @@ struct _iterator_helper_
    int           event;
    unsigned      *counter0;
    unsigned      *counter1;
+   unsigned      tab_level;
 };
 
 
@@ -142,6 +181,7 @@ struct _actions_and_transitions_
 
 struct _statement_decl_list_
 {
+   pLIST                    data;
    pSTATE_AND_EVENT_DECLS   pstate_and_event_decls;
    pACTIONS_AND_TRANSITIONS pactions_and_transitions;
 };
@@ -163,6 +203,8 @@ struct _id_info_ {
   pACTION_INFO    actionInfo;
   pLIST           action_returns_decl;
   pLIST           transition_fn_returns_decl;
+  pID_INFO        pfield_type;
+  pDATA_FIELD     pdata_field;
 };
 
 struct _action_se_info_ {
@@ -192,29 +234,30 @@ struct _machine_qualifier_
 struct _machine_info_ {
   pMACHINE_INFO parent;
   pLIST         state_list;
-  int           external_state_designation_count;
-  int           parent_event_reference_count;
-  int           data_translator_count;
-  int           submachine_inhibitor_count;
+  unsigned      external_state_designation_count;
+  unsigned      parent_event_reference_count;
+  unsigned      data_translator_count;
+  unsigned      data_block_count;
+  unsigned      submachine_inhibitor_count;
   pLIST         event_list;
-  int           external_event_designation_count;
+  unsigned      external_event_designation_count;
 	pLIST   			transition_list;
 	pLIST   			transition_fn_list;
 	pLIST         action_list;
 	pID_INFO			name;
   pLIST         action_info_list;
 	pACTION_INFO	**actionArray;
-	char					*data;
+	pLIST					data;
 	char					*native;
 	char					*native_impl;
 	MOD_FLAGS			modFlags;
   pID_INFO      machineTransition;
   pLIST         machine_list;
-  int           shared_event_count;
+  unsigned      shared_event_count;
   pLIST         id_list;
   bool          has_single_pai_events;
-  unsigned          states_with_entry_fns_count;
-  unsigned          states_with_exit_fns_count;
+  unsigned      states_with_entry_fns_count;
+  unsigned      states_with_exit_fns_count;
 };
 
 /* lexer id list handlers */
@@ -242,16 +285,17 @@ pID_INFO transitionPidByIndex(pMACHINE_INFO,int);
 int  allocateActionArray(pMACHINE_INFO);
 char *getFileNameNoDir(const char *);
 void enumerate_pid_list(pLIST);
-void count_external_declarations(pLIST,int*);
-void count_sub_machine_inhibitors(pLIST,int*);
-void count_parent_event_referenced(pLIST,int*);
-void count_shared_events(pLIST,int*);
-void count_data_translators(pLIST,int*);
+void count_external_declarations(pLIST,unsigned*);
+void count_sub_machine_inhibitors(pLIST,unsigned*);
+void count_parent_event_referenced(pLIST,unsigned*);
+void count_shared_events(pLIST,unsigned*);
+void count_event_user_data_attributes(pLIST,unsigned*,unsigned*);
 void count_states_with_entry_exit_fns(pLIST,unsigned*,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
 void printAncestry(pMACHINE_INFO,FILE*);
+void print_tab_levels(FILE*,unsigned);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);
@@ -260,6 +304,7 @@ void parser_debug_print_id_list_names(pLIST,pMACHINE_INFO,FILE*,char*);
 void parser_debug_print_action_list_deep(pLIST,pMACHINE_INFO,FILE*);
 void parser_debug_print_transition_list(pLIST,FILE*);
 void parser_debug_print_transition_fn_list(pLIST,FILE*);
+void parser_debug_print_data_block(pLIST,FILE*);
 #endif
 
 /* general use data */
@@ -315,5 +360,6 @@ bool print_sub_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component_name(pLIST_ELEMENT,void*);
 bool print_sub_machine_events(pLIST_ELEMENT,void*);
 bool print_sub_machine_event_names(pLIST_ELEMENT,void*);
+bool print_data_field(pLIST_ELEMENT,void*);
 
 #endif /* ----------- nothing below this line ---------------- */

@@ -284,7 +284,7 @@ weak: sub_machine3_handle_e7
 
 
 top_level: event: e8; state: s3
-weak: top_level_foo
+weak: top_level_onExitFrom_s3
 weak: top_level_onEntryTo_s4
 top_level: event: e5; state: s4
 top_level_noAction

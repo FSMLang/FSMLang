@@ -330,7 +330,7 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	pID_INFO			  pevent;
 	pACTION_INFO	  pai;
-	int						  e,s;
+	unsigned        e,s;
   ITERATOR_HELPER ih;
 
   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;

@@ -85,7 +85,7 @@ machine top_level
    /**
      When e5 is received in this state, execute sub machines 2 and 3.
    */
-   state s3 on entry on exit foo;
+   state s3 on entry on exit;
 
    /* this will be our parking state when done */
    state s4 inhibits submachines on entry;

@@ -7,6 +7,10 @@ machine test4FSM
 	data {
 		int	 foo;
 		float	bar;
+                char    baz[256];
+                FILE    *file1;
+                FILE*   file2;
+                FILE *  file3;
 	}
 
 	event	goodMessage, badMessage;

@@ -86,6 +86,7 @@ void            commonHeaderEnd(pCMachineData,pMACHINE_INFO,char*,bool);
 void            generateInstance(pCMachineData,pMACHINE_INFO,char*,char*);
 void            defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
+void            defineSubMachineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineWeakStateEntryAndExitFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            writeStateTransitions(pCMachineData,pMACHINE_INFO,char*);
 void            subMachineWriteStateTransitions(pCMachineData,pMACHINE_INFO,char*);
@@ -104,7 +105,9 @@ bool            declare_state_entry_and_exit_functions(pLIST_ELEMENT,void*);
 bool            define_state_entry_and_exit_functions(pLIST_ELEMENT,void*);
 bool            sub_machine_declare_state_only_transition_functions_for_when_actions_return_events(pLIST_ELEMENT,void*);
 bool            declare_data_translator_functions(pLIST_ELEMENT,void*);
+bool            sub_machine_declare_data_translator_functions(pLIST_ELEMENT,void*);
 bool            define_weak_data_translator_functions(pLIST_ELEMENT,void*);
+bool            sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 
 char          * subMachineHeaderStart(pCMachineData,pMACHINE_INFO,char*);
 void            subMachineHeaderEnd(pCMachineData,pMACHINE_INFO,char*,bool);
@@ -115,12 +118,15 @@ bool            declare_sub_machine_action_function(pLIST_ELEMENT,void*);
 bool            print_sub_machine_if(pLIST_ELEMENT,void*);
 void            defineSubMachineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineEventPassingActions(pCMachineData,pMACHINE_INFO,char*);
+void            defineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineFinder(pCMachineData,pMACHINE_INFO,char*);
 bool            declare_action_function(pLIST_ELEMENT,void*);
 void            declareSubMachineManagers(pCMachineData,pMACHINE_INFO,char*);
 void            declareStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,char*);
 void            defineStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,char*);
+void            declareEventDataManager(pCMachineData,char*);
+void            defineEventDataManager(pCMachineData,pMACHINE_INFO,char*);
 
 #endif
 

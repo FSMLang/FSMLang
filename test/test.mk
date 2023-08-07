@@ -14,6 +14,9 @@ OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o) $(GENERATED_SRC:.c=.o)
 
 TARGET ?= do_runtest
 
+CALL_FAILURE_A_SUCCESS = ; if [ $$? -ne 0 ]; then echo "expected failure; test passes"; true; else echo "did not find an expected failure; test fails"; false; fi
+
+
 ifndef NO_RUNTEST
 runtest: $(TARGET)
 	@echo "Test successful"
@@ -27,15 +30,13 @@ do_runtest: test
 	@rm test.out test.result test.stderr
 
 test: $(OBJS)
-	$(CC) -o $@ $(OBJS) $(LDFLAGS)
+	@$(CC) -o $@ $(OBJS) $(LDFLAGS)
 
 fail_is_pass: $(OBJS)
-	@$(CC) -o $@ $(OBJS) $(LDFLAGS); \
-	if [ $$? -ne 0 ]; \
-	then \
-		echo "expected failure; test passes"; \
-		true; \
-	fi
+	@$(CC) -o $@ $(OBJS) $(LDFLAGS) $(CALL_FAILURE_A_SUCCESS)
+
+fsm_fail_is_pass: $(FSM_SRC:.fsm=.c)
+		
 
 clean::
 	-@rm *.exe 2> /dev/null

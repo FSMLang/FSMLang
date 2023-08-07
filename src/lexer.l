@@ -34,7 +34,6 @@ unsigned brace_cnt = 0;
 
 %x CMNT
 %x DOCCMNT
-%x DATA
 %x NATIVE
 %x NATIVE_BLCK
 
@@ -83,41 +82,17 @@ unsigned brace_cnt = 0;
 
 \/\/.*	;
 
-	/* data declarations */
 data	{
 
-				BEGIN DATA;
-				charOffset = 0;
+         #ifdef LEX_DEBUG
+         printf("%s\n",strings[DATA_KEY]);
+         #else
+         return DATA_KEY;
+         #endif
 
 			}
-<DATA>"{"	 {
-       if (0 != brace_cnt++)
-				   charData[charOffset++] = *yytext;
-     }
 
-<DATA>"}"	{
-        
-         if (--brace_cnt == 0)
-         {
-   					BEGIN INITIAL;
-   					charData[charOffset] = 0;
-   					#ifdef LEX_DEBUG
-   					printf("Data:\n%s\n",charData);
-   					#else
-   
-   					yylval.charData = strdup(charData);
-   					return DATA_KEY;
-   					#endif
-         }
-         else
-         {
-						charData[charOffset++] = *yytext;
-         }
-
-				}
-
-<DATA>translator {
-					BEGIN INITIAL;
+translator {
 
          #ifdef LEX_DEBUG
          printf("%s\n",strings[TRANSLATOR_KEY]);
@@ -126,19 +101,6 @@ data	{
          #endif
 
        }
-
-<DATA>.	{
-       charData[charOffset++] = *yytext;
-   }
-
-<DATA>\n	{
-					charData[charOffset++] = *yytext;
-					#ifndef LEX_DEBUG
-					lineno++;
-					#else
-					;
-					#endif
-					}
 
 	/* native language declarations */
 native	{
@@ -396,6 +358,22 @@ exit {
 					#endif
 				}
 
+struct {
+					#ifndef LEX_DEBUG
+					return STRUCT_KEY;
+					#else
+					printf("%s\n",strings[STRUCT_KEY]);
+					#endif
+				}
+
+union {
+					#ifndef LEX_DEBUG
+					return UNION_KEY;
+					#else
+					printf("%s\n",strings[UNION_KEY]);
+					#endif
+				}
+
 :: {
 					#ifndef LEX_DEBUG
 					return NAMESPACE;
@@ -405,7 +383,7 @@ exit {
 				}
 
 
-[](){}=] | 
+[](){}=*] | 
 [[]		{ 
 				#ifndef LEX_DEBUG
 				return yytext[0];
@@ -423,7 +401,7 @@ exit {
 		}
 
 	/* identifiers */
-[a-zA-Z_][a-zA-Z0-9_]+	{ 
+[a-zA-Z_][a-zA-Z0-9_]*	{ 
 
 					int				wordType;
 					pID_INFO	pid_info;
@@ -458,6 +436,18 @@ exit {
 
 		} 
 
+ /* numeric strings */
+[0-9]+ {
+      #ifndef LEX_DEBUG
+      yylval.charData = strdup(yytext);
+      return NUMERIC_STRING;
+      #else
+      printf("NUMERIC_STRING: %s\n"
+             , yytext
+             );
+      #endif
+   }
+
 \n	{
 			#ifndef LEX_DEBUG
 			lineno++;
@@ -467,7 +457,7 @@ exit {
 		}
 
 		/* ignore anything else */
-.	;
+<*>.	;
 
 %%
 
