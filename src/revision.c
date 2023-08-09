@@ -310,5 +310,11 @@
    Named entry and exit functions are now handled correctly (rather than being swapped). 
 */
 
-const char rev_string[] = "1.38";
+/*
+   Revision 1.39:
+ 
+   Top-level events can now have associated data.
+*/
+
+const char rev_string[] = "1.39";
 
