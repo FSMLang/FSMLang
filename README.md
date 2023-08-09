@@ -1217,7 +1217,7 @@ event data_packet_arrived data {
 
 When any event is declared with data, FSMLang shifts the event declaration from a simple enumeration to a structure containing the event enumeration and the union of the event data structures.  This structure becomes the method for passing events in from the outside world into the state machine.
 
-Continuing the example, event data_packet_arrived with cause the declaration of this structure for the event's data:
+Continuing the example, event data_packet_arrived will cause the declaration of this structure for the event's data:
 
 ```c
 typedef struct _<machine_name>_data_packet_arrived_ {
