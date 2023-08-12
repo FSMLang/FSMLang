@@ -318,6 +318,11 @@ static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       generateInstance(pcmw, pmi, cp, "action");
    }
 
+   if (generate_run_function)
+   {
+      generateRunFunction(pcmw, pmi, cp);
+   }
+
    defineCMachineFSM(pcmw, pmi, cp);
 
    /* write our sub-machine lookup, if needed */
