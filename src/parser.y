@@ -2061,7 +2061,7 @@ int main(int argc, char **argv)
                 force_generation_of_event_passing_actions = true;
                 break;
             case lo_generate_run_function:
-                if (optarg && !strcmp(optarg,"true"))
+                if (!optarg || !strcmp(optarg,"true"))
                     generate_run_function = true;
                 break;
             default:

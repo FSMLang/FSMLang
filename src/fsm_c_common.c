@@ -158,14 +158,9 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
       fprintf(pcmw->hFile, "#ifndef NON_CORE_DEBUG_PRINTF\n#define NON_CORE_DEBUG_PRINTF(...) \n#endif\n\n");
    }
 
-   if (!generate_run_function)
-   {
-      /* put the "call the state machine" macro into the header */
-      fprintf(pcmw->hFile, "\n#define RUN_STATE_MACHINE(A,B) \\\n");
-      fprintf(pcmw->hFile, "\t((*(A)->fsm)((A),(B)))\n\n");
-
-      /* If asked to generate a run function, we declare that after the event declaration. */
-   }
+   /* put the "call the state machine" macro into the header */
+   fprintf(pcmw->hFile, "\n#define RUN_STATE_MACHINE(A,B) \\\n");
+   fprintf(pcmw->hFile, "\t((*(A)->fsm)((A),(B)))\n\n");
 
    /* put the "declare a state machine" macro into the header */
    fprintf(pcmw->hFile
@@ -736,6 +731,22 @@ void commonHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needN
        cp);
    */
 
+}
+
+void generateRunFunction(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   fprintf(pcmw->cFile
+           ,"void run_%s(%s%s_EVENT e)\n{\n"
+           , pmi->name->name
+           , pmi->data_block_count ? "p" : ""
+           , cp
+           );
+
+   fprintf(pcmw->cFile
+           , "\tif (p%s)\n\t{\t\tRUN_STATE_MACHINE(p%s,e);\n\t}\n}\n"
+           , pmi->name->name
+           , pmi->name->name
+           );
 }
 
 void generateInstance(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *arrayName)
