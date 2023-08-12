@@ -743,7 +743,7 @@ void generateRunFunction(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
            );
 
    fprintf(pcmw->cFile
-           , "\tif (p%s)\n\t{\t\tRUN_STATE_MACHINE(p%s,e);\n\t}\n}\n"
+           , "\tif (p%s)\n\t{\n\t\tRUN_STATE_MACHINE(p%s,e);\n\t}\n}\n\n"
            , pmi->name->name
            , pmi->name->name
            );
