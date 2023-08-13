@@ -1929,6 +1929,7 @@ typedef enum {
 	, lo_short_dbg_names
  , lo_force_generation_of_event_passing_actions
  , lo_add_machine_name
+ , lo_add_event_cross_reference
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -1988,6 +1989,12 @@ const struct option longopts[] =
         , .has_arg = no_argument
         , .flag    = &longval
         , .val     = lo_add_machine_name
+    }
+    , {
+        .name      = "add-event-cross-reference"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+        , .val     = lo_add_event_cross_reference
     }
     , {0}
 };
@@ -2053,6 +2060,10 @@ int main(int argc, char **argv)
             case lo_force_generation_of_event_passing_actions:
                 force_generation_of_event_passing_actions = true;
                 break;
+ 					 case lo_add_event_cross_reference:
+ 					     if (!optarg || !strcmp(optarg,"true"))
+ 							     add_event_cross_reference = true;
+ 							 break;
             default:
                 usage();
                 return(0);
@@ -2229,9 +2240,12 @@ void usage(void)
 	fprintf(stdout,"\t\tfor the content copy.\n");
 	fprintf(stdout,"\t--short-debug-names generates machine debug info without name prefix\n");
 	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of\n");
- fprintf(stdout,"\tsuch actions even when weak function generation is inhibited.\n");
- fprintf(stdout,"\tThe generated functions are not weak.\n");
+ fprintf(stdout,"\t\tsuch actions even when weak function generation is inhibited.\n");
+ fprintf(stdout,"\t\tThe generated functions are not weak.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
+ fprintf(stdout,"\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block\n");
+ fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
+ fprintf(stdout,"\t\tto specifying \"true\"\n");
 	fprintf(stdout,"\t-v prints the version and exits\n");
  fprintf(stdout,"\t\tfor the content copy.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");

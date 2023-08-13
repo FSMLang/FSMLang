@@ -60,6 +60,9 @@ bool generate_weak_fns = true;
 bool core_logging_only = false;
 bool include_svg_img   = false;
 
+
+static char  *eventXRefFormatStr = "\t%5u  %s%s%s_%s\n";
+
 static bool  declare_event_user_data_structs                (pLIST_ELEMENT,void*);
 static bool  declare_event_user_data_union_mbrs             (pLIST_ELEMENT,void*);
 static bool  print_sub_machine_as_enum_member               (pLIST_ELEMENT,void*);
@@ -80,6 +83,9 @@ static bool  write_state_exit_fn_switch_case                (pLIST_ELEMENT,void*
 static void  defineSubMachineInhibitor                      (pCMachineData,pMACHINE_INFO,char*);
 static void  print_exit_fn_signature                        (pID_INFO,pITERATOR_CALLBACK_HELPER);
 static void  print_entry_fn_signature                       (pID_INFO,pITERATOR_CALLBACK_HELPER);
+static bool print_event_cross_reference                     (pLIST_ELEMENT,void*);
+static bool print_sub_machine_event_cross_reference         (pLIST_ELEMENT,void*);
+static void print_event_cross_reference_entry               (char*, pITERATOR_HELPER);
 
 int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
@@ -133,9 +139,9 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    if (!(cp = hungarianToUnderbarCaps(pmi->name->name))) return NULL;
 
    helper.first   = false;
-   helper.pparent = pmi;
    helper.fout    = pcmw->hFile;
    helper.cp      = cp;
+   helper.pparent = pmi;
    helper.pmi     = pmi;
 
    fprintf(pcmw->hFile, "#ifdef %s_DEBUG\n", cp);
@@ -206,6 +212,56 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
       fprintf(pcmw->hFile
               , "\n"
               );
+   }
+
+   if (add_event_cross_reference)
+   {
+      do
+      {
+         if ((canAssignExternals = (pmi->external_event_designation_count > 0)) == true)
+         {
+            if ((canAssignExternals = assignExternalEventValues(pmi)) == false)
+            {
+               printf("warning: cannot print cross reference with external designations\n");
+               break;
+            }
+         }
+
+         unsigned enum_val = 0;
+
+         fprintf(pcmw->hFile
+                 ,"/*\n\tEvent Cross Reference:\n\n"
+                 );
+
+         helper.first     = true;
+         helper.counter0  = &enum_val;
+         helper.pparent   = NULL;
+
+         iterate_list(pmi->event_list, print_event_cross_reference, &helper);
+
+         if (
+             !(pmi->modFlags & mfActionsReturnStates)
+             && !(pmi->modFlags & mfActionsReturnVoid)
+            )
+         {
+            print_event_cross_reference_entry("noEvent", &helper);
+         }
+
+         print_event_cross_reference_entry("numEvents", &helper);
+
+         if (pmi->machine_list)
+         {
+            iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, &helper);
+         }
+
+         fprintf(pcmw->hFile
+                 ,"\n*/\n"
+                 );
+      }
+      while (0);
+
+      helper.pparent = pmi;
+      helper.pmi     = pmi;
    }
 
    /* put the event enum into the header file */
@@ -1348,6 +1404,50 @@ bool assignExternalEventValues(pMACHINE_INFO pmi)
 
 }
 
+static bool print_event_cross_reference(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO event       = (pID_INFO)         pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   print_event_cross_reference_entry(event->name, pih);
+
+   return false;
+}
+
+static bool print_sub_machine_event_cross_reference(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO pmi    = (pMACHINE_INFO)    pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+   pih->pparent = pmi->parent;
+   pih->pmi     = pmi;
+
+   iterate_list(pmi->event_list, print_event_cross_reference, pih);
+
+   if (
+       !(pmi->modFlags & mfActionsReturnStates)
+       && !(pmi->modFlags & mfActionsReturnVoid)
+      )
+   {
+      print_event_cross_reference_entry("noEvent", pih);
+   }
+
+   print_event_cross_reference_entry("numEvents", pih);
+
+   return false;
+}
+
+static void print_event_cross_reference_entry(char *event_name, pITERATOR_HELPER pih)
+{
+   fprintf(pih->fout
+           , eventXRefFormatStr
+           , (*pih->counter0)++
+           , pih->pparent ? pih->pparent->name->name : ""
+           , pih->pparent ? "_" : ""
+           , pih->pmi->name->name
+           , event_name
+           );
+}
 
 static bool declare_event_user_data_union_mbrs(pLIST_ELEMENT pelem, void *data)
 {
