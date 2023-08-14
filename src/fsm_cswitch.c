@@ -245,9 +245,10 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       else
       {
          fprintf(pcmw->hFile
-                 , "%s_%s %s_%s_stateFn(p%s,%s_EVENT%s);\n"
+                 , "%s_%s%s %s_%s_stateFn(p%s,%s_EVENT%s);\n"
                  , cp
                  , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
+                 , (pmi->data_block_count && !(pmi->modFlags & mfActionsReturnStates))? "_ENUM"  : ""
                  , pmi->name->name
                  , stateNameByIndex(pmi, i)
                  , cp
@@ -354,9 +355,10 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       else
       {
          fprintf(pcmw->hFile
-                 , "%s_%s %s_%s_stateFn(p%s,%s_EVENT%s);\n"
+                 , "%s_%s%s %s_%s_stateFn(p%s,%s_EVENT%s);\n"
                  , parent_cp
                  , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
+                 , (pmi->parent->data_block_count && !(pmi->modFlags & mfActionsReturnStates))? "_ENUM"  : ""
                  , pmi->name->name
                  , stateNameByIndex(pmi, i)
                  , cp
@@ -437,9 +439,10 @@ static void declareCSwitchMachineStateFnArray(pCMachineData pcmw, pMACHINE_INFO 
    else
    {
       fprintf(pcmw->hFile
-              , "typedef %s_%s (*%s_STATE_FN)(p%s,%s_EVENT%s);\n\n"
+              , "typedef %s_%s%s (*%s_STATE_FN)(p%s,%s_EVENT%s);\n\n"
               , cp
               , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
+              , (pmi->data_block_count && !(pmi->modFlags & mfActionsReturnStates))? "_ENUM"  : ""
               , cp
               , cp
               , cp
@@ -558,7 +561,7 @@ static void defineCSwitchMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char 
          fprintf(pcmw->cFile
                  , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                      ? "static %s %s(p%s,p%s_EVENT);\n"
-                     : "static %s_EVENT_ENUM %s(p%s,p%s_EVENT);\n"
+                     : "static %s_EVENT_ENUM %s(p%s,%s_EVENT_ENUM);\n"
                  , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "bool" : cp
                  , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                     ? "eventIsNotHandledInAllStates" 
@@ -633,12 +636,12 @@ static void defineCSwitchSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
 
    if (pmi->has_single_pai_events)
    {
-      if (pmi->data_block_count)
+      if (pmi->parent->data_block_count)
       {
          fprintf(pcmw->cFile
                  , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                      ? "static %s %s(p%s,p%s_EVENT);\n"
-                     : "static %s_EVENT_ENUM %s(p%s,p%s_EVENT);\n"
+                     : "static %s_EVENT_ENUM %s(p%s,%s_EVENT_ENUM);\n"
                  , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "bool" : parent_cp
                  , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                     ? "eventIsNotHandledInAllStates" 
@@ -682,11 +685,11 @@ static void defineCSwitchSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
    fprintf(pcmw->cFile
            , "%s_EVENT%s %sFSM(p%s pfsm, %s_EVENT%s event)\n{\n"
            , parent_cp
-           , pmi->data_block_count ? "_ENUM"  : ""
+           , pmi->parent->data_block_count ? "_ENUM"  : ""
            , pmi->name->name
            , cp
            , parent_cp
-           , pmi->data_block_count ? "_ENUM"  : ""
+           , pmi->parent->data_block_count ? "_ENUM"  : ""
           );
 
    if (!(pmi->modFlags & mfActionsReturnVoid))
@@ -694,7 +697,7 @@ static void defineCSwitchSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
       fprintf(pcmw->cFile
               , "\t%s_EVENT%s e = event;\n\n"
               , parent_cp
-              , pmi->data_block_count ? "_ENUM"  : ""
+              , pmi->parent->data_block_count ? "_ENUM"  : ""
              );
    }
 
@@ -729,9 +732,10 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
       else
       {
          fprintf(pcmw->cFile
-                 , "%s_%s %s_%s_stateFn(p%s pfsm, %s_EVENT%s e)\n{\n"
+                 , "%s_%s%s %s_%s_stateFn(p%s pfsm, %s_EVENT%s e)\n{\n"
                  , cp
                  , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
+                 , (pmi->data_block_count && !(pmi->modFlags & mfActionsReturnStates))? "_ENUM"  : ""
                  , pmi->name->name
                  , stateNameByIndex(pmi, i)
                  , cp
@@ -740,9 +744,10 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                 );
 
          fprintf(pcmw->cFile
-                 , "\t%s_%s retVal = %s_no%s;\n"
+                 , "\t%s_%s%s retVal = %s_no%s;\n"
                  , cp
                  , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
+                 , (pmi->data_block_count && !(pmi->modFlags & mfActionsReturnStates))? "_ENUM"  : ""
                  , pmi->name->name
                  , (pmi->modFlags & mfActionsReturnStates) ? "Transition" : "Event"
                 );
@@ -946,9 +951,10 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
       else
       {
          fprintf(pcmw->cFile
-                 , "%s_%s %s_%s_stateFn(p%s pfsm, %s_EVENT%s e)\n{\n"
+                 , "%s_%s%s %s_%s_stateFn(p%s pfsm, %s_EVENT%s e)\n{\n"
                  , parent_cp
                  , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
+                 , (pmi->parent->data_block_count && !(pmi->modFlags & mfActionsReturnStates))? "_ENUM"  : ""
                  , pmi->name->name
                  , stateNameByIndex(pmi, i)
                  , cp
@@ -957,9 +963,10 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
                 );
 
          fprintf(pcmw->cFile
-                 , "\t%s_%s retVal = THIS(no%s);\n"
+                 , "\t%s_%s%s retVal = THIS(no%s);\n"
                  , parent_cp
                  , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
+                 , (pmi->parent->data_block_count && !(pmi->modFlags & mfActionsReturnStates))? "_ENUM"  : ""
                  , (pmi->modFlags & mfActionsReturnStates) ? "Transition" : "Event"
                 );
       }
@@ -1817,7 +1824,7 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi, char *c
       fprintf(pcmd->cFile
               , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                   ? "static %s %s(p%s pfsm, %s_EVENT e)\n{\n"
-                  : "static %s_EVENT_ENUM %s(p%s pfsm, p%s_EVENT e)\n{\n"
+                  : "static %s_EVENT_ENUM %s(p%s pfsm, %s_EVENT_ENUM e)\n{\n"
               , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "bool" : cp
               , pmi->modFlags & ACTIONS_RETURN_FLAGS 
                  ? "eventIsNotHandledInAllStates" 
