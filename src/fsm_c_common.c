@@ -254,6 +254,9 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
             iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, &helper);
          }
 
+         helper.pparent   = NULL;
+         print_event_cross_reference_entry("numAllEvents", &helper);
+
          fprintf(pcmw->hFile
                  ,"\n*/\n"
                  );
@@ -1431,8 +1434,6 @@ static bool print_sub_machine_event_cross_reference(pLIST_ELEMENT pelem, void *d
    {
       print_event_cross_reference_entry("noEvent", pih);
    }
-
-   print_event_cross_reference_entry("numEvents", pih);
 
    return false;
 }

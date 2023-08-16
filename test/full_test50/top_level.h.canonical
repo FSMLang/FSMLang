@@ -66,12 +66,11 @@ NEW_MACHINE *p##A = &A;
 	    8  newMachine_subMachine1_ee2
 	    9  newMachine_subMachine1_ee3
 	   10  newMachine_subMachine1_noEvent
-	   11  newMachine_subMachine1_numEvents
-	   12  newMachine_subMachine2_eee1
-	   13  newMachine_subMachine2_eee2
-	   14  newMachine_subMachine2_eee3
-	   15  newMachine_subMachine2_noEvent
-	   16  newMachine_subMachine2_numEvents
+	   11  newMachine_subMachine2_eee1
+	   12  newMachine_subMachine2_eee2
+	   13  newMachine_subMachine2_eee3
+	   14  newMachine_subMachine2_noEvent
+	   15  subMachine2_numAllEvents
 
 */
 typedef enum {
