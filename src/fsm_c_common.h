@@ -82,6 +82,7 @@ int  initCSubMachine(pFSMOutputGenerator,char*);
 void closeCMachine(pFSMOutputGenerator,int);
 
 char          * commonHeaderStart(pCMachineData,pMACHINE_INFO,char*);
+void            addEventCrossReference(pCMachineData,pMACHINE_INFO,pITERATOR_HELPER);
 void            commonHeaderEnd(pCMachineData,pMACHINE_INFO,char*,bool);
 void            generateInstance(pCMachineData,pMACHINE_INFO,char*,char*);
 void            defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
