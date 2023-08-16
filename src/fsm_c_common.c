@@ -126,6 +126,56 @@ void closeCMachine(pFSMOutputGenerator pfsmog, int how)
    destroyCMachineData(pfsmcog->pcmd, how);
 }
 
+void addEventCrossReference(pCMachineData pcmw, pMACHINE_INFO pmi, pITERATOR_HELPER pih)
+{
+   bool canAssignExternals;
+
+   if ((canAssignExternals = (pmi->external_event_designation_count > 0)) == true)
+   {
+      if ((canAssignExternals = assignExternalEventValues(pmi)) == false)
+      {
+         printf("warning: cannot print cross reference with external designations\n");
+         return;
+      }
+   }
+
+   unsigned enum_val = 0;
+
+   fprintf(pcmw->hFile
+           , "/*\n\tEvent Cross Reference:\n\n"
+          );
+
+   pih->first     = true;
+   pih->counter0  = &enum_val;
+   pih->pparent   = NULL;
+
+   iterate_list(pmi->event_list, print_event_cross_reference, pih);
+
+   if (
+       !(pmi->modFlags & mfActionsReturnStates)
+       && !(pmi->modFlags & mfActionsReturnVoid)
+      )
+   {
+      print_event_cross_reference_entry("noEvent", pih);
+   }
+
+   print_event_cross_reference_entry("numEvents", pih);
+
+   if (pmi->machine_list)
+   {
+      iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, pih);
+
+      pih->pparent   = NULL;
+      print_event_cross_reference_entry("numAllEvents", pih);
+   }
+
+   fprintf(pcmw->hFile
+           , "\n*/\n"
+          );
+
+   pih->pparent = pmi;
+}
+
 char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 {
    char					*cp;
@@ -216,52 +266,7 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    if (add_event_cross_reference)
    {
-      do
-      {
-         if ((canAssignExternals = (pmi->external_event_designation_count > 0)) == true)
-         {
-            if ((canAssignExternals = assignExternalEventValues(pmi)) == false)
-            {
-               printf("warning: cannot print cross reference with external designations\n");
-               break;
-            }
-         }
-
-         unsigned enum_val = 0;
-
-         fprintf(pcmw->hFile
-                 ,"/*\n\tEvent Cross Reference:\n\n"
-                 );
-
-         helper.first     = true;
-         helper.counter0  = &enum_val;
-         helper.pparent   = NULL;
-
-         iterate_list(pmi->event_list, print_event_cross_reference, &helper);
-
-         if (
-             !(pmi->modFlags & mfActionsReturnStates)
-             && !(pmi->modFlags & mfActionsReturnVoid)
-            )
-         {
-            print_event_cross_reference_entry("noEvent", &helper);
-         }
-
-         print_event_cross_reference_entry("numEvents", &helper);
-
-         if (pmi->machine_list)
-         {
-            iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, &helper);
-         }
-
-         fprintf(pcmw->hFile
-                 ,"\n*/\n"
-                 );
-      }
-      while (0);
-
-      helper.pparent = pmi;
-      helper.pmi     = pmi;
+      addEventCrossReference(pcmw, pmi, &helper);
    }
 
    /* put the event enum into the header file */
@@ -1455,8 +1460,6 @@ static bool print_sub_machine_event_cross_reference(pLIST_ELEMENT pelem, void *d
    {
       print_event_cross_reference_entry("noEvent", pih);
    }
-
-   print_event_cross_reference_entry("numEvents", pih);
 
    return false;
 }
