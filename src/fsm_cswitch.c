@@ -277,6 +277,11 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       generateInstance(pcmw, pmi, cp, "state_fn");
    }
 
+   if (generate_run_function)
+   {
+      generateRunFunction(pcmw, pmi, cp);
+   }
+
    defineCSwitchMachineFSM(pcmw, pmi, cp);
 
    /* write our sub-machine lookup, if needed */

@@ -318,6 +318,11 @@ static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
       generateInstance(pcmw, pmi, cp, "action");
    }
 
+   if (generate_run_function)
+   {
+      generateRunFunction(pcmw, pmi, cp);
+   }
+
    defineCMachineFSM(pcmw, pmi, cp);
 
    /* write our sub-machine lookup, if needed */
@@ -1553,18 +1558,6 @@ static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
    }
 
    declareStateEntryAndExitManagers(pcmw, pmi, cp);
-
-   fprintf(pcmw->cFile
-           , "#ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG\n"
-           );
-
-   fprintf(pcmw->cFile
-           , "#define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e == e)\n"
-           );
-
-   fprintf(pcmw->cFile
-           , "#endif\n"
-           );
 
    fprintf(pcmw->cFile
            , "#ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG\n"

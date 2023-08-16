@@ -84,6 +84,7 @@ void closeCMachine(pFSMOutputGenerator,int);
 char          * commonHeaderStart(pCMachineData,pMACHINE_INFO,char*);
 void            commonHeaderEnd(pCMachineData,pMACHINE_INFO,char*,bool);
 void            generateInstance(pCMachineData,pMACHINE_INFO,char*,char*);
+void            generateRunFunction(pCMachineData,pMACHINE_INFO,char*);
 void            defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);

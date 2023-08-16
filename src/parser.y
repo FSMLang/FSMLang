@@ -1929,6 +1929,7 @@ typedef enum {
 	, lo_short_dbg_names
  , lo_force_generation_of_event_passing_actions
  , lo_add_machine_name
+ , lo_generate_run_function
  , lo_add_event_cross_reference
 } LONG_OPTIONS;
 
@@ -1989,6 +1990,12 @@ const struct option longopts[] =
         , .has_arg = no_argument
         , .flag    = &longval
         , .val     = lo_add_machine_name
+    }
+    , {
+        .name      = "generate-run-function"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+        , .val     = lo_generate_run_function
     }
     , {
         .name      = "add-event-cross-reference"
@@ -2060,10 +2067,14 @@ int main(int argc, char **argv)
             case lo_force_generation_of_event_passing_actions:
                 force_generation_of_event_passing_actions = true;
                 break;
- 					 case lo_add_event_cross_reference:
- 					     if (!optarg || !strcmp(optarg,"true"))
- 							     add_event_cross_reference = true;
- 							 break;
+            case lo_generate_run_function:
+                if (!optarg || !strcmp(optarg,"true"))
+                    generate_run_function = true;
+                break;
+ 			   case lo_add_event_cross_reference:
+ 					 if (!optarg || !strcmp(optarg,"true"))
+ 						add_event_cross_reference = true;
+ 					 break;
             default:
                 usage();
                 return(0);
@@ -2234,6 +2245,8 @@ void usage(void)
 	fprintf(stdout,"\t\twith machines having actions which return states\n");
 	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
+ fprintf(stdout,"\t--generate-run-function<=true|false> enables or supresses the generation of a run function to replace the RUN_STATE_MACHINE machro.\n");
+ fprintf(stdout,"\t\tThe default is to generate the macro; the option argument is optional, if not given, \"true\" is assumed.\n");
 	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
 	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
 	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");

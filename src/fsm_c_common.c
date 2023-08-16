@@ -383,6 +383,14 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    }
 
+   if (generate_run_function)
+   {
+      fprintf(pcmw->hFile, "\nvoid run_%s(%s%s_EVENT);\n\n"
+              , pmi->name->name
+              , pmi->data_block_count ? "p" : ""
+              , cp
+             );
+   }
 
    fprintf(pcmw->hFile, "#ifdef %s_DEBUG\n", cp);
    fprintf(pcmw->hFile, "extern char *%s_EVENT_NAMES[];\n", cp);
@@ -779,6 +787,22 @@ void commonHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needN
        cp);
    */
 
+}
+
+void generateRunFunction(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+{
+   fprintf(pcmw->cFile
+           ,"void run_%s(%s%s_EVENT e)\n{\n"
+           , pmi->name->name
+           , pmi->data_block_count ? "p" : ""
+           , cp
+           );
+
+   fprintf(pcmw->cFile
+           , "\tif (p%s)\n\t{\n\t\tRUN_STATE_MACHINE(p%s,e);\n\t}\n}\n\n"
+           , pmi->name->name
+           , pmi->name->name
+           );
 }
 
 void generateInstance(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *arrayName)
