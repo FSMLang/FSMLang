@@ -10,16 +10,18 @@ override CFLAGS += -DFSM_DEBUG \
                    -DSUB_MACHINE2_DEBUG \
                    -I../
 
-override FSM_FLAGS += --add-event-cross-reference=true
+override FSM_HTML_FLAGS += --css-content-filename=../../fsmlang.css
 
 FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
 
-TARGET = check_top_level_h
+TARGET = check_html
 
 include ../test.mk
 include ../../fsmrules.mk
 
-check_top_level_h: top_level.h
-	$(DIFF) top_level.h top_level.h.canonical > test.result
+check_html: comment_test.html sub1.html
+	$(DIFF) comment_test.html comment_test.html.canonical > test.result
+	$(DIFF) sub1.html sub1.html.canonical > test.result
 	@rm test.result
+	@rm *.html
 

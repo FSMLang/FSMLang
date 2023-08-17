@@ -1,0 +1,47 @@
+/** machines are easy to comment */
+machine foo
+{
+	/** states are easy to comment */
+	state state1;
+	state state2;
+
+	event event1;
+
+	/** the first event in the list gets the comment. */
+	event event2
+         , event3;
+
+	/** sub machines are also easy */
+	machine sub1
+	{
+
+		/** states are easy to comment */
+		state state1;
+		state state2;
+
+		event event1;
+
+		/** the first event in the list gets the comment. */
+		event event2, event3;
+
+		/** what id gets this comment? */
+		action action1 [event1, state1] transition state2;
+
+		/** what id gets this other comment? */
+		transition [event1, state2] state1;
+
+		/** last comment */
+		action1 returns noEvent;
+
+	}
+
+	/** what id gets this comment? */
+	action action1 [event1, state1] transition state2;
+
+	/** what id gets this other comment? */
+	transition [event1, state2] state1;
+
+	/** last comment */
+	action1 returns noEvent;
+
+}
