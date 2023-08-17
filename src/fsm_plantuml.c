@@ -381,9 +381,9 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                            ? pmi->parent->name->name
                            : ""
                          , pevent->name
-                         , pai->action
+                         , strlen(pai->action->name)
                              ? pai->action->name
-                             : "noAction"
+                             : "none"
                          );
 
                  if (pevent->type_data.event_data.psharing_sub_machines)
@@ -406,6 +406,14 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                  fprintf(pfsmpumlog->pmd->pumlFile
                          , "\n"
                          );
+
+                 if (pai->docCmnt)
+                 {
+                    fprintf(pfsmpumlog->pmd->pumlFile
+                            , "note on link\n%s\nend note\n"
+                            , pai->docCmnt
+                            );
+                 }
               }
               else
               {

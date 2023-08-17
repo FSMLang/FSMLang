@@ -260,6 +260,8 @@ event	{
 
 transition	{ 
 							#ifndef LEX_DEBUG
+             yylval.charData = currDocCmnt ? currDocCmnt : NULL;
+             currDocCmnt     = NULL;
 							return TRANSITION_KEY;
 							#else
 							printf("%s\n",strings[TRANSITION_KEY]);
@@ -268,6 +270,8 @@ transition	{
 
 action	{ 
 					#ifndef LEX_DEBUG
+         yylval.charData = currDocCmnt ? currDocCmnt : NULL;
+         currDocCmnt     = NULL;
 					return ACTION_KEY;
 					#else
 					printf("%s\n",strings[ACTION_KEY]);

@@ -74,12 +74,15 @@ void yyerror(char *);
  pUSER_EVENT_DATA         puser_event_data;
 }
 
-%token MACHINE_KEY TRANSITION_KEY STATE_KEY EVENT_KEY ACTION_KEY ON NAMESPACE
-%token DATA_KEY TRANSLATOR_KEY
+%token ON NAMESPACE STATE_KEY EVENT_KEY
+%token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
-%token <charData>	PARENT
 
+%token <charData> ACTION_KEY 
+%token <charData> TRANSITION_KEY 
+
+%token <charData>	PARENT
 %token <charData> NATIVE_KEY
 %token <charData> NATIVE_BLOCK
 %token <pid_info> MACHINE
@@ -213,7 +216,7 @@ machine:	machine_prefix ID machine_qualifier
         '{' statement_decl_list '}'
 					{
 
-						$$ = $1->pmachineInfo;
+						$$          = $1->pmachineInfo;
 
 				    $$->name              = $2;
  			    $$->modFlags          |= $3->modFlags;
@@ -434,7 +437,8 @@ machine_qualifier:
 
 machine_transition_decl: ON TRANSITION_KEY ID ';'
     {
- 	 		$$ = $3;
+ 	 		$$          = $3;
+ 			$3->docCmnt = $2;
     }
     ;
 
@@ -716,6 +720,7 @@ transition_matrix_start: matrix TRANSITION_KEY
 
 						$$->matrix     = $1;
 						$$->action     = pid_info;
+ 					$$->docCmnt    = $2;
 
 						$$->nextAction = pid_info->actionInfo;
 						pid_info->actionInfo = $$;
@@ -737,6 +742,7 @@ transition_matrix_start: matrix TRANSITION_KEY
 
 						$$->matrix     = $2;
 						$$->action     = pid_info;
+ 					$$->docCmnt    = $1;
 
 						$$->nextAction = pid_info->actionInfo;
 						pid_info->actionInfo = $$;
@@ -844,6 +850,8 @@ action_decl_list: ACTION_KEY action
 							}
 
 						}
+
+ 					$2->docCmnt = $1;
 
 					}
 
