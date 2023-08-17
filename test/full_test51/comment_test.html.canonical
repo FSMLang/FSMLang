@@ -8,6 +8,7 @@
 -->
 <head>
 <title>FSM Lang : comment_test</title>
+<script>window.name="FSMLang-comment_test"</script>
 <link REL=stylesheet type="text/css" href="../../fsmlang.css">
 </head><body>
 <h2>foo</h2>
@@ -29,13 +30,13 @@
 	<ul class="return_decl">
 		<li>noEvent</li>
 	</ul>
-<br/><b>transition</b> : state2</td>
+<br/><b>transition</b> : state2<p class="transition_comment"> what id gets this comment? </p></td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 	</tr>
 	<tr>
 		<th class=stateName>state2</th>
-		<td class=noAction>noAction<br/><b>transition</b> : state1</td>
+		<td class=noAction>noAction<br/><b>transition</b> : state1<p class="transition_comment"> what id gets this other comment? </p></td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 	</tr>
@@ -48,17 +49,17 @@
 </tr>
 <tr>
 <td class="label">event1</td>
-<td> what id gets this other comment? 
+<td>&nbsp;
 </td>
 </tr>
 <tr>
 <td class="label">event2</td>
-<td> the first event in the list gets the comment. 
+<td> the first event in the list gets this comment. 
 </td>
 </tr>
 <tr>
 <td class="label">event3</td>
-<td>&nbsp;
+<td> and, the next event can have its own comment 
 </td>
 </tr>
 </table>
@@ -99,7 +100,7 @@
 <th colspan=2 align=left>Sub Machines</th>
 </tr>
 <tr>
-<td class="label"><a href="sub1.html" target="_blank">sub1</a></td>
+<td class="label"><a href="sub1.html" target="FSMLang-sub1">sub1</a></td>
 <td>
  sub machines are also easy </td>
 </tr>

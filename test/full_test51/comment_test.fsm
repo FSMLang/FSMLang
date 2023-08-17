@@ -7,8 +7,9 @@ machine foo
 
 	event event1;
 
-	/** the first event in the list gets the comment. */
+	/** the first event in the list gets this comment. */
 	event event2
+           /** and, the next event can have its own comment */
          , event3;
 
 	/** sub machines are also easy */
