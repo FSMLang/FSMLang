@@ -143,10 +143,6 @@ The actions :
 		and which returns
 				s2
 				s3
-Doc Comments:
-
-		A Document Comment
-	
 	noAction
 		which occurs in these events
 				e4

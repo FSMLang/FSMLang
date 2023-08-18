@@ -109,10 +109,6 @@ The actions :
 				s2
 				s3
 		and transitions using function transitionFn
-Doc Comments:
-
-		A Document Comment
-	
 	noAction
 		which occurs in these events
 				e2
