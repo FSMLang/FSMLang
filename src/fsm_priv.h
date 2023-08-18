@@ -159,7 +159,6 @@ struct _iterator_helper_
 struct _machine_prefix_ 
 {
    pMACHINE_INFO pmachineInfo;
-   char          *docCmnt;
 };
 
 struct _action_decl_            
@@ -222,6 +221,7 @@ struct _action_info_ {
   pMATRIX_INFO    matrix;
   pID_INFO  			transition;
 	pACTION_INFO		nextAction;
+   char             *docCmnt;
 };
 
 struct _machine_qualifier_

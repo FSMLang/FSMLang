@@ -191,7 +191,8 @@ static bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
            ,"<tr>\n"
            );
    fprintf(pfsmhtmlog->pmd->htmlFile
-           ,"<td class=\"label\"><a href=\"%s.html\" target=\"_blank\">%s</a></td>\n"
+           ,"<td class=\"label\"><a href=\"%s.html\" target=\"FSMLang-%s\">%s</a></td>\n"
+           , pmi->name->name
            , pmi->name->name
            , pmi->name->name
            );
@@ -244,6 +245,10 @@ int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
          fprintf(pfsmhtmlog->pmd->htmlFile,"<head>\n");
 
          fprintf(pfsmhtmlog->pmd->htmlFile,"<title>FSM Lang : %s</title>\n",baseFileName);
+         fprintf(pfsmhtmlog->pmd->htmlFile
+                 ,"<script>window.name=\"FSMLang-%s\"</script>\n"
+                 ,baseFileName
+                 );
 
          if (css_content_internal)
          {
@@ -342,10 +347,13 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 			for (e = 0; e < pmi->event_list->count; e++) {
 
+         fprintf(pfsmhtmlog->pmd->htmlFile
+                 ,"\t\t<td class="
+                 );
 				if (pmi->modFlags & mfActionsReturnStates) {
 
 					fprintf(pfsmhtmlog->pmd->htmlFile
-                  ,"\t\t<td class=%s>%s"
+                  ,"%s>%s"
                   ,	pmi->actionArray[e][s] ?
 								     (strlen(pmi->actionArray[e][s]->action->name) 
                         ? "action" : "noAction") 
@@ -391,20 +399,13 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                         , "\t</ul>\n"
                         );
              }
-             fprintf(pfsmhtmlog->pmd->htmlFile
-                     , "</td>\n"
-                     );
-             }
-
-          fprintf(pfsmhtmlog->pmd->htmlFile
-                  , "</td>\n"
-                  );
+          }
 
 				}
 				else {
 
 					fprintf(pfsmhtmlog->pmd->htmlFile
-                  ,"\t\t<td class=%s>%s"
+                  ,"%s>%s"
                   ,	pmi->actionArray[e][s] 
                      ? (strlen(pmi->actionArray[e][s]->action->name) 
                         ? "action" 
@@ -475,11 +476,23 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                      , "\t</ul>\n"
                      );
           }
-          fprintf(pfsmhtmlog->pmd->htmlFile
-                  , "</td>\n"
-                  );
 
 				}
+
+        if (
+            pmi->actionArray[e][s]
+            && pmi->actionArray[e][s]->docCmnt
+            )
+        {
+           fprintf(pfsmhtmlog->pmd->htmlFile
+                   ,"<p class=\"transition_comment\">%s</p>"
+                   , pmi->actionArray[e][s]->docCmnt
+                   );
+        }
+
+        fprintf(pfsmhtmlog->pmd->htmlFile
+                , "</td>\n"
+                );
 
 			}
 

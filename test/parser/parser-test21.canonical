@@ -349,10 +349,6 @@ The actions :
 		and transitions using function transitionFn
 		and which returns
 				noEvent
-Doc Comments:
-
-		A Document Comment
-	
 	noAction
 		which occurs in these events
 				e2
