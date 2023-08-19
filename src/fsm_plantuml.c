@@ -293,6 +293,16 @@ static bool print_prefix_string(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static bool print_prefix_file(pLIST_ELEMENT pelem, void *data)
+{
+   char *fName  = (char *) pelem->mbr;
+   FILE *fout = (FILE *) data;
+
+   copyFileContents(fout, fName);
+
+   return false;
+}
+
 /* Main section */
 int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
@@ -329,6 +339,15 @@ int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
          {
             iterate_list(pplantuml_prefix_strings_list
                          , print_prefix_string
+                         , pfsmpumlog->pmd->pumlFile
+                        );
+            fprintf(pfsmpumlog->pmd->pumlFile,"\n");
+         }
+
+         if (pplantuml_prefix_files_list)
+         {
+            iterate_list(pplantuml_prefix_files_list
+                         , print_prefix_file
                          , pfsmpumlog->pmd->pumlFile
                         );
             fprintf(pfsmpumlog->pmd->pumlFile,"\n");

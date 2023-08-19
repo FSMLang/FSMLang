@@ -320,6 +320,7 @@ extern bool add_machine_name;
 extern bool generate_run_function;
 extern bool add_event_cross_reference;
 extern pLIST pplantuml_prefix_strings_list;
+extern pLIST pplantuml_prefix_files_list;
 
 
 #define LOOKUP	0	/* default - not defined in the parser */
