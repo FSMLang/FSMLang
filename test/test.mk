@@ -3,6 +3,8 @@
 # Generic rules for creating and running tests.
 #
 #
+override CFLAGS += -Wall -Wpedantic -Wextra
+
 
 ifdef OUTPUT_DIR
 include $(OUTPUT_DIR)/system.mk

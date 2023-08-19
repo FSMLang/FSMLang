@@ -7,7 +7,7 @@ NEW_MACHINE_EVENT nme;
 
 static void print_newMachine_data(pNEW_MACHINE_DATA);
 
-int main(int argc, char **argv)
+int main()
 {
 	printf("Hello, world.\n");
 

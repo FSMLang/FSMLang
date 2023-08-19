@@ -1258,7 +1258,6 @@ static bool print_full_action_info(pLIST_ELEMENT pelem, void *data)
    pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
 
    pACTION_INFO	    pai;
-   pACTION_SE_INFO	pase_info;
 
    fprintf(phelper->fout
        ,"\t%s\n"
@@ -1334,8 +1333,6 @@ static bool print_transition_info(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO pid               = (pID_INFO)pelem->mbr;
    pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
-
-   pACTION_SE_INFO	pase_info;
 
    fprintf(phelper->fout,"\t%s\n"
            , pid->name
