@@ -49,5 +49,7 @@ $(FSM_SRC:.fsm=.h): $(FSM_SRC) $(FSM)
 
 $(FSM_SRC:.fsm=.c): $(FSM_SRC) $(FSM)
 
+$(FSM_SRC:.fsm=.plantuml): $(FSM_SRC) $(FSM)
+
 $(SRC): $(FSM_SRC:.fsm=.h)
 
