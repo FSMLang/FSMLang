@@ -24,7 +24,7 @@ state transitionFn1 <<choice>>
 s1 --> transitionFn1 : **Event:** e3\n**Action:** \n**Choice:** transitionFn1
 transitionFn1 --> s2
 transitionFn1 --> s3
-s1 --> s4 : **Event:** e4\n**Action:** 
+s1 --> s4 : **Event:** e4\n**Action:** none
 
 note left of s1
 **These events loop back:**
@@ -47,7 +47,7 @@ state transitionFn1 <<choice>>
 s2 --> transitionFn1 : **Event:** e3\n**Action:** \n**Choice:** transitionFn1
 transitionFn1 --> s2
 transitionFn1 --> s3
-s2 --> s4 : **Event:** e4\n**Action:** 
+s2 --> s4 : **Event:** e4\n**Action:** none
 s2 --> s2 : **Event:** eShared\n**Action:** shareSharedEvent
 state transitionFn <<choice>>
 s3 --> transitionFn : **Event:** e1\n**Action:** a2\n**Choice:** transitionFn
@@ -61,7 +61,7 @@ state transitionFn1 <<choice>>
 s3 --> transitionFn1 : **Event:** e3\n**Action:** \n**Choice:** transitionFn1
 transitionFn1 --> s2
 transitionFn1 --> s3
-s3 --> s4 : **Event:** e4\n**Action:** 
+s3 --> s4 : **Event:** e4\n**Action:** none
 s3 --> s3 : **Event:** eShared\n**Action:** shareSharedEvent
 
 note left of s4
