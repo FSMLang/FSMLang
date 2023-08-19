@@ -1931,6 +1931,7 @@ typedef enum {
  , lo_add_machine_name
  , lo_generate_run_function
  , lo_add_event_cross_reference
+ , lo_add_plantuml_prefix_string
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2003,6 +2004,12 @@ const struct option longopts[] =
         , .flag    = &longval
         , .val     = lo_add_event_cross_reference
     }
+    , {
+        .name      = "add-plantuml-prefix-string"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_add_plantuml_prefix_string
+    }
     , {0}
 };
       
@@ -2071,10 +2078,15 @@ int main(int argc, char **argv)
                 if (!optarg || !strcmp(optarg,"true"))
                     generate_run_function = true;
                 break;
- 			   case lo_add_event_cross_reference:
- 					 if (!optarg || !strcmp(optarg,"true"))
- 						add_event_cross_reference = true;
- 					 break;
+ 			     case lo_add_event_cross_reference:
+ 					     if (!optarg || !strcmp(optarg,"true"))
+ 						       add_event_cross_reference = true;
+ 					     break;
+ 					 case lo_add_plantuml_prefix_string:
+ 					     if (!pplantuml_prefix_strings_list)
+ 							    pplantuml_prefix_strings_list = init_list();
+ 							 add_to_list(pplantuml_prefix_strings_list, optarg);
+ 							 break;
             default:
                 usage();
                 return(0);
@@ -2259,6 +2271,9 @@ void usage(void)
  fprintf(stdout,"\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
  fprintf(stdout,"\t\tto specifying \"true\"\n");
+ fprintf(stdout,"\t--plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
+ fprintf(stdout,"\t\tany generated output.  This option can be specified multiple times; all text will be\n");
+ fprintf(stdout,"\t\tadded in the order given");
 	fprintf(stdout,"\t-v prints the version and exits\n");
  fprintf(stdout,"\t\tfor the content copy.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
