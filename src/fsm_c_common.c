@@ -216,7 +216,11 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    /* put the "call the state machine" macro into the header */
    fprintf(pcmw->hFile, "\n#define RUN_STATE_MACHINE(A,B) \\\n");
-   fprintf(pcmw->hFile, "\t((*(A)->fsm)((A),(B)))\n\n");
+   fprintf(pcmw->hFile
+           , "\t((*(A)->fsm)((A),((%s%s_EVENT) B)))\n\n"
+           , pmi->data_block_count ? "p" : ""
+           , cp
+           );
 
    /* put the "declare a state machine" macro into the header */
    fprintf(pcmw->hFile
@@ -271,7 +275,9 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    /* put the event enum into the header file */
    fprintf(pcmw->hFile
-           , "typedef enum {\n"
+           , "typedef enum %s_EVENT%s {\n"
+           , cp
+           , pmi->data_block_count ? "_ENUM" : ""
           );
 
 

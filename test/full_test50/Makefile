@@ -27,5 +27,5 @@ include ../../fsmrules.mk
 check_top_level_h: top_level.h
 	$(DIFF) top_level.h top_level.h.canonical > test.result
 	@rm test.result
-	@rm $(GENERATED_SRC)
-	@rm $(GENERATED_SRC:.c=.h)
+	@-rm $(GENERATED_SRC)
+	@-rm $(GENERATED_SRC:.c=.h)
