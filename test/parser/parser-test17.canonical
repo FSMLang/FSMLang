@@ -155,11 +155,6 @@ The actions :
 		and states
 				s3
 		and transitions to state s1
-Doc Comments:
-
-         This action returns the parent's event e3 to signal sub
-           machine completion.
-       
 
 The 3 transitions :
 	s2
@@ -272,11 +267,6 @@ The actions :
 		and transitions to state s1
 		and which returns
 				namespace::e4
-Doc Comments:
-
-         This action returns the parent's event e4 to signal sub
-           machine completion.
-       
 
 The 3 transitions :
 	s2
@@ -385,11 +375,6 @@ The actions :
 		and states
 				s3
 		and transitions to state s1
-Doc Comments:
-
-         This machine will return the parent's "noEvent" bringing
-           the current action sequence to an end.
-       
 
 The 3 transitions :
 	s2
@@ -520,10 +505,6 @@ The actions :
 		and states
 				s1
 		and transitions to state s2
-Doc Comments:
-
-      Do a top level action
-    
 	activate_sub_machine1
 		which occurs in these events
 				e2
@@ -531,12 +512,6 @@ Doc Comments:
 				s2
 		and which returns
 				namespace::e1
-Doc Comments:
-
-     Make sub_machine1 the active machine, then
-       start it working by returning its first
-       event.
-   
 	activate_sub_machine2
 		which occurs in these events
 				e5
@@ -549,11 +524,6 @@ Doc Comments:
 		and which returns
 				namespace::e1
 				noEvent
-Doc Comments:
-
-     In the steady state, e5 triggers us to re-run sub
-     machines 2 and 3.
-   
 	activate_sub_machine3
 		which occurs in these events
 				e4
@@ -567,13 +537,6 @@ Doc Comments:
 		and which returns
 				noEvent
 				namespace::e1
-Doc Comments:
-
-     Make sub_machine3 the active machine, then
-       start it working by returning its first
-       event.  Trasition to s3, which is the
-       "steady state" for this machine.
-   
 
 The 2 transitions :
 	s2
