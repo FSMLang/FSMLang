@@ -53,6 +53,14 @@
 /*
 	Our interface to the outside world
 */
+bool                 add_plantuml_title                   = false;
+bool                 add_plantuml_legend                  = false;
+bool                 exclude_events_from_plantuml_legend  = false;
+bool                 exclude_states_from_plantuml_legend  = false;
+bool                 exclude_actions_from_plantuml_legend = false;
+HORIZONTAL_PLACEMENT plantuml_legend_horizontal_placement = hp_center;
+VERTICAL_PLACEMENT   plantuml_legend_vertical_placement   = vp_bottom;
+
 int initPlantUMLWriter(pFSMOutputGenerator,char *);
 void writePlantUMLWriter(pFSMOutputGenerator,pMACHINE_INFO);
 void closePlantUMLWriter(pFSMOutputGenerator,int);
@@ -96,6 +104,22 @@ FSMPlantUMLOutputGenerator PlantUMLSubMachineWriter = {
      closePlantUMLWriter
   },
   NULL
+};
+
+const char * const horizontal_placement_strs[] =
+{
+   [hp_none_given] = ""
+   , [hp_left]     = "left"
+   , [hp_right]    = "right"
+   , [hp_center]   = ""                      // this is the plantuml default
+};
+
+const char * const vertical_placement_strs[] =
+{
+   [vp_none_given] = ""
+   , [vp_top]      = "top"
+   , [vp_bottom]   = ""                      // this is the plantuml default
+   , [vp_center]   = "center"
 };
 
 pFSMOutputGenerator pPlantUMLMachineWriter    = (pFSMOutputGenerator) &PlantUMLMachineWriter;
@@ -283,6 +307,80 @@ static bool print_transition_options(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static bool print_list_for_legend(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO state                         = ((pID_INFO) pelem->mbr);
+   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
+
+   fprintf(pfsmpumlog->pmd->pumlFile
+           ,"|%s|%s|\n"
+           , state->name
+           , state->docCmnt ? state->docCmnt : ""
+           );
+
+   return false;
+}
+
+static void writeLegend(pFSMPlantUMLOutputGenerator pfsmpumlog)
+{
+   fprintf(pfsmpumlog->pmd->pumlFile
+           , "hide empty description\n"
+           );
+
+   fprintf(pfsmpumlog->pmd->pumlFile
+           ,"\nlegend %s %s\n"
+           , vertical_placement_strs[plantuml_legend_vertical_placement]
+           , horizontal_placement_strs[plantuml_legend_horizontal_placement]
+           );
+
+   fprintf(pfsmpumlog->pmd->pumlFile
+           ,"Legend\n\n%s\n"
+           , pfsmpumlog->pmd->pmi->name->docCmnt
+             ? pfsmpumlog->pmd->pmi->name->docCmnt
+             : ""
+          );
+
+   if (!exclude_states_from_plantuml_legend)
+   {
+      fprintf(pfsmpumlog->pmd->pumlFile
+              , "\nStates\n|State|Comment|\n"
+             );
+
+      iterate_list(pfsmpumlog->pmd->pmi->state_list
+                   , print_list_for_legend
+                   , pfsmpumlog
+                  );
+   }
+
+   if (!exclude_events_from_plantuml_legend)
+   {
+      fprintf(pfsmpumlog->pmd->pumlFile
+              , "\nEvents\n|Event|Comment|\n"
+             );
+
+      iterate_list(pfsmpumlog->pmd->pmi->event_list
+                   , print_list_for_legend
+                   , pfsmpumlog
+                  );
+   }
+
+   if (!exclude_actions_from_plantuml_legend)
+   {
+      fprintf(pfsmpumlog->pmd->pumlFile
+              , "\nActions\n|Event|Comment|\n"
+             );
+
+      iterate_list(pfsmpumlog->pmd->pmi->action_list
+                   , print_list_for_legend
+                   , pfsmpumlog
+                  );
+   }
+
+   fprintf(pfsmpumlog->pmd->pumlFile
+           ,"\nend legend\n\n"
+          );
+}
+
 /* Main section */
 int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
@@ -341,8 +439,24 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
   pfsmpumlog->pmd->pmi = pmi;
 
+  if (add_plantuml_title)
+  {
+     fprintf(pfsmpumlog->pmd->pumlFile
+             , "title %s\n"
+             , pmi->name->name
+             );
+  }
+
+  if (add_plantuml_legend)
+  {
+     writeLegend(pfsmpumlog);
+  }
+
   iterate_list(pmi->state_list, print_state_name, pfsmpumlog);
-  iterate_list(pmi->state_list, print_state_docCmnt, pfsmpumlog);
+  if (!add_plantuml_legend || (add_plantuml_legend && exclude_states_from_plantuml_legend))
+  {
+     iterate_list(pmi->state_list, print_state_docCmnt, pfsmpumlog);
+  }
   iterate_list(pmi->state_list, print_state_entry_fn, pfsmpumlog);
   iterate_list(pmi->state_list, print_state_exit_fn, pfsmpumlog);
   iterate_list(pmi->state_list, print_state_inhibitions, pfsmpumlog);
