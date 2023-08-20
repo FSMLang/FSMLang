@@ -340,7 +340,8 @@ extern bool                 exclude_states_from_plantuml_legend;
 extern bool                 exclude_actions_from_plantuml_legend;
 extern HORIZONTAL_PLACEMENT plantuml_legend_horizontal_placement;
 extern VERTICAL_PLACEMENT   plantuml_legend_vertical_placement;
-
+extern pLIST                pplantuml_prefix_strings_list;
+extern pLIST                pplantuml_prefix_files_list;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

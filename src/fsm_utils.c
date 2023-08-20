@@ -63,13 +63,15 @@ struct _action_array_population_helper_
 
 /* the general use data */
 char	*me = "I don't know who I am, but I'm";
-bool generate_instance                         = true;
-bool compact_action_array                      = false;
-bool short_dbg_names                           = false;
-bool force_generation_of_event_passing_actions = false;
-bool add_machine_name                          = false;
-bool generate_run_function                     = false;
-bool add_event_cross_reference                 = false;
+bool  generate_instance                         = true;
+bool  compact_action_array                      = false;
+bool  short_dbg_names                           = false;
+bool  force_generation_of_event_passing_actions = false;
+bool  add_machine_name                          = false;
+bool  generate_run_function                     = false;
+bool  add_event_cross_reference                 = false;
+pLIST pplantuml_prefix_strings_list             = NULL;
+pLIST pplantuml_prefix_files_list               = NULL;
 
 void print_tab_levels(FILE *output, unsigned levels)
 {
