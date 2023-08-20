@@ -18,10 +18,12 @@ Legend
 States
 |State|Comment|
 |state1| states are easy to comment |
+|state2||
 
 Actions
 |Event|Comment|
 |action1| last comment |
+|||
 
 end legend
 

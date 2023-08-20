@@ -18,10 +18,13 @@ Legend
 States
 |State|Comment|
 |state1| states are easy to comment |
+|state2||
 
 Events
 |Event|Comment|
 |event1||
+|event2| the first event in the list gets the comment. |
+|event3||
 
 end legend
 
