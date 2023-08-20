@@ -79,6 +79,7 @@ static void            defineStateFnArray(pCMachineData, pMACHINE_INFO, char *);
 static void            cswitchHeaderEnd(pCMachineData, pMACHINE_INFO, char *, bool);
 static void            cswitchSubMachineHeaderEnd(pCMachineData, pMACHINE_INFO, char *, bool);
 static bool            cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
+static bool            areTransitionsPossible(pMACHINE_INFO,unsigned);
 
 FSMCOutputGenerator CSwitchMachineWriter = {
    {
@@ -720,9 +721,12 @@ static void defineCSwitchSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
 static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    unsigned events_handled;
+   bool     transitions_are_possible;
 
    for (unsigned i = 0; i < pmi->state_list->count; i++)
    {
+      transitions_are_possible = areTransitionsPossible(pmi,i);
+
       if (pmi->modFlags & mfActionsReturnVoid)
       {
          fprintf(pcmw->cFile
@@ -758,7 +762,10 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                 );
       }
 
-      if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+      if (
+          (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+          && transitions_are_possible
+          )
       {
          fprintf(pcmw->cFile
                  , "\t%s_STATE new_s  = %s_%s;\n"
@@ -773,7 +780,7 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
               , "\n\tswitch(e)\n\t{\n"
              );
 
-      events_handled = 0;
+      events_handled   = 0;
       for (unsigned j = 0; j < pmi->event_list->count; j++)
       {
          if (!eventPidByIndex(pmi, j)->type_data.event_data.single_pai_for_all_states)
@@ -877,7 +884,10 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
               , "\t}\n"
              );
 
-      if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+      if (
+          (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+          && transitions_are_possible
+          )
       {
          fprintf(pcmw->cFile
                  , "\n\n\tif (%s_%s != new_s)\n\t{\n"
@@ -935,13 +945,35 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
    fprintf(pcmw->cFile, "\n");
 }
 
+static bool areTransitionsPossible(pMACHINE_INFO pmi, unsigned state)
+{
+   bool transition_found = false;
+
+   if (pmi->modFlags & mfActionsReturnStates)
+   {
+      transition_found = true;
+   }
+   else
+   {
+      for (unsigned event = 0; event < pmi->event_list->count && !transition_found; event++)
+      {
+         transition_found = pmi->actionArray[event][state] && (pmi->actionArray[event][state]->transition != NULL);
+      }
+   }
+
+   return transition_found;
+}
+
 static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 {
    unsigned  events_handled;
+   bool      transitions_are_possible;
    char     *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
 
    for (unsigned i = 0; i < pmi->state_list->count; i++)
    {
+      transitions_are_possible = areTransitionsPossible(pmi,i);
+
       if (pmi->modFlags & mfActionsReturnVoid)
       {
          fprintf(pcmw->cFile
@@ -976,7 +1008,10 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
                 );
       }
 
-      if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+      if (
+          (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+          && transitions_are_possible
+          )
       {
          fprintf(pcmw->cFile
                  , "\t%s_STATE new_s = pfsm->state;\n"
@@ -989,7 +1024,7 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
               , "\n\tswitch(e)\n\t{\n"
              );
 
-      events_handled = 0;
+      events_handled   = 0;
       for (unsigned j = 0; j < pmi->event_list->count; j++)
       {
          if (pmi->actionArray[j][i])
@@ -1084,7 +1119,10 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
               , "\t}\n"
              );
 
-      if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+      if (
+          (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+          && transitions_are_possible
+          )
       {
          fprintf(pcmw->cFile
                  , "\n\n\tif (%s_%s != new_s)\n\t{\n"
