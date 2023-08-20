@@ -2159,7 +2159,7 @@ int main(int argc, char **argv)
 								 if (strstr(optarg, "center"))
    						 {
     					    add_plantuml_legend = true;
-    							plantuml_legend_vertical_placement = hp_center;
+    							plantuml_legend_horizontal_placement = hp_center;
    						 }
 								 if (strstr(optarg, "left"))
    						 {
@@ -2192,10 +2192,6 @@ int main(int argc, char **argv)
  					 if (!optarg || !strcmp(optarg,"true"))
  						exclude_actions_from_plantuml_legend = true;
  					 break;
- 			     case lo_add_event_cross_reference:
- 					     if (!optarg || !strcmp(optarg,"true"))
- 						       add_event_cross_reference = true;
- 					     break;
  					 case lo_add_plantuml_prefix_string:
  					     if (!pplantuml_prefix_strings_list)
  							    pplantuml_prefix_strings_list = init_list();
