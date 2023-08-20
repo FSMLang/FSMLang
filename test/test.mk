@@ -39,26 +39,27 @@ fsm_fail_is_pass: $(FSM_SRC:.fsm=.c)
 		
 
 clean::
-	-@rm *.exe 2> /dev/null
-	-@rm *.out 2> /dev/null
-	-@rm *.result 2> /dev/null
-	-@rm *.stderr 2> /dev/null
-	-@rm fsmout 2> /dev/null
-	-@rm *.d* 2> /dev/null
-	-@rm *.o 2> /dev/null
-	-@rm *.stackdump 2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.c) 2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.h) 2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.html) 2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.svg) 2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.plantuml) 2> /dev/null
-	-@rm $(GENERATED_SRC) 2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.h) 2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.html) 2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.html) 2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.svg) 2> /dev/null
+	-@rm *.exe                         2> /dev/null
+	-@rm *.out                         2> /dev/null
+	-@rm *.result                      2> /dev/null
+	-@rm *.stderr                      2> /dev/null
+	-@rm fsmout                        2> /dev/null
+	-@rm *.d*                          2> /dev/null
+	-@rm *.o                           2> /dev/null
+	-@rm *.stackdump                   2> /dev/null
+	-@rm $(FSM_SRC:.fsm=.c)            2> /dev/null
+	-@rm $(FSM_SRC:.fsm=.h)            2> /dev/null
+	-@rm $(FSM_SRC:.fsm=.html)         2> /dev/null
+	-@rm $(FSM_SRC:.fsm=.svg)          2> /dev/null
+	-@rm $(FSM_SRC:.fsm=.plantuml)     2> /dev/null
+	-@rm $(GENERATED_SRC)              2> /dev/null
+	-@rm $(GENERATED_SRC:.c=.h)        2> /dev/null
+	-@rm $(GENERATED_SRC:.c=.html)     2> /dev/null
+	-@rm $(GENERATED_SRC:.c=.html)     2> /dev/null
+	-@rm $(GENERATED_SRC:.c=.svg)      2> /dev/null
 	-@rm $(GENERATED_SRC:.c=.plantuml) 2> /dev/null
-	-@rm test
-	-@rm y.output 2> /dev/null
-	-@rm lexer.c 2> /dev/null
+	-@rm $(GENERATED_PLANTUML)         2> /dev/null
+	-@rm test                          2> /dev/null
+	-@rm y.output                      2> /dev/null
+	-@rm lexer.c                       2> /dev/null
 
