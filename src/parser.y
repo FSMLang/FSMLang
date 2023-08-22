@@ -283,7 +283,6 @@ machine:	machine_prefix ID machine_qualifier
            }
 
 						#ifdef PARSER_DEBUG
-						pID_INFO	pid_info;
 
 						fprintf(yyout
                    ,"found a machine named %s\n"
@@ -792,8 +791,6 @@ action_decl:	action_decl_list ';'
 
 						#ifdef PARSER_DEBUG
 						/* we should now be able to print a list of the actions */
-						pID_INFO	pid;
-
 						fprintf(yyout,"The actions in this list:\n");
 						parser_debug_print_id_list_names($1->action_list,pmachineInfo,yyout,"noAction");
 						#endif
@@ -953,8 +950,6 @@ action_matrix: ID matrix
 					{
 
 						#ifdef PARSER_DEBUG
-						volatile pID_INFO pid_info = $1;
-
 						fprintf(yyout,"found an action matrix\n");
 						#endif
 
@@ -980,8 +975,6 @@ action_matrix: ID matrix
 					{
 
 						#ifdef PARSER_DEBUG
-						volatile pID_INFO pid_info = $1;
-
 						fprintf(yyout,"found an action matrix\n");
 						#endif
 
@@ -2031,9 +2024,12 @@ const struct option longopts[] =
 int main(int argc, char **argv)
 {
 
-	int		c;
 	char	*cp,*cp1;
 	char  *outFileBase = 0;
+
+ #ifndef PARSER_DEBUG
+ int   c;
+ #endif
 
 	me = argv[0];
 

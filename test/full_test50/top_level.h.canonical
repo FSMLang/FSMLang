@@ -26,7 +26,7 @@
 #define FSM_VERSION "1.39"
 
 #define RUN_STATE_MACHINE(A,B) \
-	((*(A)->fsm)((A),(B)))
+	((*(A)->fsm)((A),((pNEW_MACHINE_EVENT) B)))
 
 #ifndef INIT_FSM_DATA
 #define INIT_FSM_DATA {0}
@@ -73,7 +73,7 @@ NEW_MACHINE *p##A = &A;
 	   15  subMachine2_numAllEvents
 
 */
-typedef enum {
+typedef enum NEW_MACHINE_EVENT_ENUM {
 	 newMachine_e1
 	, newMachine_e2
 	, newMachine_e3
