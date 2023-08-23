@@ -41,7 +41,7 @@
 
 extern TEST_FSM_ACTION_FN testFSM_action_fns[3];
 
-int main(int argc, char **argv)
+int main()
 {
 
    printf("hello, world\n");
@@ -67,6 +67,7 @@ int main(int argc, char **argv)
 
 TEST_FSM_EVENT testFSM_processMessage(pTEST_FSM ptfsm)
 {
+	(void) ptfsm;
 
 	printf("processing good message\n");
 
@@ -76,6 +77,7 @@ TEST_FSM_EVENT testFSM_processMessage(pTEST_FSM ptfsm)
 
 TEST_FSM_EVENT testFSM_sendErrorIndication(pTEST_FSM ptfsm)
 {
+	(void) ptfsm;
 
 	printf("sending error indication\n");
 
@@ -86,6 +88,7 @@ TEST_FSM_EVENT testFSM_sendErrorIndication(pTEST_FSM ptfsm)
 
 TEST_FSM_EVENT testFSM_noAction(pTEST_FSM ptfsm)
 {
+	(void) ptfsm;
 
 	printf("taking no action\n");
 

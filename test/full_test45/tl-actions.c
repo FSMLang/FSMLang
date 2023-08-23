@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "top_level.h"
 
-int main(int argc, char **argv)
+int main()
 {
 	printf("Hello, world.\n");
 

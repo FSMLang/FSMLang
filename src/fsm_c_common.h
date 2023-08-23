@@ -51,6 +51,7 @@ struct _iterator_callback_helper_
    bool          needNoOp;
    bool          first;
    bool          define;  //as opposed to "declare"
+   unsigned      counter; //generic name intentional
 };
 
 struct _c_machine_data_

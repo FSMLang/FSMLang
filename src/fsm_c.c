@@ -614,7 +614,7 @@ static void writeNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
               , cp
              );
       fprintf(pcmw->cFile
-              , "\t%s(\"%s_noTransitionFn\");\n\treturn %s_noTransition;\n}\n\n"
+              , "\t%s(\"%s_noTransitionFn\");\n\t(void) pfsm;\n\treturn %s_noTransition;\n}\n\n"
               , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
               , pmi->name->name
@@ -631,7 +631,7 @@ static void writeNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
               , pmi->data_block_count ? "_ENUM"  : ""
              );
       fprintf(pcmw->cFile
-              , "\t(void) e;\n\t%s(\"%s_noTransitionFn\");\n\treturn pfsm->state;\n}\n\n"
+              , "\t(void) e;\n\t%s(\"%s_noTransitionFn\");\n\t(void) pfsm;\n\treturn pfsm->state;\n}\n\n"
               , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
              );
@@ -651,7 +651,7 @@ static void subMachineWriteNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, c
               , cp
              );
       fprintf(pcmw->cFile
-              , "\t%s(\"%s_noTransitionFn\");\n\treturn %s_noTransition;\n}\n\n"
+              , "\t%s(\"%s_noTransitionFn\");\n\t(void) pfsm;\n\treturn %s_noTransition;\n}\n\n"
               , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
               , pmi->name->name
@@ -668,7 +668,7 @@ static void subMachineWriteNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, c
               , pmi->parent->data_block_count ? "_ENUM"  : ""
              );
       fprintf(pcmw->cFile
-              , "\t(void) e;\n\t%s(\"%s_noTransitionFn\");\n\treturn pfsm->state;\n}\n\n"
+              , "\t(void) e;\n\t%s(\"%s_noTransitionFn\");\n\t(void) pfsm;\n\treturn pfsm->state;\n}\n\n"
               , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
              );
@@ -1183,17 +1183,14 @@ static void declareCMachineActionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi, c
 {
    ITERATOR_CALLBACK_HELPER ich = {0};
 
-   ich.first = true;;
+   ich.first = true;
    ich.pcmw  = pcmw;
    ich.pmi   = pmi;
    ich.cp    = cp;
 
    /* enum */
    fprintf(pcmw->hFile
-           , "typedef enum _%s_action_fn_ %s_ACTION_FN_E;\nenum _%s_action_fn_\n{\n"
-           , pmi->name->name
-           , cp
-           , pmi->name->name
+           , "typedef enum\n{\n"
           );
 
    iterate_list(pmi->action_list, declare_action_enum_member,&ich);
@@ -1205,7 +1202,8 @@ static void declareCMachineActionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi, c
           );
 
    fprintf(pcmw->hFile
-           , "} __attribute__((__packed__));\n\n"
+           , "} __attribute__((__packed__)) %s_ACTION_FN_E;\n\n"
+           , cp
           );
 
 }
@@ -1252,10 +1250,7 @@ static void declareCMachineTransitionFnEnum(pCMachineData pcmw, pMACHINE_INFO pm
 
    /* enum */
    fprintf(pcmw->hFile
-           , "typedef enum _%s_transition_fn_ %s_TRANSITION_FN_E;\nenum _%s_transition_fn_\n{\n"
-           , pmi->name->name
-           , cp
-           , pmi->name->name
+           , "typedef enum\n{\n"
           );
 
    iterate_list(pmi->transition_fn_list,declare_transition_fn_enum_member,&ich);
@@ -1267,7 +1262,8 @@ static void declareCMachineTransitionFnEnum(pCMachineData pcmw, pMACHINE_INFO pm
           );
 
    fprintf(pcmw->hFile
-           , "} __attribute__ (( __packed__ ));\n\n"
+           , "} __attribute__ (( __packed__ )) %s_TRANSITION_FN_E;\n\n"
+           , cp
           );
 
 }
