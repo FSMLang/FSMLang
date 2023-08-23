@@ -17,10 +17,6 @@ FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
 GENERATED_SRC = subMachine1.c   \
                 subMachine2.c   
 
-GENERATED_SRC = toplevel.c    \
-                subMachine1.c \
-                subMachine2.c \
-
 TARGET = check_top_level_h
 
 include ../test.mk
