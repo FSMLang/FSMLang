@@ -15,6 +15,7 @@ NEW_MACHINE_STATE newMachine_a2(pNEW_MACHINE pfsm)
 
 NEW_MACHINE_STATE newMachine_a1(pNEW_MACHINE pfsm)
 {
+	(void) pfsm;
    DBG_PRINTF("newMachine_a1\n");
 
    return (pfsm->state == newMachine_s2)
@@ -25,6 +26,7 @@ NEW_MACHINE_STATE newMachine_a1(pNEW_MACHINE pfsm)
 
 NEW_MACHINE_STATE newMachine_noAction(pNEW_MACHINE pfsm)
 {
+	(void) pfsm;
    DBG_PRINTF("newMachine_noAction\n");
 
    return pfsm->state;
@@ -47,7 +49,7 @@ NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm)
    return newMachine_s2;
 }
 
-int main(int argc, char **argv)
+int main()
 {
    fprintf(stdout,"hello, world\n");
 

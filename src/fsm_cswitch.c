@@ -865,19 +865,27 @@ static void defineCSwitchMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pmi, 
                       );
             }
          }
-         else
+         #if 0
          {
             events_handled++;
          }
+         #endif
       }
 
-      if (events_handled < pmi->event_list->count)
+      if (events_handled < pmi->event_list->count + 1)
       {
          fprintf(pcmw->cFile
                  , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                 );
+      }
+
+      if (!events_handled)
+      {
+         fprintf(pcmw->cFile
+                 , "/* we only just now know we did not use this */\n\t(void) pfsm;\n"
+                 );
       }
 
       fprintf(pcmw->cFile
@@ -1106,7 +1114,7 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
 
       }
 
-      if (events_handled < pmi->event_list->count)
+      if (events_handled < pmi->event_list->count + 1)
       {
          fprintf(pcmw->cFile
                  , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
@@ -1177,6 +1185,13 @@ static void defineCSwitchSubMachineStateFns(pCMachineData pcmw, pMACHINE_INFO pm
                    ? "new_s" 
                    : "retVal"
                 );
+      }
+
+      if (!events_handled)
+      {
+         fprintf(pcmw->cFile
+                 , "/* we only just now know we did not use this */\n\t(void) pfsm;\n"
+                 );
       }
 
       fprintf(pcmw->cFile, "}\n\n");
@@ -1748,6 +1763,8 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
 
    if (event->type_data.event_data.single_pai_for_all_states)
    {
+      pich->counter++;
+
       fprintf(pich->pcmw->cFile
               , pich->pmi->parent 
                  ? "\t\tcase %s_%s_%s:\n"
@@ -1918,7 +1935,15 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi, char *c
            ,"\tswitch (e)\n\t{\n"
            );
 
+   ich.counter = 0;
    iterate_list(pmi->event_list,print_switch_cases_for_events_handled_in_all_states,&ich);
+
+   if (ich.counter == pmi->event_list->count)
+   {
+      printf("warning: (%s) all events are handled identically in all states.\n"
+             , pmi->name->name
+             );
+   }
 
    if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
    {

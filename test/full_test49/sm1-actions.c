@@ -5,12 +5,14 @@ static void print_machine_data(pSUB_MACHINE1_DATA);
 
 NEW_MACHINE_EVENT_ENUM  subMachine1_aa1(pSUB_MACHINE1 pfsm)
 {
+	(void) pfsm;
 	DBG_PRINTF("subMachine1_aa1");
 	return THIS(noEvent);
 }
 
 NEW_MACHINE_EVENT_ENUM  subMachine1_aa2(pSUB_MACHINE1 pfsm)
 {
+	(void) pfsm;
 	DBG_PRINTF("subMachine1_aa2");
 	return THIS(noEvent);
 }

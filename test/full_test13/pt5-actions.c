@@ -40,7 +40,7 @@
 #include "parser-test5.h"
 
 
-int main(int argc, char **argv)
+int main()
 {
 
    printf("hello, world\n");

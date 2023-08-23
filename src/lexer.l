@@ -24,10 +24,21 @@ unsigned brace_cnt = 0;
 
 
 
-#ifdef LEX_DEBUG
+#if defined (LEX_DEBUG) || defined (PARSER_DEBUG)
+
+#define YY_NO_INPUT
+#define YY_NO_UNPUT
+
+#endif
+
+#if defined (LEX_DEBUG)
+
 #include "lexer_debug.h"
+
 #else
+
 #define TRANSITION LOOKUP + 1
+
 #endif
 
 %}
@@ -473,8 +484,9 @@ int yywrap(void)
 #endif
 
 #if defined (LEX_DEBUG)
+
 pLIST id_list;
-int main (int argc, char **argv)
+int main ()
 {
     id_list = init_list();
 
