@@ -175,24 +175,28 @@ TOP_LEVEL_EVENT top_level_s3_stateFn(pTOP_LEVEL pfsm, TOP_LEVEL_EVENT e)
 TOP_LEVEL_EVENT __attribute__((weak)) top_level_a1(pTOP_LEVEL pfsm)
 {
 	DBG_PRINTF("weak: top_level_a1");
+	(void) pfsm;
 	return THIS(noEvent);
 }
 
 TOP_LEVEL_EVENT __attribute__((weak)) top_level_activate_sub_machine1(pTOP_LEVEL pfsm)
 {
 	DBG_PRINTF("weak: top_level_activate_sub_machine1");
+	(void) pfsm;
 	return THIS(noEvent);
 }
 
 TOP_LEVEL_EVENT __attribute__((weak)) top_level_activate_sub_machine2(pTOP_LEVEL pfsm)
 {
 	DBG_PRINTF("weak: top_level_activate_sub_machine2");
+	(void) pfsm;
 	return THIS(noEvent);
 }
 
 TOP_LEVEL_EVENT __attribute__((weak)) top_level_activate_sub_machine3(pTOP_LEVEL pfsm)
 {
 	DBG_PRINTF("weak: top_level_activate_sub_machine3");
+	(void) pfsm;
 	return THIS(noEvent);
 }
 
