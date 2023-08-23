@@ -4,23 +4,26 @@
 
 TOP_LEVEL_EVENT top_level_activate_sub_machine1(pTOP_LEVEL pfsm)
 {
+	(void) pfsm;
 	DBG_PRINTF("top_level_activate_sub_machine1\n");
 	return top_level_sub_machine1_e1;
 }
 
 TOP_LEVEL_EVENT top_level_activate_sub_machine2(pTOP_LEVEL pfsm)
 {
+	(void) pfsm;
 	DBG_PRINTF("top_level_activate_sub_machine2\n");
 	return top_level_sub_machine2_e1;
 }
 
 TOP_LEVEL_EVENT top_level_activate_sub_machine3(pTOP_LEVEL pfsm)
 {
+	(void) pfsm;
 	DBG_PRINTF("top_level_activate_sub_machine3\n");
 	return top_level_sub_machine3_e1;
 }
 
-int main (int argc, char **argv)
+int main ()
 {
    DBG_PRINTF("Hello, world.\n");
 

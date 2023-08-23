@@ -283,6 +283,26 @@ static bool print_transition_options(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static bool print_prefix_string(pLIST_ELEMENT pelem, void *data)
+{
+   char *str  = (char *) pelem->mbr;
+   FILE *fout = (FILE *) data;
+
+   fprintf(fout, "%s\n", str);
+
+   return false;
+}
+
+static bool print_prefix_file(pLIST_ELEMENT pelem, void *data)
+{
+   char *fName  = (char *) pelem->mbr;
+   FILE *fout = (FILE *) data;
+
+   copyFileContents(fout, fName);
+
+   return false;
+}
+
 /* Main section */
 int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
@@ -314,6 +334,24 @@ int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
          fprintf(pfsmpumlog->pmd->pumlFile,"\n'/\n\n");
 
          fprintf(pfsmpumlog->pmd->pumlFile,"@startuml\n");
+
+         if (pplantuml_prefix_strings_list)
+         {
+            iterate_list(pplantuml_prefix_strings_list
+                         , print_prefix_string
+                         , pfsmpumlog->pmd->pumlFile
+                        );
+            fprintf(pfsmpumlog->pmd->pumlFile,"\n");
+         }
+
+         if (pplantuml_prefix_files_list)
+         {
+            iterate_list(pplantuml_prefix_files_list
+                         , print_prefix_file
+                         , pfsmpumlog->pmd->pumlFile
+                        );
+            fprintf(pfsmpumlog->pmd->pumlFile,"\n");
+         }
 
        }
 

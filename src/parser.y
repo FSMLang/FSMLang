@@ -283,7 +283,6 @@ machine:	machine_prefix ID machine_qualifier
            }
 
 						#ifdef PARSER_DEBUG
-						pID_INFO	pid_info;
 
 						fprintf(yyout
                    ,"found a machine named %s\n"
@@ -792,8 +791,6 @@ action_decl:	action_decl_list ';'
 
 						#ifdef PARSER_DEBUG
 						/* we should now be able to print a list of the actions */
-						pID_INFO	pid;
-
 						fprintf(yyout,"The actions in this list:\n");
 						parser_debug_print_id_list_names($1->action_list,pmachineInfo,yyout,"noAction");
 						#endif
@@ -953,8 +950,6 @@ action_matrix: ID matrix
 					{
 
 						#ifdef PARSER_DEBUG
-						volatile pID_INFO pid_info = $1;
-
 						fprintf(yyout,"found an action matrix\n");
 						#endif
 
@@ -980,8 +975,6 @@ action_matrix: ID matrix
 					{
 
 						#ifdef PARSER_DEBUG
-						volatile pID_INFO pid_info = $1;
-
 						fprintf(yyout,"found an action matrix\n");
 						#endif
 
@@ -1939,6 +1932,8 @@ typedef enum {
  , lo_add_machine_name
  , lo_generate_run_function
  , lo_add_event_cross_reference
+ , lo_add_plantuml_prefix_string
+ , lo_add_plantuml_prefix_file
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2011,15 +2006,30 @@ const struct option longopts[] =
         , .flag    = &longval
         , .val     = lo_add_event_cross_reference
     }
+    , {
+        .name      = "add-plantuml-prefix-string"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_add_plantuml_prefix_string
+    }
+    , {
+        .name      = "add-plantuml-prefix-file"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_add_plantuml_prefix_file
+    }
     , {0}
 };
       
 int main(int argc, char **argv)
 {
 
-	int		c;
 	char	*cp,*cp1;
 	char  *outFileBase = 0;
+
+ #ifndef PARSER_DEBUG
+ int   c;
+ #endif
 
 	me = argv[0];
 
@@ -2079,10 +2089,20 @@ int main(int argc, char **argv)
                 if (!optarg || !strcmp(optarg,"true"))
                     generate_run_function = true;
                 break;
- 			   case lo_add_event_cross_reference:
- 					 if (!optarg || !strcmp(optarg,"true"))
- 						add_event_cross_reference = true;
- 					 break;
+ 			     case lo_add_event_cross_reference:
+ 					     if (!optarg || !strcmp(optarg,"true"))
+ 						       add_event_cross_reference = true;
+ 					     break;
+ 					 case lo_add_plantuml_prefix_string:
+ 					     if (!pplantuml_prefix_strings_list)
+ 							    pplantuml_prefix_strings_list = init_list();
+ 							 add_to_list(pplantuml_prefix_strings_list, optarg);
+ 							 break;
+ 					 case lo_add_plantuml_prefix_file:
+ 					     if (!pplantuml_prefix_files_list)
+ 							    pplantuml_prefix_files_list = init_list();
+ 							 add_to_list(pplantuml_prefix_files_list, optarg);
+ 							 break;
             default:
                 usage();
                 return(0);
@@ -2267,6 +2287,13 @@ void usage(void)
  fprintf(stdout,"\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
  fprintf(stdout,"\t\tto specifying \"true\"\n");
+ fprintf(stdout,"\t--plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
+ fprintf(stdout,"\t\tany generated output.  This option can be specified multiple times; all text will be\n");
+ fprintf(stdout,"\t\tadded in the order given");
+ fprintf(stdout,"\t--plantuml-prefix-file=<text> will add the text in the specified file\n");
+ fprintf(stdout,"\t\tto the plantuml output before any generated output.\n");
+	fprintf(stdout,"\t\tThis option can be specified multiple times; all text will be\n");
+ fprintf(stdout,"\t\tadded in the order given");
 	fprintf(stdout,"\t-v prints the version and exits\n");
  fprintf(stdout,"\t\tfor the content copy.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");

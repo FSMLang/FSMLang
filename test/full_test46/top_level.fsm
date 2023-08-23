@@ -6,10 +6,10 @@ native
 #include "test.h"
 #define NUM_INTS (2)
 #define NUM_CHARS (20)
-#define INIT_FSM_DATA {.u.bop = {[0 ... (NUM_CHARS - 1)] = '\0'}  \
-                       , .u.foo.a = {[0 ... (NUM_INTS - 1)] = 0}  \
-                       , .u.foo.count_ints = 0                    \
-                       , .u.beep.f = 0                            \
+#define INIT_FSM_DATA {.u.bop = {0}            \
+                       , .u.foo.a = {0}        \
+                       , .u.foo.count_ints = 0 \
+                       , .u.beep.f = 0         \
                        }
 }
 

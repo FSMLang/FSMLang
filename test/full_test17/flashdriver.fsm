@@ -8,6 +8,8 @@ native{
 #define BUFFER 1024
 
 typedef char flashPage[128];
+
+#define INIT_FSM_DATA .data = {{0}, 0, 0}
 	
 }
 /**

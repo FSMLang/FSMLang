@@ -216,7 +216,11 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    /* put the "call the state machine" macro into the header */
    fprintf(pcmw->hFile, "\n#define RUN_STATE_MACHINE(A,B) \\\n");
-   fprintf(pcmw->hFile, "\t((*(A)->fsm)((A),(B)))\n\n");
+   fprintf(pcmw->hFile
+           , "\t((*(A)->fsm)((A),((%s%s_EVENT) B)))\n\n"
+           , pmi->data_block_count ? "p" : ""
+           , cp
+           );
 
    /* put the "declare a state machine" macro into the header */
    fprintf(pcmw->hFile
@@ -271,7 +275,9 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    /* put the event enum into the header file */
    fprintf(pcmw->hFile
-           , "typedef enum {\n"
+           , "typedef enum %s_EVENT%s {\n"
+           , cp
+           , pmi->data_block_count ? "_ENUM" : ""
           );
 
 
@@ -882,7 +888,7 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
               , cp
              );
       fprintf(pcmw->cFile
-              , "{\n\t%s(\"weak: %s_noAction\");\n}\n\n"
+              , "{\n\t(void) pfsm;\n\t%s(\"weak: %s_noAction\");\n}\n\n"
               , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
               );
@@ -903,6 +909,10 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
                  , pmi->name->name
                  );
          fprintf(pcmw->cFile
+                 , "\t(void) pfsm;\n"
+                 );
+
+         fprintf(pcmw->cFile
                  , "\treturn THIS(noTransition);\n}\n\n"
                  );
       }
@@ -920,6 +930,10 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO pmi, char
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
                  );
+         fprintf(pcmw->cFile
+                 , "\t(void) pfsm;\n"
+                 );
+
          fprintf(pcmw->cFile
                  , "\treturn THIS(noEvent);\n}\n\n"
                  );
@@ -943,6 +957,9 @@ void defineSubMachineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO
               , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
               , pmi->name->name
               );
+      fprintf(pcmw->cFile
+              , "\t(void) pfsm;\n"
+              );
    }
    else
    {
@@ -958,6 +975,9 @@ void defineSubMachineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO
                  , "{\n\t%s(\"weak: %s_noAction\");\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
+                 );
+         fprintf(pcmw->cFile
+                 , "\t(void) pfsm;\n"
                  );
          fprintf(pcmw->cFile
                  , "\treturn THIS(noTransition);\n}\n\n"
@@ -976,6 +996,9 @@ void defineSubMachineWeakNoActionFunctionStubs(pCMachineData pcmw, pMACHINE_INFO
                  , "{\n\t%s(\"weak: %s_noAction\");\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  , pmi->name->name
+                 );
+         fprintf(pcmw->cFile
+                 , "\t(void) pfsm;\n"
                  );
          fprintf(pcmw->cFile
                  , "\treturn PARENT(noEvent);\n}\n\n"
@@ -1688,6 +1711,7 @@ static bool print_inhibited_state_case(pLIST_ELEMENT pelem, void *data)
 
    if (pid->type_data.state_data.state_flags & sfInibitSubMachines)
    {
+      pich->counter++;
       fprintf(pich->pcmw->cFile
              , "\t\tcase %s_%s:\n"
              , pich->pmi->name->name
@@ -2239,6 +2263,10 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                  , pid_info->name
                  );
 
+         fprintf(pich->pcmw->cFile
+                 , "\t(void) pfsm;\n"
+                 );
+
       }
       else
       {
@@ -2257,6 +2285,10 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                     , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
+                    );
+
+            fprintf(pich->pcmw->cFile
+                    , "\t(void) pfsm;\n"
                     );
 
             fprintf(pich->pcmw->cFile
@@ -2281,6 +2313,10 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
                     , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
+                    );
+
+            fprintf(pich->pcmw->cFile
+                    , "\t(void) pfsm;\n"
                     );
 
             /* if this action is associated with a shared event, it will have exactly one event */
@@ -2996,6 +3032,10 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                  , pid_info->name
                  );
 
+         fprintf(pich->pcmw->cFile
+                 , "\t(void) pfsm;\n"
+                 );
+
       }
       else
       {
@@ -3014,6 +3054,10 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                     , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
+                    );
+
+            fprintf(pich->pcmw->cFile
+                    , "\t(void) pfsm;\n"
                     );
 
             fprintf(pich->pcmw->cFile
@@ -3038,6 +3082,10 @@ bool define_sub_machine_weak_action_function(pLIST_ELEMENT pelem, void *data)
                     , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                     , pich->pmi->name->name
                     , pid_info->name
+                    );
+
+            fprintf(pich->pcmw->cFile
+                    , "\t(void) pfsm;\n"
                     );
 
             fprintf(pich->pcmw->cFile
@@ -3167,6 +3215,7 @@ static void defineSubMachineInhibitor(pCMachineData pcmw, pMACHINE_INFO pmi, cha
 
    ich.pcmw      = pcmw;
    ich.pmi       = pmi;
+   ich.counter   = 0;
 
    fprintf(pcmw->cFile
            , "\nstatic bool doNotInhibitSubMachines(%s_STATE s)\n{\n"
@@ -3183,12 +3232,20 @@ static void defineSubMachineInhibitor(pCMachineData pcmw, pMACHINE_INFO pmi, cha
                 );
 
    fprintf(pcmw->cFile
-           , "\t\t\treturn false;\n\n\t\tdefault:\n\t\t\treturn true;\n\t}\n"
+           , "\t\t\treturn false;\n%s\n\t}\n"
+           , ich.counter < pmi->state_list->count ? "\n\t\tdefault:\n\t\t\treturn true;" : ""
            );
 
    fprintf(pcmw->cFile
            , "}\n\n"
            );
+ 
+   if (pmi->submachine_inhibitor_count == pmi->state_list->count)
+   {
+      printf("warning: (%s) all states inhibit sub machines\n"
+             , pmi->name->name
+             );
+   }
 }
 
 void defineSubMachineFinder(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
@@ -3349,6 +3406,7 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 
    if (pevent->type_data.event_data.puser_event_data)
    {
+      pich->counter++;
       fprintf(pich->pcmw->cFile
               , "\tcase %s_%s:\n"
               , pich->pmi->name->name
@@ -3375,9 +3433,9 @@ void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
 {
    ITERATOR_CALLBACK_HELPER ich = {0};
 
-   ich.pcmw = pcmd;
-   ich.pmi  = pmi;
-   ich.cp   = cp;
+   ich.pcmw    = pcmd;
+   ich.pmi     = pmi;
+   ich.cp      = cp;
 
    fprintf(pcmd->cFile
            , "static void translateEventData(p%s_DATA pfsm_data,p%s_EVENT pevent)\n{\n"
@@ -3392,7 +3450,7 @@ void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi, char *cp)
    iterate_list(pmi->event_list, write_event_data_manager_switch_case, &ich);
 
    fprintf(pcmd->cFile
-           , "\t}\n\n}\n\n"
+           , "\tdefault:\n\t\tbreak;\n\t}\n\n}\n\n"
            );
 }
 
@@ -3427,6 +3485,7 @@ static bool write_state_entry_fn_switch_case(pLIST_ELEMENT pelem, void *data)
 
    if (pstate->type_data.state_data.state_flags & sfHasEntryFn)
    {
+      pich->counter++;
       fprintf(pich->pcmw->cFile
               , "\tcase %s_%s:\n\t\t%s_%s%s(%s);\n\t\tbreak;\n"
               , pich->pmi->name->name
@@ -3482,7 +3541,6 @@ void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char
    ich.pcmw = pcmd;
    ich.cp   = cp;
 
-
    if (pmi->states_with_entry_fns_count)
    {
       fprintf(pcmd->cFile
@@ -3495,9 +3553,12 @@ void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char
 
       iterate_list(pmi->state_list, write_state_entry_fn_switch_case, &ich);
 
-      fprintf(pcmd->cFile
-              , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
-              );
+      if (pmi->states_with_entry_fns_count < pmi->state_list->count)
+      {
+         fprintf(pcmd->cFile
+                 , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
+                 );
+      }
    }
    if (pmi->states_with_exit_fns_count)
    {
@@ -3511,9 +3572,12 @@ void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char
 
       iterate_list(pmi->state_list, write_state_exit_fn_switch_case, &ich);
 
-      fprintf(pcmd->cFile
-              , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
-              );
+      if (pmi->states_with_exit_fns_count < pmi->state_list->count)
+      {
+         fprintf(pcmd->cFile
+                 , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
+                 );
+      }
    }
 }
 

@@ -40,7 +40,7 @@
 #include "parser-test5.h"
 
 
-int main(int argc, char **argv)
+int main()
 {
 
    printf("hello, world\n");
@@ -61,36 +61,36 @@ int main(int argc, char **argv)
 
 }
 
-NEW_MACHINE_EVENT newMachine_a2(pNEW_MACHINE pfsm)
+NEW_MACHINE_EVENT newMachine_a2(pNEW_MACHINE ptfsm)
 {
-   (void) pfsm;
+   (void) ptfsm;
 
    DBG_PRINTF("newMachine_a2\n");
 
    return newMachine_noEvent;
 }
 
-NEW_MACHINE_EVENT newMachine_a1(pNEW_MACHINE pfsm)
+NEW_MACHINE_EVENT newMachine_a1(pNEW_MACHINE ptfsm)
 {
-   (void) pfsm;
+   (void) ptfsm;
 
    DBG_PRINTF("newMachine_a1\n");
 
    return newMachine_noEvent;
 }
 
-NEW_MACHINE_EVENT newMachine_noAction(pNEW_MACHINE pfsm)
+NEW_MACHINE_EVENT newMachine_noAction(pNEW_MACHINE ptfsm)
 {
-   (void) pfsm;
+   (void) ptfsm;
 
    DBG_PRINTF("newMachine_noAction\n");
 
    return newMachine_noEvent;
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE ptfsm, NEW_MACHINE_EVENT e)
 {
-   (void) pfsm;
+   (void) ptfsm;
 
    DBG_PRINTF("newMachine_TransitionFn\n");
 
@@ -101,10 +101,10 @@ NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e
 
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE ptfsm, NEW_MACHINE_EVENT e)
 {
    (void) e;
-   NEW_MACHINE_STATE s = pfsm->state;
+   NEW_MACHINE_STATE s = ptfsm->state;
 
    DBG_PRINTF("newMachine_TransitionFn1\n");
 

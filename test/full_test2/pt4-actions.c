@@ -40,7 +40,7 @@
 #include "parser-test4.h"
 
 
-int main(int argc, char **argv)
+int main()
 {
 
 	RUN_STATE_MACHINE(ptest4FSM,test4FSM_goodMessage);
@@ -55,6 +55,7 @@ int main(int argc, char **argv)
 
 TEST4_FSM_STATE test4FSM_processMessage(pTEST4_FSM ptfsm)
 {
+	(void) ptfsm;
 
 	printf("processing good message\n");
 
@@ -64,6 +65,7 @@ TEST4_FSM_STATE test4FSM_processMessage(pTEST4_FSM ptfsm)
 
 TEST4_FSM_STATE test4FSM_sendErrorIndication(pTEST4_FSM ptfsm)
 {
+	(void) ptfsm;
 
 	printf("sending error indication\n");
 
@@ -73,6 +75,7 @@ TEST4_FSM_STATE test4FSM_sendErrorIndication(pTEST4_FSM ptfsm)
 
 TEST4_FSM_STATE test4FSM_noAction(pTEST4_FSM ptfsm)
 {
+	(void) ptfsm;
 
 	printf("taking no action\n");
 

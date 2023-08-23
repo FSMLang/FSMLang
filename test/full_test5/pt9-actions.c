@@ -37,7 +37,7 @@ NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT 
    return newMachine_s1;
 }
 
-int main(int argc, char **argv)
+int main()
 {
    printf("hello, world\n");
 
