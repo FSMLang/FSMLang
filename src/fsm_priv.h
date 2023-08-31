@@ -57,6 +57,20 @@ typedef enum {
    , sfHasExitFn         = 4
 } STATE_FLAGS;
 
+typedef enum HORIZONTAL_PLACEMENT {
+   hp_none_given
+   , hp_left
+   , hp_center
+   , hp_right
+} HORIZONTAL_PLACEMENT;
+
+typedef enum VERTICAL_PLACEMENT {
+   vp_none_given
+   , vp_top
+   , vp_center
+   , vp_bottom
+} VERTICAL_PLACEMENT;
+
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
 
 typedef struct _id_info_				         ID_INFO,                 *pID_INFO;
@@ -310,20 +324,26 @@ void parser_debug_print_data_block(pLIST,FILE*);
 #endif
 
 /* general use data */
-extern char *me;	/* main will set this to the program name (argv[0]) */
-extern bool generate_instance;
-extern bool compact_action_array;
-extern bool generate_weak_fns;
-extern bool force_generation_of_event_passing_actions;
-extern bool core_logging_only;
-extern bool include_svg_img;
-extern bool short_dbg_names;
-extern bool add_machine_name;
-extern bool generate_run_function;
-extern bool add_event_cross_reference;
-extern pLIST pplantuml_prefix_strings_list;
-extern pLIST pplantuml_prefix_files_list;
-
+extern char                 *me;	/* main will set this to the program name (argv[0]) */
+extern bool                 generate_instance;
+extern bool                 compact_action_array;
+extern bool                 generate_weak_fns;
+extern bool                 force_generation_of_event_passing_actions;
+extern bool                 core_logging_only;
+extern bool                 include_svg_img;
+extern bool                 short_dbg_names;
+extern bool                 add_machine_name;
+extern bool                 generate_run_function;
+extern bool                 add_event_cross_reference;
+extern bool                 add_plantuml_title;
+extern bool                 add_plantuml_legend;
+extern bool                 exclude_events_from_plantuml_legend;
+extern bool                 exclude_states_from_plantuml_legend;
+extern bool                 exclude_actions_from_plantuml_legend;
+extern HORIZONTAL_PLACEMENT plantuml_legend_horizontal_placement;
+extern VERTICAL_PLACEMENT   plantuml_legend_vertical_placement;
+extern pLIST                pplantuml_prefix_strings_list;
+extern pLIST                pplantuml_prefix_files_list;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

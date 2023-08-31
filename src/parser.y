@@ -1932,6 +1932,11 @@ typedef enum {
  , lo_add_machine_name
  , lo_generate_run_function
  , lo_add_event_cross_reference
+ , lo_add_plantuml_title
+ , lo_add_plantuml_legend
+ , lo_exclude_states_from_plantuml_legend
+ , lo_exclude_events_from_plantuml_legend
+ , lo_exclude_actions_from_plantuml_legend
  , lo_add_plantuml_prefix_string
  , lo_add_plantuml_prefix_file
 } LONG_OPTIONS;
@@ -2005,6 +2010,36 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
         , .val     = lo_add_event_cross_reference
+    }
+    , {
+        .name      = "add-plantuml-title"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+        , .val     = lo_add_plantuml_title
+    }
+    , {
+        .name      = "add-plantuml-legend"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+        , .val     = lo_add_plantuml_legend
+    }
+    , {
+        .name      = "exclude-events-from-plantuml-legend"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+        , .val     = lo_exclude_events_from_plantuml_legend
+    }
+    , {
+        .name      = "exclude-states-from-plantuml-legend"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+        , .val     = lo_exclude_states_from_plantuml_legend
+    }
+    , {
+        .name      = "exclude-actions-from-plantuml-legend"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+        , .val     = lo_exclude_actions_from_plantuml_legend
     }
     , {
         .name      = "add-plantuml-prefix-string"
@@ -2089,10 +2124,70 @@ int main(int argc, char **argv)
                 if (!optarg || !strcmp(optarg,"true"))
                     generate_run_function = true;
                 break;
- 			     case lo_add_event_cross_reference:
- 					     if (!optarg || !strcmp(optarg,"true"))
- 						       add_event_cross_reference = true;
- 					     break;
+ 			   case lo_add_event_cross_reference:
+ 					 if (!optarg || !strcmp(optarg,"true"))
+ 						add_event_cross_reference = true;
+ 					 break;
+ 			   case lo_add_plantuml_title:
+ 					 if (!optarg || !strcmp(optarg,"true"))
+ 						add_plantuml_title = true;
+ 					 break;
+ 			   case lo_add_plantuml_legend:
+ 				   printf("adding plantuml legend: %s\n"
+ 									, optarg ? optarg : " with no arguments"
+ 									);
+ 					 if (!optarg)
+						 {
+ 					    add_plantuml_legend = true;
+						 }
+ 					 else
+						 {
+								 if (strstr(optarg, "top"))
+   						 {
+    					    add_plantuml_legend = true;
+    							plantuml_legend_vertical_placement = vp_top;
+   						 }
+								 if (strstr(optarg, "bottom"))
+   						 {
+    					    add_plantuml_legend = true;
+    							plantuml_legend_vertical_placement = vp_bottom;
+   						 }
+								 if (strstr(optarg, "center"))
+   						 {
+    					    add_plantuml_legend = true;
+    							plantuml_legend_horizontal_placement = hp_center;
+   						 }
+								 if (strstr(optarg, "left"))
+   						 {
+    					    add_plantuml_legend = true;
+    							plantuml_legend_horizontal_placement = hp_left;
+   						 }
+								 if (strstr(optarg, "right"))
+   						 {
+    					    add_plantuml_legend = true;
+    							plantuml_legend_horizontal_placement = hp_right;
+   						 }
+						 }
+
+ 					 if (!add_plantuml_legend)
+						 {
+ 							 yyerror("unrecognized legend placement option");
+ 							 usage();
+ 							 return (good);
+						 }
+ 					 break;
+ 			   case lo_exclude_events_from_plantuml_legend:
+ 					 if (!optarg || !strcmp(optarg,"true"))
+ 						exclude_events_from_plantuml_legend = true;
+ 					 break;
+ 			   case lo_exclude_states_from_plantuml_legend:
+ 					 if (!optarg || !strcmp(optarg,"true"))
+ 						exclude_states_from_plantuml_legend = true;
+ 					 break;
+ 			   case lo_exclude_actions_from_plantuml_legend:
+ 					 if (!optarg || !strcmp(optarg,"true"))
+ 						exclude_actions_from_plantuml_legend = true;
+ 					 break;
  					 case lo_add_plantuml_prefix_string:
  					     if (!pplantuml_prefix_strings_list)
  							    pplantuml_prefix_strings_list = init_list();
@@ -2272,17 +2367,27 @@ void usage(void)
 	fprintf(stdout,"\t-c will create a more compact event/state table when -tc is used\n");
 	fprintf(stdout,"\t\twith machines having actions which return states\n");
 	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
+	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of actions which pass events\n");
+ fprintf(stdout,"\t\twhen weak function generation is disabled..\n");
+ fprintf(stdout,"\t\tThe generated functions are not weak.\n");
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
- fprintf(stdout,"\t--generate-run-function<=true|false> enables or supresses the generation of a run function to replace the RUN_STATE_MACHINE machro.\n");
+ fprintf(stdout,"\t--generate-run-function<=true|false> enables or supresses the generation of a run\n");
+	fprintf(stdout,"\t\tfunction to replace the RUN_STATE_MACHINE machro.\n");
  fprintf(stdout,"\t\tThe default is to generate the macro; the option argument is optional, if not given, \"true\" is assumed.\n");
 	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
 	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
 	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
 	fprintf(stdout,"\t\tfor the content copy.\n");
-	fprintf(stdout,"\t--short-debug-names generates machine debug info without name prefix\n");
-	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of\n");
- fprintf(stdout,"\t\tsuch actions even when weak function generation is inhibited.\n");
- fprintf(stdout,"\t\tThe generated functions are not weak.\n");
+ fprintf(stdout,"\t--add-plantuml-title=<*true|false> adds the machine name as a title to the plantuml.\n");
+ fprintf(stdout,"\t--add-plantuml-legend=<*center|left|right|top|*bottm> adds a legend to the plantuml.\n");
+ fprintf(stdout,"\t\tCenter, bottom are the defaults.  Horizontal and vertial parameters can be added in a quoted string.\n");
+ fprintf(stdout,"\t\tCenter is a horizontal parameter.\n");
+ fprintf(stdout,"\t\tBy default, event, state, and action lists are included in the legend, and event descriptions are removed\n");
+ fprintf(stdout,"\t\tfrom the body of the diagram.\n");
+ fprintf(stdout,"\t--exclude-states-from-plantuml-legend=<*true|false> excludes state information from the plantuml legend.\n");
+ fprintf(stdout,"\t\tWhen excluded from legend, state comments are included in the diagram body.\n");
+ fprintf(stdout,"\t--exclude-events-from-plantuml-legend=<*true|false> excludes event information from the plantuml legend.\n");
+ fprintf(stdout,"\t--exclude-actions-from-plantuml-legend=<*true|false> excludes action information from the plantuml legend.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
  fprintf(stdout,"\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
