@@ -159,6 +159,7 @@ struct _iterator_helper_
    pMACHINE_INFO pmi;
    pMACHINE_INFO pparent;
    pID_INFO      pid;
+   pACTION_INFO  pai;
    bool          error;
    bool          first;
    char          *cp;
@@ -167,6 +168,7 @@ struct _iterator_helper_
    unsigned      *counter0;
    unsigned      *counter1;
    unsigned      tab_level;
+   bool          found;
 };
 
 
