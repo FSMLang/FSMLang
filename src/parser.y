@@ -2392,10 +2392,10 @@ void usage(void)
  fprintf(stdout,"\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
  fprintf(stdout,"\t\tto specifying \"true\"\n");
- fprintf(stdout,"\t--plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
+ fprintf(stdout,"\t--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
  fprintf(stdout,"\t\tany generated output.  This option can be specified multiple times; all text will be\n");
  fprintf(stdout,"\t\tadded in the order given");
- fprintf(stdout,"\t--plantuml-prefix-file=<text> will add the text in the specified file\n");
+ fprintf(stdout,"\t--add-plantuml-prefix-file=<text> will add the text in the specified file\n");
  fprintf(stdout,"\t\tto the plantuml output before any generated output.\n");
 	fprintf(stdout,"\t\tThis option can be specified multiple times; all text will be\n");
  fprintf(stdout,"\t\tadded in the order given");
