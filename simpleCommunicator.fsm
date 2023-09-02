@@ -11,26 +11,43 @@ machine simpleCommunicator {
 				ACK;
 
   /**
-   Transmit message to the peer.
+    Since we're idle, we can simply send the message.  Transitioning
+    to the AWAITING_ACK state ensures that any other messages
+    we're asked to send will be queued.
   */
 	action	sendMessage[SEND_MESSAGE,IDLE] transition AWAITING_ACK;
 
   /**
-   Place message into queue.
+    Since we're busy, we must queue the message for later
+    sending.  The queue will be checked when the ACK
+    is received.
   */
 	action	queueMessage[SEND_MESSAGE,AWAITING_ACK];
 
   /**
-   Check queue for messages; if found pop from queue and return SEND_MESSAGE.
-   If no message is found in the queue return noEvent.
+    We've received our ACK for the previous message.  It is 
+    time to check for any others.
   */
 	action	checkQueue[ACK,AWAITING_ACK] transition IDLE;
 
   /* these lines are informational; they affect the html output,
       but do not affect any code generated.
   */
+
+  /** queueMessage adds a message to the queue */
   queueMessage returns noEvent;
+
+  /** sendMessage sends a message from the queue.  The
+      message is expected to be there, since
+      checkQueue will have been previously called.
+  */
   sendMessage  returns noEvent;
+
+  /** checkQueue only checks; it does not dequeue; that
+      is done by sendMessage.
+
+      Return SEND_MESSAGE when the queue is not empty.
+  */
   checkQueue   returns SEND_MESSAGE, noEvent;
 
 }
