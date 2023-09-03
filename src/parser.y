@@ -2356,7 +2356,7 @@ void yyerror(char *s)
 void usage(void)
 {
 
-	fprintf(stdout,"Usage : %s [-tc|s|h|p] filename, where filename ends with '.fsm'\n",me);
+	fprintf(stdout,"Usage : %s [-tc|s|h|p] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
@@ -2366,6 +2366,9 @@ void usage(void)
 	fprintf(stdout,"\t\tthis is the default\n");
 	fprintf(stdout,"\t-c will create a more compact event/state table when -tc is used\n");
 	fprintf(stdout,"\t\twith machines having actions which return states\n");
+	fprintf(stdout,"\t-s prints some useful statistics and exits\n");
+	fprintf(stdout,"\t-o  <outfile> will use <outfile> as the filename for the top-level machine output.\n");
+	fprintf(stdout,"\t\tAny sub-machines will be put into files based on the sub-machine names.\n");
 	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
 	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of actions which pass events\n");
  fprintf(stdout,"\t\twhen weak function generation is disabled..\n");
