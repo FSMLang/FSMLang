@@ -2397,12 +2397,12 @@ void usage(void)
  fprintf(stdout,"\t\tto specifying \"true\"\n");
  fprintf(stdout,"\t--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
  fprintf(stdout,"\t\tany generated output.  This option can be specified multiple times; all text will be\n");
- fprintf(stdout,"\t\tadded in the order given");
+ fprintf(stdout,"\t\tadded in the order given\n");
+ fprintf(stdout,"\t\tfor the content copy.\n");
  fprintf(stdout,"\t--add-plantuml-prefix-file=<text> will add the text in the specified file\n");
  fprintf(stdout,"\t\tto the plantuml output before any generated output.\n");
 	fprintf(stdout,"\t\tThis option can be specified multiple times; all text will be\n");
- fprintf(stdout,"\t\tadded in the order given");
-	fprintf(stdout,"\t-v prints the version and exits\n");
+ fprintf(stdout,"\t\tadded in the order given\n");
  fprintf(stdout,"\t\tfor the content copy.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
