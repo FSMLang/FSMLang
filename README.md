@@ -1322,7 +1322,7 @@ There are irrelevant files at the top of the tree. Ignore them. (Identifying the
 [Top of page](#fsmlang)
 
 ## Command Syntax
-
+```
 Usage : fsm [-tc|s|h|p] [-o outfile] [-s] filename, where filename ends with '.fsm'
 	 and where 'c' gets you c code output based on an event/state table,
 	 's' gets you c code output with individual state functions using switch constructions,
@@ -1372,7 +1372,7 @@ Usage : fsm [-tc|s|h|p] [-o outfile] [-s] filename, where filename ends with '.f
 		added in the order given
 		for the content copy.
 	-v prints the version and exits
-
+```
 The default is to generate C code using an action table.
 
 [Top of page](#fsmlang)
