@@ -1,15 +1,17 @@
 # FSMLang
 
 - [FSMLang](#fsmlang)
-	- [Philosophy](#philosophy)
+- [Philosophy](#philosophy)
 	- [Example: Simple State Machine](#example-simple-state-machine)
 	- [Hierarchical](#hierarchical)
 	- [State Entry and Exit Functions](#state-entry-and-exit-functions)
- 	- [Event Data](#event-data)
-	- [Making the FSMLang Executable](#making-the-fsmlang-executable)
-	- [Command Syntax](#command-syntax)
-	- [Basic Language Syntax](#basic-language-syntax)
-	- [More examples](#more-examples)
+ - [Event Data](#event-data)
+- [Using the State Machine](#using-the-state-machine)
+- [Commenting](#commenting)
+- [Making the FSMLang Executable](#making-the-fsmlang-executable)
+- [Command Syntax](#command-syntax)
+- [Basic Language Syntax](#basic-language-syntax)
+- [More examples](#more-examples)
 
 
 ## Philosophy
@@ -1263,6 +1265,50 @@ In either case, the function arguments are first, a pointer to the machine struc
 
 [Top of page](#fsmlang)
 
+## Using the State Machine
+
+To use the state machine in C code, include the generated header file, and use the provided RUN_STATE_MACHINE macro to call the state machine function with the desired event. Unless prohibited on the FSMLang command line, the generated header file provides a pointer to an instance of the machine, p<machineName>. This is the first argument to the macro. The second is the event name as found in the machine's event enumeration.
+
+Using the Simple Communicator as an example, this line runs the machine with the ACK event:
+
+```c
+    RUN_STATE_MACHINE(psimpleCommunicator,simpleCommunicator_ACK);
+```
+
+This would be placed in the function which receives the message. Since such functions are often IRSs, it must be remembered that the machine is not reentrant. Invocations of the machine outside of this ISR context must be properly protected from this interrupt. The needed protection can be facilitated through the use of the reentrant keyword to modify the machine declaration. Or, it may be done by simply wraping the invocation with interrupt protection.
+
+With the 1.40 release, a function is provided which can be used to invoke the singleton state machine normally included in the generated code. The function is declared as
+
+```c
+    run_<machine_name>(<p><MACHINE_NAME>_EVENT);
+```
+
+For the simpleCommunicator, this would be:
+
+```c
+    run_simpleCommunicator(SIMPLE_COMMUNICATOR_EVENT);
+```
+
+[Top of page](#fsmlang)
+
+## Commenting
+
+As shown in the examples above, "document comments" can be added to the FSMLang file. In addition to illuminating the FSMLang file itself, these comments are used in the HTML and PLANTUML output. Release 1.40 brings a slight modification to how document comments are processed.
+
+The most visible change is that document comments appearing before action or transition matrices now adhere to the matrix. Formerly, such comments would adhere either to the action, or to the first event in the matrix, in the case of a transition only matrix. (This last circumstance was not really desireable, of course.) By adhering to the matrix, the comment addresses the involved event and state vectors (along with any associated transition), rather than the action. Previously, there was no way to make such a comment.
+
+With this change, the comments are now used differently in the HTML output, and used for the first time in the plantuml output.
+
+In the HTML, the comments are placed in the relevant cell of the event/state table. If the matrix is a cross-product of non-trivial event and state vectors, each cell in that product will contain the comment. If this is not desired, the vectors can be broken up into trivial vectors (*i.e.* individual event, state pairs), each being given the appropriate comment. 
+
+In the plantuml, these comments are used as notes *on link*, appearing next to the line linking two states by the transition.
+
+HTML formatting can be controlled by providing an alternate style sheet (*--css-content-filename=<filename> *).  To provide independence to the HTML output, the stylesheet can be included directly into the HTML document (*--css-content-internal=true*).
+
+The generated plantuml can be altered in several ways:  The machine name can be set as the diagram title ( *--add-plantuml-title=true*).  Strings may be given which will be placed after the opening @plantuml, but before any FSMLang generated content (*--add-plantuml-prefix-string=<text>*).  And, whole files can be named which will be similarly placed (*--add-plantuml-prefix-file=<filename>*).  The last two options can be used any number of times; the text or files will be added in the order given; but all strings will be added before any files.  Finally, *--add-plantuml-legend=true* will add a legend, which, by default, will contain the names and associated document commnents for all events, states, and, actions of the machine.  Any of these three may be excluded by *--exclude-[events|states|actions]-from-plantuml-legend=true*.
+
+[Top of page](#fsmlang)
+
 ## Making the FSMLang Executable
 
 The source is in a Git repository at https://github.com/FSMLang/FSMLang.
@@ -1276,22 +1322,56 @@ There are irrelevant files at the top of the tree. Ignore them. (Identifying the
 [Top of page](#fsmlang)
 
 ## Command Syntax
-```
-fsm [-tc|s|h] [-c] [-i0] [-v] [-h] [--generate-weak-functions=false|true] filename
-```
-, where filename ends with '.fsm'
 
-- -t: 'c' gets you C code output based on an event/state table, 's' gets you C code output with individual state functions using switch constructions, and 'h' gets you html output
-
-- -i0 inhibits the creation of a machine instance any other argument to 'i' allows the creation of an instance; this is the default
-- -c will create a more compact event/state table when -tc is used with machines having actions which return states
-- -v prints the version and exits
-- -h prints usage and exits
-- --generate-weak-fns=false suppresses the generation of weak action and other user functions. The default, true, is to generate such functions.
-- --include-svg-img=true adds  tag referencing .svg to include an image at the top of the web page.
-- --css-content-internal=true puts the CSS directly into the html.
-- --css-content-filename= uses the named file for the css citation, or for the content copy.
-- -v prints the version and exits
+Usage : fsm [-tc|s|h|p] [-o outfile] [-s] filename, where filename ends with '.fsm'
+	 and where 'c' gets you c code output based on an event/state table,
+	 's' gets you c code output with individual state functions using switch constructions,
+	 and 'h' gets you html output
+	 and 'p' gets you PlantUML output
+	-i0 inhibits the creation of a machine instance
+		any other argument to 'i' allows the creation of an instance;
+		this is the default
+	-c will create a more compact event/state table when -tc is used
+		with machines having actions which return states
+	-s prints some useful statistics and exits
+	-o  <outfile> will use <outfile> as the filename for the top-level machine output.
+		Any sub-machines will be put into files based on the sub-machine names.
+	--generate-weak-fns=false suppresses the generation of weak function stubs.
+	--force-generation-of-event-passing-actions forces the generation of actions which pass events
+		when weak function generation is disabled..
+		The generated functions are not weak.
+	--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.
+	--generate-run-function<=true|false> enables or supresses the generation of a run
+		function to replace the RUN_STATE_MACHINE machro.
+		The default is to generate the macro; the option argument is optional, if not given, "true" is assumed.
+	--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.
+	--css-content-internal=true puts the CSS directly into the html.
+	--css-content-filename=<filename> uses the named file for the css citation, or
+		for the content copy.
+	--add-plantuml-title=<*true|false> adds the machine name as a title to the plantuml.
+	--add-plantuml-legend=<*center|left|right|top|*bottm> adds a legend to the plantuml.
+		Center, bottom are the defaults.  Horizontal and vertial parameters can be added in a quoted string.
+		Center is a horizontal parameter.
+		By default, event, state, and action lists are included in the legend, and event descriptions are removed
+		from the body of the diagram.
+	--exclude-states-from-plantuml-legend=<*true|false> excludes state information from the plantuml legend.
+		When excluded from legend, state comments are included in the diagram body.
+	--exclude-events-from-plantuml-legend=<*true|false> excludes event information from the plantuml legend.
+	--exclude-actions-from-plantuml-legend=<*true|false> excludes action information from the plantuml legend.
+	--add-machine-name adds the machine name when using the --short-debug-names option
+	--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block
+		in front of the machine event enumeration. Omitting the optional argument is equivalent
+		to specifying "true"
+	--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before
+		any generated output.  This option can be specified multiple times; all text will be
+		added in the order given
+		for the content copy.
+	--add-plantuml-prefix-file=<text> will add the text in the specified file
+		to the plantuml output before any generated output.
+		This option can be specified multiple times; all text will be
+		added in the order given
+		for the content copy.
+	-v prints the version and exits
 
 The default is to generate C code using an action table.
 

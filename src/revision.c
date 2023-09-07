@@ -316,5 +316,25 @@
    Top-level events can now have associated data.
 */
 
-const char rev_string[] = "1.39";
+/*
+   Revision 1.40:
+ 
+   A run function is provided in addition to the RUN macro.
+ 
+   Arbitrary plantuml code can be added, either as individual strings or files that will
+   be copied, immediately after the opening @plantuml and before any FSMLang generated
+   code.
+ 
+   Titles and legends may now be requested in plantuml output.
+ 
+   In switch machines, states which have no transitions will not contain code to invoke
+   any "on transition" functions.
+ 
+   A "cross-reference" giving the value and names of the event enumeration as a comment
+   before the enumeration declaration may be requested.
+ 
+   State functions now return correct types when events have data.
+*/
+
+const char rev_string[] = "1.40";
 
