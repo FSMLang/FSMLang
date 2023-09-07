@@ -11,19 +11,18 @@ title sub1
 hide empty description
 
 legend top right
-Legend
+sub1
 
  sub machines are also easy 
 
 States
-|State|Comment|
-|state1| states are easy to comment |
-|state2||
+|  Name  |  Comment  |
+|  state1  |   states are easy to comment   |
+|  state2  |    |
 
 Actions
-|Event|Comment|
-|action1| last comment |
-|||
+|  Name  |  Comment  |
+|  action1  |   last comment   |
 
 end legend
 

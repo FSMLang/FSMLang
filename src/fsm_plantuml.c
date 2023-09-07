@@ -84,8 +84,8 @@ struct _fsm_puml_output_generator_
 
 struct _loop_back_event_
 {
-   int      e;
-   pID_INFO action;
+   pID_INFO     pevent;
+   pACTION_INFO pai;
 };
 
 FSMPlantUMLOutputGenerator PlantUMLMachineWriter = {
@@ -157,21 +157,27 @@ static bool print_loop_back_event(pLIST_ELEMENT pelem, void *data)
    pLOOP_BACK_EVENT            ple        = (pLOOP_BACK_EVENT) pelem->mbr;
    pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
 
-   pID_INFO pevent = eventPidByIndex(pfsmpumlog->pmd->pmi, ple->e);
-
    fprintf(pfsmpumlog->pmd->pumlFile
            ,"%s: %s"
-           , pevent->name
-           , ple->action ? ple->action->name : ""
+           , ple->pevent->name
+           , ple->pai->action ? ple->pai->action->name : ""
            );
 
-   if (pevent->type_data.event_data.psharing_sub_machines)
+   if (ple->pai->docCmnt)
+   {
+      fprintf(pfsmpumlog->pmd->pumlFile
+              , "\n%s\n"
+              , ple->pai->docCmnt
+              );
+   }
+
+   if (ple->pevent->type_data.event_data.psharing_sub_machines)
    {
       fprintf(pfsmpumlog->pmd->pumlFile
               , "\nShared with:\n"
               );
 
-      iterate_list(pevent->type_data.event_data.psharing_sub_machines
+      iterate_list(ple->pevent->type_data.event_data.psharing_sub_machines
                    , print_sharing_machines_in_note
                    , pfsmpumlog
                    );
@@ -309,14 +315,17 @@ static bool print_transition_options(pLIST_ELEMENT pelem, void *data)
 
 static bool print_list_for_legend(pLIST_ELEMENT pelem, void *data)
 {
-   pID_INFO state                         = ((pID_INFO) pelem->mbr);
+   pID_INFO pid                           = ((pID_INFO) pelem->mbr);
    pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
 
-   fprintf(pfsmpumlog->pmd->pumlFile
-           ,"|%s|%s|\n"
-           , state->name
-           , state->docCmnt ? state->docCmnt : ""
-           );
+   if (pid->name && strlen(pid->name))
+   {
+      fprintf(pfsmpumlog->pmd->pumlFile
+              ,"|  %s  |  %s  |\n"
+              , pid->name
+              , pid->docCmnt ? pid->docCmnt : ""
+              );
+   }
   
   return false;
   
@@ -345,16 +354,19 @@ static void writeLegend(pFSMPlantUMLOutputGenerator pfsmpumlog)
            );
 
    fprintf(pfsmpumlog->pmd->pumlFile
-           ,"Legend\n\n%s\n"
+           ,"%s\n\n%s\n"
+           , pfsmpumlog->pmd->pmi->name->name
            , pfsmpumlog->pmd->pmi->name->docCmnt
              ? pfsmpumlog->pmd->pmi->name->docCmnt
              : ""
           );
 
+   static char *table_hdr = "\n%s\n|  Name  |  Comment  |\n";
    if (!exclude_states_from_plantuml_legend)
    {
       fprintf(pfsmpumlog->pmd->pumlFile
-              , "\nStates\n|State|Comment|\n"
+              , table_hdr
+              , "States"
              );
 
       iterate_list(pfsmpumlog->pmd->pmi->state_list
@@ -366,7 +378,8 @@ static void writeLegend(pFSMPlantUMLOutputGenerator pfsmpumlog)
    if (!exclude_events_from_plantuml_legend)
    {
       fprintf(pfsmpumlog->pmd->pumlFile
-              , "\nEvents\n|Event|Comment|\n"
+              , table_hdr
+              , "Events"
              );
 
       iterate_list(pfsmpumlog->pmd->pmi->event_list
@@ -378,7 +391,8 @@ static void writeLegend(pFSMPlantUMLOutputGenerator pfsmpumlog)
    if (!exclude_actions_from_plantuml_legend)
    {
       fprintf(pfsmpumlog->pmd->pumlFile
-              , "\nActions\n|Event|Comment|\n"
+              , table_hdr
+              , "Actions"
              );
 
       iterate_list(pfsmpumlog->pmd->pmi->action_list
@@ -511,12 +525,10 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
      pLIST loopBackEvents = init_list();
 
 			for (e = 0; e < pmi->event_list->count; e++) {
+            pai = pmi->actionArray[e][s];
 
-        if (
-            pmi->actionArray[e][s]
-            )
+        if (pai)
         {
-           pai = pmi->actionArray[e][s];
            pevent = eventPidByIndex(pmi, e);
 
            if (pai->transition)
@@ -529,7 +541,7 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                            ? "%s --> %s : **Event:** (%s::) %s\\n**Action:** %s"
                            : "%s --> %s : **Event:** %s%s\\n**Action:** %s"
                          , stateNameByIndex(pmi, s)
-                         , pmi->actionArray[e][s]->transition->name
+                         , pai->transition->name
                          , pevent->type_data.event_data.shared_with_parent
                            ? pmi->parent->name->name
                            : ""
@@ -573,19 +585,19 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                  /* first, declare the choice */
                  fprintf(pfsmpumlog->pmd->pumlFile
                          , "state %s <<choice>>\n"
-                         , pmi->actionArray[e][s]->transition->name
+                         , pai->transition->name
                          );
 
                  /* then the state that transitions via the choice */
                  fprintf(pfsmpumlog->pmd->pumlFile
                          , "%s --> %s : **Event:** %s\\n**Action:** %s\\n**Choice:** %s\n"
                          , stateNameByIndex(pmi, s)
-                         , pmi->actionArray[e][s]->transition->name
+                         , pai->transition->name
                          , eventNameByIndex(pmi, e)
-                         , pmi->actionArray[e][s]->action
-                             ? pmi->actionArray[e][s]->action->name
+                         , pai->action
+                             ? pai->action->name
                              : ""
-                         , pmi->actionArray[e][s]->transition->name
+                         , pai->transition->name
                          );
 
                  if (pai->transition->transition_fn_returns_decl)
@@ -615,8 +627,8 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
               */
               pLOOP_BACK_EVENT plbe = malloc(sizeof(LOOP_BACK_EVENT));
 
-              plbe->e      = e;
-              plbe->action = pai->action;
+              plbe->pevent = pevent;
+              plbe->pai    = pai;
 
               add_to_list(loopBackEvents, plbe);
            }
@@ -631,7 +643,9 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
          //do nothing
          break;
       case 1:
-         pevent = eventPidByIndex(pmi, ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->e);
+         pevent = ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->pevent;
+         pai    = ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->pai;
+
          fprintf(pfsmpumlog->pmd->pumlFile
                  , pevent->type_data.event_data.shared_with_parent
                    ? "%s --> %s : **Event:** (%s::) %s\\n**Action:** %s\n"
@@ -642,10 +656,18 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                    ? pmi->parent->name->name
                    : ""
                  , pevent->name
-                 , ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->action
-                     ? ((pLOOP_BACK_EVENT)loopBackEvents->head->mbr)->action->name
+                 , pai->action
+                     ? pai->action->name
                      : "noAction"
                  );
+
+         if (pai->docCmnt)
+         {
+            fprintf(pfsmpumlog->pmd->pumlFile
+                    , "\nnote on link\n%send note\n"
+                    , pai->docCmnt
+                   );
+         }
          break;
       default:
          fprintf(pfsmpumlog->pmd->pumlFile
