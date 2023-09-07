@@ -5,7 +5,7 @@
 	- [Example: Simple State Machine](#example-simple-state-machine)
 	- [Hierarchical](#hierarchical)
 	- [State Entry and Exit Functions](#state-entry-and-exit-functions)
- - [Event Data](#event-data)
+ 	- [Event Data](#event-data)
 - [Using the State Machine](#using-the-state-machine)
 - [Commenting](#commenting)
 - [Making the FSMLang Executable](#making-the-fsmlang-executable)
