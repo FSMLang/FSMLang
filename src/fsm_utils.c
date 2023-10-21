@@ -61,8 +61,30 @@ struct _action_array_population_helper_
    bool          error;
 };
 
+
+static void recursePrintAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE);
+static bool print_transition_info(pLIST_ELEMENT,void*);
+static bool print_full_action_info(pLIST_ELEMENT,void*);
+static bool print_pid_name(pLIST_ELEMENT,void*);
+static bool print_event_id_info(pLIST_ELEMENT,void*);
+static bool print_sharing_sub_machine(pLIST_ELEMENT,void*);
+static bool print_state_id_info(pLIST_ELEMENT,void*);
+static void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
+static bool write_machine(pLIST_ELEMENT,void*);
+static bool count_entry_and_exit_handlers(pLIST_ELEMENT,void*);
+static bool count_data_xlate(pLIST_ELEMENT,void*);
+static bool count_shared_evts(pLIST_ELEMENT,void*);
+static bool count_parent_event_refs(pLIST_ELEMENT,void*);
+static bool count_inhibitors(pLIST_ELEMENT,void*);
+static bool count_external(pLIST_ELEMENT,void*);
+static bool enumerate_pid(pLIST_ELEMENT,void*);
+static bool process_action_info(pLIST_ELEMENT,void*);
+static bool iterate_matrix_states(pLIST_ELEMENT,void*);
+static bool add_to_action_array(pLIST_ELEMENT,void*);
+static bool find_id_by_name(pLIST_ELEMENT,void*);
+
 /* the general use data */
-char	*me = "I don't know who I am, but I'm";
+char  *me = "I don't know who I am, but I'm";
 bool  generate_instance                         = true;
 bool  compact_action_array                      = false;
 bool  short_dbg_names                           = false;
@@ -313,6 +335,12 @@ char *hungarianToUnderbarCaps(char *str)
 		consecutive = 0;
 		for (cp1 = str, cp2 = cp; *cp1; cp1++) {
 
+			//skip leading underscores
+			if (*cp1 == '_')
+			{
+				continue;
+			}
+
 			//deal with the escapes first
 			if (*cp1 == '\\') {
 				*cp2++ = '_';
@@ -347,6 +375,58 @@ char *hungarianToUnderbarCaps(char *str)
 	}
 
 	return cp;
+
+}
+
+/**
+ *  streamHungarianToUnderbarCaps
+ *
+ *  Behaves similarly to hungarianToUnderbarCaps, but writes
+ *  the ouput to the given stream.
+*/
+void streamHungarianToUnderbarCaps(FILE *fout, char *str)
+{
+
+	int 	consecutive;
+	char	*cp;
+
+	consecutive = 0;
+	for (cp = str; *cp; cp++) {
+
+		//don't output leading underscores
+		if (cp == str && *cp == '_')
+		{
+			continue;
+		}
+
+		//deal with the escapes first
+		if (*cp == '\\')
+		{
+			fputc('_',fout);
+			continue;
+		}
+
+		if (
+          !(*cp & 0x20)
+          && (*cp != '_')
+          )
+      {
+
+			if (!consecutive) {
+
+				fputc('_',fout);
+				consecutive = 1;
+
+			}
+
+		}
+		else
+
+			consecutive = 0;
+
+		fputc((isalpha(*cp) ? toupper(*cp) : *cp), fout);
+
+	}
 
 }
 
@@ -449,6 +529,7 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
 
    return paaph->error;
 }
+
 static bool process_action_info(pLIST_ELEMENT pelem, void *data)
 {
    pACTION_ARRAY_POPULATION_HELPER paaph = (pACTION_ARRAY_POPULATION_HELPER) data;
@@ -729,6 +810,7 @@ static bool count_parent_event_refs(pLIST_ELEMENT pelem, void *data)
    }
    return false;
 }
+
 static bool count_shared_evts(pLIST_ELEMENT pelem, void *data)
 {
    if (((pID_INFO)pelem->mbr)->type_data.event_data.shared_with_parent)
@@ -737,6 +819,7 @@ static bool count_shared_evts(pLIST_ELEMENT pelem, void *data)
    }
    return false;
 }
+
 static bool count_data_xlate(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO pevent      = (pID_INFO)pelem->mbr;
@@ -1028,23 +1111,45 @@ int copyFileContents(const FILE *fDest, const char *src)
     return ferror(fSrc) + ferror((FILE*)fDest);
 }
 
-void printAncestry(pMACHINE_INFO pmi, FILE *fout)
+static void streamStrCaseAware(FILE *fout, char *str, ANCESTRY_LETTER_CASE alc)
 {
-   if (!pmi->parent)
+	if (alc == alc_upper)
+	{
+		streamHungarianToUnderbarCaps(fout, str);
+	}
+	else
+	{
+		fputs(str, fout);
+	}
+}
+
+static void recursePrintAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc)
+{
+   if (pmi->parent)
    {
-      fprintf(fout
-              , "%s"
-              , pmi->name->name
-              );
+	   recursePrintAncestry(pmi->parent, fout, separator, alc);
+	   fputs(separator, fout);
+	   streamStrCaseAware(fout, pmi->name->name, alc);
    }
    else
    {
-      printAncestry(pmi->parent, fout);
-      fprintf(fout
-              , "::%s"
-              , pmi->name->name
-              );
+	   streamStrCaseAware(fout, pmi->name->name, alc);
    }
+
+}
+
+void printAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUDE_SELF ais)
+{
+	if (pmi->parent)
+	{
+		recursePrintAncestry(pmi->parent,fout,separator,alc);
+	}
+
+	if (ais == ais_include_self)
+	{
+		fputs(separator, fout);
+		streamStrCaseAware(fout, pmi->name->name, alc);
+	}
 }
 
 bool print_data_field(pLIST_ELEMENT pelem, void *data)

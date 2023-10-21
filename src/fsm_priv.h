@@ -38,7 +38,7 @@
 
 #include "list.h"
 
-/*
+/**
 	These flags track the modifiers
 		of "machine" and also the action return specifiers.
 */
@@ -70,6 +70,23 @@ typedef enum VERTICAL_PLACEMENT {
    , vp_center
    , vp_bottom
 } VERTICAL_PLACEMENT;
+
+/**
+ * Set tbe letter case for outputting
+ * ancestry.
+ * 
+ * @author sstan (10/20/2023)
+ */
+typedef enum ANCESTRY_LETTER_CASE {
+	alc_upper
+	, alc_lower
+} ANCESTRY_LETTER_CASE;
+
+typedef enum ANCESTRY_INCLUDE_SELF
+{
+	ais_include_self
+	, ais_omit_self
+} ANCESTRY_INCLUDE_SELF;
 
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
 
@@ -293,6 +310,7 @@ void freeMachineInfo(pMACHINE_INFO);
 FILE *openFile(char *, char *);
 char *createFileName(char *,char *);
 char *hungarianToUnderbarCaps(char *);
+void streamHungarianToUnderbarCaps(FILE*,char *);
 char *eventNameByIndex(pMACHINE_INFO,int);
 pID_INFO eventPidByIndex(pMACHINE_INFO,int);
 char *stateNameByIndex(pMACHINE_INFO,int);
@@ -310,7 +328,7 @@ void count_states_with_entry_exit_fns(pLIST,unsigned*,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
-void printAncestry(pMACHINE_INFO,FILE*);
+void printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUDE_SELF);
 void print_tab_levels(FILE*,unsigned);
 
 #ifdef PARSER_DEBUG

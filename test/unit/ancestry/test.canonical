@@ -1,0 +1,11 @@
+./test: hello, world
+FOO_BAR
+FOO_BAR
+FOO_BAR
+FOO__BAR
+FOO_BAR_
+FOO_BAR
+grandParent_child
+grandParent_child_grandChild
+GRAND_PARENT_CHILD_GRAND_CHILD
+GRAND_PARENT_CHILD

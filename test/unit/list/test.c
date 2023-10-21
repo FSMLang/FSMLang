@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "unit_test.h"
+
 #include "list.h"
 #include "fsm_priv.h"
 
@@ -15,8 +17,6 @@ struct _comparitor_helper_
 
 bool comparitor         (pLIST_ELEMENT,void*);
 bool print_id_info_name (pLIST_ELEMENT,void*);
-
-typedef bool (*TEST_FN)(void);
 
 bool add_to_list_test(void);
 bool join_lists      (void);
