@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 
-_FLASH_DRIVER_EVENT FlashDriver_addToQueue(p_FLASH_DRIVER pfsm)
+FLASH_DRIVER_EVENT FlashDriver_addToQueue(pFLASH_DRIVER pfsm)
 {
 	(void) pfsm;
 
@@ -14,7 +14,7 @@ _FLASH_DRIVER_EVENT FlashDriver_addToQueue(p_FLASH_DRIVER pfsm)
    return FlashDriver_noEvent;
 }
 
-_FLASH_DRIVER_EVENT FlashDriver_checkQueue(p_FLASH_DRIVER pfsm)
+FLASH_DRIVER_EVENT FlashDriver_checkQueue(pFLASH_DRIVER pfsm)
 {
 	(void) pfsm;
 
@@ -23,7 +23,7 @@ _FLASH_DRIVER_EVENT FlashDriver_checkQueue(p_FLASH_DRIVER pfsm)
    return FlashDriver_noEvent;
 }
 
-_FLASH_DRIVER_EVENT FlashDriver_eraseFlash(p_FLASH_DRIVER pfsm)
+FLASH_DRIVER_EVENT FlashDriver_eraseFlash(pFLASH_DRIVER pfsm)
 {
 	(void) pfsm;
 
@@ -32,7 +32,7 @@ _FLASH_DRIVER_EVENT FlashDriver_eraseFlash(p_FLASH_DRIVER pfsm)
    return FlashDriver_noEvent;
 }
 
-_FLASH_DRIVER_EVENT FlashDriver_writeFlash(p_FLASH_DRIVER pfsm)
+FLASH_DRIVER_EVENT FlashDriver_writeFlash(pFLASH_DRIVER pfsm)
 {
 	(void) pfsm;
 
@@ -41,7 +41,7 @@ _FLASH_DRIVER_EVENT FlashDriver_writeFlash(p_FLASH_DRIVER pfsm)
    return FlashDriver_noEvent;
 }
 
-_FLASH_DRIVER_EVENT FlashDriver_checkFlashState(p_FLASH_DRIVER pfsm)
+FLASH_DRIVER_EVENT FlashDriver_checkFlashState(pFLASH_DRIVER pfsm)
 {
 	(void) pfsm;
 
@@ -50,7 +50,7 @@ _FLASH_DRIVER_EVENT FlashDriver_checkFlashState(p_FLASH_DRIVER pfsm)
    return FlashDriver_noEvent;
 }
 
-_FLASH_DRIVER_EVENT FlashDriver_noAction(p_FLASH_DRIVER pfsm)
+FLASH_DRIVER_EVENT FlashDriver_noAction(pFLASH_DRIVER pfsm)
 {
 	(void) pfsm;
 

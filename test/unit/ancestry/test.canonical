@@ -1,5 +1,5 @@
 ./test: hello, world
-FOO_BAR
+_FOO_BAR
 FOO_BAR
 FOO_BAR
 FOO__BAR

@@ -63,12 +63,6 @@ struct _action_array_population_helper_
 
 
 static void recursePrintAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE);
-static bool print_transition_info(pLIST_ELEMENT,void*);
-static bool print_full_action_info(pLIST_ELEMENT,void*);
-static bool print_pid_name(pLIST_ELEMENT,void*);
-static bool print_event_id_info(pLIST_ELEMENT,void*);
-static bool print_sharing_sub_machine(pLIST_ELEMENT,void*);
-static bool print_state_id_info(pLIST_ELEMENT,void*);
 static void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
 static bool write_machine(pLIST_ELEMENT,void*);
 static bool count_entry_and_exit_handlers(pLIST_ELEMENT,void*);
@@ -82,6 +76,14 @@ static bool process_action_info(pLIST_ELEMENT,void*);
 static bool iterate_matrix_states(pLIST_ELEMENT,void*);
 static bool add_to_action_array(pLIST_ELEMENT,void*);
 static bool find_id_by_name(pLIST_ELEMENT,void*);
+#ifdef PARSER_DEBUG
+static bool print_state_id_info(pLIST_ELEMENT,void*);
+static bool print_transition_info(pLIST_ELEMENT,void*);
+static bool print_full_action_info(pLIST_ELEMENT,void*);
+static bool print_pid_name(pLIST_ELEMENT,void*);
+static bool print_event_id_info(pLIST_ELEMENT,void*);
+static bool print_sharing_sub_machine(pLIST_ELEMENT,void*);
+#endif
 
 /* the general use data */
 char  *me = "I don't know who I am, but I'm";
@@ -335,12 +337,6 @@ char *hungarianToUnderbarCaps(char *str)
 		consecutive = 0;
 		for (cp1 = str, cp2 = cp; *cp1; cp1++) {
 
-			//skip leading underscores
-			if (*cp1 == '_')
-			{
-				continue;
-			}
-
 			//deal with the escapes first
 			if (*cp1 == '\\') {
 				*cp2++ = '_';
@@ -350,6 +346,7 @@ char *hungarianToUnderbarCaps(char *str)
 			if (
           !(*cp1 & 0x20)
           && (*cp1 != '_')
+		  && (cp1 != str)
           )
       {
 
@@ -393,12 +390,6 @@ void streamHungarianToUnderbarCaps(FILE *fout, char *str)
 	consecutive = 0;
 	for (cp = str; *cp; cp++) {
 
-		//don't output leading underscores
-		if (cp == str && *cp == '_')
-		{
-			continue;
-		}
-
 		//deal with the escapes first
 		if (*cp == '\\')
 		{
@@ -409,6 +400,7 @@ void streamHungarianToUnderbarCaps(FILE *fout, char *str)
 		if (
           !(*cp & 0x20)
           && (*cp != '_')
+		  && (cp != str)
           )
       {
 

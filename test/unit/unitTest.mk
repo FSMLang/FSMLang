@@ -4,7 +4,7 @@ ifdef OUTPUT_DIR
 include $(OUTPUT_DIR)/system.mk
 endif
 
-TARGET?=runtest
+TARGET ?= runtest
 
 override CFLAGS += -I../ -I../../../src -DARCH=$(ARCH)
 
@@ -15,13 +15,14 @@ OBJ=$(SRC:.c=.o)
 all: $(TARGET)
 
 clean:
-	-@rm -f $(OBJ) test test.out test.result
+	-@rm -f $(OBJ) test test.out test.result *.d
 
 test: $(OBJ)
 	gcc -o $@ $(OBJ)
 
 runtest: test
-	./test
+	./test > test.out
+	rm test.out
 
 diff_canonical: test
 	./test > test.out
