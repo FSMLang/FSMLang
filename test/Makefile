@@ -3,7 +3,8 @@
 #
 #
  
-SUITES= $(shell find . -maxdepth 1 -type d -printf "%P ")
+SUITES = lexer parser unit
+SUITES += $(shell find . -maxdepth 1 -type d -name "full_test*" -printf "%P ")
 
 CLEAN_SUITES=$(addsuffix .clean, $(SUITES))
 
@@ -19,3 +20,5 @@ $(SUITES):
 $(CLEAN_SUITES):
 	$(MAKE) -C $(basename $@) clean
 
+check:
+	@echo $(SUITES)

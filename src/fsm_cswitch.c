@@ -102,6 +102,7 @@ FSMCSubMachineOutputGenerator CSwitchSubMachineWriter = {
 
 pFSMOutputGenerator pCSwitchMachineWriter    = (pFSMOutputGenerator) &CSwitchMachineWriter;
 pFSMOutputGenerator pCSwitchSubMachineWriter = (pFSMOutputGenerator) &CSwitchSubMachineWriter;
+static pFSMOutputGenerator generateCSwitchSubMachineWriter(void);
 
 /**
   This function writes the ActionsReturnState Switch FSM
@@ -204,8 +205,7 @@ static void writeCSwitchMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
    if (pmi->machine_list)
    {
-      CSwitchSubMachineWriter.parent_fsmcog = pfsmcog;
-      write_machines(pmi->machine_list, pCSwitchSubMachineWriter);
+      write_machines(pmi->machine_list, generateCSwitchSubMachineWriter);
    }
 }
 
@@ -2012,5 +2012,18 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi, char *c
    }
 
    CHECK_AND_FREE(local_cp);
+}
+
+static pFSMOutputGenerator generateCSwitchSubMachineWriter()
+{
+	pFSMCSubMachineOutputGenerator pfsmcswitchog = calloc(1, sizeof(FSMCSubMachineOutputGenerator));
+
+	pfsmcswitchog->fsmog.writeMachine = writeCSwitchSubMachine;
+	pfsmcswitchog->fsmog.initOutput   = initCSubMachine;
+	pfsmcswitchog->fsmog.closeOutput  = closeCMachine;
+
+	pfsmcswitchog->parent_fsmcog = &CSwitchMachineWriter;
+
+	return (pFSMOutputGenerator) pfsmcswitchog;
 }
 

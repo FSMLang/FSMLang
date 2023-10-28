@@ -96,6 +96,7 @@ bool  generate_run_function                     = false;
 bool  add_event_cross_reference                 = false;
 pLIST pplantuml_prefix_strings_list             = NULL;
 pLIST pplantuml_prefix_files_list               = NULL;
+bool  output_generated_file_names_only          = false;
 
 void print_tab_levels(FILE *output, unsigned levels)
 {
@@ -942,12 +943,17 @@ char *getFileNameNoDir(const char *path)
  ***********************************************************************************************************************/
 static bool write_machine(pLIST_ELEMENT pelem, void *data)
 {
-   pFSMOutputGenerator pfsmog = (pFSMOutputGenerator) data;
-   pMACHINE_INFO       pmi    = (pMACHINE_INFO) pelem->mbr;
+	pFSMOutputGenerator pfsmog = ((pFSMOutputGeneratorGenerator)data)->FSMOGGenerator();
+   pMACHINE_INFO        pmi    = (pMACHINE_INFO) pelem->mbr;
 
-   (*pfsmog->initOutput)(pfsmog, pmi->name->name);
-   (*pfsmog->writeMachine)(pfsmog, pmi);
-   (*pfsmog->closeOutput)(pfsmog,1);
+   if (pfsmog)
+   {
+	   pfsmog->initOutput(pfsmog, pmi->name->name);
+	   pfsmog->writeMachine(pfsmog, pmi);
+	   pfsmog->closeOutput(pfsmog,1);
+
+	   free(pfsmog);
+   }
 
    return false;
 }
@@ -971,9 +977,12 @@ static bool write_machine(pLIST_ELEMENT pelem, void *data)
  * Require a valid list of pointers to valid MACHINE_INFO structure and a pointer to a valid FSMOutputGenerator.
  * Use the output generator to write each member of the list.
  ***********************************************************************************************************************/
-void write_machines(pLIST plist, pFSMOutputGenerator pfsmog)
+void write_machines(pLIST plist, fpFSMOutputGeneratorGenerator fpfsmogg)
 {
-   iterate_list(plist, write_machine, pfsmog);
+   FSMOutputGeneratorGenerator fsmogg;
+   fsmogg.FSMOGGenerator = fpfsmogg;
+
+   iterate_list(plist, write_machine, &fsmogg);
 }
 
 bool print_machine_component(pLIST_ELEMENT pelem, void *data)

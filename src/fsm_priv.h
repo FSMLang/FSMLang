@@ -362,6 +362,7 @@ extern HORIZONTAL_PLACEMENT plantuml_legend_horizontal_placement;
 extern VERTICAL_PLACEMENT   plantuml_legend_vertical_placement;
 extern pLIST                pplantuml_prefix_strings_list;
 extern pLIST                pplantuml_prefix_files_list;
+extern bool                 output_generated_file_names_only;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 
@@ -383,22 +384,30 @@ extern pLIST                pplantuml_prefix_files_list;
 	Only one instance of an output device will be run at a time.
 */
 
-typedef struct _fsm_output_generator_      FSMOutputGenerator, *pFSMOutputGenerator;
+typedef struct _fsm_output_generator_           FSMOutputGenerator, *pFSMOutputGenerator;
+typedef struct _fsm_output_generator_generator_ FSMOutputGeneratorGenerator, *pFSMOutputGeneratorGenerator;
 
-typedef int (*InitOutput)(pFSMOutputGenerator,char *);
-typedef void (*WriteMachine)(pFSMOutputGenerator,pMACHINE_INFO);
-typedef void (*CloseOutput)(pFSMOutputGenerator,int);
+typedef int (*fpInitOutput)(pFSMOutputGenerator,char *);
+typedef void (*fpWriteMachine)(pFSMOutputGenerator,pMACHINE_INFO);
+typedef void (*fpCloseOutput)(pFSMOutputGenerator,int);
+
+typedef pFSMOutputGenerator (*fpFSMOutputGeneratorGenerator)(void);
 
 struct _fsm_output_generator_
 {
-	InitOutput		initOutput;
-	WriteMachine	writeMachine;
-	CloseOutput		closeOutput;
+	fpInitOutput	initOutput;
+	fpWriteMachine	writeMachine;
+	fpCloseOutput	closeOutput;
+};
+
+struct _fsm_output_generator_generator_
+{
+	fpFSMOutputGeneratorGenerator FSMOGGenerator;
 };
 
 extern void yyerror(char*);
 
-void write_machines(pLIST, pFSMOutputGenerator);
+void write_machines(pLIST,fpFSMOutputGeneratorGenerator);
 bool print_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component_name(pLIST_ELEMENT,void*);

@@ -124,6 +124,7 @@ const char * const vertical_placement_strs[] =
 
 pFSMOutputGenerator pPlantUMLMachineWriter    = (pFSMOutputGenerator) &PlantUMLMachineWriter;
 pFSMOutputGenerator pPlantUMLSubMachineWriter = (pFSMOutputGenerator) &PlantUMLSubMachineWriter;
+static pFSMOutputGenerator generatePlantUMLMachineWriter(void);
 
 /* list iteration callbacks */
 static bool print_sharing_machines(pLIST_ELEMENT pelem, void *data)
@@ -689,7 +690,7 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	
   if (pmi->machine_list)
   {
-     write_machines(pmi->machine_list, pPlantUMLSubMachineWriter);
+     write_machines(pmi->machine_list, generatePlantUMLMachineWriter);
   }
 
 }
@@ -714,5 +715,16 @@ void closePlantUMLWriter(pFSMOutputGenerator pfsmog, int good)
 
 	CHECK_AND_FREE(pfsmpumlog->pmd->pumlName);
 
+}
+
+static pFSMOutputGenerator generatePlantUMLMachineWriter()
+{
+	pFSMPlantUMLOutputGenerator pfsmhtmlog = calloc(1, sizeof(FSMPlantUMLOutputGenerator));
+
+	pfsmhtmlog->fsmog.writeMachine = writePlantUMLWriter;
+	pfsmhtmlog->fsmog.initOutput   = initPlantUMLWriter;
+	pfsmhtmlog->fsmog.closeOutput  = closePlantUMLWriter;
+
+	return (pFSMOutputGenerator) pfsmhtmlog;
 }
 

@@ -83,6 +83,7 @@ FSMCSubMachineOutputGenerator CSubMachineWriter = {
 
 pFSMOutputGenerator pCMachineWriter       = (pFSMOutputGenerator) &CMachineWriter;
 pFSMOutputGenerator pCSubMachineWriter    = (pFSMOutputGenerator) &CSubMachineWriter;
+static pFSMOutputGenerator generateCSubMachineWriter(void);
 
 /* list iteration callbacks */
 
@@ -401,8 +402,7 @@ static void writeCMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
    if (pmi->machine_list)
    {
-      CSubMachineWriter.parent_fsmcog = pfsmcog;
-      write_machines(pmi->machine_list, pCSubMachineWriter);
+      write_machines(pmi->machine_list, generateCSubMachineWriter);
    }
 
 }
@@ -1613,6 +1613,19 @@ static void defineCSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
    else if (pmi->modFlags & mfActionsReturnStates) writeActionsReturnStateFSM(pcmw, pmi, cp);
    else                                            writeOriginalSubFSM(pcmw, pmi, cp);
 
+}
+
+static pFSMOutputGenerator generateCSubMachineWriter()
+{
+	pFSMCSubMachineOutputGenerator pfsmcsmog = calloc(1, sizeof(FSMCSubMachineOutputGenerator));
+
+	pfsmcsmog->fsmog.writeMachine = writeCSubMachine;
+	pfsmcsmog->fsmog.initOutput   = initCSubMachine;
+	pfsmcsmog->fsmog.closeOutput  = closeCMachine;
+
+	pfsmcsmog->parent_fsmcog = &CMachineWriter;
+
+	return (pFSMOutputGenerator) pfsmcsmog;
 }
 
 #ifdef FSM_C_TEST

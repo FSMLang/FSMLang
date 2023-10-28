@@ -90,6 +90,8 @@ FSMHTMLOutputGenerator HTMLSubMachineWriter = {
 pFSMOutputGenerator pHTMLMachineWriter    = (pFSMOutputGenerator) &HTMLMachineWriter;
 pFSMOutputGenerator pHTMLSubMachineWriter = (pFSMOutputGenerator) &HTMLSubMachineWriter;
 
+static pFSMOutputGenerator generateHTMLMachineWriter(void);
+
 bool  css_content_internal = false;
 char *css_content_filename = "fsmlang.css";
 
@@ -226,6 +228,14 @@ int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
      else {
 
        pfsmhtmlog->pmd->htmlName = createFileName(baseFileName,".html");
+	   if (output_generated_file_names_only)
+	   {
+		   fprintf(stdout
+				   ,"FSM_GENERATED_FILES = %s"
+				   , pfsmhtmlog->pmd->htmlName
+				   );
+		   return 0;
+	   }
        pfsmhtmlog->pmd->baseName = strdup(baseFileName);
 
        if (!(pfsmhtmlog->pmd->htmlFile = openFile(pfsmhtmlog->pmd->htmlName,"w"))) {
@@ -286,7 +296,12 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	pID_INFO			  pid;
 	unsigned				e,s;
 
-  pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
+	if (output_generated_file_names_only)
+	{
+		return;
+	}
+
+	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator)pfsmog;
 
 	if (!pmi)
 
@@ -687,7 +702,7 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
      fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
 
-     write_machines(pmi->machine_list, pHTMLSubMachineWriter);
+     write_machines(pmi->machine_list, generateHTMLMachineWriter);
   }
 }
 
@@ -695,21 +710,37 @@ void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good)
 {
    pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
 
-	if (good) {
+   if (!output_generated_file_names_only)
+   {
+	   if (good)
+	   {
 
-		fprintf(pfsmhtmlog->pmd->htmlFile,"</body>\n</html>\n");
+		   fprintf(pfsmhtmlog->pmd->htmlFile, "</body>\n</html>\n");
 
-	}
+	   }
 
-	fclose(pfsmhtmlog->pmd->htmlFile);
+	   fclose(pfsmhtmlog->pmd->htmlFile);
 
-	if (!good) {
+	   if (!good)
+	   {
 
-		unlink(pfsmhtmlog->pmd->htmlName);
+		   unlink(pfsmhtmlog->pmd->htmlName);
 
-	}
+	   }
 
-	CHECK_AND_FREE(pfsmhtmlog->pmd->htmlName);
+	   CHECK_AND_FREE(pfsmhtmlog->pmd->htmlName);
+   }
 
+}
+
+static pFSMOutputGenerator generateHTMLMachineWriter()
+{
+	pFSMHTMLOutputGenerator pfsmhtmlog = calloc(1, sizeof(FSMHTMLOutputGenerator));
+
+	pfsmhtmlog->fsmog.writeMachine = writeHTMLWriter;
+	pfsmhtmlog->fsmog.initOutput   = initHTMLWriter;
+	pfsmhtmlog->fsmog.closeOutput  = closeHTMLWriter;
+
+	return (pFSMOutputGenerator) pfsmhtmlog;
 }
 

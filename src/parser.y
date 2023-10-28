@@ -2205,9 +2205,9 @@ int main(int argc, char **argv)
         }
         break;
 
-			case 'h':
-				usage();
-				return (1);
+		case 'h':
+			usage();
+			return (1);
 
  		case 's':
  			pfsmog = pMachineStatisticsWriter;
@@ -2227,12 +2227,12 @@ int main(int argc, char **argv)
 						pfsmog = pHTMLMachineWriter;
 						break;
 
-         case 's':
-           pfsmog = pCSwitchMachineWriter;
+					case 's':
+						pfsmog = pCSwitchMachineWriter;
 						break;
 
-         case 'p':
-           pfsmog = pPlantUMLMachineWriter;
+					case 'p':
+						pfsmog = pPlantUMLMachineWriter;
 						break;
 
 					default:
@@ -2243,12 +2243,12 @@ int main(int argc, char **argv)
 				}
 				break;
 
-     case 'i':
-        if ('0' == optarg[0])
-        {
-            generate_instance = false;
-        }
-        break;
+		case 'i':
+			if ('0' == optarg[0])
+			{
+				generate_instance = false;
+			}
+			break;
 
      case 'c':
         compact_action_array = true;
@@ -2264,11 +2264,15 @@ int main(int argc, char **argv)
         fprintf(stdout,"version %s\n",rev_string);
         return (0);
 
-			case '?':
-			case ':':
+     case 'M':
+		output_generated_file_names_only = true;
+		break;
 
-				usage();
-				return (0);
+     case '?':
+     case ':':
+
+        usage();
+        return (0);
 
 		}
 

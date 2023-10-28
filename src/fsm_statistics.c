@@ -78,7 +78,6 @@ static int initMachineStatisticsWriter(pFSMOutputGenerator pfsmog, char *ofBase)
    return 0;
 }
 
-/**********************************************************************************************************************/
 /**
  * @brief Write statistics for a machine
  * 
@@ -236,4 +235,5 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 
    return false;
 }
+
 
