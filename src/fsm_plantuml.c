@@ -513,10 +513,9 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
   if (add_plantuml_title)
   {
-     fprintf(pfsmpumlog->pmd->pumlFile
-             , "title %s\n"
-             , pmi->name->name
-             );
+     fprintf(pfsmpumlog->pmd->pumlFile, "title ");
+	 printAncestry(pmi, pfsmpumlog->pmd->pumlFile, "::", alc_lower, ais_include_self);
+     fprintf(pfsmpumlog->pmd->pumlFile, "\n");
   }
 
   if (add_plantuml_legend)
