@@ -1152,9 +1152,17 @@ void printAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETT
 
 	if (ais == ais_include_self)
 	{
-		fputs(separator, fout);
+		if (pmi->parent)
+		{
+			fputs(separator, fout);
+		}
 		streamStrCaseAware(fout, pmi->name->name, alc);
 	}
+}
+
+pMACHINE_INFO ultimateAncestor(pMACHINE_INFO pmi)
+{
+	return !pmi->parent ? pmi : ultimateAncestor(pmi->parent);
 }
 
 bool print_data_field(pLIST_ELEMENT pelem, void *data)

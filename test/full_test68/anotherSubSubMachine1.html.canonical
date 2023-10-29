@@ -11,7 +11,7 @@
 <script>window.name="FSMLang-anotherSubSubMachine1"</script>
 <link REL=stylesheet type="text/css" href="../../fsmlang.css">
 </head><body>
-<h2>anotherSubSubMachine1</h2>
+<h2>anotherNewMachine::anotherSubMachine1::anotherSubSubMachine1</h2>
 <p> a sub-sub machine another</p>
 <div class="scrollable">
 <table class="machine">
@@ -20,6 +20,8 @@
 			<th class="blankCorner">&nbsp;</th>
 			<th class=eventName>y1</th>
 			<th class=eventName>y2</th>
+			<th class=eventName>(anotherSubMachine1::) e1</th>
+			<th class=eventName>(anotherSubMachine1::) ee1</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -27,9 +29,13 @@
 		<th class=stateName>z1</th>
 		<td class=action>x1<br/><b>transition</b> : none</td>
 		<td class=action>x2<br/><b>transition</b> : z2</td>
+		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 	</tr>
 	<tr>
 		<th class=stateName>z2</th>
+		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 	</tr>
@@ -47,6 +53,16 @@
 </tr>
 <tr>
 <td class="label">y2</td>
+<td>&nbsp;
+</td>
+</tr>
+<tr>
+<td class="label">(anotherSubMachine1::) e1</td>
+<td>&nbsp;
+</td>
+</tr>
+<tr>
+<td class="label">(anotherSubMachine1::) ee1</td>
 <td>&nbsp;
 </td>
 </tr>

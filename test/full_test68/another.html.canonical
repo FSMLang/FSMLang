@@ -26,7 +26,11 @@
 	<tbody>
 		<tr>
 		<th class=stateName>s1</th>
-		<td class=action>a1<br/><b>transition</b> : s1</td>
+		<td class=action>a1<br/>shares event with:
+	<ul class="return_decl">
+<li>anotherSubMachine1</li>
+</ul>
+<br/><b>transition</b> : s1</td>
 		<td class=noAction>noAction<br/><b>transition</b> : transitionFn1<br/>returns:
 	<ul class="return_decl">
 		<li>s2</li>
@@ -43,7 +47,11 @@
 	</tr>
 	<tr>
 		<th class=stateName>s2</th>
-		<td class=action>a2<br/><b>transition</b> : transitionFn<br/>returns:
+		<td class=action>a2<br/>shares event with:
+	<ul class="return_decl">
+<li>anotherSubMachine1</li>
+</ul>
+<br/><b>transition</b> : transitionFn<br/>returns:
 	<ul class="return_decl">
 		<li>s1</li>
 		<li>s2</li>
@@ -67,7 +75,11 @@
 	</tr>
 	<tr>
 		<th class=stateName>s3</th>
-		<td class=action>a2<br/><b>transition</b> : transitionFn<br/>returns:
+		<td class=action>a2<br/>shares event with:
+	<ul class="return_decl">
+<li>anotherSubMachine1</li>
+</ul>
+<br/><b>transition</b> : transitionFn<br/>returns:
 	<ul class="return_decl">
 		<li>s1</li>
 		<li>s2</li>
@@ -99,6 +111,9 @@
 <tr>
 <td class="label">e1</td>
 <td>&nbsp;
+<p>This event is shared with:</p><ul class="return_decl">
+<li>anotherSubMachine1</li>
+</ul>
 </td>
 </tr>
 <tr>
@@ -141,12 +156,18 @@
 <tr>
 <td class="label">a1</td>
 <td>
-&nbsp;</td>
+&nbsp;
+<br/><br/>Shares event to:<ul class="return_decl"><li>anotherSubMachine1</li>
+</ul>
+</td>
 </tr>
 <tr>
 <td class="label">a2</td>
 <td>
-&nbsp;</td>
+&nbsp;
+<br/><br/>Shares event to:<ul class="return_decl"><li>anotherSubMachine1</li>
+</ul>
+</td>
 </tr>
 <tr>
 <td class="label">transition</td>

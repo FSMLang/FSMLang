@@ -19,7 +19,9 @@ include ../test.mk
 
 check_html: $(addsuffix .result, $(GENERATED_SRC))
 	@-rm $(GENERATED_SRC)
+	@-rm fsmout
 
 $(addsuffix .result, $(GENERATED_SRC)): $(GENERATED_SRC)
 	$(DIFF) $(basename $@) $(basename $@).canonical > $@
+	@rm $@
 

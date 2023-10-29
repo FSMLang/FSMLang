@@ -11,7 +11,7 @@
 <script>window.name="FSMLang-anotherSubMachine1"</script>
 <link REL=stylesheet type="text/css" href="../../fsmlang.css">
 </head><body>
-<h2>anotherSubMachine1</h2>
+<h2>anotherNewMachine::anotherSubMachine1</h2>
 <p> a sub machine another</p>
 <div class="scrollable">
 <table class="machine">
@@ -21,13 +21,19 @@
 			<th class=eventName>ee1</th>
 			<th class=eventName>ee2</th>
 			<th class=eventName>ee3</th>
+			<th class=eventName>(anotherNewMachine::) e1</th>
 		</tr>
 	</thead>
 	<tbody>
 		<tr>
 		<th class=stateName>ss1</th>
-		<td class=action>aa1<br/><b>transition</b> : ss2</td>
+		<td class=action>aa1<br/>shares event with:
+	<ul class="return_decl">
+<li>anotherSubSubMachine1</li>
+</ul>
+<br/><b>transition</b> : ss2</td>
 		<td class=action>aa2<br/><b>transition</b> : ss3</td>
+		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 	</tr>
 	<tr>
@@ -35,9 +41,11 @@
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 	</tr>
 	<tr>
 		<th class=stateName>ss3</th>
+		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
@@ -52,6 +60,9 @@
 <tr>
 <td class="label">ee1</td>
 <td>&nbsp;
+<p>This event is shared with:</p><ul class="return_decl">
+<li>anotherSubSubMachine1</li>
+</ul>
 </td>
 </tr>
 <tr>
@@ -62,6 +73,14 @@
 <tr>
 <td class="label">ee3</td>
 <td>&nbsp;
+</td>
+</tr>
+<tr>
+<td class="label">(anotherNewMachine::) e1</td>
+<td>&nbsp;
+<p>This event is shared with:</p><ul class="return_decl">
+<li>anotherSubSubMachine1</li>
+</ul>
 </td>
 </tr>
 </table>
@@ -89,7 +108,10 @@
 <tr>
 <td class="label">aa1</td>
 <td>
-&nbsp;</td>
+&nbsp;
+<br/><br/>Shares event to:<ul class="return_decl"><li>anotherSubSubMachine1</li>
+</ul>
+</td>
 </tr>
 <tr>
 <td class="label">aa2</td>

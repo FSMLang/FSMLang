@@ -35,6 +35,7 @@ static void ancestry_no_caps_no_self(void);
 static void ancestry_no_caps_self(void);
 static void ancestry_caps_self(void);
 static void ancestry_caps_no_self(void);
+static void ancestry_caps_self_ultimate(void);
 
 VOID_TEST_FN tests[] = {
 	leading_underbar,
@@ -47,6 +48,7 @@ VOID_TEST_FN tests[] = {
 	ancestry_no_caps_self,
 	ancestry_caps_self,
 	ancestry_caps_no_self,
+	ancestry_caps_self_ultimate,
 	NULL
 };
 
@@ -93,6 +95,11 @@ static void ancestry_no_caps_self()
 static void ancestry_caps_self()
 {
 	(void) printAncestry(&grand_child, stdout, "_", alc_upper, ais_include_self);
+}
+
+static void ancestry_caps_self_ultimate()
+{
+	(void) printAncestry(&grand_parent, stdout, "_", alc_upper, ais_include_self);
 }
 
 static void ancestry_caps_no_self()

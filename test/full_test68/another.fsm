@@ -13,11 +13,14 @@ machine anotherNewMachine
   machine anotherSubMachine1 {
 		state ss1, ss2, ss3;
 		event ee1, ee2, ee3;
+		event parent::e1;
 
 		/** a sub-sub machine another*/
 		machine anotherSubSubMachine1 {
 			state z1, z2;
 			event y1, y2;
+			event parent::e1;
+			event parent::ee1;
 
 			action x1[y1,z1];
 			action x2[y2, z1] transition z2;

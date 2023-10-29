@@ -329,6 +329,7 @@ bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
 void printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUDE_SELF);
+pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);
 void print_tab_levels(FILE*,unsigned);
 
 #ifdef PARSER_DEBUG

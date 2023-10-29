@@ -11,7 +11,7 @@
 <script>window.name="FSMLang-anotherSubMachine2"</script>
 <link REL=stylesheet type="text/css" href="../../fsmlang.css">
 </head><body>
-<h2>anotherSubMachine2</h2>
+<h2>anotherNewMachine::anotherSubMachine2</h2>
 <p> a second sub machine another</p>
 <div class="scrollable">
 <table class="machine">

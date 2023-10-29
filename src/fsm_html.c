@@ -92,9 +92,9 @@ static bool print_machine_name_as_list_element(pLIST_ELEMENT pelem, void *data)
    FILE         *fout = (FILE*) data;
 
    fprintf(fout
-           , "<li>%s</li>\n"
-           , pmi->name->name
-           );
+		   , "<li>%s</li>\n"
+		   , pmi->name->name
+		   );
 
    return false;
 }
@@ -187,7 +187,8 @@ static bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
            , pmi->name->name
            , pmi->name->name
            , pmi->name->name
-           );
+		   );
+
    fprintf(pfsmhtmlog->pmd->htmlFile
            ,"<td>\n"
            );
@@ -313,9 +314,9 @@ static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
   pfsmhtmlog->pmd->pmi = pmi;
 
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<h2>%s</h2>\n"
-		, pmi->name->name
-		);
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<h2>");
+	printAncestry(pmi, pfsmhtmlog->pmd->htmlFile, "::", alc_lower, ais_include_self);
+	fprintf(pfsmhtmlog->pmd->htmlFile, "</h2>\n");
 
 	if (pmi->name->docCmnt)
 		fprintf(pfsmhtmlog->pmd->htmlFile,"<p>%s</p>\n",pmi->name->docCmnt);

@@ -96,6 +96,7 @@ void            subMachineWriteStateTransitions(pCMachineData,pMACHINE_INFO,char
 void            writeDebugInfo(pCMachineData,pMACHINE_INFO,char*);
 pCMachineData   newCMachineData(char*);
 void            destroyCMachineData(pCMachineData,int);
+void            writeCFilePreambles(pCMachineData);
 bool            assignExternalEventValues(pMACHINE_INFO);
 bool            declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT,void*);
 bool            sub_machine_declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT,void*);
