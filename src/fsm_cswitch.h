@@ -37,7 +37,7 @@
 
 #include "fsm_priv.h"
 
-extern pFSMOutputGenerator pCSwitchMachineWriter;
+pFSMOutputGenerator generateCSwitchMachineWriter(FSMOGF_TYPE);
 
 #endif
 

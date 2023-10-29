@@ -97,15 +97,6 @@ FSMPlantUMLOutputGenerator PlantUMLMachineWriter = {
   NULL
 };
 
-FSMPlantUMLOutputGenerator PlantUMLSubMachineWriter = {
-	{
-     initPlantUMLWriter,
-     writePlantUMLWriter,
-     closePlantUMLWriter
-  },
-  NULL
-};
-
 const char * const horizontal_placement_strs[] =
 {
    [hp_none_given] = ""
@@ -121,10 +112,6 @@ const char * const vertical_placement_strs[] =
    , [vp_bottom]   = ""                      // this is the plantuml default
    , [vp_center]   = "center"
 };
-
-pFSMOutputGenerator pPlantUMLMachineWriter    = (pFSMOutputGenerator) &PlantUMLMachineWriter;
-pFSMOutputGenerator pPlantUMLSubMachineWriter = (pFSMOutputGenerator) &PlantUMLSubMachineWriter;
-static pFSMOutputGenerator generatePlantUMLMachineWriter(void);
 
 /* list iteration callbacks */
 static bool print_sharing_machines(pLIST_ELEMENT pelem, void *data)
@@ -717,14 +704,25 @@ void closePlantUMLWriter(pFSMOutputGenerator pfsmog, int good)
 
 }
 
-static pFSMOutputGenerator generatePlantUMLMachineWriter()
+pFSMOutputGenerator generatePlantUMLMachineWriter(FSMOGF_TYPE fsmogft)
 {
-	pFSMPlantUMLOutputGenerator pfsmhtmlog = calloc(1, sizeof(FSMPlantUMLOutputGenerator));
+	pFSMOutputGenerator pfsmog;
 
-	pfsmhtmlog->fsmog.writeMachine = writePlantUMLWriter;
-	pfsmhtmlog->fsmog.initOutput   = initPlantUMLWriter;
-	pfsmhtmlog->fsmog.closeOutput  = closePlantUMLWriter;
+	if (fsmogft == fsmogft_sub_machine)
+	{
+		pFSMPlantUMLOutputGenerator pfsmhtmlog = calloc(1, sizeof(FSMPlantUMLOutputGenerator));
 
-	return (pFSMOutputGenerator) pfsmhtmlog;
+		pfsmhtmlog->fsmog.writeMachine = writePlantUMLWriter;
+		pfsmhtmlog->fsmog.initOutput   = initPlantUMLWriter;
+		pfsmhtmlog->fsmog.closeOutput  = closePlantUMLWriter;
+
+		pfsmog = (pFSMOutputGenerator)pfsmhtmlog;
+	}
+	else
+	{
+		pfsmog = (pFSMOutputGenerator) &PlantUMLMachineWriter;
+	}
+
+	return pfsmog;
 }
 

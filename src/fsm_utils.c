@@ -938,14 +938,16 @@ char *getFileNameNoDir(const char *path)
  * 
  * @return bool always returns false, indicating that list processing should continue
  *
- * Require a list member pointing to a valid MACHINE_INFO struct, and data pointing to a valid FSMOutputGenerator struct.
+ * Require a list member pointing to a valid MACHINE_INFO struct, and data pointing to a valid FSMOutputGeneratorFactoryStr.
  * Call the generator's writeMachine function, passing the pointer to the MACHINE_INFO struct.
  ***********************************************************************************************************************/
 static bool write_machine(pLIST_ELEMENT pelem, void *data)
 {
-	pFSMOutputGenerator pfsmog = ((pFSMOutputGeneratorGenerator)data)->FSMOGGenerator();
-   pMACHINE_INFO        pmi    = (pMACHINE_INFO) pelem->mbr;
+   pFSMOutputGeneratorFactoryStr pfsmogf = (pFSMOutputGeneratorFactoryStr) data;
+   pMACHINE_INFO                 pmi     = (pMACHINE_INFO) pelem->mbr;
 
+   /* Only sub-machines are generated here. */
+   pFSMOutputGenerator pfsmog = pfsmogf->fsmogf(fsmogft_sub_machine);
    if (pfsmog)
    {
 	   pfsmog->initOutput(pfsmog, pmi->name->name);
@@ -977,10 +979,12 @@ static bool write_machine(pLIST_ELEMENT pelem, void *data)
  * Require a valid list of pointers to valid MACHINE_INFO structure and a pointer to a valid FSMOutputGenerator.
  * Use the output generator to write each member of the list.
  ***********************************************************************************************************************/
-void write_machines(pLIST plist, fpFSMOutputGeneratorGenerator fpfsmogg)
+void write_machines(pLIST plist, fpFSMOutputGeneratorFactory fpfsmogg)
 {
-   FSMOutputGeneratorGenerator fsmogg;
-   fsmogg.FSMOGGenerator = fpfsmogg;
+   FSMOutputGeneratorFactoryStr fsmogg;
+
+   fsmogg.fsmogf  = fpfsmogg;
+   fsmogg.fsmogft = fsmogft_top_level;
 
    iterate_list(plist, write_machine, &fsmogg);
 }

@@ -78,20 +78,6 @@ FSMHTMLOutputGenerator HTMLMachineWriter = {
   NULL
 };
 
-FSMHTMLOutputGenerator HTMLSubMachineWriter = {
-	{
-     initHTMLWriter,
-     writeHTMLWriter,
-     closeHTMLWriter
-  },
-  NULL
-};
-
-pFSMOutputGenerator pHTMLMachineWriter    = (pFSMOutputGenerator) &HTMLMachineWriter;
-pFSMOutputGenerator pHTMLSubMachineWriter = (pFSMOutputGenerator) &HTMLSubMachineWriter;
-
-static pFSMOutputGenerator generateHTMLMachineWriter(void);
-
 bool  css_content_internal = false;
 char *css_content_filename = "fsmlang.css";
 
@@ -231,7 +217,7 @@ int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 	   if (output_generated_file_names_only)
 	   {
 		   fprintf(stdout
-				   ,"FSM_GENERATED_FILES = %s"
+				   ,"%s "
 				   , pfsmhtmlog->pmd->htmlName
 				   );
 		   return 0;
@@ -733,14 +719,23 @@ void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good)
 
 }
 
-static pFSMOutputGenerator generateHTMLMachineWriter()
+pFSMOutputGenerator generateHTMLMachineWriter(FSMOGF_TYPE fsmogft)
 {
-	pFSMHTMLOutputGenerator pfsmhtmlog = calloc(1, sizeof(FSMHTMLOutputGenerator));
+	pFSMOutputGenerator pfsmog;
 
-	pfsmhtmlog->fsmog.writeMachine = writeHTMLWriter;
-	pfsmhtmlog->fsmog.initOutput   = initHTMLWriter;
-	pfsmhtmlog->fsmog.closeOutput  = closeHTMLWriter;
+	if (fsmogft == fsmogft_sub_machine)
+	{
+		pFSMHTMLOutputGenerator pfsmhtmlog = calloc(1, sizeof(FSMHTMLOutputGenerator));
 
-	return (pFSMOutputGenerator) pfsmhtmlog;
+		pfsmhtmlog->fsmog.writeMachine = writeHTMLWriter;
+		pfsmhtmlog->fsmog.initOutput   = initHTMLWriter;
+		pfsmhtmlog->fsmog.closeOutput  = closeHTMLWriter;
+
+		pfsmog = (pFSMOutputGenerator)pfsmhtmlog;
+	}
+	else
+	{
+		pfsmog = (pFSMOutputGenerator)&HTMLMachineWriter;
+	}
 }
 

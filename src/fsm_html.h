@@ -37,7 +37,7 @@
 
 #include "fsm_priv.h"
 
-extern pFSMOutputGenerator	pHTMLMachineWriter;
+pFSMOutputGenerator generateHTMLMachineWriter(FSMOGF_TYPE);
 
 extern bool  css_content_internal;
 extern char *css_content_filename;

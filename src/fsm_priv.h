@@ -384,14 +384,22 @@ extern bool                 output_generated_file_names_only;
 	Only one instance of an output device will be run at a time.
 */
 
-typedef struct _fsm_output_generator_           FSMOutputGenerator, *pFSMOutputGenerator;
-typedef struct _fsm_output_generator_generator_ FSMOutputGeneratorGenerator, *pFSMOutputGeneratorGenerator;
+typedef struct _fsm_output_generator_         FSMOutputGenerator
+                                              , *pFSMOutputGenerator;
+typedef struct _fsm_output_generator_factory_ FSMOutputGeneratorFactoryStr
+                                                , *pFSMOutputGeneratorFactoryStr;
 
 typedef int (*fpInitOutput)(pFSMOutputGenerator,char *);
 typedef void (*fpWriteMachine)(pFSMOutputGenerator,pMACHINE_INFO);
 typedef void (*fpCloseOutput)(pFSMOutputGenerator,int);
 
-typedef pFSMOutputGenerator (*fpFSMOutputGeneratorGenerator)(void);
+typedef enum _fsmogf_type_
+{
+	fsmogft_top_level
+	, fsmogft_sub_machine
+} FSMOGF_TYPE;
+
+typedef pFSMOutputGenerator (*fpFSMOutputGeneratorFactory)(FSMOGF_TYPE);
 
 struct _fsm_output_generator_
 {
@@ -400,14 +408,15 @@ struct _fsm_output_generator_
 	fpCloseOutput	closeOutput;
 };
 
-struct _fsm_output_generator_generator_
+struct _fsm_output_generator_factory_
 {
-	fpFSMOutputGeneratorGenerator FSMOGGenerator;
+	fpFSMOutputGeneratorFactory fsmogf;
+	FSMOGF_TYPE                 fsmogft;
 };
 
 extern void yyerror(char*);
 
-void write_machines(pLIST,fpFSMOutputGeneratorGenerator);
+void write_machines(pLIST,fpFSMOutputGeneratorFactory);
 bool print_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component_name(pLIST_ELEMENT,void*);

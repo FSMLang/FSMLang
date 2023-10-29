@@ -90,20 +90,6 @@ FSMCOutputGenerator CSwitchMachineWriter = {
    NULL
 };
 
-FSMCSubMachineOutputGenerator CSwitchSubMachineWriter = {
-   {
-      initCSubMachine,
-      writeCSwitchSubMachine,
-      closeCMachine
-   },
-   NULL,
-   NULL
-};
-
-pFSMOutputGenerator pCSwitchMachineWriter    = (pFSMOutputGenerator) &CSwitchMachineWriter;
-pFSMOutputGenerator pCSwitchSubMachineWriter = (pFSMOutputGenerator) &CSwitchSubMachineWriter;
-static pFSMOutputGenerator generateCSwitchSubMachineWriter(void);
-
 /**
   This function writes the ActionsReturnState Switch FSM
 */
@@ -205,7 +191,7 @@ static void writeCSwitchMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
    if (pmi->machine_list)
    {
-      write_machines(pmi->machine_list, generateCSwitchSubMachineWriter);
+      write_machines(pmi->machine_list, generateCSwitchMachineWriter);
    }
 }
 
@@ -2014,16 +2000,25 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi, char *c
    CHECK_AND_FREE(local_cp);
 }
 
-static pFSMOutputGenerator generateCSwitchSubMachineWriter()
+pFSMOutputGenerator generateCSwitchMachineWriter(FSMOGF_TYPE fsmogft)
 {
-	pFSMCSubMachineOutputGenerator pfsmcswitchog = calloc(1, sizeof(FSMCSubMachineOutputGenerator));
+	pFSMOutputGenerator pfsmog;
 
-	pfsmcswitchog->fsmog.writeMachine = writeCSwitchSubMachine;
-	pfsmcswitchog->fsmog.initOutput   = initCSubMachine;
-	pfsmcswitchog->fsmog.closeOutput  = closeCMachine;
+	if (fsmogft == fsmogft_sub_machine)
+	{
+		pFSMCSubMachineOutputGenerator pfsmcswitchog = calloc(1, sizeof(FSMCSubMachineOutputGenerator));
 
-	pfsmcswitchog->parent_fsmcog = &CSwitchMachineWriter;
+		pfsmcswitchog->fsmog.writeMachine = writeCSwitchSubMachine;
+		pfsmcswitchog->fsmog.initOutput   = initCSubMachine;
+		pfsmcswitchog->fsmog.closeOutput  = closeCMachine;
 
-	return (pFSMOutputGenerator) pfsmcswitchog;
+		pfsmcswitchog->parent_fsmcog = &CSwitchMachineWriter;
+
+		pfsmog = (pFSMOutputGenerator)pfsmcswitchog;
+	}
+	else
+	{
+		pfsmog = (pFSMOutputGenerator)&CSwitchMachineWriter;
+	}
 }
 

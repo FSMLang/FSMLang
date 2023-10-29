@@ -47,8 +47,8 @@ extern int yylex(void);
 char *rindex(const char *str,int c);
 
 pMACHINE_INFO          pmachineInfo = NULL;
-pFSMOutputGenerator	  pfsmog;
-pSTATE_AND_EVENT_DECLS psedecls = NULL;
+pFSMOutputGenerator	   pfsmog       = NULL;
+pSTATE_AND_EVENT_DECLS psedecls     = NULL;
 
 void yyerror(char *);
 
@@ -2081,8 +2081,6 @@ int main(int argc, char **argv)
 	}
 
 #ifndef PARSER_DEBUG
-	/* default to writing a c machine */
-	pfsmog = pCMachineWriter;
 
 	while ((c = getopt_long(argc,argv,"vht:o:i:cs", longopts, &longindex)) != -1) {
 
@@ -2218,25 +2216,22 @@ int main(int argc, char **argv)
 				switch (optarg[0]) {
 
 					case 'c':
-
-						pfsmog = pCMachineWriter;
+		                pfsmog = generateCMachineWriter(fsmogft_top_level);
 						break;
 
 					case 'h':
-
-						pfsmog = pHTMLMachineWriter;
+		                pfsmog = generateHTMLMachineWriter(fsmogft_top_level);
 						break;
 
 					case 's':
-						pfsmog = pCSwitchMachineWriter;
+		                pfsmog = generateCSwitchMachineWriter(fsmogft_top_level);
 						break;
 
 					case 'p':
-						pfsmog = pPlantUMLMachineWriter;
+		                pfsmog = generatePlantUMLMachineWriter(fsmogft_top_level);
 						break;
 
 					default:
-
 						usage();
 						return (1);
 
@@ -2316,7 +2311,15 @@ int main(int argc, char **argv)
 		}
 
 		#ifndef PARSER_DEBUG
+
+	    /* default to writing a c machine */
+	    if (NULL == pfsmog)
+	    {
+		    pfsmog = generateCMachineWriter(fsmogft_top_level);
+	    }
+
 		if (!(*pfsmog->initOutput)(pfsmog,outFileBase)) {
+
 		#endif
 
 			yyparse();

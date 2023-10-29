@@ -71,20 +71,6 @@ FSMCOutputGenerator CMachineWriter = {
    NULL
 };
 
-FSMCSubMachineOutputGenerator CSubMachineWriter = {
-   {
-      initCSubMachine,
-      writeCSubMachine,
-      closeCMachine
-   },
-   NULL,
-   NULL
-};
-
-pFSMOutputGenerator pCMachineWriter       = (pFSMOutputGenerator) &CMachineWriter;
-pFSMOutputGenerator pCSubMachineWriter    = (pFSMOutputGenerator) &CSubMachineWriter;
-static pFSMOutputGenerator generateCSubMachineWriter(void);
-
 /* list iteration callbacks */
 
 static bool declare_action_enum_member(pLIST_ELEMENT pelem, void *data)
@@ -402,7 +388,7 @@ static void writeCMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
    if (pmi->machine_list)
    {
-      write_machines(pmi->machine_list, generateCSubMachineWriter);
+      write_machines(pmi->machine_list, generateCMachineWriter);
    }
 
 }
@@ -1615,17 +1601,30 @@ static void defineCSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
 
 }
 
-static pFSMOutputGenerator generateCSubMachineWriter()
+pFSMOutputGenerator generateCMachineWriter(FSMOGF_TYPE fsmogft)
 {
-	pFSMCSubMachineOutputGenerator pfsmcsmog = calloc(1, sizeof(FSMCSubMachineOutputGenerator));
+	pFSMOutputGenerator pfsmog;
 
-	pfsmcsmog->fsmog.writeMachine = writeCSubMachine;
-	pfsmcsmog->fsmog.initOutput   = initCSubMachine;
-	pfsmcsmog->fsmog.closeOutput  = closeCMachine;
+	if (fsmogft == fsmogft_sub_machine)
+	{
+		pFSMCSubMachineOutputGenerator pfsmcsmog;
 
-	pfsmcsmog->parent_fsmcog = &CMachineWriter;
+		pfsmcsmog = (pFSMCSubMachineOutputGenerator) calloc(1, sizeof(FSMCSubMachineOutputGenerator));
 
-	return (pFSMOutputGenerator) pfsmcsmog;
+		pfsmcsmog->fsmog.writeMachine = writeCSubMachine;
+		pfsmcsmog->fsmog.initOutput   = initCSubMachine;
+		pfsmcsmog->fsmog.closeOutput  = closeCMachine;
+
+		pfsmcsmog->parent_fsmcog = &CMachineWriter;
+
+		pfsmog =  (pFSMOutputGenerator) pfsmcsmog;
+	}
+	else
+	{
+		pfsmog =  (pFSMOutputGenerator) &CMachineWriter;
+	}
+
+	return pfsmog;
 }
 
 #ifdef FSM_C_TEST
