@@ -18,11 +18,11 @@ TARGET     = check_plantuml
 include ../test.mk
 
 check_plantuml: $(addsuffix .result, $(GENERATED_SRC))
-	@-rm *.result
 	@-rm fsmout
 	@-rm $(GENERATED_SRC)
 
 $(addsuffix .result, $(GENERATED_SRC)): $(GENERATED_SRC)
 	@$(DIFF) $(basename $@) $(basename $@).canonical > $@
+	@rm $@
 
 

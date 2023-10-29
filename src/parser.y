@@ -2085,7 +2085,7 @@ int main(int argc, char **argv)
 	while ((c = getopt_long(argc,argv,"vht:o:i:csM", longopts, &longindex)) != -1) {
 
 		switch(c) {
-
+  
      case 0:
 
         switch (longval)
@@ -2274,9 +2274,15 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	if (argv[optind]) {
+	if (optind >= argc)
+	{
+		fprintf(stdout,"need a file name to work with.\n");
+		return (!good);
+	}
 
-		cp = strdup(argv[optind]);
+	for (int fnind = optind; fnind < argc && good; fnind++) {
+
+		cp = strdup(argv[fnind]);
 
 		/* find the extension */
 		cp1 = rindex(cp,'.');
@@ -2297,7 +2303,7 @@ int main(int argc, char **argv)
 
 		}
 
-		if ((yyin = openFile(argv[optind],"r")) == NULL) {
+		if ((yyin = openFile(argv[fnind],"r")) == NULL) {
 
 			return 1;
 
@@ -2326,21 +2332,16 @@ int main(int argc, char **argv)
 
 		#ifndef PARSER_DEBUG
 			(*pfsmog->closeOutput)(pfsmog,good);
+			CHECK_AND_FREE(outFileBase);
 
 		}
 		#endif
 
 		fclose(yyin);
 
-		return (!good);
-
 	}
-	else {
 
-		usage();
-		return (!good);
-
-	}
+	return (!good);
 
 }
 

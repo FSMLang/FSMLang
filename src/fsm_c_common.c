@@ -1348,6 +1348,12 @@ pCMachineData	newCMachineData(char *baseFileName)
          if (!(pcmw->cFile = openFile(pcmw->cName, "w")))
          {
 
+			 fprintf(stderr
+					 , "%s: unable to open %s\n"
+					 , me
+					 , pcmw->cName
+					 );
+
             CHECK_AND_FREE(pcmw->cName);
             CHECK_AND_FREE(pcmw->hName);
 
@@ -1356,6 +1362,12 @@ pCMachineData	newCMachineData(char *baseFileName)
          }
          else if (!(pcmw->hFile = openFile(pcmw->hName, "w")))
          {
+
+			 fprintf(stderr
+					 , "%s: unable to open %s\n"
+					 , me
+					 , pcmw->hName
+					 );
 
             FCLOSE_AND_CLEAR(pcmw->cFile);
 

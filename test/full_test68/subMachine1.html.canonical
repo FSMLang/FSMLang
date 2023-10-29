@@ -9,7 +9,7 @@
 <head>
 <title>FSM Lang : subMachine1</title>
 <script>window.name="FSMLang-subMachine1"</script>
-<link REL=stylesheet type="text/css" href="fsmlang.css">
+<link REL=stylesheet type="text/css" href="../../fsmlang.css">
 </head><body>
 <h2>subMachine1</h2>
 <p> a sub machine </p>
@@ -26,15 +26,7 @@
 	<tbody>
 		<tr>
 		<th class=stateName>ss1</th>
-		<td class=action>aa1<br/><b>transition</b> : ss2<p class="transition_comment"> a sub-sub machine 
-		machine subSubMachine1 {
-			state z1, z2;
-			event y1, y2;
-
-			action x1[y1,z1];
-			action x2[y2, z1] transition z2;
-		}
-      </p></td>
+		<td class=action>aa1<br/><b>transition</b> : ss2</td>
 		<td class=action>aa2<br/><b>transition</b> : ss3</td>
 		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
 	</tr>
@@ -103,6 +95,16 @@
 <td class="label">aa2</td>
 <td>
 &nbsp;</td>
+</tr>
+</table>
+<table class="elements">
+<tr>
+<th colspan=2 align=left>Sub Machines</th>
+</tr>
+<tr>
+<td class="label"><a href="subSubMachine1.html" target="FSMLang-subSubMachine1">subSubMachine1</a></td>
+<td>
+ a sub-sub machine </td>
 </tr>
 </table>
 </body>

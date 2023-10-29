@@ -714,12 +714,24 @@ static void closeHTMLFileNameWriter(pFSMOutputGenerator pfsmog, int good)
 {
 	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
 
+	if (!pfsmhtmlog || !pfsmhtmlog->pmd)
+	{
+		return;
+	}
+
 	CHECK_AND_FREE(pfsmhtmlog->pmd->htmlName);
+
+	free(pfsmhtmlog->pmd);
 }
 
 static void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good)
 {
    pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
+
+   if (!pfsmhtmlog || !pfsmhtmlog->pmd)
+   {
+	   return;
+   }
 
    if (good)
    {
@@ -738,6 +750,8 @@ static void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good)
    }
 
    CHECK_AND_FREE(pfsmhtmlog->pmd->htmlName);
+
+   free(pfsmhtmlog->pmd);
 
 }
 
