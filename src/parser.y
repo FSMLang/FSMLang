@@ -2082,7 +2082,7 @@ int main(int argc, char **argv)
 
 #ifndef PARSER_DEBUG
 
-	while ((c = getopt_long(argc,argv,"vht:o:i:cs", longopts, &longindex)) != -1) {
+	while ((c = getopt_long(argc,argv,"vht:o:i:csM", longopts, &longindex)) != -1) {
 
 		switch(c) {
 
@@ -2411,6 +2411,11 @@ void usage(void)
 	fprintf(stdout,"\t\tThis option can be specified multiple times; all text will be\n");
  fprintf(stdout,"\t\tadded in the order given\n");
  fprintf(stdout,"\t\tfor the content copy.\n");
+ fprintf(stdout,"\t-M prints the file name(s) that would have been created to stdout.\n");
+ fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
+ fprintf(stdout,"\t\tthat will be generated \n");
+ fprintf(stdout,"\t\t(e.g. GENERATED_FILES=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
+ fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }

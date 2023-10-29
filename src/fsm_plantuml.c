@@ -61,9 +61,13 @@ bool                 exclude_actions_from_plantuml_legend = false;
 HORIZONTAL_PLACEMENT plantuml_legend_horizontal_placement = hp_center;
 VERTICAL_PLACEMENT   plantuml_legend_vertical_placement   = vp_bottom;
 
-int initPlantUMLWriter(pFSMOutputGenerator,char *);
-void writePlantUMLWriter(pFSMOutputGenerator,pMACHINE_INFO);
-void closePlantUMLWriter(pFSMOutputGenerator,int);
+static int  initPlantUMLWriter(pFSMOutputGenerator,char *);
+static void writePlantUMLWriter(pFSMOutputGenerator,pMACHINE_INFO);
+static void closePlantUMLWriter(pFSMOutputGenerator,int);
+
+static int  initPlantUMLFileNameWriter(pFSMOutputGenerator,char *);
+static void writePlantUMLFileName(pFSMOutputGenerator,pMACHINE_INFO);
+static void closePlantUMLFileNameWriter(pFSMOutputGenerator,int);
 
 typedef struct _fsm_puml_output_generator_ FSMPlantUMLOutputGenerator, *pFSMPlantUMLOutputGenerator;
 typedef struct _puml_machine_data_ PlantUMLMachineData, *pPlantUMLMachineData;
@@ -405,7 +409,22 @@ static bool print_prefix_file(pLIST_ELEMENT pelem, void *data)
 }
 
 /* Main section */
-int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
+static int initPlantUMLFileNameWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
+{
+	pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
+	if (NULL != (pfsmpumlog->pmd = calloc(1, sizeof(PlantUMLMachineData))))
+	{
+		if (baseFileName)
+		{
+			pfsmpumlog->pmd->pumlName = createFileName(baseFileName,".plantuml");
+		}
+	}
+
+	/* this may look funny, but it does the trick */
+	return ((int) !pfsmpumlog->pmd->pumlName);
+}
+
+static int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
 
   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
@@ -464,7 +483,19 @@ int initPlantUMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 
 }
 
-void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
+static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
+{
+	pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator)pfsmog;
+
+	printf("%s ", pfsmpumlog->pmd->pumlName);
+
+	if (pmi->machine_list)
+	{
+		write_machines(pmi->machine_list, generatePlantUMLMachineWriter);
+	}
+}
+
+static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
 	pID_INFO			  pevent;
@@ -682,7 +713,14 @@ void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 }
 
-void closePlantUMLWriter(pFSMOutputGenerator pfsmog, int good)
+static void closePlantUMLFileNameWriter(pFSMOutputGenerator pfsmog, int good)
+{
+	pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
+
+	CHECK_AND_FREE(pfsmpumlog->pmd->pumlName);
+}
+
+static void closePlantUMLWriter(pFSMOutputGenerator pfsmog, int good)
 {
    pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
 
@@ -721,6 +759,13 @@ pFSMOutputGenerator generatePlantUMLMachineWriter(FSMOGF_TYPE fsmogft)
 	else
 	{
 		pfsmog = (pFSMOutputGenerator) &PlantUMLMachineWriter;
+	}
+
+	if (output_generated_file_names_only)
+	{
+		pfsmog->writeMachine = writePlantUMLFileName;
+		pfsmog->initOutput   = initPlantUMLFileNameWriter;
+		pfsmog->closeOutput  = closePlantUMLFileNameWriter;
 	}
 
 	return pfsmog;

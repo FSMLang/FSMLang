@@ -48,9 +48,13 @@
 /*
 	Our interface to the outside world
 */
-int initHTMLWriter(pFSMOutputGenerator,char *);
-void writeHTMLWriter(pFSMOutputGenerator,pMACHINE_INFO);
-void closeHTMLWriter(pFSMOutputGenerator,int);
+static int initHTMLWriter(pFSMOutputGenerator,char *);
+static void writeHTMLWriter(pFSMOutputGenerator,pMACHINE_INFO);
+static void closeHTMLWriter(pFSMOutputGenerator,int);
+
+static int initHTMLFileNameWriter(pFSMOutputGenerator,char *);
+static void writeHTMLFileName(pFSMOutputGenerator,pMACHINE_INFO);
+static void closeHTMLFileNameWriter(pFSMOutputGenerator,int);
 
 typedef struct _fsm_html_output_generator_ FSMHTMLOutputGenerator, *pFSMHTMLOutputGenerator;
 typedef struct _html_machine_data_ HTMLMachineData, *pHTMLMachineData;
@@ -69,7 +73,7 @@ struct _fsm_html_output_generator_
    pHTMLMachineData   pmd;
 };
 
-FSMHTMLOutputGenerator HTMLMachineWriter = {
+static FSMHTMLOutputGenerator HTMLMachineWriter = {
 	{
      initHTMLWriter,
      writeHTMLWriter,
@@ -198,7 +202,22 @@ static bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
 }
 
 /* Main section */
-int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
+static int initHTMLFileNameWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
+{
+	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
+	if (NULL != (pfsmhtmlog->pmd = calloc(1, sizeof(HTMLMachineData))))
+	{
+		if (baseFileName)
+		{
+			pfsmhtmlog->pmd->htmlName = createFileName(baseFileName,".html");
+		}
+	}
+
+	/* this may look funny, but it does the trick */
+	return ((int) !pfsmhtmlog->pmd->htmlName);
+}
+
+static int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
 
   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
@@ -214,14 +233,6 @@ int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
      else {
 
        pfsmhtmlog->pmd->htmlName = createFileName(baseFileName,".html");
-	   if (output_generated_file_names_only)
-	   {
-		   fprintf(stdout
-				   ,"%s "
-				   , pfsmhtmlog->pmd->htmlName
-				   );
-		   return 0;
-	   }
        pfsmhtmlog->pmd->baseName = strdup(baseFileName);
 
        if (!(pfsmhtmlog->pmd->htmlFile = openFile(pfsmhtmlog->pmd->htmlName,"w"))) {
@@ -276,16 +287,23 @@ int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 
 }
 
-void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
+static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
+{
+	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator)pfsmog;
+
+	printf("%s ", pfsmhtmlog->pmd->htmlName);
+
+	if (pmi->machine_list)
+	{
+		write_machines(pmi->machine_list, generateHTMLMachineWriter);
+	}
+}
+
+static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
 	pID_INFO			  pid;
 	unsigned				e,s;
-
-	if (output_generated_file_names_only)
-	{
-		return;
-	}
 
 	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator)pfsmog;
 
@@ -692,30 +710,34 @@ void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
   }
 }
 
-void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good)
+static void closeHTMLFileNameWriter(pFSMOutputGenerator pfsmog, int good)
+{
+	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
+
+	CHECK_AND_FREE(pfsmhtmlog->pmd->htmlName);
+}
+
+static void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good)
 {
    pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
 
-   if (!output_generated_file_names_only)
+   if (good)
    {
-	   if (good)
-	   {
 
-		   fprintf(pfsmhtmlog->pmd->htmlFile, "</body>\n</html>\n");
+	   fprintf(pfsmhtmlog->pmd->htmlFile, "</body>\n</html>\n");
 
-	   }
-
-	   fclose(pfsmhtmlog->pmd->htmlFile);
-
-	   if (!good)
-	   {
-
-		   unlink(pfsmhtmlog->pmd->htmlName);
-
-	   }
-
-	   CHECK_AND_FREE(pfsmhtmlog->pmd->htmlName);
    }
+
+   fclose(pfsmhtmlog->pmd->htmlFile);
+
+   if (!good)
+   {
+
+	   unlink(pfsmhtmlog->pmd->htmlName);
+
+   }
+
+   CHECK_AND_FREE(pfsmhtmlog->pmd->htmlName);
 
 }
 
@@ -737,5 +759,14 @@ pFSMOutputGenerator generateHTMLMachineWriter(FSMOGF_TYPE fsmogft)
 	{
 		pfsmog = (pFSMOutputGenerator)&HTMLMachineWriter;
 	}
+
+	if (output_generated_file_names_only)
+	{
+		pfsmog->writeMachine = writeHTMLFileName;
+		pfsmog->initOutput   = initHTMLFileNameWriter;
+		pfsmog->closeOutput  = closeHTMLFileNameWriter;
+	}
+
+	return pfsmog;
 }
 
