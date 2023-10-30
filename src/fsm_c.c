@@ -61,6 +61,7 @@
 */
 static void writeCMachine(pFSMOutputGenerator,pMACHINE_INFO);
 static void writeCSubMachine(pFSMOutputGenerator,pMACHINE_INFO);
+static void writeCMachineFN(pFSMOutputGenerator,pMACHINE_INFO);
 
 FSMCOutputGenerator CMachineWriter = {
    {
@@ -363,6 +364,19 @@ static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
 }
 
+static void writeCMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
+{
+
+   pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
+
+   printf("%s ", pfsmcog->pcmd->cName);
+
+   if (pmi->machine_list)
+   {
+      write_machines(pmi->machine_list, generateCMachineWriter);
+   }
+
+}
 static void writeCSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
@@ -370,12 +384,10 @@ static void writeCSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
    writeCSubMachineInternal(pfsmcog->pcmd, pmi);
 
-   #if 0
    if (pmi->machine_list)
    {
-      write_machines(pmi->machine_list, pCSubMachineWriter);
+      write_machines(pmi->machine_list, generateCMachineWriter);
    }
-   #endif
 
 }
 
@@ -392,6 +404,7 @@ static void writeCMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
    }
 
 }
+
 
 /**
   This function writes the original FSM
@@ -1622,6 +1635,13 @@ pFSMOutputGenerator generateCMachineWriter(FSMOGF_TYPE fsmogft)
 	else
 	{
 		pfsmog =  (pFSMOutputGenerator) &CMachineWriter;
+	}
+
+	if (output_generated_file_names_only)
+	{
+		pfsmog->initOutput   = initCMachineFN;
+		pfsmog->writeMachine = writeCMachineFN;
+		pfsmog->closeOutput  = closeCMachineFN;
 	}
 
 	return pfsmog;

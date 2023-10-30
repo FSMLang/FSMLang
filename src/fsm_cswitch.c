@@ -57,6 +57,7 @@
 
 static void            writeCSwitchMachine(pFSMOutputGenerator,pMACHINE_INFO);
 static void            writeCSwitchSubMachine(pFSMOutputGenerator,pMACHINE_INFO);
+static void            writeCSwitchMachineFN(pFSMOutputGenerator,pMACHINE_INFO);
 
 static void            defineAllStateHandler(pCMachineData,pMACHINE_INFO,char*);
 static void            defineCSwitchMachineFSM(pCMachineData,pMACHINE_INFO,char*);
@@ -2000,6 +2001,20 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi, char *c
    CHECK_AND_FREE(local_cp);
 }
 
+static void writeCSwitchMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
+{
+
+   pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
+
+   printf("%s ", pfsmcog->pcmd->cName);
+
+   if (pmi->machine_list)
+   {
+      write_machines(pmi->machine_list, generateCSwitchMachineWriter);
+   }
+
+}
+
 pFSMOutputGenerator generateCSwitchMachineWriter(FSMOGF_TYPE fsmogft)
 {
 	pFSMOutputGenerator pfsmog;
@@ -2020,5 +2035,13 @@ pFSMOutputGenerator generateCSwitchMachineWriter(FSMOGF_TYPE fsmogft)
 	{
 		pfsmog = (pFSMOutputGenerator)&CSwitchMachineWriter;
 	}
+
+	if (output_generated_file_names_only)
+	{
+		pfsmog->initOutput   = initCMachineFN;
+		pfsmog->writeMachine = writeCSwitchMachineFN;
+		pfsmog->closeOutput  = closeCMachineFN;
+	}
+
 }
 

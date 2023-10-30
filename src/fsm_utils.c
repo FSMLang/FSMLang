@@ -1010,10 +1010,12 @@ bool print_sub_machine_component(pLIST_ELEMENT pelem, void *data)
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
    fprintf(pih->fout
-           , "\t%s%s_%s_%s\n"
+           , "\t%s"
            , pih->first ? "" : ", "
-           , pih->pparent->name->name
-           , pih->pmi->name->name
+		   );
+   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ais_include_self);
+   fprintf(pih->fout
+		   , "_%s\n"
            , pid->name
            );
 
@@ -1027,10 +1029,10 @@ bool print_sub_machine_component_name(pLIST_ELEMENT pelem, void *data)
 
    if(!short_dbg_names)
    {
-      fprintf(pih->fout
-            , "\t, \"%s_%s_%s\"\n"
-            , pih->pparent->name->name
-            , pih->pmi->name->name
+      fprintf(pih->fout, "\t, \"");
+	  printAncestry(pih->pmi, pih->fout, "_", alc_lower, ais_include_self);
+	  fprintf(pih->fout
+			  , "_%s\"\n"
             , pid->name
             );
    }
@@ -1052,11 +1054,16 @@ bool print_sub_machine_events(pLIST_ELEMENT pelem, void *data)
 
    iterate_list(pih->pmi->event_list,print_sub_machine_component,pih);
 
+   fprintf(pih->fout , "\t, ");
+   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ais_include_self);
    fprintf(pih->fout
-           , "\t, %s_%s_noEvent\n"
-           , pih->pparent->name->name
-           , pih->pmi->name->name
+		   , "_noEvent\n"
            );
+
+   if (pih->pmi->machine_list)
+   {
+	   iterate_list(pih->pmi->machine_list, print_sub_machine_events, pih);
+   }
 
    return false;
 }
@@ -1072,11 +1079,9 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
 
    if(!short_dbg_names)
    {
-      fprintf(pih->fout
-            , "\t, \"%s_%s_noEvent\"\n"
-            , pih->pparent->name->name
-            , pih->pmi->name->name
-            );
+      fprintf(pih->fout, "\t, \"");
+	  printAncestry(pih->pmi, pih->fout, "_", alc_lower, ais_include_self);
+	  fprintf(pih->fout, "_noEvent\"\n");
    }
    else
    {

@@ -79,8 +79,11 @@ struct _fsm_c_sub_machine_output_generator_
 };
 
 int  initCMachine(pFSMOutputGenerator,char*);
+int  initCMachineFN(pFSMOutputGenerator,char*);
 int  initCSubMachine(pFSMOutputGenerator,char*);
+int  initCSubMachineFN(pFSMOutputGenerator,char*);
 void closeCMachine(pFSMOutputGenerator,int);
+void closeCMachineFN(pFSMOutputGenerator,int);
 
 char          * commonHeaderStart(pCMachineData,pMACHINE_INFO,char*);
 void            addEventCrossReference(pCMachineData,pMACHINE_INFO,pITERATOR_HELPER);
