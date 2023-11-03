@@ -82,11 +82,13 @@ typedef enum ANCESTRY_LETTER_CASE {
 	, alc_lower
 } ANCESTRY_LETTER_CASE;
 
-typedef enum ANCESTRY_INCLUDE_SELF
+typedef enum ANCESTRY_INCLUSION
 {
-	ais_include_self
-	, ais_omit_self
-} ANCESTRY_INCLUDE_SELF;
+	ai_omit_self        = 1
+	, ai_include_self   = 2
+	, ai_omit_ultimate  = 4
+	, ai_stop_at_parent = 8
+} ANCESTRY_INCLUSION;
 
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
 
@@ -328,9 +330,10 @@ void count_states_with_entry_exit_fns(pLIST,unsigned*,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
-void printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUDE_SELF);
+bool printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);
 void print_tab_levels(FILE*,unsigned);
+void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);

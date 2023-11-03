@@ -134,6 +134,7 @@ void            declareStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,cha
 void            defineStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,char*);
 void            declareEventDataManager(pCMachineData,char*);
 void            defineEventDataManager(pCMachineData,pMACHINE_INFO,char*);
+void            printSubMachinesDeclarations(pCMachineData,pMACHINE_INFO);
 
 #endif
 

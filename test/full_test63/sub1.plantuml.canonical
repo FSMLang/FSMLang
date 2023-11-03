@@ -7,7 +7,7 @@
 '/
 
 @startuml
-title sub1
+title foo::sub1
 hide empty description
 
 legend top right

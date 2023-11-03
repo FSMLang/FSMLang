@@ -14,7 +14,7 @@ machine newMachine
 		state ss1, ss2, ss3;
 		event ee1, ee2, ee3;
 
-		/** a sub-sub machine */
+		/** a sub-sub machine 
 		machine subSubMachine1 {
 			state z1, z2;
 			event y1, y2;
@@ -22,6 +22,7 @@ machine newMachine
 			action x1[y1,z1];
 			action x2[y2, z1] transition z2;
 		}
+      */
 
 		action aa1[ee1,ss1] transition ss2;
 		action aa2[ee2, ss1] transition ss3;

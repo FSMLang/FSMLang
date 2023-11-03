@@ -7,7 +7,7 @@
 '/
 
 @startuml
-title sub1
+title foo::sub1
 state state1
 state state2
 state1:  states are easy to comment \n

@@ -5,6 +5,11 @@
 */
 
 #include "top_level.h"
+#include <stddef.h>
+
+#ifndef DBG_PRINTF
+#define DBG_PRINTF(...)
+#endif
 
 const TOP_LEVEL_STATE_FN top_level_state_fn_array[top_level_numStates] = 
 {

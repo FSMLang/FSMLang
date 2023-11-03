@@ -84,27 +84,27 @@ static void doubled_caps()
 
 static void ancestry_no_caps_no_self()
 {
-	(void) printAncestry(&grand_child, stdout, "_", alc_lower, ais_omit_self);
+	(void) printAncestry(&grand_child, stdout, "_", alc_lower, ai_omit_self);
 }
 
 static void ancestry_no_caps_self()
 {
-	(void) printAncestry(&grand_child, stdout, "_", alc_lower, ais_include_self);
+	(void) printAncestry(&grand_child, stdout, "_", alc_lower, ai_include_self);
 }
 
 static void ancestry_caps_self()
 {
-	(void) printAncestry(&grand_child, stdout, "_", alc_upper, ais_include_self);
+	(void) printAncestry(&grand_child, stdout, "_", alc_upper, ai_include_self);
 }
 
 static void ancestry_caps_self_ultimate()
 {
-	(void) printAncestry(&grand_parent, stdout, "_", alc_upper, ais_include_self);
+	(void) printAncestry(&grand_parent, stdout, "_", alc_upper, ai_include_self);
 }
 
 static void ancestry_caps_no_self()
 {
-	(void) printAncestry(&grand_child, stdout, "_", alc_upper, ais_omit_self);
+	(void) printAncestry(&grand_child, stdout, "_", alc_upper, ai_omit_self);
 }
 
 int main(int argc, char **argv)

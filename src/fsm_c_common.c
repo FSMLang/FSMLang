@@ -74,7 +74,7 @@ static bool  define_event_passing_actions                   (pLIST_ELEMENT,void*
 static bool  print_event_macro                              (pLIST_ELEMENT,void*);
 static bool  declare_shared_event_lists                     (pLIST_ELEMENT,void*);
 static bool  declare_shared_event_data_blocks               (pLIST_ELEMENT,void*);
-static void  declare_parent_event_reference_data_structures (pCMachineData,pMACHINE_INFO,char*);
+static void  declare_parent_event_reference_data_structures (pCMachineData,pMACHINE_INFO);
 static void  define_parent_event_reference_elements         (pCMachineData,pMACHINE_INFO,char*);
 static bool  define_shared_event_lists                      (pLIST_ELEMENT,void*);
 static bool  reference_shared_event_data_blocks             (pLIST_ELEMENT,void*);
@@ -184,9 +184,17 @@ void writeCFilePreambles(pCMachineData pcmd)
 
 	   /* put the call to the header file into the source */
 	   fprintf(pcmd->cFile
-			   , "#include \"%s\"\n\n"
+			   , "#include \"%s\"\n"
 			   , pcmd->hName
 			   );
+
+	   fprintf(pcmd->cFile, "#include <stddef.h>\n\n"
+			   );
+
+	   /* protect ourselves from not having DBG_PRINTF defined */
+	   fprintf(pcmd->cFile, "#ifndef DBG_PRINTF\n#define DBG_PRINTF(...)\n");
+
+	   fprintf(pcmd->cFile, "#endif\n\n");
 
 	   CHECK_AND_FREE(cp1);
 
@@ -283,15 +291,19 @@ void addEventCrossReference(pCMachineData pcmw, pMACHINE_INFO pmi, pITERATOR_HEL
    {
       iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, pih);
 
-      pih->pparent   = NULL;
-      print_event_cross_reference_entry("numAllEvents", pih);
+	  pih->pmi = pmi;
+	  if (pih->pmi->parent == pmi)
+	  {
+		  printf("rotten\n");
+	  }
+	  print_event_cross_reference_entry("numAllEvents", pih);
    }
+
 
    fprintf(pcmw->hFile
            , "\n*/\n"
           );
 
-   pih->pparent = pmi;
 }
 
 char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
@@ -670,85 +682,7 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 
    if (pmi->machine_list)
    {
-      helper.first = true;
-      helper.cp    = cp;
-
-      fprintf(pcmw->hFile,"/* Sub Machine Declarations */\n\n");
-      fprintf(pcmw->hFile
-              ,"%s\ntypedef enum {\n"
-              ,"/* enumerate sub-machines */"
-              );
-
-      iterate_list(pmi->machine_list
-                   , print_sub_machine_as_enum_member
-                   ,&helper
-                   );
-
-      fprintf(pcmw->hFile
-              , "\t, %s_numSubMachines\n} %s_SUB_MACHINES;\n\n"
-              , pmi->name->name
-              , cp
-              );
-
-      fprintf(pcmw->hFile
-              , "typedef %s_EVENT%s (*%s_SUB_MACHINE_FN)(%s_EVENT%s);\n"
-              , cp
-              , pmi->data_block_count ? "_ENUM"  : ""
-              , cp
-              , cp
-              , pmi->data_block_count ? "_ENUM"  : ""
-             );
-
-      fprintf(pcmw->hFile
-              , "typedef struct _%s_sub_fsm_if_ %s_SUB_FSM_IF, *p%s_SUB_FSM_IF;\n"
-              , pmi->name->name
-              , cp
-              , cp
-             );
-
-      fprintf(pcmw->hFile
-              ,"struct _%s_sub_fsm_if_\n{\n"
-              , pmi->name->name
-              );
-
-      fprintf(pcmw->hFile
-              , "\t%s_EVENT%s                first_event;\n"
-              , cp
-              , pmi->data_block_count ? "_ENUM"  : ""
-              );
-
-      fprintf(pcmw->hFile
-              , "\t%s_EVENT%s                last_event;\n"
-              , cp
-              , pmi->data_block_count ? "_ENUM"  : ""
-              );
-
-      fprintf(pcmw->hFile
-              , "\t%s_SUB_MACHINE_FN       subFSM;\n"
-              , cp
-              );
-
-      fprintf(pcmw->hFile
-              ,"};\n\n"
-              );
-
-      fprintf(pcmw->hFile
-              , "extern p%s_SUB_FSM_IF %s_sub_fsm_if_array[%s_numSubMachines];\n\n"
-              , cp
-              , pmi->name->name
-              , pmi->name->name
-             );
-
-      iterate_list(pmi->machine_list, declare_sub_machine_if, &helper);
-
-      fprintf(pcmw->hFile
-              , "\n"
-              );
-
-      if (pmi->parent_event_reference_count)
-      {
-         declare_parent_event_reference_data_structures(pcmw, pmi, cp);
-      }
+	   printSubMachinesDeclarations(pcmw,pmi);
    }
 
    /* put the data structure definition into the header */
@@ -1551,7 +1485,7 @@ static void print_event_cross_reference_entry(char *event_name, pITERATOR_HELPER
            , eventXRefFormat0Str
            , (*pih->counter0)++
 		   );
-   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ais_include_self);
+   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
    fprintf(pih->fout
 		   , eventXRefFormat1Str
            , event_name
@@ -1630,22 +1564,21 @@ static bool print_sub_machine_as_enum_member(pLIST_ELEMENT pelem, void *data)
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
    fprintf(pih->fout
-           , "\t%s %s_%s\n"
+		   , "\t%s "
            , pih->first ? "" : ", "
-           , pih->pparent->name->name
-           , pmi->name->name
-          );
+		   );
+   printAncestry(pmi, pih->fout, "_", alc_lower, ai_include_self);
+   fprintf(pih->fout, "\n");
 
    if (pih->first)
    {
       pih->first = false;
 
-      fprintf(pih->fout
-              , "\t, %s_firstSubMachine = %s_%s\n"
-              , pih->pparent->name->name
-              , pih->pparent->name->name
-              , pmi->name->name
-              );
+      fprintf(pih->fout, "\t, ");
+	  printAncestry(pmi, pih->fout, "_", alc_lower, ai_omit_self);
+	  fprintf(pih->fout, "_firstSubMachine = ");
+	  printAncestry(pmi, pih->fout, "_", alc_lower, ai_include_self);
+	  fprintf(pih->fout, "\n");
 
    }
 
@@ -1657,16 +1590,18 @@ static bool declare_sub_machine_if(pLIST_ELEMENT pelem, void *data)
    pMACHINE_INFO pmi    = (pMACHINE_INFO) pelem->mbr;
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
+   fprintf(pih->fout, "extern ");
+   streamHungarianToUnderbarCaps(pih->fout, pmi->parent->name->name);
+   fprintf(pih->fout, "_SUB_FSM_IF ");
    fprintf(pih->fout
-           , "extern %s_SUB_FSM_IF %s_sub_fsm_if;\n"
-           , pih->cp
-           , pmi->name->name
-          );
+		   , "%s_sub_fsm_if;\n"
+		   , pmi->name->name
+		   );
 
    return false;
 }
 
-static void declare_parent_event_reference_data_structures(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void declare_parent_event_reference_data_structures(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    ITERATOR_HELPER ih;
 
@@ -1674,55 +1609,58 @@ static void declare_parent_event_reference_data_structures(pCMachineData pcmw, p
            ,"/* Some sub-machines share parent events. */\n"
            );
 
-   fprintf(pcmw->hFile
-           , "typedef void (*%s_DATA_TRANSLATION_FN)(p%s);\n"
-           , cp
-           , cp
-           );
+   fprintf(pcmw->hFile, "typedef void (*");
+   streamHungarianToUnderbarCaps(pcmw->hFile, pmi->name->name);
+   fprintf(pcmw->hFile, "_DATA_TRANSLATION_FN)(p");
+   streamHungarianToUnderbarCaps(pcmw->hFile, pmi->name->name);
+   fprintf(pcmw->hFile, ");\n");
 
-   fprintf(pcmw->hFile
-           ,"typedef struct _%s_shared_event_str_ %s_SHARED_EVENT_STR, *p%s_SHARED_EVENT_STR;\n"
-           , pmi->name->name
-           , cp
-           , cp
-           );
+   fprintf(pcmw->hFile,"typedef struct _");
+   streamStrCaseAware(pcmw->hFile, pmi->name->name, alc_lower);
+   fprintf(pcmw->hFile, "_shared_event_str_ ");
+   streamHungarianToUnderbarCaps(pcmw->hFile, pmi->name->name);
+   fprintf(pcmw->hFile, "_SHARED_EVENT_STR, *p");
+   streamHungarianToUnderbarCaps(pcmw->hFile, pmi->name->name);
+   fprintf(pcmw->hFile, "_SHARED_EVENT_STR;\n");
 
-   fprintf(pcmw->hFile
-           , "struct _%s_shared_event_str_\n{"
-           , pmi->name->name
-           );
+   fprintf(pcmw->hFile, "struct _");
+   streamStrCaseAware(pcmw->hFile, pmi->name->name, alc_lower);
+   fprintf(pcmw->hFile, "_shared_event_str_\n{");
 
+   fprintf(pcmw->hFile, "\t");
+   printAncestry(ultimateAncestor(pmi), pcmw->hFile, "_", alc_upper, ai_include_self);
    fprintf(pcmw->hFile
-           , "\t%s_EVENT%s      event;\n"
-           , cp
+		   , "_EVENT%s      event;\n"
            , pmi->data_block_count ? "_ENUM"  : ""
            );
 
-   fprintf(pcmw->hFile
-           , "\t%s_DATA_TRANSLATION_FN  data_translation_fn;\n"
-           , cp
-           );
+   fprintf(pcmw->hFile, "\t");
+   streamHungarianToUnderbarCaps(pcmw->hFile, pmi->name->name);
+   fprintf(pcmw->hFile, "_DATA_TRANSLATION_FN  data_translation_fn;\n");
 
-   fprintf(pcmw->hFile
-           , "\tp%s_SUB_FSM_IF          psub_fsm_if;\n"
-           , cp
-           );
+   fprintf(pcmw->hFile, "\tp");
+   streamHungarianToUnderbarCaps(pcmw->hFile, pmi->name->name);
+   fprintf(pcmw->hFile, "_SUB_FSM_IF          psub_fsm_if;\n");
 
    fprintf(pcmw->hFile
            , "};\n"
            );
 
-   fprintf(pcmw->hFile
-           , "extern %s_EVENT%s pass_shared_event(p%s,p%s_SHARED_EVENT_STR[]);\n\n"
-           , cp
+   fprintf(pcmw->hFile, "extern ");
+   printAncestry(ultimateAncestor(pmi), pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->hFile,
+			 "_EVENT%s "
            , pmi->data_block_count ? "_ENUM"  : ""
-           , cp
-           , cp
            );
+   streamStrCaseAware(pcmw->hFile, pmi->name->name, alc_lower);
+   fprintf(pcmw->hFile, "_pass_shared_event(p");
+   streamHungarianToUnderbarCaps(pcmw->hFile, pmi->name->name);
+   fprintf(pcmw->hFile, ",p");
+   streamHungarianToUnderbarCaps(pcmw->hFile, pmi->name->name);
+   fprintf(pcmw->hFile, "_SHARED_EVENT_STR[]);\n\n");
 
    ih.fout = pcmw->hFile;
    ih.pmi  = pmi;
-   ih.cp   = cp;
 
    iterate_list(pmi->event_list,declare_shared_event_lists,&ih);
 
@@ -1741,9 +1679,10 @@ static bool define_shared_event_lists(pLIST_ELEMENT pelem, void *data)
       pih->pid   = pevent;
       pih->first = true;
 
+      fprintf(pih->fout, "p");
+	  streamHungarianToUnderbarCaps(pih->fout, pih->pmi->name->name);
       fprintf(pih->fout
-              , "p%s_SHARED_EVENT_STR sharing_%s_%s[] =\n{\n"
-              , pih->cp
+			  , "_SHARED_EVENT_STR sharing_%s_%s[] =\n{\n"
               , pih->pmi->name->name
               , pevent->name
               );
@@ -1805,31 +1744,34 @@ static void define_parent_event_reference_elements(pCMachineData pcmw, pMACHINE_
 
    ih.pmi   = pmi;
    ih.fout  = pcmw->cFile;
-   ih.cp    = cp;
    ih.first = true;
 
    /* define arrays */
    iterate_list(pmi->event_list, define_shared_event_lists, &ih);
 
    /* passing function */
+   streamHungarianToUnderbarCaps(pcmw->cFile, ultimateAncestor(pmi)->name->name);
    fprintf(pcmw->cFile
-           , "%s_EVENT%s pass_shared_event(p%s pfsm, p%s_SHARED_EVENT_STR sharer_list[])\n{\n"
-           , cp
-           , pmi->data_block_count ? "_ENUM"  : ""
-           , cp
-           , cp
+           , "_EVENT%s %s_pass_shared_event(p"
+           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+		   , pmi->name->name
+           );
+   streamHungarianToUnderbarCaps(pcmw->cFile, pmi->name->name);
+   fprintf(pcmw->cFile, " pfsm, p");
+   streamHungarianToUnderbarCaps(pcmw->cFile, pmi->name->name);
+   fprintf(pcmw->cFile, "_SHARED_EVENT_STR sharer_list[])\n{\n");
+
+   fprintf(pcmw->cFile, "\t");
+   streamHungarianToUnderbarCaps(pcmw->cFile, ultimateAncestor(pmi)->name->name);
+   fprintf(pcmw->cFile
+		   , "_EVENT%s return_event = THIS(noEvent);\n"
+           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
            );
 
+   fprintf(pcmw->cFile, "\tfor (p");
+   streamHungarianToUnderbarCaps(pcmw->cFile, pmi->name->name);
    fprintf(pcmw->cFile
-           , "\t%s_EVENT%s return_event = THIS(noEvent);\n"
-           , cp
-           , pmi->data_block_count ? "_ENUM"  : ""
-           );
-
-   fprintf(pcmw->cFile
-           , "\tfor (p%s_SHARED_EVENT_STR *pcurrent_sharer = sharer_list;\n\t     *pcurrent_sharer && return_event == %s_noEvent;\n\t     pcurrent_sharer++)\n\t{\n"
-           , cp
-           , pmi->name->name
+		   , "_SHARED_EVENT_STR *pcurrent_sharer = sharer_list;\n\t     *pcurrent_sharer && return_event == THIS(noEvent);\n\t     pcurrent_sharer++)\n\t{\n"
            );
 
    fprintf(pcmw->cFile
@@ -2385,7 +2327,8 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
             if (pevent->type_data.event_data.psharing_sub_machines)
             {
                fprintf(pich->pcmw->cFile
-                       , "\treturn pass_shared_event(pfsm, sharing_%s_%s);\n"
+                       , "\treturn %s_pass_shared_event(pfsm, sharing_%s_%s);\n"
+					   , pich->pmi->name->name
                        , pich->pmi->name->name
                        , pevent->name
                        );
@@ -2411,15 +2354,13 @@ static bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
 
 char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
 {
-   char            *cp;
    unsigned         i;
-   char            *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
    ITERATOR_HELPER  helper;
+
+   helper.fout      = pcmw->hFile;
 
    /* put the native code segment out to the header */
    if (pmi->native) fprintf(pcmw->hFile, "%s\n", pmi->native);
-
-   if (!(cp = hungarianToUnderbarCaps(pmi->name->name))) return NULL;
 
    fprintf(pcmw->hFile, "#ifdef %s_DEBUG\n", cp);
    fprintf(pcmw->hFile, "#include <stdio.h>\n");
@@ -2427,12 +2368,12 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
    fprintf(pcmw->hFile, "#endif\n\n");
 
    /* put the "declare a state machine" macro into the header */
-   fprintf(pcmw->hFile, "#define DECLARE_%s_MACHINE(A) \\"
-           , cp
-          );
+   fprintf(pcmw->hFile, "#define DECLARE_");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->hFile, "_MACHINE(A) \\\n");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
    fprintf(pcmw->hFile
-           , "%s A =\\\n{\\\n%s\t%s_%s,\\n\t%s_%s_noEvent,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &(A);\n\n"
-           , cp
+           , " A =\\\n{\\\n%s\t%s_%s,\\n\t%s_%s_noEvent,\\\n\t&%s_%s_array,\\\n\t%sFSM\\\n};\\\n%s *p##A = &(A);\n\n"
            , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
            , pmi->name->name
            , stateNameByIndex(pmi, 0)
@@ -2586,7 +2527,7 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
    else
    {
       fprintf(pcmw->hFile
-              , "typedef %s_EVENT%s (*%s_ACTION_FN)(p%s);\n\n"
+              , "/* foo */typedef %s_EVENT%s (*%s_ACTION_FN)(p%s);\n\n"
               , parent_cp
               , pmi->parent->data_block_count ? "_ENUM"  : ""
               , cp
@@ -2638,7 +2579,6 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
               , pmi->name->name
               );
 
-      helper.fout      = pcmw->hFile;
       helper.tab_level = 1;
       iterate_list(pmi->data, print_data_field, &helper);
 
@@ -2649,39 +2589,9 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
 
    if (pmi->machine_list)
    {
-
-      fprintf(pcmw->hFile,"/* Sub Machine Declarations */\n\n");
-      fprintf(pcmw->hFile
-              , "typedef %s_EVENT (*%s_SUB_MACHINE_FN)(%s_EVENT);\n"
-              , cp
-              , cp
-              , cp
-             );
-
-      fprintf(pcmw->hFile
-              , "typedef struct _%s_sub_fsm_if_ %s_SUB_FSM_IF, *p%s_SUB_FSM_IF;\n"
-              , pmi->name->name
-              , cp
-              , cp
-             );
-
-      fprintf(pcmw->hFile
-              ,"struct _%s_sub_fsm_if_\n{\n\t%s_SUB_MACHINE_FN subFSM;\n};\n\n"
-              , pmi->name->name
-              , cp
-              );
-
-      fprintf(pcmw->hFile
-              , "extern p%s_SUB_FSM_IF %s_sub_fsm_if_array[%u];\n\n"
-              , cp
-              , pmi->name->name
-              , pmi->machine_list->count
-             );
-
-      helper.cp = cp;
-      iterate_list(pmi->machine_list, declare_sub_machine_if, &helper);
-
+	   printSubMachinesDeclarations(pcmw, pmi);
    }
+   
 
    free (parent_cp);
 
@@ -3191,7 +3101,8 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
                  );
 
          fprintf(pich->pcmw->cFile
-                 , "\treturn pass_shared_event(pfsm, sharing_%s_%s);\n}\n\n"
+                 , "\treturn %s_pass_shared_event(pfsm, sharing_%s_%s);\n}\n\n"
+                 , pich->pmi->name->name
                  , pich->pmi->name->name
                  , pevent->name
                  );
@@ -3360,11 +3271,11 @@ bool print_event_macro(pLIST_ELEMENT pelem, void *data)
    pITERATOR_HELPER pih = ((pITERATOR_HELPER) data      );
 
    fprintf(pih->fout, "#undef ");
-   printAncestry(pmi, pih->fout, "_", alc_upper, ais_include_self);
+   printAncestry(pmi, pih->fout, "_", alc_upper, ai_include_self | ai_omit_ultimate);
    fprintf(pih->fout, "\n#define ");
-   printAncestry(pmi, pih->fout, "_", alc_upper, ais_include_self);
+   printAncestry(pmi, pih->fout, "_", alc_upper, ai_include_self | ai_omit_ultimate);
    fprintf(pih->fout, "(A) ");
-   printAncestry(pmi, pih->fout, "_", alc_lower, ais_include_self);
+   printAncestry(pmi, pih->fout, "_", alc_lower, ai_include_self);
    fprintf(pih->fout, "_##A\n");
 
    if (pmi->machine_list)
@@ -3381,9 +3292,11 @@ static bool declare_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
    pMACHINE_INFO pmi    = (pMACHINE_INFO)pelem->mbr;
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
+   fprintf(pih->fout, "extern ");
+   streamHungarianToUnderbarCaps(pih->fout, pmi->parent->name->name);
+   fprintf(pih->fout, "_SHARED_EVENT_STR ");
    fprintf(pih->fout
-           , "extern %s_SHARED_EVENT_STR %s_share_%s_%s_str;\n"
-           , pih->cp
+		   , "%s_share_%s_%s_str;\n"
            , pmi->name->name
            , pmi->parent->name->name
            , pih->pid->name
@@ -3401,11 +3314,15 @@ static bool declare_shared_event_lists(pLIST_ELEMENT pelem, void *data)
    {
 
       pih->pid = pevent;
-      iterate_list(pevent->type_data.event_data.psharing_sub_machines, declare_shared_event_data_blocks, pih);
+      iterate_list(pevent->type_data.event_data.psharing_sub_machines
+				   , declare_shared_event_data_blocks
+				   , pih
+				  );
 
-      fprintf(pih->fout
-              , "extern p%s_SHARED_EVENT_STR sharing_%s_%s[];\n\n"
-              , pih->cp
+      fprintf(pih->fout, "extern p");
+	  streamHungarianToUnderbarCaps(pih->fout, pih->pmi->name->name);
+	  fprintf(pih->fout
+			  , "_SHARED_EVENT_STR sharing_%s_%s[];\n\n"
               , pih->pmi->name->name
               , pevent->name
               );
@@ -3638,5 +3555,98 @@ void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi, char
                  );
       }
    }
+}
+
+void printSubMachinesDeclarations(pCMachineData pcmd, pMACHINE_INFO pmi)
+{
+	ITERATOR_HELPER helper;
+
+	helper.pmi   = pmi;
+	helper.fout  = pcmd->hFile;
+	helper.first = true;
+
+	fprintf(pcmd->hFile,"/* Sub Machine Declarations */\n\n");
+	fprintf(pcmd->hFile
+			,"%s\ntypedef enum {\n"
+			,"/* enumerate sub-machines */"
+			);
+
+	iterate_list(pmi->machine_list
+				 , print_sub_machine_as_enum_member
+				 ,&helper
+				 );
+
+	fprintf(pcmd->hFile, "\t, ");
+	streamStrCaseAware(pcmd->hFile, pmi->name->name, alc_lower);
+	fprintf(pcmd->hFile, "_numSubMachines\n} ");
+	printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
+	fprintf(pcmd->hFile, "_SUB_MACHINES;\n\n");
+
+	fprintf(pcmd->hFile, "typedef ");
+	streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
+	fprintf(pcmd->hFile
+			, "_EVENT%s (*"
+			, pmi->data_block_count ? "_ENUM"  : ""
+			);
+	streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
+	fprintf(pcmd->hFile, "_SUB_MACHINE_FN)(");
+	streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
+	fprintf(pcmd->hFile
+			, "_EVENT%s);\n"
+			, pmi->data_block_count ? "_ENUM"  : ""
+		   );
+
+	fprintf(pcmd->hFile, "typedef struct _");
+	streamStrCaseAware(pcmd->hFile, pmi->name->name, alc_lower);
+	fprintf(pcmd->hFile, "_sub_fsm_if_ ");
+	streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
+	fprintf(pcmd->hFile, "_SUB_FSM_IF, *p");
+	streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
+	fprintf(pcmd->hFile, "_SUB_FSM_IF;\n");
+
+	fprintf(pcmd->hFile,"struct _");
+	streamStrCaseAware(pcmd->hFile, pmi->name->name, alc_lower);
+	fprintf(pcmd->hFile, "_sub_fsm_if_\n{\n");
+
+	fprintf(pcmd->hFile, "\t");
+	printAncestry(ultimateAncestor(pmi), pcmd->hFile, "_", alc_upper, ai_include_self);
+	fprintf(pcmd->hFile
+			, "_EVENT%s                first_event;\n"
+			, pmi->data_block_count ? "_ENUM"  : ""
+			);
+
+	fprintf(pcmd->hFile, "\t");
+	printAncestry(ultimateAncestor(pmi), pcmd->hFile, "_", alc_upper, ai_include_self);
+	fprintf(pcmd->hFile
+			, "_EVENT%s                last_event;\n"
+			, pmi->data_block_count ? "_ENUM"  : ""
+			);
+
+	fprintf(pcmd->hFile, "\t");
+	streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
+	fprintf(pcmd->hFile, "_SUB_MACHINE_FN       subFSM;\n");
+
+	fprintf(pcmd->hFile
+			,"};\n\n"
+			);
+
+	fprintf(pcmd->hFile, "extern p");
+	streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
+	fprintf(pcmd->hFile, "_SUB_FSM_IF ");
+	printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
+	fprintf(pcmd->hFile, "_sub_fsm_if_array[");
+	streamStrCaseAware(pcmd->hFile, pmi->name->name, alc_lower);
+	fprintf(pcmd->hFile, "_numSubMachines];\n\n");
+
+	iterate_list(pmi->machine_list, declare_sub_machine_if, &helper);
+
+	fprintf(pcmd->hFile
+			, "\n"
+			);
+
+	if (pmi->parent_event_reference_count)
+	{
+	   declare_parent_event_reference_data_structures(pcmd, pmi);
+	}
 }
 

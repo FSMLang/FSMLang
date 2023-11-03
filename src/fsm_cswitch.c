@@ -202,6 +202,11 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
    writeCSwitchSubMachineInternal(pfsmcog->pcmd, pmi);
+
+   if (pmi->machine_list)
+   {
+      write_machines(pmi->machine_list, generateCSwitchMachineWriter);
+   }
 }
 
 static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
@@ -2042,6 +2047,8 @@ pFSMOutputGenerator generateCSwitchMachineWriter(FSMOGF_TYPE fsmogft)
 		pfsmog->writeMachine = writeCSwitchMachineFN;
 		pfsmog->closeOutput  = closeCMachineFN;
 	}
+
+	return pfsmog;
 
 }
 

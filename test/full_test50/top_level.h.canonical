@@ -70,7 +70,7 @@ NEW_MACHINE *p##A = &A;
 	   12  newMachine_subMachine2_eee2
 	   13  newMachine_subMachine2_eee3
 	   14  newMachine_subMachine2_noEvent
-	   15  subMachine2_numAllEvents
+	   15  newMachine_numAllEvents
 
 */
 typedef enum NEW_MACHINE_EVENT_ENUM {
@@ -186,7 +186,7 @@ struct _newMachine_shared_event_str_
 	NEW_MACHINE_DATA_TRANSLATION_FN  data_translation_fn;
 	pNEW_MACHINE_SUB_FSM_IF          psub_fsm_if;
 };
-extern NEW_MACHINE_EVENT_ENUM pass_shared_event(pNEW_MACHINE,pNEW_MACHINE_SHARED_EVENT_STR[]);
+extern NEW_MACHINE_EVENT_ENUM newMachine_pass_shared_event(pNEW_MACHINE,pNEW_MACHINE_SHARED_EVENT_STR[]);
 
 extern NEW_MACHINE_SHARED_EVENT_STR subMachine1_share_newMachine_eShared_str;
 extern pNEW_MACHINE_SHARED_EVENT_STR sharing_newMachine_eShared[];

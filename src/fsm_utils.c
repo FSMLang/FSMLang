@@ -62,8 +62,7 @@ struct _action_array_population_helper_
 };
 
 
-static void recursePrintAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE);
-static void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
+static bool recursePrintAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 static bool write_machine(pLIST_ELEMENT,void*);
 static bool count_entry_and_exit_handlers(pLIST_ELEMENT,void*);
 static bool count_data_xlate(pLIST_ELEMENT,void*);
@@ -1013,7 +1012,7 @@ bool print_sub_machine_component(pLIST_ELEMENT pelem, void *data)
            , "\t%s"
            , pih->first ? "" : ", "
 		   );
-   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ais_include_self);
+   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
    fprintf(pih->fout
 		   , "_%s\n"
            , pid->name
@@ -1030,7 +1029,7 @@ bool print_sub_machine_component_name(pLIST_ELEMENT pelem, void *data)
    if(!short_dbg_names)
    {
       fprintf(pih->fout, "\t, \"");
-	  printAncestry(pih->pmi, pih->fout, "_", alc_lower, ais_include_self);
+	  printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
 	  fprintf(pih->fout
 			  , "_%s\"\n"
             , pid->name
@@ -1055,7 +1054,7 @@ bool print_sub_machine_events(pLIST_ELEMENT pelem, void *data)
    iterate_list(pih->pmi->event_list,print_sub_machine_component,pih);
 
    fprintf(pih->fout , "\t, ");
-   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ais_include_self);
+   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
    fprintf(pih->fout
 		   , "_noEvent\n"
            );
@@ -1080,7 +1079,7 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    if(!short_dbg_names)
    {
       fprintf(pih->fout, "\t, \"");
-	  printAncestry(pih->pmi, pih->fout, "_", alc_lower, ais_include_self);
+	  printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
 	  fprintf(pih->fout, "_noEvent\"\n");
    }
    else
@@ -1121,7 +1120,7 @@ int copyFileContents(const FILE *fDest, const char *src)
     return ferror(fSrc) + ferror((FILE*)fDest);
 }
 
-static void streamStrCaseAware(FILE *fout, char *str, ANCESTRY_LETTER_CASE alc)
+void streamStrCaseAware(FILE *fout, char *str, ANCESTRY_LETTER_CASE alc)
 {
 	if (alc == alc_upper)
 	{
@@ -1133,36 +1132,52 @@ static void streamStrCaseAware(FILE *fout, char *str, ANCESTRY_LETTER_CASE alc)
 	}
 }
 
-static void recursePrintAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc)
+static bool recursePrintAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUSION ai)
 {
-   if (pmi->parent)
+   bool something_was_printed = false;
+
+   if (pmi->parent
+	   && !(ai & ai_stop_at_parent)
+	   )
    {
-	   recursePrintAncestry(pmi->parent, fout, separator, alc);
-	   fputs(separator, fout);
+	   if ((something_was_printed = recursePrintAncestry(pmi->parent, fout, separator, alc, ai))) 
+		   fputs(separator, fout);
 	   streamStrCaseAware(fout, pmi->name->name, alc);
    }
    else
    {
-	   streamStrCaseAware(fout, pmi->name->name, alc);
+	   if (!(ai & ai_omit_ultimate))
+	   {
+		   streamStrCaseAware(fout, pmi->name->name, alc);
+		   something_was_printed = true;
+	   }
    }
+
+   return something_was_printed;
 
 }
 
-void printAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUDE_SELF ais)
+bool printAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUSION ai)
 {
+	bool something_was_printed = false;
+
 	if (pmi->parent)
 	{
-		recursePrintAncestry(pmi->parent,fout,separator,alc);
+		something_was_printed = recursePrintAncestry(pmi->parent,fout,separator,alc, ai);
 	}
 
-	if (ais == ais_include_self)
+	if (ai & ai_include_self)
 	{
-		if (pmi->parent)
+		if (something_was_printed)
 		{
 			fputs(separator, fout);
 		}
+
 		streamStrCaseAware(fout, pmi->name->name, alc);
+		something_was_printed = true;
 	}
+
+	return something_was_printed;
 }
 
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO pmi)

@@ -315,7 +315,7 @@ static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
   pfsmhtmlog->pmd->pmi = pmi;
 
 	fprintf(pfsmhtmlog->pmd->htmlFile,"<h2>");
-	printAncestry(pmi, pfsmhtmlog->pmd->htmlFile, "::", alc_lower, ais_include_self);
+	printAncestry(pmi, pfsmhtmlog->pmd->htmlFile, "::", alc_lower, ai_include_self);
 	fprintf(pfsmhtmlog->pmd->htmlFile, "</h2>\n");
 
 	if (pmi->name->docCmnt)

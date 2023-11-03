@@ -15,7 +15,8 @@ machine anotherNewMachine
 		event ee1, ee2, ee3;
 		event parent::e1;
 
-		/** a sub-sub machine another*/
+		/* a sub-sub machine another
+      */
 		machine anotherSubSubMachine1 {
 			state z1, z2;
 			event y1, y2;

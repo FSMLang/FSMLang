@@ -150,7 +150,7 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
    (void) data;
 
    printf("machine name: ");
-   printAncestry(pmi, stdout, "::", alc_lower, ais_include_self);
+   printAncestry(pmi, stdout, "::", alc_lower, ai_include_self);
    printf("\n");
 
    printf("reentrance protection: %s\n"
