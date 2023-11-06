@@ -64,7 +64,7 @@ static void            defineCSwitchMachineFSM(pCMachineData,pMACHINE_INFO,char*
 static void            defineCSwitchSubMachineFSM(pCMachineData,pMACHINE_INFO,char*);
 static void            declareCSwitchMachineStruct(pCMachineData,pMACHINE_INFO,char*);
 static void            declareCSwitchMachineStateFnArray(pCMachineData,pMACHINE_INFO,char*);
-static void            declareCSwitchSubMachineStateFnArray(pCMachineData,pMACHINE_INFO,char*);
+static void            declareCSwitchSubMachineStateFnArray(pCMachineData,pMACHINE_INFO);
 static void            writeActionsReturnStateSwitchFSM(pCMachineData, pMACHINE_INFO, char *);
 static void            writeReentrantSwitchFSM(pCMachineData, pMACHINE_INFO, char *);
 static void            writeOriginalSwitchFSM(pCMachineData, pMACHINE_INFO, char *);
@@ -324,13 +324,11 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
 static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
-   char     *cp;
-
    if (!pmi || !pcmw) return 1;
 
    char *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
 
-   if ((cp = subMachineHeaderStart(pcmw, pmi, "state_fn")) == NULL) return 1;
+   subMachineHeaderStart(pcmw, pmi, "state_fn");
 
    declareCSwitchSubMachineStateFnArray(pcmw, pmi, cp);
 
@@ -456,43 +454,55 @@ static void declareCSwitchMachineStateFnArray(pCMachineData pcmw, pMACHINE_INFO 
           );
 }
 
-static void declareCSwitchSubMachineStateFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void declareCSwitchSubMachineStateFnArray(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
-   char *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
-
+   fprintf(pcmw->hFile, "typedef ");
    if (pmi->modFlags & mfActionsReturnVoid)
    {
+      fprintf(pcmw->hFile, "void (*");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->hFile, "_STATE_FN)(p");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->hFile, ",");
+	  streamHungarianToUnderbarCaps(pcmw->hFile, ultimateAncestor(pmi));
       fprintf(pcmw->hFile
-              , "typedef void (*%s_STATE_FN)(p%s,%s_EVENT%s);\n\n"
-              , cp
-              , cp
-              , parent_cp
-              , pmi->parent->data_block_count ? "_ENUM"  : ""
+			  , "_EVENT%s);\n\n"
+              , ultimateAncestor(pmi)->parent->data_block_count ? "_ENUM"  : ""
              );
    }
    else
    {
-      fprintf(pcmw->hFile
-              , "typedef %s_%s%s (*%s_STATE_FN)(p%s,%s_EVENT%s);\n\n"
-              , parent_cp
-              , (pmi->modFlags & mfActionsReturnStates) ? "STATE" : "EVENT"
-              , (pmi->parent->data_block_count && !(pmi->modFlags & mfActionsReturnStates)) 
-                 ? "_ENUM"  : ""
-              , cp
-              , cp
-              , parent_cp
-              , pmi->parent->data_block_count ? "_ENUM"  : ""
+	   if (pmi->modFlags & mfActionsReturnStates)
+	   {
+		   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+		   fprintf(pcmw->hFile, "_STATE (*");
+	   }
+	   else
+	   {
+		   streamHungarianToUnderbarCaps(pcmw->hFile, ultimateAncestor(pmi));
+		   fprintf(pcmw->hFile
+				   , "_EVENT%s (*"
+				   , ultimateAncestor(pmi)->data_block_count ? "_ENUM" : ""
+	   }
+	   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+	   fprintf(pcmw->hFile, "_STATE_FN)(p");
+	   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+	   fprintf(pcmw->hFile, ",");
+	   streamHungarianToUnderbarCaps(pcmw->hFile, ultimateAncestor(pmi));
+	   fprintf(pcmw->hFile
+			   , "_EVENT%s);\n\n"
+              , ultimateAncestor(pmi)->parent->data_block_count ? "_ENUM"  : ""
              );
    }
 
-   fprintf(pcmw->hFile
-           , "extern const %s_STATE_FN %s_state_fn_array[%s_numStates];\n\n"
-           , cp
-           , pmi->name->name
-           , pmi->name->name
-          );
+   fprintf(pcmw->hFile, "extern const ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->hFile, "_STATE_FN ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->hFile, "_state_fn_array[");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->hFile, "_numStates];\n\n");
 
-   FREE_AND_CLEAR(parent_cp);
 }
 
 static void declareCSwitchMachineStruct(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)

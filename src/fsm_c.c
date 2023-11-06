@@ -83,9 +83,12 @@ static bool declare_action_enum_member(pLIST_ELEMENT pelem, void *data)
    {
 
       fprintf(pich->pcmw->hFile
-              , "%s%s_%s_e\n"
+			  , "%s"
               , pich->first ? (pich->first = false, "  ") : ", "
-              , pich->pmi->name->name
+			 );
+	  printAncestry(pich->pmi, pich->pcmw->hFile, "_", alc_lower, ai_include_self);
+      fprintf(pich->pcmw->hFile
+			  , "_%s_e\n"
               , pid_info->name
              );
 
@@ -103,9 +106,12 @@ static bool declare_action_array_member(pLIST_ELEMENT pelem, void *data)
    {
 
       fprintf(pich->pcmw->cFile
-              , "%s%s_%s\n"
+              , "%s"
               , pich->first ? (pich->first = false, "  ") : ", "
-              , pich->pmi->name->name
+			 );
+	  printAncestry(pich->pmi, pich->pcmw->hFile, "_", alc_lower, ai_include_self);
+	  fprintf(pcmw->cFile
+			  , "_%s\n"
               , pid_info->name
              );
 
@@ -120,9 +126,12 @@ static bool declare_transition_fn_enum_member(pLIST_ELEMENT pelem, void *data)
    pID_INFO pid_info              = ((pID_INFO) pelem->mbr);
 
    fprintf(pich->pcmw->hFile
-           , "%s%s_%s_e\n"
+           , "%s"
            , pich->first ? (pich->first = false, "  ") : ", "
-           , pich->pmi->name->name
+		  );
+   printAncestry(pich->pmi, pich->pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pich->pcmw->hFile
+		   , "_%s_e\n"
            , pid_info->name
           );
 
@@ -135,11 +144,15 @@ static bool declare_transition_enum_member(pLIST_ELEMENT pelem, void *data)
    pID_INFO pid_info              = ((pID_INFO) pelem->mbr);
 
    fprintf(pich->pcmw->hFile
-           , "%s%s_transitionTo%s_e\n"
+		   , "%s"
            , pich->first ? (pich->first = false, "  ") : ", "
-           , pich->pmi->name->name
+		  );
+   printAncestry(pich->pmi, pich->pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pich->pcmw->hFile
+		   , "_transitionTo%s_e\n"
            , pid_info->name
-          );
+		  );
+
    return false;
 }
 
@@ -149,11 +162,15 @@ static bool define_transition_fn_array_member(pLIST_ELEMENT pelem, void *data)
    pID_INFO pid_info              = ((pID_INFO) pelem->mbr);
 
    fprintf(pich->pcmw->cFile
-           , "%s%s_%s\n"
+           , "%s"
            , pich->first ? (pich->first = false, "  ") : ", "
-           , pich->pmi->name->name
+		  );
+   printAncestry(pich->pmi, pich->pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pich->pcmw->cFile
+		   , "_%s\n"
            , pid_info->name
           );
+
    return false;
 }
 
@@ -163,9 +180,12 @@ static bool define_transition_array_member(pLIST_ELEMENT pelem, void *data)
    pID_INFO pid_info              = ((pID_INFO) pelem->mbr);
 
    fprintf(pich->pcmw->cFile
-           , "%s%s_transitionTo%s\n"
+           , "%s"
            , pich->first ? (pich->first = false, "  ") : ", "
-           , pich->pmi->name->name
+		  );
+   printAncestry(pich->pmi, pich->pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pich->pcmw->cFile
+		   , "_transitionTo%s\n"
            , pid_info->name
           );
 
@@ -175,50 +195,50 @@ static bool define_transition_array_member(pLIST_ELEMENT pelem, void *data)
 /*
   Our "real" internals.
 */
-static int             writeCMachineInternal(pCMachineData, pMACHINE_INFO);
-static int             writeCSubMachineInternal(pCMachineData, pMACHINE_INFO);
-static void            writeOriginalFSM(pCMachineData, pMACHINE_INFO, char *);
-static void            writeOriginalSubFSM(pCMachineData, pMACHINE_INFO, char *);
-static void            writeOriginalFSMLoop(pCMachineData, pMACHINE_INFO, char *);
-static void            writeOriginalSubFSMLoop(pCMachineData, pMACHINE_INFO, char *);
-static void            writeOriginalFSMLoopInnards(pCMachineData, pMACHINE_INFO, char *, char *);
-static void            writeOriginalSubFSMLoopInnards(pCMachineData, pMACHINE_INFO, char *, char *);
-static void            writeNoTransition(pCMachineData, pMACHINE_INFO, char *);
-static void            subMachineWriteNoTransition(pCMachineData, pMACHINE_INFO, char *);
-static void            writeReentrantFSM(pCMachineData, pMACHINE_INFO, char *);
-static void            writeActionsReturnStateFSM(pCMachineData, pMACHINE_INFO, char *);
-static void            declareCMachineActionArray(pCMachineData, pMACHINE_INFO, char *);
-static void            defineCMachineActionFnArray(pCMachineData, pMACHINE_INFO, char *);
-static void            defineCMachineTransitionFnArray(pCMachineData, pMACHINE_INFO, char *);
-static void            declareCMachineActionFnEnum(pCMachineData, pMACHINE_INFO, char *);
-static void            declareCMachineTransitionFnEnum(pCMachineData, pMACHINE_INFO, char *);
-static void            declareCMachineStruct(pCMachineData, pMACHINE_INFO, char *);
-static void            defineActionArray(pCMachineData, pMACHINE_INFO, char *);
-static void            defineCMachineFSM(pCMachineData, pMACHINE_INFO, char *);
-static void            defineCSubMachineFSM(pCMachineData, pMACHINE_INFO, char *);
+static int  writeCMachineInternal(pCMachineData,pMACHINE_INFO);
+static int  writeCSubMachineInternal(pCMachineData,pMACHINE_INFO);
+static void writeOriginalFSM(pCMachineData,pMACHINE_INFO,char*);
+static void writeOriginalSubFSM(pCMachineData,pMACHINE_INFO,char*);
+static void writeOriginalFSMLoop(pCMachineData,pMACHINE_INFO,char*);
+static void writeOriginalSubFSMLoop(pCMachineData,pMACHINE_INFO,char*);
+static void writeOriginalFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*,char*);
+static void writeOriginalSubFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*,char*);
+static void writeNoTransition(pCMachineData,pMACHINE_INFO,char*);
+static void subMachineWriteNoTransition(pCMachineData,pMACHINE_INFO,char*);
+static void writeReentrantFSM(pCMachineData,pMACHINE_INFO,char*);
+static void writeActionsReturnStateFSM(pCMachineData,pMACHINE_INFO,char*);
+static void declareCMachineActionArray(pCMachineData,pMACHINE_INFO);
+static void defineCMachineActionFnArray(pCMachineData,pMACHINE_INFO);
+static void defineCMachineTransitionFnArray(pCMachineData,pMACHINE_INFO);
+static void declareCMachineActionFnEnum(pCMachineData,pMACHINE_INFO);
+static void declareCMachineTransitionFnEnum(pCMachineData,pMACHINE_INFO);
+static void declareCMachineStruct(pCMachineData,pMACHINE_INFO);
+static void defineActionArray(pCMachineData,pMACHINE_INFO);
+static void defineCMachineFSM(pCMachineData,pMACHINE_INFO,char*);
+static void defineCSubMachineFSM(pCMachineData,pMACHINE_INFO,char*);
 
 
 static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
-   char     *cp;
-
    if (!pmi || !pcmw) return 1;
 
-   if ((cp = subMachineHeaderStart(pcmw, pmi, "action")) == NULL) return 1;
+   subMachineHeaderStart(pcmw, pmi, "action");
 
    /* we need our count of events */
+   fprintf(pcmw->hFile, "typedef enum { ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
    fprintf(pcmw->hFile
-           , "typedef enum { %s_numEvents = %u} %s_EVENTS;\n"
-           , pmi->name->name
+		   , "_numEvents = %u} "
            , pmi->event_list->count
-           , cp
            );
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->hFile, "_EVENTS;\n");
 
-   declareCMachineActionArray(pcmw, pmi, cp);
+   declareCMachineActionArray(pcmw, pmi);
 
-   declareCMachineStruct(pcmw, pmi, cp);
+   declareCMachineStruct(pcmw, pmi);
 
-   subMachineHeaderEnd(pcmw, pmi, cp, true);
+   commonHeaderEnd(pcmw, pmi, true);
 
    /*
      Source File
@@ -226,11 +246,11 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
    addNativeImplementationIfThereIsAny(pmi, pcmw->cFile);
 
-   defineActionArray(pcmw, pmi, cp);
+   defineActionArray(pcmw, pmi);
 
-   defineSubMachineIF(pcmw, pmi, cp);
+   defineSubMachineIF(pcmw);
 
-   possiblyDefineSubMachineSharedEventStructures(pcmw, pmi, cp);
+   possiblyDefineSubMachineSharedEventStructures(pcmw, pmi);
 
    defineSubMachineArray(pcmw, pmi, cp);
 
@@ -1107,7 +1127,7 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char 
 
 }
 
-static void declareCMachineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void declareCMachineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
 
    /*
@@ -1120,13 +1140,15 @@ static void declareCMachineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, ch
    {
 
       /* publish the array */
-      fprintf(pcmw->hFile
-              , "extern const %s_ACTION_FN %s_ACTION_ARRAY[%s_numEvents][%s_numStates];\n\n",
-              cp,
-              cp,
-              pmi->name->name,
-              pmi->name->name
-             );
+      fprintf(pcmw->hFile, "extern const ");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->hFile, "_ACTION_FN ");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->hFile, "_ACTION_ARRAY[");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+      fprintf(pcmw->hFile, "_numEvents][");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+      fprintf(pcmw->hFile, "_numStates];\n\n",);
 
    }
    else
@@ -1140,52 +1162,57 @@ static void declareCMachineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, ch
        */
       if (compact_action_array)
       {
-         declareCMachineActionFnEnum(pcmw, pmi, cp);
+         declareCMachineActionFnEnum(pcmw, pmi);
          if (pmi->transition_fn_list->count)
          {
-            declareCMachineTransitionFnEnum(pcmw, pmi, cp);
+            declareCMachineTransitionFnEnum(pcmw, pmi);
          }
       }
 
       /* now do the action/transition array */
-      fprintf(pcmw->hFile, "typedef struct _%s_action_trans_struct_ {\n",
-              pmi->name->name);
+      fprintf(pcmw->hFile, "typedef struct _");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+      fprintf(pcmw->hFile, "_action_trans_struct_ {\n\t");
 
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
       fprintf(pcmw->hFile
-              , "\t%s_ACTION_FN%s\taction;\n"
-              , cp
+              , "_ACTION_FN%s\taction;\n\t"
               , compact_action_array ? "_E" : ""
              );
 
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
       fprintf(pcmw->hFile
-              , "\t%s_%s%s\ttransition;\n} %s_ACTION_TRANS, *p%s_ACTION_TRANS;\n\n"
-              , cp
+              , "_%s%s\ttransition;\n} "
               , pmi->transition_fn_list->count ? "TRANSITION_FN" : "STATE"
               , (pmi->transition_fn_list->count && compact_action_array) ? "_E" : ""
-              , cp
-              , cp
              );
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->hFile, "_ACTION_TRANS, *p");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->hFile, "_ACTION_TRANS;\n\n");
 
       /* publish the array */
-      fprintf(pcmw->hFile, "extern const %s_ACTION_TRANS %s_action_array[%s_numEvents][%s_numStates];\n\n"
-              , cp
-              , pmi->name->name
-              , pmi->name->name
-              , pmi->name->name
-             );
+      fprintf(pcmw->hFile, "extern const ");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->hFile, "_ACTION_TRANS ");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+      fprintf(pcmw->hFile, "_action_array[");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+      fprintf(pcmw->hFile, "_numEvents][");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+      fprintf(pcmw->hFile, "_numStates];\n\n");
 
    }
 
 }
 
-static void declareCMachineActionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void declareCMachineActionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    ITERATOR_CALLBACK_HELPER ich = {0};
 
    ich.first = true;
    ich.pcmw  = pcmw;
    ich.pmi   = pmi;
-   ich.cp    = cp;
 
    /* enum */
    fprintf(pcmw->hFile
@@ -1195,57 +1222,48 @@ static void declareCMachineActionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi, c
    iterate_list(pmi->action_list, declare_action_enum_member,&ich);
 
    /* declare the dummy, or no op action */
-   fprintf(pcmw->hFile
-           , ", %s_noAction_e\n"
-           , pmi->name->name
-          );
+   fprintf(pcmw->hFile, ", ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->hFile, "_noAction_e\n");
 
-   fprintf(pcmw->hFile
-           , "} __attribute__((__packed__)) %s_ACTION_FN_E;\n\n"
-           , cp
-          );
+   fprintf(pcmw->hFile, "} __attribute__((__packed__)) ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->hFile, "_ACTION_FN_E;\n\n");
 
 }
 
-static void defineCMachineActionFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void defineCMachineActionFnArray(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    ITERATOR_CALLBACK_HELPER ich = {0};
 
    ich.first = true;
    ich.pcmw  = pcmw;
    ich.pmi   = pmi;
-   ich.cp    = cp;
 
 
-   /* array */
-   fprintf(pcmw->cFile
-           , "const %s_ACTION_FN %s_action_fns[] = \n{\n"
-           , cp
-           , pmi->name->name
-          );
+   /* open the array */
+   fprintf(pcmw->cFile, "const ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile "_ACTION_FN ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->cFile, "_action_fns[] = \n{\n");
 
+   /* fill the array */
    iterate_list(pmi->action_list,  declare_action_array_member, &ich);
 
-   /* declare the dummy, or no op action */
-   fprintf(pcmw->cFile
-           , ",  %s_noAction\n"
-           , pmi->name->name
-          );
-
-   fprintf(pcmw->cFile
-           , "};\n\n"
-          );
+   /* declare the dummy, or no op action and close the array */
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->cFile ",  %s_noAction\n}\t\t");
 
 }
 
-static void declareCMachineTransitionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void declareCMachineTransitionFnEnum(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    ITERATOR_CALLBACK_HELPER ich = {0};
 
    ich.first = true;
    ich.pcmw  = pcmw;
    ich.pmi   = pmi;
-   ich.cp    = cp;
 
    /* enum */
    fprintf(pcmw->hFile
@@ -1255,35 +1273,32 @@ static void declareCMachineTransitionFnEnum(pCMachineData pcmw, pMACHINE_INFO pm
    iterate_list(pmi->transition_fn_list,declare_transition_fn_enum_member,&ich);
    iterate_list(pmi->transition_list,declare_transition_enum_member,&ich);
 
-   fprintf(pcmw->hFile
-           , ", %s_noTransition_e\n"
-           , pmi->name->name
-          );
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->hFile, ", _noTransition_e\n");
 
-   fprintf(pcmw->hFile
-           , "} __attribute__ (( __packed__ )) %s_TRANSITION_FN_E;\n\n"
-           , cp
-          );
+   fprintf(pcmw->hFile, "} __attribute__ (( __packed__ )) ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->hFile, "_TRANSITION_FN_E;\n\n");
 
 }
 
-static void defineCMachineTransitionFnArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void defineCMachineTransitionFnArray(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    ITERATOR_CALLBACK_HELPER ich = {0};
 
    ich.first = true;
    ich.pcmw  = pcmw;
    ich.pmi   = pmi;
-   ich.cp    = cp;
 
 
-   /* array */
-   fprintf(pcmw->cFile
-           , "const %s_TRANSITION_FN %s_transition_fns[] = \n{\n"
-           , cp
-           , pmi->name->name
-          );
+   /* open the array */
+   fprintf(pcmw->cFile, "const ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile, "_TRANSITION_FN ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->cFile, "_transition_fns[] = \n{\n");
 
+   /* fill the array */
    iterate_list(pmi->transition_fn_list
                 ,define_transition_fn_array_member
                 ,&ich
@@ -1293,10 +1308,9 @@ static void defineCMachineTransitionFnArray(pCMachineData pcmw, pMACHINE_INFO pm
                 ,&ich
                 );
 
-   fprintf(pcmw->cFile
-           , ", %s_noTransitionFn\n"
-           , pmi->name->name
-          );
+   fprintf(pcmw->cFile, ", ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->cFile, "_noTransitionFn\n");
 
    fprintf(pcmw->cFile
            , "};\n\n"
@@ -1305,68 +1319,57 @@ static void defineCMachineTransitionFnArray(pCMachineData pcmw, pMACHINE_INFO pm
 }
 
 
-static void declareCMachineStruct(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void declareCMachineStruct(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
-   char *parent_cp = NULL;
-
    /* put the machine structure definition into the header */
-   fprintf(pcmw->hFile, "struct _%s_struct_ {\n",
-           pmi->name->name);
+   fprintf(pcmw->hFile, "struct _");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->hFile, "_struct_ {\n");
 
    if (pmi->data)
    {
-      fprintf(pcmw->hFile, "\t%s_DATA\t\t\t\t\tdata;\n",
-              cp);
+      fprintf(pcmw->hFile, "\t");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->hFile, "_DATA\t\t\t\t\tdata;\n");
    }
 
-   fprintf(pcmw->hFile, "\t%s_STATE\t\t\t\t\tstate;\n",
-           cp);
+   fprintf(pcmw->hFile, "\t");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->hFile, "_STATE\t\t\t\t\tstate;\n");
 
-   if (pmi->parent)
-   {
-      parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
+   fprintf(pcmw->hFile, "\t");
+   streamHungarianToUnderbarCaps(pcmw->hFile, ultimateAncestor(pmi)->name->name);
+   fprintf(pcmw->hFile
+		   , "_EVENT%s\t\t\t\t\tevent;\n"
+		   , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+		  );
 
-      fprintf(pcmw->hFile
-              , "\t%s_EVENT%s\t\t\t\t\tevent;\n"
-              , parent_cp
-              , pmi->parent->data_block_count ? "_ENUM"  : ""
-              );
-
-      FREE_AND_CLEAR(parent_cp);
-   }
-   else
-   {
-      fprintf(pcmw->hFile
-              , "\t%s_EVENT%s\t\t\t\t\tevent;\n"
-              , cp
-              , pmi->data_block_count ? "_ENUM"  : ""
-              );
-   }
-
-   CHECK_AND_FREE(parent_cp);
-
-   fprintf(pcmw->hFile, "\t%s_ACTION_%s const\t(*actionArray)[%s_numEvents][%s_numStates];\n"
-           , cp
+   fprintf(pcmw->hFile, "\t");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->hFile, "_ACTION_%s const\t(*actionArray)["
            , (pmi->modFlags & mfActionsReturnStates) ? "FN" : "TRANS"
-           , pmi->name->name
-           , pmi->name->name
-          );
+		  );
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->hFile, "_numEvents][");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->hFile, "_numStates];\n");
 
    if (pmi->machine_list)
    {
-      fprintf(pcmw->hFile
-              , "\tp%s_SUB_FSM_IF\t(*subMachineArray)[%s_numSubMachines];\n"
-              , cp
-              , pmi->name->name
-             );
+      fprintf(pcmw->hFile, "\tp");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->hFile, "_SUB_FSM_IF\t(*subMachineArray)[");
+	  printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+      fprintf(pcmw->hFile, "_numSubMachines];\n");
    }
 
-   fprintf(pcmw->hFile, "\t%s_FSM\t\t\t\t\t\tfsm;\n};\n\n",
-           cp);
+   fprintf(pcmw->hFile, "\t");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->hFile, "_FSM\t\t\t\t\t\tfsm;\n};\n\n");
 
 }
 
-static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    /* 
       if compacting, we will use an array for the action functions,
@@ -1374,21 +1377,25 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
     */
    if (compact_action_array)
    {
-      defineCMachineActionFnArray(pcmw, pmi, cp);
+      defineCMachineActionFnArray(pcmw, pmi);
       if (pmi->transition_fn_list->count)
       {
-         defineCMachineTransitionFnArray(pcmw, pmi, cp);
+         defineCMachineTransitionFnArray(pcmw, pmi);
       }
    }
 
-   fprintf(pcmw->cFile
-           , "const %s_ACTION_%s %s_action_array[%s_numEvents][%s_numStates] =\n{\n"
-           , cp
+   fprintf(pcmw->cFile, "const ");
+   printAncestry(pmi, pcmw->hFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile, "_ACTION_%s "
            , (pmi->modFlags & mfActionsReturnStates) ? "FN" : "TRANS"
-           , pmi->name->name
-           , pmi->name->name
-           , pmi->name->name
-          );
+		   );
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pich->pcmw->cFile, "_action_array[");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pich->pcmw->cFile, "_numEvents][");
+   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+   fprintf(pich->pcmw->cFile, "_numStates] =\n{\n");
+
    for (unsigned i = 0; i < pmi->event_list->count; i++)
    {
 
@@ -1411,26 +1418,21 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
             if (pmi->modFlags & mfActionsReturnStates)
             {
+				printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
                if (strlen(pmi->actionArray[i][j]->action->name))
                {
-
-                  fprintf(pcmw->cFile, "%s_%s\n",
-                          pmi->name->name,
+                  fprintf(pcmw->cFile, "_%s\n",
                           pmi->actionArray[i][j]->action->name);
                }
                else
                {
                   fprintf(pcmw->cFile
                           , (pmi->actionArray[i][j]->transition->type == STATE)
-                          ? "%s_transitionTo%s\n"
-                          :
-                          "%s_%s\n"
-                          , pmi->name->name
+                            ? "_transitionTo%s\n"
+                            : "_%s\n"
                           , pmi->actionArray[i][j]->transition->name
                          );
-
                }
-
             }
             else //if (pmi->modFlags & mfActionsReturnStates)
             {
@@ -1438,44 +1440,46 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
                fprintf(pcmw->cFile, "{");
 
                /* also handle the transition only case */
+			   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
                fprintf(pcmw->cFile
-                       , "%s_%s%s,"
-                       , pmi->name->name
+                       , "_%s%s,"
                        , strlen(pmi->actionArray[i][j]->action->name)
-                       ? pmi->actionArray[i][j]->action->name
-                       : "noAction"
+                         ? pmi->actionArray[i][j]->action->name
+                         : "noAction"
                        , compact_action_array ? "_e" : ""
                       );
 
 
+			   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
                if (pmi->transition_fn_list->count)
                {
                   if (pmi->actionArray[i][j]->transition)
                   {
                      fprintf(pcmw->cFile
                              , pmi->actionArray[i][j]->transition->type == STATE
-                             ? "%s_transitionTo%s%s"
-                             : "%s_%s%s"
-                             , pmi->name->name
+                               ? "_transitionTo%s%s"
+                               : "_%s%s"
                              , pmi->actionArray[i][j]->transition->name
-                             , compact_action_array ? "_e" : ""
+                             , compact_action_array
+							   ? "_e"
+							   : ""
                             );
                   }
                   else
                   {
                      fprintf(pcmw->cFile
-                             , "%s_noTransition%s"
-                             , pmi->name->name
-                             , compact_action_array ? "_e"
-                             : pmi->transition_fn_list->count ? "Fn"
-                             : ""
+                             , "_noTransition%s"
+                             , compact_action_array 
+							   ? "_e"
+                               : pmi->transition_fn_list->count 
+							     ? "Fn"
+                                 : ""
                             );
                   }
                }
                else // if (pmi->transition_fn_list->count)
                {
-                  fprintf(pcmw->cFile, "%s_%s",
-                          pmi->name->name,
+                  fprintf(pcmw->cFile, "_%s",
                           pmi->actionArray[i][j]->transition ?
                           pmi->actionArray[i][j]->transition->name :
                           stateNameByIndex(pmi, j));
@@ -1493,9 +1497,9 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
             if (pmi->modFlags & mfActionsReturnStates)
             {
 
-               fprintf(pcmw->cFile, "%s_noTransition%s\n",
-                       pmi->name->name
-                       , compact_action_array
+				printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+               fprintf(pcmw->cFile, "_noTransition%s\n",
+                       compact_action_array
                          ? "_e"
                          : pmi->transition_fn_list->count
                            ? "Fn"
@@ -1508,11 +1512,14 @@ static void defineActionArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
                fprintf(pcmw->cFile, "{");
 
+			   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
                fprintf(pcmw->cFile
-                       , "%s_noAction%s, %s_%s%s"
-                       , pmi->name->name
+                       , "_noAction%s, "
                        , compact_action_array ? "_e" : ""
-                       , pmi->name->name
+					   );
+			   printAncestry(pmi, pcmw->hFile, "_", alc_lower, ai_include_self);
+			   fprintf(pich->pcmw->cFile
+					   , "_%s%s"
                        , (pmi->transition_fn_list->count == 0)
                          ? stateNameByIndex(pmi, j)
                          : "noTransition"
