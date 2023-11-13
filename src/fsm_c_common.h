@@ -85,12 +85,12 @@ int  initCSubMachineFN(pFSMOutputGenerator,char*);
 void closeCMachine(pFSMOutputGenerator,int);
 void closeCMachineFN(pFSMOutputGenerator,int);
 
-char          * commonHeaderStart(pCMachineData,pMACHINE_INFO,char*);
+void            commonHeaderStart(pCMachineData,pMACHINE_INFO,char*);
 void            addEventCrossReference(pCMachineData,pMACHINE_INFO,pITERATOR_HELPER);
 void            commonHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
-void            generateInstance(pCMachineData,pMACHINE_INFO,char*,char*);
-void            generateRunFunction(pCMachineData,pMACHINE_INFO,char*);
-void            defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
+void            generateInstance(pCMachineData,pMACHINE_INFO,char*);
+void            generateRunFunction(pCMachineData,pMACHINE_INFO);
+void            defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO);
 void            defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineWeakStateEntryAndExitFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
@@ -113,19 +113,18 @@ bool            sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT,
 
 void            subMachineHeaderStart(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineIF(pCMachineData,pMACHINE_INFO);
-void            possiblyDefineSubMachineSharedEventStructures(pCMachineData,pMACHINE_INFO,char*);
-void            defineSubMachineArray(pCMachineData,pMACHINE_INFO,char*);
+void            possiblyDefineSubMachineSharedEventStructures(pCMachineData,pMACHINE_INFO);
+void            defineSubMachineArray(pCMachineData,pMACHINE_INFO);
 bool            print_sub_machine_if(pLIST_ELEMENT,void*);
-void            defineSubMachineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineEventPassingActions(pCMachineData,pMACHINE_INFO,char*);
 void            defineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineFinder(pCMachineData,pMACHINE_INFO,char*);
 bool            declare_action_function(pLIST_ELEMENT,void*);
-void            declareSubMachineManagers(pCMachineData,pMACHINE_INFO,char*);
-void            declareStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,char*);
-void            defineStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,char*);
-void            declareEventDataManager(pCMachineData,char*);
+void            declareSubMachineManagers(pCMachineData,pMACHINE_INFO);
+void            declareStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO);
+void            defineStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO);
+void            declareEventDataManager(pCMachineData);
 void            defineEventDataManager(pCMachineData,pMACHINE_INFO,char*);
 void            printSubMachinesDeclarations(pCMachineData,pMACHINE_INFO);
 

@@ -198,15 +198,15 @@ static bool define_transition_array_member(pLIST_ELEMENT pelem, void *data)
 static int  writeCMachineInternal(pCMachineData,pMACHINE_INFO);
 static int  writeCSubMachineInternal(pCMachineData,pMACHINE_INFO);
 static void writeOriginalFSM(pCMachineData,pMACHINE_INFO,char*);
-static void writeOriginalSubFSM(pCMachineData,pMACHINE_INFO,char*);
+static void writeOriginalSubFSM(pCMachineData,pMACHINE_INFO);
 static void writeOriginalFSMLoop(pCMachineData,pMACHINE_INFO,char*);
-static void writeOriginalSubFSMLoop(pCMachineData,pMACHINE_INFO,char*);
-static void writeOriginalFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*,char*);
+static void writeOriginalSubFSMLoop(pCMachineData,pMACHINE_INFO);
+static void writeOriginalFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*);
 static void writeOriginalSubFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*,char*);
 static void writeNoTransition(pCMachineData,pMACHINE_INFO,char*);
 static void subMachineWriteNoTransition(pCMachineData,pMACHINE_INFO,char*);
 static void writeReentrantFSM(pCMachineData,pMACHINE_INFO,char*);
-static void writeActionsReturnStateFSM(pCMachineData,pMACHINE_INFO,char*);
+static void writeActionsReturnStateFSM(pCMachineData,pMACHINE_INFO);
 static void declareCMachineActionArray(pCMachineData,pMACHINE_INFO);
 static void defineCMachineActionFnArray(pCMachineData,pMACHINE_INFO);
 static void defineCMachineTransitionFnArray(pCMachineData,pMACHINE_INFO);
@@ -215,7 +215,7 @@ static void declareCMachineTransitionFnEnum(pCMachineData,pMACHINE_INFO);
 static void declareCMachineStruct(pCMachineData,pMACHINE_INFO);
 static void defineActionArray(pCMachineData,pMACHINE_INFO);
 static void defineCMachineFSM(pCMachineData,pMACHINE_INFO,char*);
-static void defineCSubMachineFSM(pCMachineData,pMACHINE_INFO,char*);
+static void defineCSubMachineFSM(pCMachineData,pMACHINE_INFO);
 
 
 static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
@@ -248,25 +248,25 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
    defineActionArray(pcmw, pmi);
 
-   defineSubMachineIF(pcmw);
+   defineSubMachineIF(pcmw, pmi);
 
    possiblyDefineSubMachineSharedEventStructures(pcmw, pmi);
 
-   defineSubMachineArray(pcmw, pmi, cp);
+   defineSubMachineArray(pcmw, pmi);
 
    if (generate_instance)
    {
-      generateInstance(pcmw, pmi, cp, "action");
+      generateInstance(pcmw, pmi, "action");
    }
 
-   defineCSubMachineFSM(pcmw, pmi, cp);
+   defineCSubMachineFSM(pcmw, pmi);
 
-   defineStateEntryAndExitManagers(pcmw, pmi, cp);
+   defineStateEntryAndExitManagers(pcmw, pmi);
 
    if (generate_weak_fns)
    {
       /* write weak stubs for our action functions */
-      defineSubMachineWeakActionFunctionStubs(pcmw, pmi, cp);
+      defineWeakActionFunctionStubs(pcmw, pmi);
 
       /* ... and for the noAction case */
       defineSubMachineWeakNoActionFunctionStubs(pcmw, pmi, cp);
@@ -299,11 +299,9 @@ static int writeCSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
 static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
-   char     *cp;
-
    if (!pmi || !pcmw) return 1;
 
-   if ((cp = commonHeaderStart(pcmw, pmi, "action")) == NULL) return 1;
+   commonHeaderStart(pcmw, pmi, "action");
 
    declareCMachineActionArray(pcmw, pmi, cp);
 
@@ -319,7 +317,7 @@ static int writeCMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
 
    defineActionArray(pcmw, pmi, cp);
 
-   defineSubMachineArray(pcmw, pmi, cp);
+   defineSubMachineArray(pcmw, pmi);
 
    if (generate_instance)
    {
@@ -468,7 +466,7 @@ static void writeOriginalFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 /**
   This function writes the original FSM
 */
-static void writeOriginalSubFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void writeOriginalSubFSM(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    char *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
 
@@ -480,29 +478,30 @@ static void writeOriginalSubFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
+      fprintf(pcmw->cFile, "\t");
+	  streamHungarianToUnderbarCaps(pcmw->cFile, ultimateAncestor(pmi)->name->name);
       fprintf(pcmw->cFile
-              , "\t%s_EVENT%s new_e;\n\n"
-              , parent_cp
-              , pmi->parent->data_block_count ? "_ENUM" : ""
+			  , "_EVENT%s new_e;\n\n"
+              , ultimateAncestor(pmi)->data_block_count ? "_ENUM" : ""
              );
 
-      fprintf(pcmw->cFile
-              , "\t%s_EVENT%s e = event;\n\n"
-              , parent_cp
-              , pmi->parent->data_block_count ? "_ENUM" : ""
-             );
+      fprintf(pcmw->cFile, "\t");
+	  streamHungarianToUnderbarCaps(pcmw->cFile, ultimateAncestor(pmi)->name->name);
+	  fprintf(pcmw->cFile
+			  , "_EVENT%s e = event;\n\n"
+			  , ultimateAncestor(pmi)->data_block_count ? "_ENUM" : ""
+			 );
+
    }
-
-   FREE_AND_CLEAR(parent_cp);
 
    if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
-      fprintf(pcmw->cFile, "\t%s_STATE new_s;\n\n"
-              , cp
-             );
+      fprintf(pcmw->cFile, "\t");
+	  printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->cFile, "_STATE new_s;\n\n");
    }
 
-   writeOriginalSubFSMLoop(pcmw, pmi, cp);
+   writeOriginalSubFSMLoop(pcmw, pmi);
 
    fprintf(pcmw->cFile
            , "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"
@@ -515,17 +514,19 @@ static void writeOriginalSubFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
  *This function writes an FSM suitable for shared use in ISRs  
  *and non-ISR settings.  
 */
-static void writeReentrantFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void writeReentrantFSM(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
-   fprintf(pcmw->cFile
-           , "\t%s_EVENT%s new_e;\n\n"
-           , cp
+	fprintf(pcmw->cFile, "\t");
+	streamHungarianToUnderbarCaps(pcmw->cFile, ultimateAncestor(pmi)->name->name);
+	fprintf(pcmw->cFile
+			, "_EVENT%s new_e;\n\n"
            , pmi->data_block_count ? "_ENUM"  : ""
           );
 
+   fprintf(pcmw->cFile, "\t");
+   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
    fprintf(pcmw->cFile
-           , "\t%s_EVENT%s e = event;\n"
-           , cp
+		   , "_EVENT%s e = event;\n"
            , pmi->data_block_count ? "_ENUM"  : ""
           );
 
@@ -533,7 +534,7 @@ static void writeReentrantFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
    fprintf(pcmw->cFile, "\tFSM_START_CRITICAL;\n");
    fprintf(pcmw->cFile, "#endif\n\n");
 
-   writeOriginalFSMLoop(pcmw, pmi, cp);
+   writeOriginalFSMLoop(pcmw, pmi);
 
    fprintf(pcmw->cFile, "\n\n#ifdef FSM_END_CRITICAL\n");
    fprintf(pcmw->cFile, "\tFSM_END_CRITICAL;\n");
@@ -546,16 +547,17 @@ static void writeReentrantFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 /**
   This function writes the ActionsReturnState FSM
 */
-static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
-   fprintf(pcmw->cFile, "\t%s_STATE s;\n",
-           cp);
+   fprintf(pcmw->cFile, "\t");
+   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile, "_STATE s;\n");
 
-   fprintf(pcmw->cFile
-           , "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,%s_EVENT_NAMES[event]\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
-           , cp
-           , cp
-          );
+   fprintf(pcmw->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
+   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile, "_EVENT_NAMES[event]\n\t\t,");
+   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile, "_STATE_NAMES[pfsm->state]\n\t\t);\n");
 
    if (pmi->data_block_count)
    {
@@ -568,9 +570,9 @@ static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
            , "\n\ts = (*(*pfsm->actionArray)[event][pfsm->state])(pfsm);\n\n"
            );
 
-   fprintf(pcmw->cFile, "\tif (s != %s_noTransition)\n\t{\n",
-           pmi->name->name
-          );
+   fprintf(pcmw->cFile, "\tif (s != ");
+   printAncestry(pmi, pcmw->cFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->cFile, "_noTransition)\n\t{\n");
 
    if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
@@ -580,9 +582,10 @@ static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
 
       if (pmi->machineTransition)
       {
-         fprintf(pcmw->cFile
-                 , "\t\t\t%s_%s(pfsm,s);\n"
-                 , pmi->name->name
+         fprintf(pcmw->cFile, "\t\t\t");
+		 printAncestry(pmi, pcmw->cFile, "_", alc_lower, ai_include_self);
+		 fprintf(pcmw->cFile
+				 , "_%s(pfsm,s);\n"
                  , pmi->machineTransition->name
                 );
       }
@@ -613,10 +616,9 @@ static void writeActionsReturnStateFSM(pCMachineData pcmw, pMACHINE_INFO pmi, ch
            , "\t\tpfsm->state = s;\n\t}\n\n"
           );
 
-   fprintf(pcmw->cFile
-           , "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
-           , cp
-          );
+   fprintf(pcmw->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
+   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile, "_STATE_NAMES[pfsm->state]\n\t\t);\n");
 
    fprintf(pcmw->cFile, "}\n");
 
@@ -696,18 +698,18 @@ static void subMachineWriteNoTransition(pCMachineData pcmw, pMACHINE_INFO pmi, c
    free(parent_cp);
 }
 
-static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, char *tabstr)
+static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, char *tabstr)
 {
-   FSMLANG_MAYBE_UNUSED(cp);
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
       if (compact_action_array)
       {
          fprintf(pcmw->cFile
-                 , "%s\tnew_e = (*%s_action_fns[(*pfsm->actionArray)[e][pfsm->state].action])(pfsm);\n\n"
+				 , "%s\tnew_e = (*"
                  , tabstr
-                 , pmi->name->name
-                );
+				 );
+		 printAncestry(pmi, pcmw->cFile, "_", alc_lower, ai_include_self);
+		 fprintf(pcmw->cFile, "_action_fns[(*pfsm->actionArray)[e][pfsm->state].action])(pfsm);\n\n");
       }
       else
       {
@@ -722,10 +724,11 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, c
       if (compact_action_array)
       {
          fprintf(pcmw->cFile
-                 , "%s(*%s_action_fns[(*pfsm->actionArray)[event][pfsm->state].action])(pfsm);\n\n"
+                 , "%s(*"
                  , tabstr
-                 , pmi->name->name
-                );
+				);
+		 printAncestry(pmi, pcmw->cFile, "_", alc_lower, ai_include_self);
+		 fprintf(pcmw->cFile, "_action_fns[(*pfsm->actionArray)[event][pfsm->state].action])(pfsm);\n\n");
       }
       else
       {
@@ -748,14 +751,18 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, c
    }
    else
    {
+	   fprintf(pcmw->cFile
+			   , "%s\t%s = ("
+			   , tabstr
+			   , (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+				 ? "new_s" : "pfsm->state"
+			  );
       if (compact_action_array)
       {
-         fprintf(pcmw->cFile
-                 , "%s\t%s = (*%s_transition_fns[(*pfsm->actionArray)[%s][pfsm->state].transition])(pfsm,%s);\n\n"
-                 , tabstr
-                 , (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-                   ? "new_s" : "pfsm->state"
-                 , pmi->name->name
+		 fprintf(pcmw->cFile, "*");
+		 printAncestry(pmi, pcmw->cFile, "_", alc_lower, ai_include_self);
+		 fprintf(pcmw->cFile
+				 , "_transition_fns[(*pfsm->actionArray)[%s][pfsm->state].transition])(pfsm,%s);\n\n"
                  , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
                  , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
                 );
@@ -763,10 +770,7 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, c
       else
       {
          fprintf(pcmw->cFile
-                 , "%s\t%s = ((* (*pfsm->actionArray)[%s][pfsm->state].transition)(pfsm,%s));\n\n"
-                 , tabstr
-                 , (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-                   ? "new_s" : "pfsm->state"
+				 , "(* (*pfsm->actionArray)[%s][pfsm->state].transition)(pfsm,%s));\n\n"
                  , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
                  , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
                 );
@@ -783,9 +787,12 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmw, pMACHINE_INFO pmi, c
       if (pmi->machineTransition)
       {
          fprintf(pcmw->cFile
-                 , "%s\t\t%s_%s(pfsm,new_s);\n"
-                 , tabstr
-                 , pmi->name->name
+				 , "%s\t\t"
+				 , tabstr
+				 );
+		 printAncestry(pmi, pcmw->cFile, "_", alc_lower, ai_include_self);
+		 fprintf(pcmw->cFile
+				 , "_%s(pfsm,new_s);\n"
                  , pmi->machineTransition->name
                 );
       }
@@ -988,8 +995,9 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
 
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
-      fprintf(pcmw->cFile, "\twhile (e != %s_noEvent) {\n\n",
-              pmi->name->name);
+      fprintf(pcmw->cFile, "\twhile (e != ");
+	  printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
+      fprintf(pcmw->cFile "_noEvent) {\n\n",);
    }
 
    fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
@@ -1034,7 +1042,7 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
       tabstr = "\t\t";
    }
 
-   writeOriginalFSMLoopInnards(pcmw, pmi, cp, tabstr);
+   writeOriginalFSMLoopInnards(pcmw, pmi, tabstr);
 
    if (pmi->machine_list)
    {
@@ -1055,7 +1063,7 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
 
 }
 
-static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    char *tabstr = "\t";
 
@@ -1072,27 +1080,27 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char 
            , "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            );
+
+
+   fprintf(pcmw->cFile, "\tDBG_PRINTF(\"");
+
    if (short_dbg_names && add_machine_name)
    {
       fprintf(pcmw->cFile
-              , "\tDBG_PRINTF(\"%s: event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
+				"%s: "
               , pmi->name->name
-              , cp
-              , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-              , eventNameByIndex(pmi,0)
-              , cp
-             );
+			 );
    }
-   else
-   {
-      fprintf(pcmw->cFile
-              , "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
-              , cp
-              , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-              , eventNameByIndex(pmi,0)
-              , cp
-             );
-   }
+
+   fprintf(pcmw->cFile, "event: %%s; state: %%s\"\n,");
+   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile, "%s_EVENT_NAMES[%s - THIS(%s)]\n,"
+		   , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+		   , eventNameByIndex(pmi,0)
+		   );
+   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile, "_STATE_NAMES[pfsm->state]\n);\n}\n");
+   
    fprintf(pcmw->cFile, "#endif\n\n");
 
    fprintf(pcmw->cFile
@@ -1549,17 +1557,17 @@ static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
    if (pmi->machine_list)
    {
-      declareSubMachineManagers(pcmw, pmi, cp);
+      declareSubMachineManagers(pcmw, pmi);
    }
 
    declareStateEntryAndExitManagers(pcmw, pmi, cp);
 
    if (pmi->data_block_count)
    {
-      declareEventDataManager(pcmw, cp);
+      declareEventDataManager(pcmw);
    }
 
-   declareStateEntryAndExitManagers(pcmw, pmi, cp);
+   declareStateEntryAndExitManagers(pcmw, pmi);
 
    fprintf(pcmw->cFile
            , "#ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG\n"
@@ -1587,11 +1595,9 @@ static void defineCMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
 
 }
 
-static void defineCSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+static void defineCSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
-   char *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
-
-   declareStateEntryAndExitManagers(pcmw, pmi, cp);
+   declareStateEntryAndExitManagers(pcmw, pmi);
 
    fprintf(pcmw->cFile
            , "#ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG\n"
@@ -1605,19 +1611,23 @@ static void defineCSubMachineFSM(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
            , "#endif\n"
            );
 
-   fprintf(pcmw->cFile
-           , "%s_EVENT%s %sFSM(p%s pfsm, %s_EVENT%s event)\n{\n"
-           , parent_cp
-           , pmi->parent->data_block_count ? "_ENUM"  : ""
-           , pmi->name->name
-           , cp
-           , parent_cp
-           , pmi->parent->data_block_count ? "_ENUM"  : ""
-          );
+   streamHungarianToUnderbarCaps(pcmw->cFile, ultimateAncestor(pmi)->name->name);
+   fprintf(pcmw->cFile, "_EVENT%s "
+		   , ultimateAncestor(pmi)->data_block_count ? "_ENUM" : ""
+		  );
+   printAncestry(pmi, pcmw->cFile, "_", alc_lower, ai_include_self);
+   fprintf(pcmw->cFile, "FSM(p");
+   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmw->cFile, " pfsm, ");
+   streamHungarianToUnderbarCaps(pcmw->cFile, ultimateAncestor(pmi)->name->name);
+   fprintf(pcmw->cFile, "_EVENT%s "
+		   , ultimateAncestor(pmi)->data_block_count ? "_ENUM" : ""
+		  );
+   fprintf(pcmw->cFile, " event)\n{\n");
 
-   if      (pmi->modFlags & mfReentrant)           writeReentrantFSM(pcmw, pmi, cp);
-   else if (pmi->modFlags & mfActionsReturnStates) writeActionsReturnStateFSM(pcmw, pmi, cp);
-   else                                            writeOriginalSubFSM(pcmw, pmi, cp);
+   if      (pmi->modFlags & mfReentrant)           writeReentrantFSM(pcmw, pmi);
+   else if (pmi->modFlags & mfActionsReturnStates) writeActionsReturnStateFSM(pcmw, pmi);
+   else                                            writeOriginalSubFSM(pcmw, pmi);
 
 }
 
