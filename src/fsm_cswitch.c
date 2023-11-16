@@ -267,7 +267,7 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
      Source File
    */
 
-   addNativeImplementationIfThereIsAny(pmi, pcmw->cFile);
+   addNativeImplementationPrologIfThereIsAny(pmi, pcmw->cFile);
 
    defineStateFnArray(pcmw, pmi, cp);
 
@@ -324,6 +324,8 @@ static int writeCSwitchMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    }
 
    writeDebugInfo(pcmw, pmi, cp);
+
+   addNativeImplementationEpilogIfThereIsAny(pmi, pcmw->cFile);
 
    FREE_AND_CLEAR(cp);
 
@@ -382,7 +384,7 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
      Source File
    */
 
-   addNativeImplementationIfThereIsAny(pmi, pcmw->cFile);
+   addNativeImplementationPrologIfThereIsAny(pmi, pcmw->cFile);
 
    defineStateFnArray(pcmw, pmi, cp);
 
@@ -423,6 +425,8 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmw, pMACHINE_INFO pmi)
    }
 
    writeDebugInfo(pcmw, pmi, cp);
+
+   addNativeImplementationEpilogIfThereIsAny(pmi, pcmw->cFile);
 
    FREE_AND_CLEAR(cp);
    FREE_AND_CLEAR(parent_cp);
@@ -1601,6 +1605,9 @@ void cswitchHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool need
       fprintf(pcmw->hFile, "\n");
    }
 
+   /* put the native_epilog code segment out to the header */
+   if (pmi->native_epilog) fprintf(pcmw->hFile, "%s\n", pmi->native_epilog);
+
    /* if the machine has data, declare the data init function
  
      This is pre-mature.  We need to parse the data structure
@@ -1722,6 +1729,9 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp,
       iterate_list(pmi->state_list, declare_state_entry_and_exit_functions, &ich);
       fprintf(pcmw->hFile, "\n");
    }
+
+   /* put the native_epilog code segment out to the header */
+   if (pmi->native_epilog) fprintf(pcmw->hFile, "%s\n", pmi->native_epilog);
 
    FREE_AND_CLEAR(ich.parent_cp);
 

@@ -72,9 +72,10 @@ void yyerror(char *);
  pDATA_FIELD              pdata_field;
  pDATA_TYPE_STRUCT        pdata_type_struct;
  pUSER_EVENT_DATA         puser_event_data;
+ pNATIVE_INFO             pnative_info;
 }
 
-%token ON NAMESPACE STATE_KEY EVENT_KEY
+%token ON NAMESPACE STATE_KEY EVENT_KEY PROLOG_KEY EPILOG_KEY
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
@@ -94,6 +95,8 @@ void yyerror(char *);
 %token <charData> NUMERIC_STRING
 %token <pid_info> TYPE_NAME
 
+%type <pnative_info>             native
+%type <pnative_info>             native_impl
 %type <plist>                    returns_comma_list
 %type <plist>                    event_comma_list
 %type <plist>                    event_vector
@@ -119,8 +122,10 @@ void yyerror(char *);
 %type <pdata_field>              data_field
 %type <plist>                    data_fields
 %type <charData>                 data_field_dimension
-%type <charData>                 native
-%type <charData>                 native_impl
+%type <charData>                 native_prolog
+%type <charData>                 native_impl_prolog
+%type <charData>                 native_epilog
+%type <charData>                 native_impl_epilog
 %type <mod_flags>                machine_modifier
 %type <pmachineInfo>             machine
 %type <pstatement_decl_list>     statement_decl_list
@@ -187,7 +192,11 @@ machine_prefix: native machine_modifier MACHINE_KEY
 						yyerror("out of memory");
 
 				/* grab any native language stuff */
-				$$->pmachineInfo->native = $1;
+				if ($1)
+				{
+					$$->pmachineInfo->native_prolog = $1->prolog;
+					$$->pmachineInfo->native_epilog = $1->epilog;
+				}
 
        /* grab any modifiers */
  			$$->pmachineInfo->modFlags = $2;
@@ -216,12 +225,13 @@ machine:	machine_prefix ID machine_qualifier
         '{' statement_decl_list '}'
 					{
 
-						$$          = $1->pmachineInfo;
+						$$                     = $1->pmachineInfo;
 
-				    $$->name              = $2;
- 			    $$->modFlags          |= $3->modFlags;
- 			    $$->machineTransition = $3->machineTransition;
-           $$->native_impl       = $3->native_impl;
+				        $$->name               = $2;
+ 			            $$->modFlags          |= $3->modFlags;
+ 			            $$->machineTransition  = $3->machineTransition;
+                        $$->native_impl_prolog = $3->native_impl_prolog;
+                        $$->native_impl_epilog = $3->native_impl_epilog;
 
 
 						/* harvest the lists */
@@ -403,7 +413,8 @@ machine_qualifier:
  					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
  						yyerror("Out of memory");
 
- 					$$->native_impl = $1;
+ 					$$->native_impl_prolog = $1->prolog;
+ 					$$->native_impl_epilog = $1->epilog;
 		     }
     | machine_qualifier machine_transition_decl
 		     {
@@ -425,10 +436,14 @@ machine_qualifier:
 		     }
     | machine_qualifier native_impl
 		     {
-           if ($1->native_impl)
-             yyerror("only one native implementation allowed per machine");
+           if ($1->native_impl_prolog)
+             yyerror("only one native_prolog implementation allowed per machine");
 
-           $1->native_impl = $2;
+           if ($1->native_impl_epilog)
+             yyerror("only one native_epilog implementation allowed per machine");
+
+           $1->native_impl_prolog = $2->prolog;
+           $1->native_impl_epilog = $2->epilog;
 
            $$ = $1;
 		     }
@@ -1512,10 +1527,54 @@ external_designation : {
  }
  ;
 
-native:	{
-						$$ = NULL;
-			}
-	| NATIVE_KEY NATIVE_BLOCK
+
+native:  
+  {
+	$$ = NULL;
+  }
+  | native native_prolog
+  {
+	if ($1 == NULL)
+	{
+		if (($$ = (pNATIVE_INFO) calloc(1, sizeof(NATIVE_INFO))) == NULL)
+			yyerror("out of memory");
+	}
+	else
+	{
+		$$ = $1;
+	}
+
+	if ($$->prolog)
+	{
+		yyerror("cannot declare two native prologs");
+	}
+
+	$$->prolog = $2;
+
+  }
+  | native native_epilog
+  {
+	if ($1 == NULL)
+	{
+		if (($$ = (pNATIVE_INFO) calloc(1, sizeof(NATIVE_INFO))) == NULL)
+			yyerror("out of memory");
+	}
+	else
+	{
+		$$ = $1;
+	}
+
+	if ($$->epilog)
+	{
+		yyerror("cannot declare two native epilogs");
+	}
+
+	$$->epilog = $2;
+  }
+  ;
+
+native_prolog:
+	 NATIVE_KEY NATIVE_BLOCK
 					{
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"Native\n%s\n",$2);
@@ -1523,15 +1582,91 @@ native:	{
 						$$ = $2;
 						#endif
 					}
+	| NATIVE_KEY PROLOG_KEY NATIVE_BLOCK
+					{
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"Native prolog\n%s\n",$3);
+						#else
+						$$ = $3;
+						#endif
+					}
 
 	;
  
-native_impl: NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK
+native_epilog:
+	NATIVE_KEY EPILOG_KEY NATIVE_BLOCK
+					{
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"Native epilog\n%s\n",$3);
+						#else
+						$$ = $3;
+						#endif
+					}
+
+	;
+ 
+native_impl:
+	native_impl_prolog
+	{
+		if (($$ = (pNATIVE_INFO) calloc(1, sizeof(NATIVE_INFO))) == NULL)
+			yyerror("out of memory");
+
+		$$->prolog = $1;
+	}
+	| native_impl_epilog
+	{
+		if (($$ = (pNATIVE_INFO) calloc(1, sizeof(NATIVE_INFO))) == NULL)
+			yyerror("out of memory");
+
+		$$->epilog = $1;
+	}
+	| native_impl native_impl_prolog
+	{
+		if ($1->prolog != NULL)
+		{
+			yyerror("only one native implementation prolog is allowed");
+		}
+
+		$$ = $1;
+		$$->prolog = $2;
+	}
+	| native_impl native_impl_epilog
+	{
+		if ($1->epilog != NULL)
+		{
+			yyerror("only one native implementation epilog is allowed");
+		}
+
+		$$ = $1;
+		$$->epilog = $2;
+	}
+	;
+
+native_impl_prolog: 
+	NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK
 					{
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"Native implementation\n%s\n",$3);
 						#else
 						$$ = $3;
+						#endif
+					}
+	| NATIVE_KEY IMPLEMENTATION_KEY PROLOG_KEY NATIVE_BLOCK
+					{
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"Native implementation prolog\n%s\n",$4);
+						#else
+						$$ = $4;
+						#endif
+					}
+	;
+ 
+native_impl_epilog: NATIVE_KEY IMPLEMENTATION_KEY EPILOG_KEY NATIVE_BLOCK
+					{
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"Native implementation\n%s\n",$4);
+						#else
+						$$ = $4;
 						#endif
 					}
 

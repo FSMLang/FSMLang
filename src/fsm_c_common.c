@@ -183,8 +183,8 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    bool              canAssignExternals;
    ITERATOR_HELPER   helper;
 
-   /* put the native code segment out to the header */
-   if (pmi->native) fprintf(pcmw->hFile, "%s\n", pmi->native);
+   /* put the native_prolog code segment out to the header */
+   if (pmi->native_prolog) fprintf(pcmw->hFile, "%s\n", pmi->native_prolog);
 
    if (!(cp = hungarianToUnderbarCaps(pmi->name->name))) return NULL;
 
@@ -786,6 +786,9 @@ void commonHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needN
       iterate_list(pmi->event_list, declare_data_translator_functions, &ich);
       fprintf(pcmw->hFile, "\n");
    }
+
+   /* put the native_epilog code segment out to the header */
+   if (pmi->native_epilog) fprintf(pcmw->hFile, "%s\n", pmi->native_epilog);
 
    /* if the machine has data, declare the data init function
  
@@ -2357,8 +2360,8 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
    char            *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
    ITERATOR_HELPER  helper;
 
-   /* put the native code segment out to the header */
-   if (pmi->native) fprintf(pcmw->hFile, "%s\n", pmi->native);
+   /* put the native_prolog code segment out to the header */
+   if (pmi->native_prolog) fprintf(pcmw->hFile, "%s\n", pmi->native_prolog);
 
    if (!(cp = hungarianToUnderbarCaps(pmi->name->name))) return NULL;
 
@@ -2625,6 +2628,9 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
       iterate_list(pmi->machine_list, declare_sub_machine_if, &helper);
       #endif
    }
+
+   /* put the native_epilog code segment out to the header */
+   if (pmi->native_epilog) fprintf(pcmw->hFile, "%s\n", pmi->native_epilog);
 
    free (parent_cp);
 
@@ -3356,13 +3362,24 @@ static bool declare_shared_event_lists(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-void addNativeImplementationIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
+void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
 {
-   if (pmi->native_impl)
+   if (pmi->native_impl_prolog)
    {
       fprintf(fout
               , "%s\n"
-              , pmi->native_impl
+              , pmi->native_impl_prolog
+              );
+   }
+}
+
+void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
+{
+   if (pmi->native_impl_epilog)
+   {
+      fprintf(fout
+              , "%s\n"
+              , pmi->native_impl_epilog
               );
    }
 }

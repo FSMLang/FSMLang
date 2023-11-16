@@ -148,6 +148,26 @@ native	{
 
     }
 
+<NATIVE>prolog {
+
+       #ifndef LEX_DEBUG
+       return PROLOG_KEY;
+       #else
+       printf("%s\n", strings[PROLOG_KEY]);
+       #endif
+
+    }
+
+<NATIVE>epilog {
+
+       #ifndef LEX_DEBUG
+       return EPILOG_KEY;
+       #else
+       printf("%s\n", strings[EPILOG_KEY]);
+       #endif
+
+    }
+
 <NATIVE>\n {
 
     #ifndef LEX_DEBUG
