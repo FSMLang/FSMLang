@@ -1,13 +1,13 @@
-Native prolog
+Native prologue
 
 Copy this to the header file.
 DEFINE INIT_FSM_DATA {{0,0}, 1}
 
-Native epilog
+Native epilogue
 
 Copy this to the header file at the end.
 
-Native implementation prolog
+Native implementation prologue
  copy this to the source file; 
 Native implementation
  copy this to the source file at the end; 

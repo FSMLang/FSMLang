@@ -1,21 +1,21 @@
 /*
 	Here are some comments
 */
-native prolog
+native prologue
 {
 Copy this to the header file.
 DEFINE INIT_FSM_DATA {{0,0}, 1}
 }
 
-native epilog
+native epilogue
 {
 Copy this to the header file at the end.
 }
 
 machine newMachine
  on transition baz;
- native impl prolog { copy this to the source file; }
- native impl epilog { copy this to the source file at the end; }
+ native impl prologue { copy this to the source file; }
+ native impl epilogue { copy this to the source file at the end; }
 {
 data
 {

@@ -75,7 +75,7 @@ void yyerror(char *);
  pNATIVE_INFO             pnative_info;
 }
 
-%token ON NAMESPACE STATE_KEY EVENT_KEY PROLOG_KEY EPILOG_KEY
+%token ON NAMESPACE STATE_KEY EVENT_KEY PROLOGUE_KEY EPILOGUE_KEY
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
@@ -122,10 +122,10 @@ void yyerror(char *);
 %type <pdata_field>              data_field
 %type <plist>                    data_fields
 %type <charData>                 data_field_dimension
-%type <charData>                 native_prolog
-%type <charData>                 native_impl_prolog
-%type <charData>                 native_epilog
-%type <charData>                 native_impl_epilog
+%type <charData>                 native_prologue
+%type <charData>                 native_impl_prologue
+%type <charData>                 native_epilogue
+%type <charData>                 native_impl_epilogue
 %type <mod_flags>                machine_modifier
 %type <pmachineInfo>             machine
 %type <pstatement_decl_list>     statement_decl_list
@@ -194,8 +194,8 @@ machine_prefix: native machine_modifier MACHINE_KEY
 				/* grab any native language stuff */
 				if ($1)
 				{
-					$$->pmachineInfo->native_prolog = $1->prolog;
-					$$->pmachineInfo->native_epilog = $1->epilog;
+					$$->pmachineInfo->native_prologue = $1->prologue;
+					$$->pmachineInfo->native_epilogue = $1->epilogue;
 				}
 
        /* grab any modifiers */
@@ -230,8 +230,8 @@ machine:	machine_prefix ID machine_qualifier
 				        $$->name               = $2;
  			            $$->modFlags          |= $3->modFlags;
  			            $$->machineTransition  = $3->machineTransition;
-                        $$->native_impl_prolog = $3->native_impl_prolog;
-                        $$->native_impl_epilog = $3->native_impl_epilog;
+                        $$->native_impl_prologue = $3->native_impl_prologue;
+                        $$->native_impl_epilogue = $3->native_impl_epilogue;
 
 
 						/* harvest the lists */
@@ -413,8 +413,8 @@ machine_qualifier:
  					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
  						yyerror("Out of memory");
 
- 					$$->native_impl_prolog = $1->prolog;
- 					$$->native_impl_epilog = $1->epilog;
+ 					$$->native_impl_prologue = $1->prologue;
+ 					$$->native_impl_epilogue = $1->epilogue;
 		     }
     | machine_qualifier machine_transition_decl
 		     {
@@ -436,14 +436,14 @@ machine_qualifier:
 		     }
     | machine_qualifier native_impl
 		     {
-           if ($1->native_impl_prolog)
-             yyerror("only one native_prolog implementation allowed per machine");
+           if ($1->native_impl_prologue)
+             yyerror("only one native_prologue implementation allowed per machine");
 
-           if ($1->native_impl_epilog)
-             yyerror("only one native_epilog implementation allowed per machine");
+           if ($1->native_impl_epilogue)
+             yyerror("only one native_epilogue implementation allowed per machine");
 
-           $1->native_impl_prolog = $2->prolog;
-           $1->native_impl_epilog = $2->epilog;
+           $1->native_impl_prologue = $2->prologue;
+           $1->native_impl_epilogue = $2->epilogue;
 
            $$ = $1;
 		     }
@@ -1532,7 +1532,7 @@ native:
   {
 	$$ = NULL;
   }
-  | native native_prolog
+  | native native_prologue
   {
 	if ($1 == NULL)
 	{
@@ -1544,15 +1544,15 @@ native:
 		$$ = $1;
 	}
 
-	if ($$->prolog)
+	if ($$->prologue)
 	{
-		yyerror("cannot declare two native prologs");
+		yyerror("cannot declare two native prologues");
 	}
 
-	$$->prolog = $2;
+	$$->prologue = $2;
 
   }
-  | native native_epilog
+  | native native_epilogue
   {
 	if ($1 == NULL)
 	{
@@ -1564,16 +1564,16 @@ native:
 		$$ = $1;
 	}
 
-	if ($$->epilog)
+	if ($$->epilogue)
 	{
-		yyerror("cannot declare two native epilogs");
+		yyerror("cannot declare two native epilogues");
 	}
 
-	$$->epilog = $2;
+	$$->epilogue = $2;
   }
   ;
 
-native_prolog:
+native_prologue:
 	 NATIVE_KEY NATIVE_BLOCK
 					{
 						#ifdef PARSER_DEBUG
@@ -1582,10 +1582,10 @@ native_prolog:
 						$$ = $2;
 						#endif
 					}
-	| NATIVE_KEY PROLOG_KEY NATIVE_BLOCK
+	| NATIVE_KEY PROLOGUE_KEY NATIVE_BLOCK
 					{
 						#ifdef PARSER_DEBUG
-						fprintf(yyout,"Native prolog\n%s\n",$3);
+						fprintf(yyout,"Native prologue\n%s\n",$3);
 						#else
 						$$ = $3;
 						#endif
@@ -1593,11 +1593,11 @@ native_prolog:
 
 	;
  
-native_epilog:
-	NATIVE_KEY EPILOG_KEY NATIVE_BLOCK
+native_epilogue:
+	NATIVE_KEY EPILOGUE_KEY NATIVE_BLOCK
 					{
 						#ifdef PARSER_DEBUG
-						fprintf(yyout,"Native epilog\n%s\n",$3);
+						fprintf(yyout,"Native epilogue\n%s\n",$3);
 						#else
 						$$ = $3;
 						#endif
@@ -1606,43 +1606,43 @@ native_epilog:
 	;
  
 native_impl:
-	native_impl_prolog
+	native_impl_prologue
 	{
 		if (($$ = (pNATIVE_INFO) calloc(1, sizeof(NATIVE_INFO))) == NULL)
 			yyerror("out of memory");
 
-		$$->prolog = $1;
+		$$->prologue = $1;
 	}
-	| native_impl_epilog
+	| native_impl_epilogue
 	{
 		if (($$ = (pNATIVE_INFO) calloc(1, sizeof(NATIVE_INFO))) == NULL)
 			yyerror("out of memory");
 
-		$$->epilog = $1;
+		$$->epilogue = $1;
 	}
-	| native_impl native_impl_prolog
+	| native_impl native_impl_prologue
 	{
-		if ($1->prolog != NULL)
+		if ($1->prologue != NULL)
 		{
-			yyerror("only one native implementation prolog is allowed");
+			yyerror("only one native implementation prologue is allowed");
 		}
 
 		$$ = $1;
-		$$->prolog = $2;
+		$$->prologue = $2;
 	}
-	| native_impl native_impl_epilog
+	| native_impl native_impl_epilogue
 	{
-		if ($1->epilog != NULL)
+		if ($1->epilogue != NULL)
 		{
-			yyerror("only one native implementation epilog is allowed");
+			yyerror("only one native implementation epilogue is allowed");
 		}
 
 		$$ = $1;
-		$$->epilog = $2;
+		$$->epilogue = $2;
 	}
 	;
 
-native_impl_prolog: 
+native_impl_prologue: 
 	NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK
 					{
 						#ifdef PARSER_DEBUG
@@ -1651,17 +1651,17 @@ native_impl_prolog:
 						$$ = $3;
 						#endif
 					}
-	| NATIVE_KEY IMPLEMENTATION_KEY PROLOG_KEY NATIVE_BLOCK
+	| NATIVE_KEY IMPLEMENTATION_KEY PROLOGUE_KEY NATIVE_BLOCK
 					{
 						#ifdef PARSER_DEBUG
-						fprintf(yyout,"Native implementation prolog\n%s\n",$4);
+						fprintf(yyout,"Native implementation prologue\n%s\n",$4);
 						#else
 						$$ = $4;
 						#endif
 					}
 	;
  
-native_impl_epilog: NATIVE_KEY IMPLEMENTATION_KEY EPILOG_KEY NATIVE_BLOCK
+native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY EPILOGUE_KEY NATIVE_BLOCK
 					{
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"Native implementation\n%s\n",$4);

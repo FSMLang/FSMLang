@@ -148,22 +148,22 @@ native	{
 
     }
 
-<NATIVE>prolog {
+<NATIVE>prologue {
 
        #ifndef LEX_DEBUG
-       return PROLOG_KEY;
+       return PROLOGUE_KEY;
        #else
-       printf("%s\n", strings[PROLOG_KEY]);
+       printf("%s\n", strings[PROLOGUE_KEY]);
        #endif
 
     }
 
-<NATIVE>epilog {
+<NATIVE>epilogue {
 
        #ifndef LEX_DEBUG
-       return EPILOG_KEY;
+       return EPILOGUE_KEY;
        #else
-       printf("%s\n", strings[EPILOG_KEY]);
+       printf("%s\n", strings[EPILOGUE_KEY]);
        #endif
 
     }

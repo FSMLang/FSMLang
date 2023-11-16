@@ -1,7 +1,7 @@
 /*
 	Here are some comments
 */
-native prolog
+native prologue
 {
 #include "test.h"
 #define NUM_INTS (2)
@@ -16,7 +16,7 @@ native prolog
 
 }
 
-native epilog
+native epilogue
 {
 #define FSM_START_CRITICAL do_start_critical();
 #define FSM_END_CRITICAL do_end_critical();
@@ -24,13 +24,13 @@ native epilog
 
 reentrant machine newMachine
  on transition baz;
- native impl prolog
+ native impl prologue
  {
 	static void do_start_critical(void);
 	static void do_end_critical(void);
  }
 
- native impl epilog
+ native impl epilogue
  {
 	static void do_start_critical()
    {

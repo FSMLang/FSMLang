@@ -242,15 +242,15 @@ struct _action_info_ {
 };
 
 struct _native_info_ {
-   char *prolog;
-   char *epilog;
+   char *prologue;
+   char *epilogue;
 };
 struct _machine_qualifier_
 {
    MOD_FLAGS			modFlags;
    pID_INFO      machineTransition;
-   char          *native_impl_prolog;
-   char          *native_impl_epilog;
+   char          *native_impl_prologue;
+   char          *native_impl_epilogue;
 };
 
 struct _machine_info_ {
@@ -270,10 +270,10 @@ struct _machine_info_ {
   pLIST         action_info_list;
 	pACTION_INFO	**actionArray;
 	pLIST					data;
-	char					*native_prolog;
-	char					*native_epilog;
-	char					*native_impl_prolog;
-	char					*native_impl_epilog;
+	char					*native_prologue;
+	char					*native_epilogue;
+	char					*native_impl_prologue;
+	char					*native_impl_epilogue;
 	MOD_FLAGS			modFlags;
   pID_INFO      machineTransition;
   pLIST         machine_list;

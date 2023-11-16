@@ -183,8 +183,8 @@ char* commonHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayName)
    bool              canAssignExternals;
    ITERATOR_HELPER   helper;
 
-   /* put the native_prolog code segment out to the header */
-   if (pmi->native_prolog) fprintf(pcmw->hFile, "%s\n", pmi->native_prolog);
+   /* put the native_prologue code segment out to the header */
+   if (pmi->native_prologue) fprintf(pcmw->hFile, "%s\n", pmi->native_prologue);
 
    if (!(cp = hungarianToUnderbarCaps(pmi->name->name))) return NULL;
 
@@ -787,8 +787,8 @@ void commonHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool needN
       fprintf(pcmw->hFile, "\n");
    }
 
-   /* put the native_epilog code segment out to the header */
-   if (pmi->native_epilog) fprintf(pcmw->hFile, "%s\n", pmi->native_epilog);
+   /* put the native_epilogue code segment out to the header */
+   if (pmi->native_epilogue) fprintf(pcmw->hFile, "%s\n", pmi->native_epilogue);
 
    /* if the machine has data, declare the data init function
  
@@ -2360,8 +2360,8 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
    char            *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
    ITERATOR_HELPER  helper;
 
-   /* put the native_prolog code segment out to the header */
-   if (pmi->native_prolog) fprintf(pcmw->hFile, "%s\n", pmi->native_prolog);
+   /* put the native_prologue code segment out to the header */
+   if (pmi->native_prologue) fprintf(pcmw->hFile, "%s\n", pmi->native_prologue);
 
    if (!(cp = hungarianToUnderbarCaps(pmi->name->name))) return NULL;
 
@@ -2629,8 +2629,8 @@ char* subMachineHeaderStart(pCMachineData pcmw, pMACHINE_INFO pmi, char *arrayNa
       #endif
    }
 
-   /* put the native_epilog code segment out to the header */
-   if (pmi->native_epilog) fprintf(pcmw->hFile, "%s\n", pmi->native_epilog);
+   /* put the native_epilogue code segment out to the header */
+   if (pmi->native_epilogue) fprintf(pcmw->hFile, "%s\n", pmi->native_epilogue);
 
    free (parent_cp);
 
@@ -3364,22 +3364,22 @@ static bool declare_shared_event_lists(pLIST_ELEMENT pelem, void *data)
 
 void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
 {
-   if (pmi->native_impl_prolog)
+   if (pmi->native_impl_prologue)
    {
       fprintf(fout
               , "%s\n"
-              , pmi->native_impl_prolog
+              , pmi->native_impl_prologue
               );
    }
 }
 
 void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
 {
-   if (pmi->native_impl_epilog)
+   if (pmi->native_impl_epilogue)
    {
       fprintf(fout
               , "%s\n"
-              , pmi->native_impl_epilog
+              , pmi->native_impl_epilogue
               );
    }
 }

@@ -72,7 +72,7 @@ char *strings[]  = {
   , "NUMERIC_STRING"
   , "STRUCT_KEY"
   , "UNION_KEY"
-  , "PROLOG_KEY"
-  , "EPILOG_KEY"
+  , "PROLOGUE_KEY"
+  , "EPILOGUE_KEY"
 };
 

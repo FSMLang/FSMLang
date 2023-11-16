@@ -1605,8 +1605,8 @@ void cswitchHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp, bool need
       fprintf(pcmw->hFile, "\n");
    }
 
-   /* put the native_epilog code segment out to the header */
-   if (pmi->native_epilog) fprintf(pcmw->hFile, "%s\n", pmi->native_epilog);
+   /* put the native_epilogue code segment out to the header */
+   if (pmi->native_epilogue) fprintf(pcmw->hFile, "%s\n", pmi->native_epilogue);
 
    /* if the machine has data, declare the data init function
  
@@ -1730,8 +1730,8 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp,
       fprintf(pcmw->hFile, "\n");
    }
 
-   /* put the native_epilog code segment out to the header */
-   if (pmi->native_epilog) fprintf(pcmw->hFile, "%s\n", pmi->native_epilog);
+   /* put the native_epilogue code segment out to the header */
+   if (pmi->native_epilogue) fprintf(pcmw->hFile, "%s\n", pmi->native_epilogue);
 
    FREE_AND_CLEAR(ich.parent_cp);
 

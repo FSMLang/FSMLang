@@ -1,12 +1,12 @@
 NATIVE_KEY
-PROLOG_KEY
+PROLOGUE_KEY
 Native:
 
 Copy this to the header file.
 DEFINE INIT_FSM_DATA {{0,0}, 1}
 
 NATIVE_KEY
-EPILOG_KEY
+EPILOGUE_KEY
 Native:
 
 Copy this to the header file at the end.
@@ -21,12 +21,12 @@ baz : ID
 ;
 NATIVE_KEY
 IMPLEMENTATION_KEY
-PROLOG_KEY
+PROLOGUE_KEY
 Native:
  copy this to the source file; 
 NATIVE_KEY
 IMPLEMENTATION_KEY
-EPILOG_KEY
+EPILOGUE_KEY
 Native:
  copy this to the source file at the end; 
 {
