@@ -2546,7 +2546,7 @@ void defineSubMachineIF (pCMachineData pcmw, pMACHINE_INFO pmi)
 
 }
 
-void defineSubMachineArray(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp)
+void defineSubMachineArray(pCMachineData pcmw, pMACHINE_INFO pmi)
 {
    ITERATOR_CALLBACK_HELPER ich;
 
