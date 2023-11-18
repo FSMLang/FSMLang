@@ -25,15 +25,15 @@ data
   struct 
   {
   	int a;
-  } str_int foo;
+  } foo;
   
   struct
   {
    float f;
-  } str_float beep;
+  } beep;
  
   int  bop;
- };
+ } u;
 
 }
 
