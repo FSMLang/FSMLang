@@ -1000,29 +1000,7 @@ static void writeOriginalFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi, char *cp
       fprintf(pcmw->cFile "_noEvent) {\n\n",);
    }
 
-   fprintf(pcmw->cFile, "#ifdef %s_DEBUG\n", cp);
-   fprintf(pcmw->cFile
-           , "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
-           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-           );
-   if (short_dbg_names && add_machine_name)
-   {
-      fprintf(pcmw->cFile, "\tDBG_PRINTF(\"%s: event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
-              , pmi->name->name
-              , cp
-              , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-              , cp
-             );
-   }
-   else
-   {
-      fprintf(pcmw->cFile, "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
-              , cp
-              , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-              , cp
-             );
-   }
-   fprintf(pcmw->cFile, "#endif\n\n");
+   printFSMMachineDebugBlock(pcmw, pmi);
 
    fprintf(pcmw->cFile
            , "\t/* This is read-only data to facilitate error reporting in action functions */\n"
@@ -1081,27 +1059,7 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmw, pMACHINE_INFO pmi)
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            );
 
-
-   fprintf(pcmw->cFile, "\tDBG_PRINTF(\"");
-
-   if (short_dbg_names && add_machine_name)
-   {
-      fprintf(pcmw->cFile
-				"%s: "
-              , pmi->name->name
-			 );
-   }
-
-   fprintf(pcmw->cFile, "event: %%s; state: %%s\"\n,");
-   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmw->cFile, "%s_EVENT_NAMES[%s - THIS(%s)]\n,"
-		   , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-		   , eventNameByIndex(pmi,0)
-		   );
-   printAncestry(pmi, pcmw->cFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmw->cFile, "_STATE_NAMES[pfsm->state]\n);\n}\n");
-   
-   fprintf(pcmw->cFile, "#endif\n\n");
+   printFSMSubMachineDebugBlock(pcmw, pmi);
 
    fprintf(pcmw->cFile
            , "\t/* This is read-only data to facilitate error reporting in action functions */\n"

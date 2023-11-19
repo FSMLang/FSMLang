@@ -1180,6 +1180,14 @@ bool printAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETT
 	return something_was_printed;
 }
 
+void printNameWithAncestry(char *name, pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUSION ai)
+{
+	printAncestry(pmi, fout, separator, alc, ai);
+
+	fputs(separator, fout);
+	fputs(name, fout);
+}
+
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO pmi)
 {
 	return !pmi->parent ? pmi : ultimateAncestor(pmi->parent);

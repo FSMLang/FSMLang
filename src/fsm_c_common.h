@@ -46,12 +46,11 @@ struct _iterator_callback_helper_
 {
    pCMachineData pcmw;
    pMACHINE_INFO pmi;
-   char          *cp;
-   char          *parent_cp;
    bool          needNoOp;
    bool          first;
-   bool          define;  //as opposed to "declare"
-   unsigned      counter; //generic name intentional
+   bool          define;     //as opposed to "declare"
+   unsigned      counter;    //generic name intentional
+   pLIST_ELEMENT pOtherElem; //generic name intentional - allows to iterate within iterations
 };
 
 struct _c_machine_data_
@@ -116,17 +115,19 @@ void            defineSubMachineIF(pCMachineData,pMACHINE_INFO);
 void            possiblyDefineSubMachineSharedEventStructures(pCMachineData,pMACHINE_INFO);
 void            defineSubMachineArray(pCMachineData,pMACHINE_INFO);
 bool            print_sub_machine_if(pLIST_ELEMENT,void*);
-void            defineEventPassingActions(pCMachineData,pMACHINE_INFO,char*);
-void            defineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
+void            defineEventPassingActions(pCMachineData,pMACHINE_INFO);
+void            defineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO);
 void            defineSubMachineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
-void            defineSubMachineFinder(pCMachineData,pMACHINE_INFO,char*);
+void            defineSubMachineFinder(pCMachineData,pMACHINE_INFO);
 bool            declare_action_function(pLIST_ELEMENT,void*);
 void            declareSubMachineManagers(pCMachineData,pMACHINE_INFO);
 void            declareStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO);
 void            defineStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO);
 void            declareEventDataManager(pCMachineData);
-void            defineEventDataManager(pCMachineData,pMACHINE_INFO,char*);
+void            defineEventDataManager(pCMachineData,pMACHINE_INFO);
 void            printSubMachinesDeclarations(pCMachineData,pMACHINE_INFO);
+void            printFSMMachineDebugBlock(pCMachineData,pMACHINE_INFO);
+void            printFSMSubMachineDebugBlock(pCMachineData,pMACHINE_INFO);
 
 #endif
 
