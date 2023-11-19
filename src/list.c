@@ -39,23 +39,34 @@
 typedef struct _counter_str_ COUNTER_STR, *pCOUNTER_STR;
 struct _counter_str_
 {
-   unsigned target;
-   unsigned current;
+	union
+	{
+		unsigned target;
+		unsigned start;
+	} ct;
 };
 
 static bool nth_record(pLIST_ELEMENT pmbr, void *data)
 {
-   FSMLANG_MAYBE_UNUSED(pmbr);
    pCOUNTER_STR pcs = (pCOUNTER_STR) data;
 
    /* returning true means we are done */
-   return (pcs->current++ == pcs->target);
+   return (pmbr->ordinal == pcs->ct.target);
 }
 
 static bool match_member(pLIST_ELEMENT pmbr, void *data)
 {
    /* returning true means we are done */
    return (pmbr->mbr == data);
+}
+
+static bool update_ordinal(pLIST_ELEMENT pmbr, void *data)
+{
+	pCOUNTER_STR pcs = (pCOUNTER_STR) data;
+
+	pmbr->ordinal += pcs->ct.start;
+
+	return false;
 }
 
 pLIST init_list()
@@ -130,17 +141,27 @@ pLIST move_list(pLIST dest, pLIST src)
    if (dest)
    {
       /* this means dest */
-      /* Leave all of the members where they are; simply update the list management record. */
+      /* Leave all of the members where they are; update the list management record and adjust the src ordinals. */
       if (dest->tail)
       {
          /* this means the dest list is not empty */
+
+		 /* update the ordinals */
+		 COUNTER_STR cs;
+		 cs.ct.start       = dest->count;
+		 iterate_list(src, update_ordinal, &cs);
+
+		 /* attach destination to source */
          dest->tail->next  = src->head;
+
       }
       else
       {
          /* this means the dest list was empty */
          dest->head        = src->head;
       }
+
+	  /* adjust tail pointer and total count */
       dest->tail        = src->tail;
       dest->count       += src->count;
 
@@ -281,7 +302,8 @@ pLIST_ELEMENT add_to_list(pLIST plist, void *pmbr)
    {
       if (NULL != (pelem = (pLIST_ELEMENT) calloc(1, sizeof(LIST_ELEMENT))))
       {
-         pelem->mbr = pmbr;
+         pelem->mbr     = pmbr;
+		 pelem->ordinal = plist->count;
 
          if (NULL == plist->head)
          {
@@ -325,8 +347,7 @@ void *find_nth_list_member(pLIST list, unsigned target)
    pLIST_ELEMENT pelem;
    COUNTER_STR finder;
 
-   finder.current = 0;
-   finder.target  = target;
+   finder.ct.target  = target;
 
    pelem = iterate_list(list,nth_record,&finder);
 
