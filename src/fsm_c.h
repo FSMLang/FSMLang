@@ -37,6 +37,6 @@
 
 #include "fsm_priv.h"
 
-pFSMOutputGenerator generateCMachineWriter(FSMOGF_TYPE);
+pFSMOutputGenerator generateCMachineWriter(pFSMOutputGenerator);
 
 #endif /* ------------------- Nothing below this line ---------------------- */

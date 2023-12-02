@@ -9,7 +9,7 @@ override CFLAGS += -DTEST_FSM_DEBUG -I../
 
 FSM_SRC = parser-test2.fsm
 
-SRC = pt2-actions.c
+SRC = pt2-actions.c test.c
 
 include ../test.mk
 

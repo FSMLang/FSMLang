@@ -33,6 +33,6 @@
 
 #include "fsm_priv.h"
 
-pFSMOutputGenerator generatePlantUMLMachineWriter(FSMOGF_TYPE);
+pFSMOutputGenerator generatePlantUMLMachineWriter(pFSMOutputGenerator);
 
 #endif  /*  ----------------------------- Nothing below this line  -----------------  */

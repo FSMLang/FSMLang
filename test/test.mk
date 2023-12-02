@@ -54,8 +54,10 @@ clean::
 	-@rm $(FSM_SRC:.fsm=.html)         2> /dev/null
 	-@rm $(FSM_SRC:.fsm=.svg)          2> /dev/null
 	-@rm $(FSM_SRC:.fsm=.plantuml)     2> /dev/null
+	-@rm $(FSM_SRC:.fsm=_priv.h)       2> /dev/null
 	-@rm $(GENERATED_SRC)              2> /dev/null
 	-@rm $(GENERATED_SRC:.c=.h)        2> /dev/null
+	-@rm $(GENERATED_SRC:.c=_priv.h)   2> /dev/null
 	-@rm $(GENERATED_SRC:.c=.html)     2> /dev/null
 	-@rm $(GENERATED_SRC:.c=.html)     2> /dev/null
 	-@rm $(GENERATED_SRC:.c=.svg)      2> /dev/null

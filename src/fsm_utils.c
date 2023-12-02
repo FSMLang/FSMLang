@@ -266,6 +266,30 @@ FILE *openFile(char *fileName, char *mode)
 
 }
 
+char *createAncestryFileName(pMACHINE_INFO pmi)
+{
+	FILE *tmp = tmpfile();
+	char *cp  = NULL;
+	unsigned long file_size;
+
+	if (tmp)
+	{
+		printAncestry(pmi, tmp, "_", alc_lower, ai_include_self);
+		file_size = ftell(tmp);
+		fseek(tmp, 0, SEEK_SET);
+
+		if ((cp = (char *) malloc(file_size+1)) != NULL)
+		{
+			fread(cp, 1, file_size, tmp);
+			cp[file_size] = 0;
+		}
+
+		fclose(tmp);
+	}
+
+	return cp;
+}
+
 char *createFileName(char *base, char *ext)
 {
 
@@ -945,8 +969,7 @@ static bool write_machine(pLIST_ELEMENT pelem, void *data)
    pFSMOutputGeneratorFactoryStr pfsmogf = (pFSMOutputGeneratorFactoryStr) data;
    pMACHINE_INFO                 pmi     = (pMACHINE_INFO) pelem->mbr;
 
-   /* Only sub-machines are generated here. */
-   pFSMOutputGenerator pfsmog = pfsmogf->fsmogf(fsmogft_sub_machine);
+   pFSMOutputGenerator pfsmog = pfsmogf->fsmogf(pfsmogf->parent_fsmog);
    if (pfsmog)
    {
 	   pfsmog->initOutput(pfsmog, pmi->name->name);
@@ -978,12 +1001,12 @@ static bool write_machine(pLIST_ELEMENT pelem, void *data)
  * Require a valid list of pointers to valid MACHINE_INFO structure and a pointer to a valid FSMOutputGenerator.
  * Use the output generator to write each member of the list.
  ***********************************************************************************************************************/
-void write_machines(pLIST plist, fpFSMOutputGeneratorFactory fpfsmogg)
+void write_machines(pLIST plist, fpFSMOutputGeneratorFactory fpfsmogg, pFSMOutputGenerator parent_fsmog)
 {
    FSMOutputGeneratorFactoryStr fsmogg;
 
-   fsmogg.fsmogf  = fpfsmogg;
-   fsmogg.fsmogft = fsmogft_top_level;
+   fsmogg.fsmogf       = fpfsmogg;
+   fsmogg.parent_fsmog = parent_fsmog;
 
    iterate_list(plist, write_machine, &fsmogg);
 }

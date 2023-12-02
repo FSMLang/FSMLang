@@ -296,7 +296,7 @@ static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	if (pmi->machine_list)
 	{
-		write_machines(pmi->machine_list, generateHTMLMachineWriter);
+		write_machines(pmi->machine_list, generateHTMLMachineWriter, pfsmog);
 	}
 }
 
@@ -707,7 +707,7 @@ static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
      fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
 
-     write_machines(pmi->machine_list, generateHTMLMachineWriter);
+	 write_machines(pmi->machine_list, generateHTMLMachineWriter, pfsmog);
   }
 }
 
@@ -756,11 +756,11 @@ static void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good)
 
 }
 
-pFSMOutputGenerator generateHTMLMachineWriter(FSMOGF_TYPE fsmogft)
+pFSMOutputGenerator generateHTMLMachineWriter(pFSMOutputGenerator parent)
 {
 	pFSMOutputGenerator pfsmog;
 
-	if (fsmogft == fsmogft_sub_machine)
+	if (parent)
 	{
 		pFSMHTMLOutputGenerator pfsmhtmlog = calloc(1, sizeof(FSMHTMLOutputGenerator));
 

@@ -36,6 +36,7 @@ static void ancestry_no_caps_self(void);
 static void ancestry_caps_self(void);
 static void ancestry_caps_no_self(void);
 static void ancestry_caps_self_ultimate(void);
+static void ancestry_file_name(void);
 
 VOID_TEST_FN tests[] = {
 	leading_underbar,
@@ -49,6 +50,7 @@ VOID_TEST_FN tests[] = {
 	ancestry_caps_self,
 	ancestry_caps_no_self,
 	ancestry_caps_self_ultimate,
+	ancestry_file_name,
 	NULL
 };
 
@@ -105,6 +107,13 @@ static void ancestry_caps_self_ultimate()
 static void ancestry_caps_no_self()
 {
 	(void) printAncestry(&grand_child, stdout, "_", alc_upper, ai_omit_self);
+}
+
+static void ancestry_file_name()
+{
+	char *fn = createAncestryFileName(&grand_child);
+
+	printf("%s", fn);
 }
 
 int main(int argc, char **argv)

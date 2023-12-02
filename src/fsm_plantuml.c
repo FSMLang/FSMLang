@@ -491,7 +491,7 @@ static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	if (pmi->machine_list)
 	{
-		write_machines(pmi->machine_list, generatePlantUMLMachineWriter);
+		write_machines(pmi->machine_list, generatePlantUMLMachineWriter, pfsmog);
 	}
 }
 
@@ -707,7 +707,7 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	
   if (pmi->machine_list)
   {
-     write_machines(pmi->machine_list, generatePlantUMLMachineWriter);
+     write_machines(pmi->machine_list, generatePlantUMLMachineWriter, pfsmog);
   }
 
 }
@@ -741,11 +741,11 @@ static void closePlantUMLWriter(pFSMOutputGenerator pfsmog, int good)
 
 }
 
-pFSMOutputGenerator generatePlantUMLMachineWriter(FSMOGF_TYPE fsmogft)
+pFSMOutputGenerator generatePlantUMLMachineWriter(pFSMOutputGenerator parent)
 {
 	pFSMOutputGenerator pfsmog;
 
-	if (fsmogft == fsmogft_sub_machine)
+	if (parent)
 	{
 		pFSMPlantUMLOutputGenerator pfsmhtmlog = calloc(1, sizeof(FSMPlantUMLOutputGenerator));
 

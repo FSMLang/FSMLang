@@ -2328,7 +2328,7 @@ int main(int argc, char **argv)
     			fpfsmogf = generateCMachineWriter;
     	    }
    
-			pfsmog = fpfsmogf(fsmogft_top_level);
+			pfsmog = fpfsmogf(NULL);
 		}
 
 		if (!(*pfsmog->initOutput)(pfsmog,outFileBase)) {

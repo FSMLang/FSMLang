@@ -176,13 +176,10 @@ struct _iterator_helper_
 {
    FILE          *fout;
    pMACHINE_INFO pmi;
-   pMACHINE_INFO pparent;
    pID_INFO      pid;
    pACTION_INFO  pai;
    bool          error;
    bool          first;
-   char          *cp;
-   char          *parent_cp;
    int           event;
    unsigned      *counter0;
    unsigned      *counter1;
@@ -311,6 +308,7 @@ void freeMachineInfo(pMACHINE_INFO);
 /* other general utilities */
 FILE *openFile(char *, char *);
 char *createFileName(char *,char *);
+char* createAncestryFileName(pMACHINE_INFO);
 char *hungarianToUnderbarCaps(char *);
 void streamHungarianToUnderbarCaps(FILE*,char *);
 char *eventNameByIndex(pMACHINE_INFO,int);
@@ -398,13 +396,7 @@ typedef int (*fpInitOutput)(pFSMOutputGenerator,char *);
 typedef void (*fpWriteMachine)(pFSMOutputGenerator,pMACHINE_INFO);
 typedef void (*fpCloseOutput)(pFSMOutputGenerator,int);
 
-typedef enum _fsmogf_type_
-{
-	fsmogft_top_level
-	, fsmogft_sub_machine
-} FSMOGF_TYPE;
-
-typedef pFSMOutputGenerator (*fpFSMOutputGeneratorFactory)(FSMOGF_TYPE);
+typedef pFSMOutputGenerator (*fpFSMOutputGeneratorFactory)(pFSMOutputGenerator);
 
 struct _fsm_output_generator_
 {
@@ -416,12 +408,12 @@ struct _fsm_output_generator_
 struct _fsm_output_generator_factory_
 {
 	fpFSMOutputGeneratorFactory fsmogf;
-	FSMOGF_TYPE                 fsmogft;
+	pFSMOutputGenerator         parent_fsmog;
 };
 
 extern void yyerror(char*);
 
-void write_machines(pLIST,fpFSMOutputGeneratorFactory);
+void write_machines(pLIST,fpFSMOutputGeneratorFactory, pFSMOutputGenerator);
 bool print_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component_name(pLIST_ELEMENT,void*);

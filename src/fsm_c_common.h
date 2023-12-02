@@ -44,7 +44,7 @@ typedef struct _iterator_callback_helper_ ITERATOR_CALLBACK_HELPER, *pITERATOR_C
 
 struct _iterator_callback_helper_
 {
-   pCMachineData pcmw;
+   pCMachineData pcmd;
    pMACHINE_INFO pmi;
    bool          needNoOp;
    bool          first;
@@ -57,11 +57,14 @@ struct _c_machine_data_
 {
    FILE	*cFile
       ,	*hFile
+	  , *pubHFile;
       ;
 
    char	*cName
       ,	*hName
+	  , *pubHName
       ;
+
 };
 
 struct _fsm_c_output_generator_
@@ -74,6 +77,7 @@ struct _fsm_c_sub_machine_output_generator_
 {
    FSMOutputGenerator   fsmog;
    pCMachineData        pcmd;
+   pFSMCOutputGenerator top_level_fsmcog;
    pFSMCOutputGenerator parent_fsmcog;
 };
 
@@ -90,12 +94,10 @@ void            commonHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
 void            generateInstance(pCMachineData,pMACHINE_INFO,char*);
 void            generateRunFunction(pCMachineData,pMACHINE_INFO);
 void            defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO);
-void            defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
-void            defineSubMachineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
-void            defineWeakStateEntryAndExitFunctionStubs(pCMachineData,pMACHINE_INFO,char*);
-void            writeStateTransitions(pCMachineData,pMACHINE_INFO,char*);
-void            subMachineWriteStateTransitions(pCMachineData,pMACHINE_INFO,char*);
-void            writeDebugInfo(pCMachineData,pMACHINE_INFO,char*);
+void            defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO);
+void            defineWeakStateEntryAndExitFunctionStubs(pCMachineData,pMACHINE_INFO);
+void            writeStateTransitions(pCMachineData,pMACHINE_INFO);
+void            writeDebugInfo(pCMachineData,pMACHINE_INFO);
 pCMachineData   newCMachineData(char*);
 void            destroyCMachineData(pCMachineData,int);
 void            writeCFilePreambles(pCMachineData);
@@ -108,7 +110,6 @@ bool            declare_state_entry_and_exit_functions(pLIST_ELEMENT,void*);
 bool            define_state_entry_and_exit_functions(pLIST_ELEMENT,void*);
 bool            declare_data_translator_functions(pLIST_ELEMENT,void*);
 bool            define_weak_data_translator_functions(pLIST_ELEMENT,void*);
-bool            sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 
 void            subMachineHeaderStart(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineIF(pCMachineData,pMACHINE_INFO);
@@ -117,17 +118,18 @@ void            defineSubMachineArray(pCMachineData,pMACHINE_INFO);
 bool            print_sub_machine_if(pLIST_ELEMENT,void*);
 void            defineEventPassingActions(pCMachineData,pMACHINE_INFO);
 void            defineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO);
-void            defineSubMachineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineFinder(pCMachineData,pMACHINE_INFO);
 bool            declare_action_function(pLIST_ELEMENT,void*);
 void            declareSubMachineManagers(pCMachineData,pMACHINE_INFO);
 void            declareStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO);
 void            defineStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO);
-void            declareEventDataManager(pCMachineData);
+void            declareEventDataManager(pCMachineData,pMACHINE_INFO);
 void            defineEventDataManager(pCMachineData,pMACHINE_INFO);
 void            printSubMachinesDeclarations(pCMachineData,pMACHINE_INFO);
 void            printFSMMachineDebugBlock(pCMachineData,pMACHINE_INFO);
 void            printFSMSubMachineDebugBlock(pCMachineData,pMACHINE_INFO);
+void            print_action_function_declaration(pMACHINE_INFO,FILE*,char*);
+void            print_transition_fn_declaration_for_when_actions_return_states(pMACHINE_INFO,FILE*,char*);
 
 #endif
 
