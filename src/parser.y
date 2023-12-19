@@ -2120,8 +2120,8 @@ int main(int argc, char **argv)
                 force_generation_of_event_passing_actions = true;
                 break;
             case lo_generate_run_function:
-                if (!optarg || !strcmp(optarg,"true"))
-                    generate_run_function = true;
+                if (optarg && !strcmp(optarg,"false"))
+                    generate_run_function = false;
                 break;
  			   case lo_add_event_cross_reference:
  					 if (!optarg || !strcmp(optarg,"true"))

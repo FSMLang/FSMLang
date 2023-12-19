@@ -1,13 +1,58 @@
 ./test: hello, world
-_FOO_BAR
-FOO_BAR
-FOO_BAR
-FOO__BAR
-FOO_BAR_
-FOO_BAR
-grandParent_child
-grandParent_child_grandChild
-GRAND_PARENT_CHILD_GRAND_CHILD
-GRAND_PARENT_CHILD
-GRAND_PARENT
-grandParent_child_grandChild
+
+leading_underbar:
+_fooBar becomes: _FOO_BAR
+
+no_leading_underbar:
+fooBar becomes: FOO_BAR
+
+internal_underbar:
+foo_bar becomes: FOO_BAR
+
+double_underbar:
+foo__bar becomes: FOO__BAR
+
+trailing_underbar:
+fooBar_ becomes: FOO_BAR_
+
+doubled_caps:
+fooBAr becomes: FOO_BAR
+
+all_caps:
+FOOBAR becomes: FOOBAR
+
+ancestry_no_caps_no_self:
+input grandChild: grandParent_child
+
+ancestry_no_caps_self:
+input grandChild: grandParent_child_grandChild
+
+ancestry_caps_self:
+input grandChild: GRAND_PARENT_CHILD_GRAND_CHILD
+
+ancestry_caps_no_self:
+input grandChild: GRAND_PARENT_CHILD
+
+ancestry_caps_self_ultimate:
+input grandParent: GRAND_PARENT
+
+ancestry_file_name:
+input grandChild: grandParent_child_grandChild
+
+ancestry_caps_self_stop_at_parent:
+input grandChild: CHILD_GRAND_CHILD
+
+ancestry_caps_ultimate_stop_at_parent:
+input grandParent: GRAND_PARENT
+
+ancestry_caps_omit_self_stop_at_parent:
+input grandChild: CHILD
+
+name_with_ancestry_lc_to_uc:
+GRAND_PARENT_CHILD_GRAND_CHILD_NAME
+
+name_with_ancestry_lc_to_lc:
+grandParent_child_grandChild_name
+
+name_with_ancestry_uc_to_lc:
+grandParent_child_grandChild_NAME

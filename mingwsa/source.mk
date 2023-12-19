@@ -10,5 +10,6 @@ SRC =	lexer.c \
 			fsm_c_common.c \
 			list.c \
 			cwalk.c \
+			ancestry.c \
 			fsm_statistics.c
 

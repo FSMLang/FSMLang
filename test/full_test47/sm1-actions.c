@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "subMachine1.h"
+#include "subMachine1_priv.h"
 
 static void print_machine_data(pSUB_MACHINE1_DATA);
 
@@ -24,10 +24,10 @@ NEW_MACHINE_EVENT_ENUM  subMachine1_noAction(pSUB_MACHINE1 pfsm)
 	return PARENT(noEvent);
 }
 
-void  subMachine1_eShared_dt(pNEW_MACHINE pfsm)
+void  subMachine1_eShared_dt(pNEW_MACHINE_DATA pfsm_data)
 {
 	DBG_PRINTF("subMachine1_eShared_dt");
-	psubMachine1->data.cp = pfsm->data.u.bop;
+	psubMachine1->data.cp = pfsm_data->u.bop;
 	print_machine_data(&psubMachine1->data);
 }
 

@@ -20,11 +20,11 @@ int main()
 */
 
 
-	RUN_STATE_MACHINE(ptestFSM,testFSM_goodMessage);
-	RUN_STATE_MACHINE(ptestFSM,testFSM_badMessage);
-	RUN_STATE_MACHINE(ptestFSM,testFSM_goodMessage);
-	RUN_STATE_MACHINE(ptestFSM,testFSM_goodMessage);
-	RUN_STATE_MACHINE(ptestFSM,testFSM_badMessage);
+	run_testFSM(testFSM_goodMessage);
+	run_testFSM(testFSM_badMessage);
+	run_testFSM(testFSM_goodMessage);
+	run_testFSM(testFSM_goodMessage);
+	run_testFSM(testFSM_badMessage);
 
 	exit(0);
 

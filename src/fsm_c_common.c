@@ -35,31 +35,30 @@
 
 #include "fsm_c_common.h"
 #include "fsm_unused.h"
+#include "ancestry.h"
 
-#if defined (CYGWIN) || defined (LINUX)
 #include <stdio.h>
 #include <ctype.h>
 #include <unistd.h>
-#endif
+
 #if defined (LINUX) || defined (VS) || defined (CYGWIN)
-#include <time.h>
+	#include <time.h>
 #endif
 #include <string.h>
 #include <stdlib.h>
 
-#if defined (CYGWIN) || defined (LINUX)
-#include "y.tab.h"
-#elif defined (VS)
-#include "parser.h"
+#if !defined (LEX_DEBUG)
+	#if defined (VS)
+		#include "parser.h"
+	#else
+		#include "y.tab.h"
+	#endif
+#else
+	#include "lexer_debug.h"
 #endif
 
-#include "revision.h"
 
-typedef enum ENTRY_OR_EXIT
-{
-    eoe_entry
-    , eoe_exit
-} ENTRY_OR_EXIT;
+#include "revision.h"
 
 bool generate_weak_fns = true;
 bool core_logging_only = false;
@@ -91,27 +90,39 @@ static void print_entry_or_exit_fn_signature                                    
 static void print_entry_or_exit_fn_body                                              (pID_INFO,pITERATOR_CALLBACK_HELPER,ENTRY_OR_EXIT);
 static bool print_event_cross_reference                                              (pLIST_ELEMENT,void*);
 static bool print_sub_machine_event_cross_reference                                  (pLIST_ELEMENT,void*);
-static void print_event_cross_reference_entry                                        (char*,pITERATOR_HELPER);
+static void print_event_cross_reference_entry                                        (char*,pITERATOR_CALLBACK_HELPER);
 static void print_state_only_transition_fn_declaration_for_when_actions_return_states(pMACHINE_INFO,FILE*,char*);
-static void print_transition_fn_declaration_for_when_actions_return_events           (pMACHINE_INFO,FILE*,char*);
-static void print_state_only_transition_fn_declaration_for_when_actions_return_events(pMACHINE_INFO,FILE*,char*);
+static void print_transition_fn_declaration_for_when_actions_return_events           (pCMachineData,FILE*,char*);
+static void print_state_only_transition_fn_declaration_for_when_actions_return_events(pCMachineData,FILE*,char*);
 static bool print_event_enum_member                                                  (pLIST_ELEMENT,void*);
 static bool write_state_enum_member                                                  (pLIST_ELEMENT,void*);
-static void print_plain_enum_member                                                  (char*,pITERATOR_HELPER);
-static void print_shared_event_data_block_signature                                  (FILE*,pMACHINE_INFO,char*,bool);
+static void print_plain_enum_member                                                  (char*,pITERATOR_CALLBACK_HELPER);
+static void print_shared_event_data_block_signature                                  (FILE*,pCMachineData,pMACHINE_INFO,char*,bool);
 static char *createHeaderCompilationGuard                                            (char*);
 static void writeHeaderPreamble                                                      (char*,FILE*);
+static void print_transition_function_signature                                      (FILE*,pCMachineData,char*,char*,bool);
+static void print_transition_function_body                                           (FILE*,pCMachineData,char*);
+static void print_state_entry_or_exit_manager_signature                              (pCMachineData,pMACHINE_INFO,ENTRY_OR_EXIT,DECLARE_OR_DEFINE);
+static void print_native_header                                                      (pCMachineData,pMACHINE_INFO);
 
 int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
    pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   if (
-	   (pfsmcog->pcmd = newCMachineData(fileName))
-	   && (pfsmcog->pcmd->pubHName = createFileName(fileName, ".h"))
-	   )
+   if ( (pfsmcog->pcmd = newCMachineData(fileName)) )
    {
-	   writeCFilePreambles(pfsmcog->pcmd);
+	   writeCFilePreambles(pfsmcog->pcmd, false);
+
+	   /* include our public header */
+	   fprintf(pfsmcog->pcmd->hFile
+			   , "#include \"%s\"\n"
+			   , pfsmcog->pcmd->pubHName
+			   );
+
+	   fprintf(pfsmcog->pcmd->subMachineHFile
+			   , "#include \"%s\"\n"
+			   , pfsmcog->pcmd->pubHName
+			   );
 
       return 0;
    }
@@ -138,10 +149,14 @@ static char *createHeaderCompilationGuard(char *fn)
 	char *cp, *cp1;
 
 	cp1 = getFileNameNoDir(fn);
-	for (cp = cp1; *cp; cp++)
 
-	   /* capitalise things, and change the '.' or '-' to '_' */
-	   *cp = ((*cp == '.') || (*cp == '-')) ? '_' : (char)toupper(*cp);
+	if (cp1)
+	{
+		for (cp = cp1; *cp; cp++)
+
+		   /* capitalise things, and change the '.' or '-' to '_' */
+		   *cp = ((*cp == '.') || (*cp == '-')) ? '_' : (char)toupper(*cp);
+	}
 
 	return cp1;
 }
@@ -150,7 +165,7 @@ static void writeHeaderPreamble(char *fn, FILE *file)
 {
 	char *cp = createHeaderCompilationGuard(fn);
 
-	if (cp)
+	if (cp && file)
 	{
 		fprintf(file
 				, "/**\n\t%s\n\n"
@@ -163,105 +178,80 @@ static void writeHeaderPreamble(char *fn, FILE *file)
 		fprintf(file, "#ifndef _%s_\n", cp);
 		fprintf(file, "#define _%s_\n\n", cp);
 
-		free(cp);
 	}
+
+	CHECK_AND_FREE(cp);
 }
 
-void writeCFilePreambles(pCMachineData pcmd)
+void writeCFilePreambles(pCMachineData pcmd, bool sub_machine)
 {
-	if (!(pcmd->cFile = openFile(pcmd->cName, "w")))
+	bool          error = false;
+	CREATED_FILES cf;
+
+	/* Open (almost) all files. */
+	for (cf = cf_first; cf < cf_numCreatedFiles && !error; cf++)
 	{
-
-		fprintf(stderr
-				, "%s: unable to open %s\n"
-				, me
-				, pcmd->cName
-				);
-
-	   CHECK_AND_FREE(pcmd->cName);
-	   CHECK_AND_FREE(pcmd->hName);
-
-	   FREE_AND_CLEAR(pcmd);
-
+		/* When initializing for sub-machines, do not open a public header. */
+		if (!sub_machine || (sub_machine && cf != cf_pubH))
+		{
+			error = ((pcmd->file_array[cf] = openFile(pcmd->file_name_array[cf], "w")) == NULL);
+		}
 	}
-	else if (!(pcmd->hFile = openFile(pcmd->hName, "w")))
+
+	if (error)
 	{
 
 		fprintf(stderr
-				, "%s: unable to open %s\n"
+				, "%s: Unable to open file %s\n"
 				, me
-				, pcmd->hName
+				, pcmd->file_name_array[cf-1]
 				);
-
-	   FCLOSE_AND_CLEAR(pcmd->cFile);
-
-	   FREE_AND_CLEAR(pcmd->cName);
-	   CHECK_AND_FREE(pcmd->hName);
-
-	   FREE_AND_CLEAR(pcmd);
-
-	}
-	else if (
-			 pcmd->pubHName
-			 && !(pcmd->pubHFile = openFile(pcmd->pubHName, "w"))
-			)
-	{
-
-		fprintf(stderr
-				, "%s: unable to open %s\n"
-				, me
-				, pcmd->pubHName
-				);
-
-	   FCLOSE_AND_CLEAR(pcmd->cFile);
-	   FCLOSE_AND_CLEAR(pcmd->hFile);
-
-	   FREE_AND_CLEAR(pcmd->cName);
-	   FREE_AND_CLEAR(pcmd->hName);
-	   CHECK_AND_FREE(pcmd->pubHName);
-
-	   FREE_AND_CLEAR(pcmd);
-
 	}
 	else
 	{
 
-	   /* the header file */
-	   writeHeaderPreamble(pcmd->hName, pcmd->hFile);
+		for (cf = cf_first; cf < cf_numCreatedFiles; cf++)
+		{
+			if (cf == cf_c)
+			{
+				/* the source file */
+				fprintf(pcmd->cFile
+						, "/**\n\t%s\n\n"
+						, pcmd->cName
+						);
+				fprintf(pcmd->cFile
+						, "\tThis file automatically generated by FSMLang\n*/\n\n"
+						);
 
+				/* put the call to the header file into the source */
+				fprintf(pcmd->cFile
+						, "#include \"%s\"\n"
+						, pcmd->hName
+						);
 
-	   /* the source file */
-	   fprintf(pcmd->cFile
-			   , "/**\n\t%s\n\n"
-			   , pcmd->cName
-			   );
-	   fprintf(pcmd->cFile
-			   , "\tThis file automatically generated by FSMLang\n*/\n\n"
-			   );
+				fprintf(pcmd->cFile, "#include <stddef.h>\n\n"
+						);
 
-	   /* put the call to the header file into the source */
-	   fprintf(pcmd->cFile
-			   , "#include \"%s\"\n"
-			   , pcmd->hName
-			   );
+				/* protect ourselves from not having DBG_PRINTF defined */
+				fprintf(pcmd->cFile, "#ifndef DBG_PRINTF\n#define DBG_PRINTF(...)\n");
 
-	   fprintf(pcmd->cFile, "#include <stddef.h>\n\n"
-			   );
+				fprintf(pcmd->cFile, "#endif\n\n");
 
-	   /* protect ourselves from not having DBG_PRINTF defined */
-	   fprintf(pcmd->cFile, "#ifndef DBG_PRINTF\n#define DBG_PRINTF(...)\n");
+			}
+			else
+			{
+				/* the header files */
+				writeHeaderPreamble(pcmd->file_name_array[cf], pcmd->file_array[cf]);
+				if (sub_machine && cf == cf_h)
+				{
+					fprintf(pcmd->hFile
+							,"#include \"%s\"\n"
+							, pcmd->parent_pcmd->subMachineHName
+							);
+				}
+			}
+		}
 
-	   fprintf(pcmd->cFile, "#endif\n\n");
-
-	   /* if there is a public header */
-	   if (pcmd->pubHName)
-	   {
-		   writeHeaderPreamble(pcmd->pubHName, pcmd->pubHFile);
-		   fprintf(pcmd->hFile
-				   , "#include \"%s\""
-				   , pcmd->pubHName
-				   );
-	   }
 	}
 
 }
@@ -272,16 +262,33 @@ int initCSubMachine(pFSMOutputGenerator pfsmog, char *fileName)
 
    if ((pfsmcsmog->pcmd = newCMachineData(fileName)))
    {
-	   writeCFilePreambles(pfsmcsmog->pcmd);
+	  /* only data (not pointers to the writers) are passed around; this gives the data block access to the parent */
+	  pfsmcsmog->pcmd->parent_pcmd = pfsmcsmog->parent_fsmcog->pcmd;
 
-      /* put the call to the parent header file into the header */
-      fprintf(pfsmcsmog->pcmd->hFile
-              , "#include \"%s\"\n\n"
-              , pfsmcsmog->top_level_fsmcog->pcmd->hName
-              );
+	  /* The parent has encountered a sub-machine. */
+	  pfsmcsmog->parent_fsmcog->pcmd->a_sub_machine_was_encountered = true;
 
 	  /* for sub machines, the public file contents are private */
 	  pfsmcsmog->pcmd->pubHFile = pfsmcsmog->pcmd->hFile;
+
+	  /* also for sub machines, some output strings are taken from the parent */
+	  pfsmcsmog->pcmd->action_return_type = pfsmcsmog->parent_fsmcog->pcmd->action_return_type;
+	  pfsmcsmog->pcmd->fsm_fn_event_type  = pfsmcsmog->parent_fsmcog->pcmd->action_return_type;
+	  pfsmcsmog->pcmd->event_type         = pfsmcsmog->parent_fsmcog->pcmd->event_type;
+
+	  /* Now that all of the adjustments are done ... */
+	  writeCFilePreambles(pfsmcsmog->pcmd, true);
+
+	 /* Put the call to the top-level header file into the header. */
+	 fprintf(pfsmcsmog->pcmd->hFile
+			 , "#include \"%s\"\n\n"
+			 , pfsmcsmog->top_level_fsmcog->pcmd->pubHName
+			 );
+
+	 fprintf(pfsmcsmog->pcmd->subMachineHFile
+			 , "#include \"%s\"\n\n"
+			 , pfsmcsmog->top_level_fsmcog->pcmd->pubHName
+			 );
 
       return 0;
    }
@@ -317,9 +324,11 @@ void closeCMachineFN(pFSMOutputGenerator pfsmog, int how)
    FREE_AND_CLEAR(pfsmcog->pcmd->cName);
    FREE_AND_CLEAR(pfsmcog->pcmd->hName);
 
+   (void) how;
+
 }
 
-void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_HELPER pih)
+void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_CALLBACK_HELPER pich)
 {
 
    if ( pmi->external_event_designation_count > 0 )
@@ -331,34 +340,32 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_HEL
       }
    }
 
-   unsigned enum_val = 0;
-
    fprintf(pcmd->pubHFile
            , "/*\n\tEvent Cross Reference:\n\n"
           );
 
-   pih->first     = true;
-   pih->counter0  = &enum_val;
-   pih->pmi       = pmi;
+   pich->ih.first     = true;
+   pich->ih.tab_level  = 0;
+   pich->ih.pmi       = pmi;
 
-   iterate_list(pmi->event_list, print_event_cross_reference, pih);
+   iterate_list(pmi->event_list, print_event_cross_reference, pich);
 
    if (
        !(pmi->modFlags & mfActionsReturnStates)
        && !(pmi->modFlags & mfActionsReturnVoid)
       )
    {
-      print_event_cross_reference_entry("noEvent", pih);
+      print_event_cross_reference_entry("noEvent", pich);
    }
 
-   print_event_cross_reference_entry("numEvents", pih);
+   print_event_cross_reference_entry("numEvents", pich);
 
    if (pmi->machine_list)
    {
-      iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, pih);
+      iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, pich);
 
-	  pih->pmi = pmi;
-	  print_event_cross_reference_entry("numAllEvents", pih);
+	  pich->ih.pmi = pmi;
+	  print_event_cross_reference_entry("numAllEvents", pich);
    }
 
 
@@ -370,19 +377,25 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_HEL
 
 void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 {
-   unsigned				i;
-   ITERATOR_HELPER   helper;
+	//TODO: remove from signature
+	(void) arrayName;
+
+   ITERATOR_CALLBACK_HELPER   ich = {
+	   .ih = {
+		   .first     = false
+		   , .fout    = pcmd->hFile
+		   , .pmi     = pmi
+	   }
+	   , .pcmd    = pcmd
+   };
 
    /* put the native code segment out to the header */
-   if (pmi->native) fprintf(pcmd->pubHFile, "%s\n", pmi->native);
+   if (pmi->native) print_native_header(pcmd, pmi);
 
-   helper.first   = false;
-   helper.fout    = pcmd->hFile;
-   helper.pmi     = pmi;
-
-   fprintf(pcmd->hFile, "\n#ifdef ");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_DEBUG\n");
+   fprintf(pcmd->hFile
+		   , "\n#ifdef %s_DEBUG\n"
+		   , fsmType(pcmd)
+		   );
    fprintf(pcmd->hFile, "#include <stdio.h>\n");
    fprintf(pcmd->hFile, "#include <stdlib.h>\n");
    fprintf(pcmd->hFile, "#endif\n\n");
@@ -392,8 +405,8 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
       fprintf(pcmd->hFile, "#include <stdbool.h>\n");
    }
 
-   fprintf(pcmd->hFile
-           , "#define FSM_VERSION \"%s\"\n"
+   fprintf(pcmd->pubHFile
+           , "#define FSM_VERSION \"%s\"\n\n"
            , rev_string
            );
 
@@ -402,99 +415,38 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
       fprintf(pcmd->hFile, "#ifndef NON_CORE_DEBUG_PRINTF\n#define NON_CORE_DEBUG_PRINTF(...) \n#endif\n\n");
    }
 
-   /* put the "call the state machine" macro into the header */
-   fprintf(pcmd->pubHFile, "\n#define RUN_STATE_MACHINE(A,B) \\\n");
    fprintf(pcmd->pubHFile
-           , "\t((*(A)->fsm)((A),((%s"
-           , pmi->data_block_count ? "p" : ""
-           );
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile, "_EVENT) B)))\n\n");
-
-   /* put the "declare a state machine" macro into the header */
-   if (pmi->data)
-   {
-	   fprintf(pcmd->pubHFile
-			   , "#ifndef INIT_FSM_DATA\n#define INIT_FSM_DATA {0}\n#endif\n"
-			  );
-   }
-
-   fprintf(pcmd->pubHFile, "#define DECLARE_");
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile, "_MACHINE(A) \\\n");
-
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile
-           , " (A) =\\\n{\\\n%s\t"
-           , pmi->data ? "\tINIT_FSM_DATA,\\\n" : ""
-		  );
-   fprintf(pcmd->pubHFile
-		   , "%s_%s,\\\n\t"
-		   , pmi->name->name
-           , stateNameByIndex(pmi, 0)
-          );
-   fprintf(pcmd->pubHFile
-		   , "%s_noEvent,\\\n\t&"
-		   , pmi->name->name
-		   );
-   fprintf(pcmd->pubHFile
-		   , "%s_%s_array,\\\n\t"
-		   , pmi->name->name
-           , arrayName
-		   );
-   fprintf(pcmd->pubHFile
-		   , "%sFSM\\\n};\\\n"
-		   , pmi->name->name
-		   );
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile, " *p##A = &A;\n\n");
-
-   fprintf(pcmd->pubHFile
-           , "/* Event naming convenience macros. */\n"
-           );
-
-   fprintf(pcmd->pubHFile, "#undef THIS\n#define THIS(A) ");
-   fprintf(pcmd->pubHFile
-		   , "%s_##A\n"
-		   , pmi->name->name
+		   , "#undef THIS\n#define THIS(A) %s_##A\n"
+		   , machineName(pcmd)
 		   );
 
    if (pmi->machine_list)
    {
-	   helper.fout = pcmd->pubHFile;
-      fprintf(pcmd->pubHFile, "#undef ");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "\n#define ");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "(A) ");
-	  fprintf(pcmd->pubHFile
-			  , "%s_##A\n"
-			  , pmi->name->name
+      fprintf(pcmd->pubHFile
+			  , "#undef %s\n#define %s(A) %s_##A\n"
+			  , fsmType(pcmd)
+			  , fsmType(pcmd)
+			  , machineName(pcmd)
 			  );
 
-      iterate_list(pmi->machine_list, print_event_macro, &helper);
-
-      fprintf(pcmd->pubHFile
-              , "\n"
-              );
-	  helper.fout = pcmd->hFile;
+	  ich.ih.fout = pcmd->pubHFile;
+      iterate_list(pmi->machine_list, print_event_macro, &ich);
+	  ich.ih.fout = pcmd->hFile;
    }
+   fprintf(pcmd->pubHFile, "\n");
 
    if (add_event_cross_reference)
    {
-	   helper.fout = pcmd->pubHFile;
-      addEventCrossReference(pcmd, pmi, &helper);
-	  helper.fout = pcmd->hFile;
+	   ich.ih.fout = pcmd->pubHFile;
+	   addEventCrossReference(pcmd, pmi, &ich);
+	   ich.ih.fout = pcmd->hFile;
    }
 
    /* put the event enum into the header file */
-   fprintf(pcmd->pubHFile, "typedef enum ");
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
    fprintf(pcmd->pubHFile
-		   , "_EVENT%s {\n"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM" : ""
-          );
-
+		   , "typedef enum %s {\n"
+		   , eventType(pcmd)
+		   );
 
    if (pmi->external_event_designation_count > 0 )
    {
@@ -505,10 +457,10 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
    }
 
 
-   helper.first = true;
-   helper.fout = pcmd->pubHFile;
-   iterate_list(pmi->event_list, print_event_enum_member, &helper);
-   helper.fout = pcmd->hFile;
+   ich.ih.first = true;
+   ich.ih.fout = pcmd->pubHFile;
+   iterate_list(pmi->event_list, print_event_enum_member, &ich);
+   ich.ih.fout = pcmd->hFile;
 
    if (
        !(pmi->modFlags & mfActionsReturnStates)
@@ -517,13 +469,13 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
    {
       fprintf(pcmd->pubHFile
 			  , "\t, %s_noEvent\n"
-			  , pmi->name->name
+			  , machineName(pcmd)
 			  );
    }
 
    fprintf(pcmd->pubHFile
 		   , "\t, %s_numEvents"
-		   , pmi->name->name
+		   , machineName(pcmd)
 		   );
    if (assignExternalEventValues(pmi))
    {
@@ -536,94 +488,93 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 
    if (pmi->machine_list)
    {
-	   helper.fout = pcmd->pubHFile;
-      iterate_list(pmi->machine_list,print_sub_machine_events,&helper);
-	  helper.fout = pcmd->hFile;
-
-      fprintf(pcmd->pubHFile
-              , "\t, %s_numAllEvents\n"
-              , pmi->name->name
-              );
+	   ich.ih.fout = pcmd->pubHFile;
+      iterate_list(pmi->machine_list,print_sub_machine_events,&ich);
+	  ich.ih.fout = pcmd->hFile;
    }
 
    fprintf(pcmd->pubHFile
-           , "}%s"
-           , compact_action_array ? "__attribute__((__packed__)) " : " "
-          );
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile
-		   , "_EVENT%s;\n\n"
-           , pmi->data_block_count ? "_ENUM" : ""
-		  );
+		   , "\t, %s_numAllEvents"
+		   , machineName(pcmd)
+		   );
 
-   fprintf(pcmd->hFile, "#undef ACTION_RETURN_TYPE\n#define ACTION_RETURN_TYPE ");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile
-		   , "_EVENT%s\n"
-           , pmi->data_block_count ? "_ENUM" : ""
+   fprintf(pcmd->pubHFile
+		   , pmi->machine_list ? "%s\n" : " = %s_numEvents\n" 
+		   , pmi->machine_list ? ""     : machineName(pcmd)
+		   );
+
+   fprintf(pcmd->pubHFile
+           , "}%s %s;\n\n"
+           , compact_action_array ? "__attribute__((__packed__)) " : " "
+		   , eventType(pcmd)
           );
+
+   fprintf(pcmd->pubHFile
+		   , "#undef ACTION_RETURN_TYPE\n#define ACTION_RETURN_TYPE %s\n"
+		   , actionReturnType(pcmd)
+		   );
 
    /* if we have user data on some events, declare the event structure */
    if (pmi->data_block_count)
    {
-      iterate_list(pmi->event_list, declare_event_user_data_structs, &helper);
+	   ich.ih.pmi = pmi;
+	   ich.ih.fout = pcmd->pubHFile;
+      iterate_list(pmi->event_list, declare_event_user_data_structs, &ich);
 
       /* create the union of pointers */
       fprintf(pcmd->pubHFile
               , "typedef union {\n"
               );
 
-	  helper.fout = pcmd->pubHFile;
-      iterate_list(pmi->event_list, declare_event_user_data_union_mbrs, &helper);
-	  helper.fout = pcmd->hFile;
+      iterate_list(pmi->event_list, declare_event_user_data_union_mbrs, &ich);
 
-      fprintf(pcmd->pubHFile, "} ");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_EVENT_DATA, *p");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_EVENT_DATA;\n\n");
+      fprintf(pcmd->pubHFile
+			  , "} %s_EVENT_DATA, *p%s_EVENT_DATA;\n\n"
+			  , fsmType(pcmd)
+			  , fsmType(pcmd)
+			  );
 
       /* create the event struct */
-      fprintf(pcmd->pubHFile, "typedef struct {\n\t");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_EVENT_ENUM event;\n\t");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_EVENT_DATA event_data;\n} ");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_EVENT, *p");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_EVENT;\n\n");
-
+	  fprintf(pcmd->pubHFile
+			  , "typedef struct {\n\t%s_EVENT_ENUM event;\n\t%s_EVENT_DATA event_data;\n} %s_EVENT, *p%s_EVENT;\n\n"
+			  , fsmType(pcmd)
+			  , fsmType(pcmd)
+			  , fsmType(pcmd)
+			  , fsmType(pcmd)
+			  );
+	  ich.ih.fout = pcmd->hFile;
    }
 
    if (generate_run_function)
    {
-      fprintf(pcmd->pubHFile, "\nvoid run_%s(%s"
-              , pmi->name->name
-              , pmi->data_block_count ? "p" : ""
+      fprintf(pcmd->pubHFile, "\nvoid run_%s(%s);\n\n"
+			  , machineName(pcmd)
+			  , fsmFnEventType(pcmd)
              );
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->hFile, "_EVENT);\n\n");
    }
 
-   fprintf(pcmd->hFile, "#ifdef ");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_DEBUG\n");
-   fprintf(pcmd->hFile, "extern char *");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_EVENT_NAMES[];\n");
+   fprintf(pcmd->hFile
+		   , "\n#ifdef %s_DEBUG\n"
+		   , fsmType(pcmd)
+		   );
+   fprintf(pcmd->hFile
+		   , "extern char *%s_EVENT_NAMES[];\n"
+		   , fsmType(pcmd)
+		   );
+   fprintf(pcmd->hFile
+		   , "extern char *%s_STATE_NAMES[];\n"
+		   , fsmType(pcmd)
+		   );
    fprintf(pcmd->hFile, "#endif\n\n");
 
    /* put the state enum into the header file */
-   fprintf(pcmd->pubHFile
+   fprintf(pcmd->hFile
            , "typedef enum {\n"
           );
 
-   helper.first = true;
-   helper.pmi   = pmi;
-   helper.fout = pcmd->pubHFile;
-   iterate_list(pmi->state_list, write_state_enum_member, &helper);
-   helper.fout = pcmd->hFile;
+   ich.ih.first = true;
+   ich.ih.pmi   = pmi;
+   iterate_list(pmi->state_list, write_state_enum_member, &ich);
    
 
    /*
@@ -634,170 +585,128 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
    */
    if (pmi->modFlags & mfActionsReturnStates)
    {
-      fprintf(pcmd->pubHFile
+      fprintf(pcmd->hFile
               , "\t, %s_noTransition\n"
-              , pmi->name->name
+			  , machineName(pcmd)
              );
    }
 
-   fprintf(pcmd->pubHFile
+   fprintf(pcmd->hFile
            , "\t, %s_numStates\n"
-           , pmi->name->name
+		   , machineName(pcmd)
            );
 
-   fprintf(pcmd->pubHFile
-           , "}%s"
+   fprintf(pcmd->hFile
+           , "}%s %s;\n\n"
            , compact_action_array ? " __attribute__((__packed__))" : " "
+		   , stateType(pcmd)
           );
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile, "_STATE;\n\n");
 
-   fprintf(pcmd->hFile, "#ifdef ");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_DEBUG\n");
-   fprintf(pcmd->hFile, "extern char *");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_STATE_NAMES[];\n");
-   fprintf(pcmd->hFile, "#endif\n\n");
-
-   /* put the data struct typedef into the header */
+   /* Put the data struct typedef into the header file. */
    if (pmi->data)
    {
-      fprintf(pcmd->pubHFile
-              , "typedef struct _%s_data_struct_ "
-              , pmi->name->name
+	   /* Which header depends on whether we have sub-machines. */
+      fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
+              , "typedef struct _%s_data_struct_ %s, *p%s;\n"
+			  , machineName(pcmd)
+			  , fsmDataType(pcmd)
+			  , fsmDataType(pcmd)
 			 );
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_DATA, *p");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_DATA;\n");
+
    }
 
-   /* put the machine struct typedef into the header */
+   /* forward declare the machine type */
    fprintf(pcmd->pubHFile
-		   , "typedef struct _%s_struct_ "
-           , pmi->name->name
+		   , "typedef struct _%s_struct_ *p%s;\n"
+		   , machineName(pcmd)
+		   , fsmType(pcmd)
 		  );
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile, ", *p");
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile, ";\n");
 
-   fprintf(pcmd->hFile, "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "\n");
+   /* put the machine struct typedef into the header */
+   fprintf(pcmd->hFile
+		   , "typedef struct _%s_struct_ %s;\n"
+		   , machineName(pcmd)
+		   , fsmType(pcmd)
+		  );
+
+   fprintf(pcmd->hFile
+		   , "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
+		   , fsmType(pcmd)
+		   );
 
    if (generate_instance)
    {
-      fprintf(pcmd->pubHFile, "extern ");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile
-			  , " %s;\n\n"
-              , pmi->name->name
-			 );
+      fprintf(pcmd->hFile
+			  , "extern %s %s;\n\n"
+			  , fsmType(pcmd)
+			  , machineName(pcmd)
+			  );
 
-      fprintf(pcmd->pubHFile, "extern p");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile
-			  , " p%s;\n\n"
-              , pmi->name->name
-             );
+      fprintf(pcmd->pubHFile
+			  , "extern p%s p%s;\n\n"
+			  , fsmType(pcmd)
+			  , machineName(pcmd)
+			  );
+
    }
 
    /* put the action function typedef into the header */
-   if (pmi->modFlags & mfActionsReturnStates)
-   {
-      fprintf(pcmd->pubHFile, "typedef ");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_STATE (*");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_ACTION_FN)(p");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, ");\n\n");
-   }
-   else if (pmi->modFlags & mfActionsReturnVoid)
-   {
-      fprintf(pcmd->pubHFile, "typedef void (*");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_ACTION_FN)(p");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, ");\n\n");
-   }
-   else
-   {
-      fprintf(pcmd->pubHFile, "typedef ");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile
-			  , "_EVENT%s (*"
-              , pmi->data_block_count ? "_ENUM"  : ""
-             );
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, "_ACTION_FN)(p");
-	  streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-	  fprintf(pcmd->pubHFile, ");\n\n");
-   }
+   fprintf(pcmd->hFile
+		   , "typedef %s (*%s_ACTION_FN)(FSM_TYPE_PTR);\n\n"
+		   , actionReturnType(pcmd)
+		   , fsmType(pcmd)
+		   );
 
    /* typedef transition functions, if we have any */
    if (pmi->transition_fn_list->count)
    {
-      fprintf(pcmd->hFile, "typedef ");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->hFile, "_STATE (*");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->hFile, "_TRANSITION_FN)(p");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->hFile, ",");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->hFile
-			  , "_EVENT%s);\n\n"
-              , pmi->data_block_count ? "_ENUM"  : ""
-             );
+	   fprintf(pcmd->hFile
+			   , "typedef %s_STATE (*%s_TRANSITION_FN)(FSM_TYPE_PTR,%s);\n\n"
+			   , fsmType(pcmd)
+			   , fsmType(pcmd)
+			   , eventType(pcmd)
+			   );
    }
 
    /* typedef the FSM function */
-   fprintf(pcmd->pubHFile, "typedef void (*");
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile, "_FSM)(p");
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile
-		   , ",%s"
-           , pmi->data_block_count ? "p"  : ""
-           );
-   streamHungarianToUnderbarCaps(pcmd->pubHFile, pmi->name->name);
-   fprintf(pcmd->pubHFile, "_EVENT);\n\n");
+   fprintf(pcmd->hFile
+		   , "typedef void (*%s_FSM)(FSM_TYPE_PTR,%s);\n\n"
+		   , fsmType(pcmd)
+		   , fsmFnEventType(pcmd)
+		   );
 
    /* declare the fsm function */
    fprintf(pcmd->hFile
-           , "void %sFSM(p"
-           , pmi->name->name
+           , "void %sFSM(FSM_TYPE_PTR,%s);\n\n"
+		   , machineName(pcmd)
+		   , fsmFnEventType(pcmd)
            );
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile
-		   , ",%s"
-           , pmi->data_block_count ? "p"  : ""
-		  );
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_EVENT);\n\n");
 
    if (pmi->machine_list)
    {
+	   /* The sub-machine header will hold things needed by the private header. */
+	   fprintf(pcmd->hFile
+			   ,"#include \"%s\"\n"
+			   , pcmd->subMachineHName
+			   );
+
 	   printSubMachinesDeclarations(pcmd,pmi);
    }
 
    /* put the data structure definition into the header */
    if (pmi->data)
    {
-      fprintf(pcmd->pubHFile
+	   /* Which header depends on whether we have sub-machines. */
+      fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
               , "struct _%s_data_struct_ {\n"
-              , pmi->name->name
+			  , machineName(pcmd)
               );
 
-      helper.tab_level = 1; 
-	  helper.fout = pcmd->pubHFile;
-      iterate_list(pmi->data, print_data_field, &helper);
-	  helper.fout = pcmd->hFile;
+      ich.ih.tab_level = 1; 
+	  ich.ih.fout      = pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile;
+      iterate_list(pmi->data, print_data_field, &ich);
 
-      fprintf(pcmd->pubHFile 
+      fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
               , "};\n\n"
               );
    }
@@ -809,7 +718,7 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmd      = pcmd;
-   ich.pmi       = pmi;
+   ich.ih.pmi       = pmi;
    ich.needNoOp  = needNoOp;
 
    /* declare the action functions themselves */
@@ -818,7 +727,7 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
    /* declare the dummy, or no op action */
    if (needNoOp)
    {
-	   print_action_function_declaration(pmi, pcmd->hFile, "noAction");
+	   print_action_function_declaration(pcmd, "noAction");
    }
 
    fprintf(pcmd->hFile
@@ -828,21 +737,18 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
    /* declare any machine transition function */
    if (pmi->machineTransition)
    {
-	   fprintf(pcmd->hFile, "void ");
-	   printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-	   fprintf(pcmd->hFile, "_%s(p"
+	   fprintf(pcmd->hFile
+			   , "void %s_%s(FSM_TYPE_PTR,%s);\n\n"
+			   , fqMachineName(pcmd)
 			   , pmi->machineTransition->name
-			  );
-	   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	   fprintf(pcmd->hFile, ",");
-	   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	   fprintf(pcmd->hFile, "_STATE);\n\n");
+			   , stateType(pcmd)
+			   );
    }
 
    /* declare any transition functions */
    if (pmi->modFlags & mfActionsReturnStates)
    {
-	   print_transition_fn_declaration_for_when_actions_return_states(pmi,pcmd->hFile, "noTransition");
+	   print_transition_fn_declaration_for_when_actions_return_states(pmi,pcmd->hFile, "noTransitionFn");
 
       if (pmi->transition_fn_list->count)
       {
@@ -880,7 +786,7 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
 
       if (pmi->transition_fn_list->count)
       {
-		  print_transition_fn_declaration_for_when_actions_return_events(pmi
+		  print_transition_fn_declaration_for_when_actions_return_events(pcmd
 																		 , pcmd->hFile
 																		 , "noTransitionFn"
 																		 );
@@ -898,8 +804,20 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
    /* declare needed data translators */
    if (pmi->data_block_count)
    {
-      iterate_list(pmi->event_list, declare_data_translator_functions, &ich);
+	   /* for top-level machines */
+      iterate_list(pmi->event_list
+				   , declare_data_translator_functions
+				   , &ich
+				   );
       fprintf(pcmd->hFile, "\n");
+   }
+   else if (pmi->parent)
+   {
+	   /* for sub-machines */
+	   iterate_list(pmi->event_list
+					, sub_machine_declare_data_translator_functions
+					, &ich
+					);
    }
 
 }
@@ -907,15 +825,14 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
 void generateRunFunction(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
    fprintf(pcmd->cFile
-           ,"void run_%s(%s"
+           ,"void run_%s(%s e)\n{\n"
            , pmi->name->name
-           , pmi->data_block_count ? "p" : ""
+		   , fsmFnEventType(pcmd)
            );
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->cFile, "_EVENT e)\n{\n");
 
    fprintf(pcmd->cFile
-           , "\tif (p%s)\n\t{\n\t\tRUN_STATE_MACHINE(p%s,e);\n\t}\n}\n\n"
+           , "\tif (p%s)\n\t{\n\t\tp%s->fsm(p%s,e);\n\t}\n}\n\n"
+           , pmi->name->name
            , pmi->name->name
            , pmi->name->name
            );
@@ -923,54 +840,55 @@ void generateRunFunction(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 {
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    /* instantiate the machine and the pointer to it */
    /* the (empty) data struct and the state */
-	printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->cFile, " ");
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->cFile, " = {");
    fprintf(pcmd->cFile
-		   , "%s\n\t"
-           , pmi->data ? "\n\tINIT_FSM_DATA," : ""
+		   , "%s %s = {\n"
+		   , fsmType(pcmd)
+		   , machineName(pcmd)
 		   );
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
    fprintf(pcmd->cFile
-		   , "_%s,\n"
+		   , "%s"
+           , pmi->data ? "\n\tINIT_FSM_DATA,\n" : ""
+		   );
+   fprintf(pcmd->cFile
+		   , "\t%s_%s,\n"
+		   , machineName(pcmd)
 		   , stateNameByIndex(pmi, 0)
            );
 
-   fprintf(pcmd->cFile, "\t");
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
    fprintf(pcmd->cFile
-		   , "_%s,\n"
+		   , "\tTHIS(%s),\n"
            , eventNameByIndex(pmi, 0)
           );
 
-   fprintf(pcmd->cFile, "\t&");
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
    fprintf(pcmd->cFile
-		   , "_%s_array,\n"
+		   , "\t&%s_%s_array,\n"
+		   , machineName(pcmd)
            , arrayName
           );
 
    if (pmi->machine_list)
    {
-      fprintf(pcmd->cFile, "\t&");
-	  printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-      fprintf(pcmd->cFile, "_sub_fsm_if_array,\n");
+      fprintf(pcmd->cFile
+			  , "\t&%s_sub_fsm_if_array,\n"
+			  , machineName(pcmd)
+			  );
    }
 
-   fprintf(pcmd->cFile, "\t");
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->cFile, "FSM\n};\n\n");
+   fprintf(pcmd->cFile
+		   , "\t%sFSM\n};\n\n"
+		   , machineName(pcmd)
+		   );
 
-   fprintf(pcmd->cFile, "p");
-   printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->cFile, " p");
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->cFile, " = &");
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->cFile, ";\n\n");
+   fprintf(pcmd->cFile
+		   , "p%s p%s = &%s;\n\n"
+		   , fsmType(pcmd)
+		   , machineName(pcmd)
+		   , machineName(pcmd)
+		   );
 
 }
 
@@ -979,71 +897,35 @@ void defineWeakActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmd      = pcmd;
-   ich.pmi       = pmi;
+   ich.ih.pmi       = pmi;
 
    iterate_list(pmi->action_list, define_weak_action_function, &ich);
 }
 
 void defineWeakNoActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-   if (pmi->modFlags & mfActionsReturnVoid)
-   {
-      fprintf(pcmd->cFile, "void __attribute__((weak)) ");
-	  printNameWithAncestry("noAction", pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-	  fprintf(pcmd->cFile, "(p");
-	  printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->cFile, " pfsm)\n");
-      fprintf(pcmd->cFile
-              , "{\n\t%s(\"weak: "
-              , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-              );
-	  printNameWithAncestry("noAction", pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-	  fprintf(pcmd->cFile, "\");\n");
-      fprintf(pcmd->cFile , "\t(void) pfsm;\n}\n\n");
-   }
-   else
-   {
-      if (pmi->modFlags & mfActionsReturnStates)
-      {
-		  streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-		  fprintf(pcmd->cFile, "_STATE");
-      }
-      else
-      {
-		 streamHungarianToUnderbarCaps(pcmd->cFile, ultimateAncestor(pmi)->name->name);
-         fprintf(pcmd->cFile
-                 , "_EVENT%s"
-                 , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-                );
-      }
+	print_weak_action_function_body_omitting_return_statement(pcmd, "noAction");
 
-	  fprintf(pcmd->cFile, " __attribute__((weak)) ");
-	  printNameWithAncestry("noAction", pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-	  fprintf(pcmd->cFile, "(p");
-	  printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->cFile, " pfsm)\n");
-	  fprintf(pcmd->cFile
-			  , "{\n\t%s(\"weak: "
-			  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-			  );
-	  printNameWithAncestry("noAction", pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-	  fprintf(pcmd->cFile, "\");\n");
-	  fprintf(pcmd->cFile, "\t(void) pfsm;\n");
-	  fprintf(pcmd->cFile
-			  , "\treturn THIS(%s);\n}\n\n"
-			  , pmi->modFlags & mfActionsReturnStates
-				? "noTransition"
-				: "noEvent"
-			  );
-   }
+	if (!(pcmd->pmi->modFlags & mfActionsReturnVoid))
+	{
+		fprintf(pcmd->cFile
+				, "\treturn THIS(%s);"
+				, pmi->modFlags & mfActionsReturnStates
+				  ? "noTransition"
+				  : "noEvent"
+				);
+	}
 
+	fprintf(pcmd->cFile
+			, "\n}\n\n"
+			);
 }
 
 void defineWeakStateEntryAndExitFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-   ITERATOR_CALLBACK_HELPER ich;
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
 
-   ich.pmi    = pmi;
+   ich.ih.pmi    = pmi;
    ich.pcmd   = pcmd;
 
    if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
@@ -1053,15 +935,48 @@ void defineWeakStateEntryAndExitFunctionStubs(pCMachineData pcmd, pMACHINE_INFO 
 
 }
 
+static void print_transition_function_signature(FILE *fout, pCMachineData pcmd, char *name_prefix, char *name, bool define)
+{
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	fprintf(fout
+			, "\n%s __attribute__((weak)) %s_%s%s(FSM_TYPE_PTR%s%s%s%s)%s\n"
+			, stateType(pcmd)
+			, fqMachineName(pcmd)
+			, name_prefix ? name_prefix : ""
+			, name
+			, define ? " pfsm" : ""
+			, pcmd->pmi->modFlags & mfActionsReturnStates ? "" : ", "
+			, pcmd->pmi->modFlags & mfActionsReturnStates ? "" : eventType(pcmd)
+			, define && pcmd->pmi->modFlags & mfActionsReturnStates ? "" : " e"
+			, define ? "\n{" : ";"
+			);
+}
+
+static void print_transition_function_body(FILE *fout, pCMachineData pcmd, char *name)
+{
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	if (!(pcmd->pmi->modFlags & mfActionsReturnStates))
+	{
+		fprintf(fout, "\t(void) e;\n");
+	}
+
+	fprintf(fout
+			, "\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n\treturn THIS(%s);\n}\n"
+			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+			, name
+		   );
+}
+
 static bool define_transition_function_from_action_array(pLIST_ELEMENT pelem, void *data)
 {
 	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER)data;
-	pID_INFO pstate                = (pID_INFO)pelem->mbr;
 
 	unsigned event_ordinal         = pich->pOtherElem->ordinal;
 	unsigned state_ordinal         = pelem->ordinal;
 
-	pACTION_INFO pai               = pich->pmi->actionArray[event_ordinal][state_ordinal];
+	pACTION_INFO pai               = pich->ih.pmi->actionArray[event_ordinal][state_ordinal];
 
 	if (pai)
 	{
@@ -1070,27 +985,8 @@ static bool define_transition_function_from_action_array(pLIST_ELEMENT pelem, vo
 			&& (pai->transition->type == STATE)
 		   )
 		{
-		   fprintf(pich->pcmd->cFile, "\n");
-		   streamHungarianToUnderbarCaps(pich->pcmd->cFile, pich->pmi->name->name);
-		   fprintf(pich->pcmd->cFile, "_STATE __attribute__((weak)) ");
-		   printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-		   fprintf(pich->pcmd->cFile
-				   , "_transitionTo%s(p"
-				   , pai->transition->name
-				  );
-		   printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
-		   fprintf(pich->pcmd->cFile, " pfsm)\n{\n");
-		   fprintf(pich->pcmd->cFile
-				   , "\t(void) pfsm;\n\n\t%s(\"weak: "
-				   , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-				  );
-		   printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-		   fprintf(pich->pcmd->cFile
-				   , "_transitionTo%s\");\n\treturn "
-				   , pai->transition->name
-				   );
-		   printNameWithAncestry(pai->transition->name, pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
-		   fprintf(pich->pcmd->cFile, ";\n}\n");
+			print_transition_function_signature(pich->pcmd->cFile, pich->pcmd, "transitionTo", pai->transition->name, true);
+			print_transition_function_body(pich->pcmd->cFile, pich->pcmd, pai->transition->name);
 		}
 	}
 
@@ -1103,7 +999,7 @@ static bool define_action_array_transition_functions(pLIST_ELEMENT pelem, void *
 
 	pich->pOtherElem = pelem;
 
-	iterate_list(pich->pmi->state_list, define_transition_function_from_action_array, pich);
+	iterate_list(pich->ih.pmi->state_list, define_transition_function_from_action_array, pich);
 
 	return false;
 }
@@ -1115,39 +1011,19 @@ static bool define_transition_list_functions(pLIST_ELEMENT pelem, void *data)
 
 	if (ptransition->type == STATE)
 	{
-	   fprintf(pich->pcmd->cFile, "\n");
-	   streamHungarianToUnderbarCaps(pich->pcmd->cFile, pich->pmi->name->name);
-	   fprintf(pich->pcmd->cFile, "_STATE __attribute__((weak)) ");
-	   printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-	   fprintf(pich->pcmd->cFile
-			   , "_transitionTo%s(p"
-			   , ptransition->name
-			  );
-	   printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
-	   fprintf(pich->pcmd->cFile, " pfsm,");
-	   streamHungarianToUnderbarCaps(pich->pcmd->cFile, ultimateAncestor(pich->pmi)->name->name);
-	   fprintf(pich->pcmd->cFile
-			   , "_EVENT%s e)\n{\n"
-			   , ultimateAncestor(pich->pmi)->data_block_count ? "_ENUM"  : ""
-			  );
-	   fprintf(pich->pcmd->cFile
-			   , "\t(void) pfsm;\n\t(void) e;\n\t%s(\"weak: "
-			   , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-			  );
-	   printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-	   fprintf(pich->pcmd->cFile
-			   , "_transitionTo%s\");\n\treturn "
-			   , ptransition->name
-			  );
-	   printNameWithAncestry(ptransition->name, pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
-	   fprintf(pich->pcmd->cFile, ";\n}\n");
+		print_transition_function_signature(pich->pcmd->cFile, pich->pcmd, "transitionTo", ptransition->name, true);
+		print_transition_function_body(pich->pcmd->cFile, pich->pcmd, ptransition->name);
 	}
+
+	return false;
 }
 
 void writeStateTransitions(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	ITERATOR_CALLBACK_HELPER ich = {
-		.pmi = pmi
+		. ih = {
+			.pmi = pmi
+		}
 		, .pcmd = pcmd
 	};
 
@@ -1165,16 +1041,16 @@ void writeStateTransitions(pCMachineData pcmd, pMACHINE_INFO pmi)
 static bool print_quoted_pid_name_with_ancestry_as_list_element(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO         pid = (pID_INFO) pelem->mbr;
-	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-	fprintf(pih->fout
+	fprintf(pich->ih.fout
 			,"%s\""
-			, pih->first ? (pih->first = false, "\t ") : "\t,"
+			, pich->ih.first ? (pich->ih.first = false, "\t ") : "\t,"
 			);
 
-	printNameWithAncestry(pid->name, pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
+	printNameWithAncestry(pid->name, pich->ih.pmi, pich->ih.fout, "_", alc_lower, ai_include_self);
 
-	fprintf(pih->fout ,"\"\n");
+	fprintf(pich->ih.fout ,"\"\n");
 
 	return false;
 }
@@ -1182,11 +1058,11 @@ static bool print_quoted_pid_name_with_ancestry_as_list_element(pLIST_ELEMENT pe
 static bool print_quoted_pid_name_as_list_element(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO         pid = (pID_INFO) pelem->mbr;
-	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-	fprintf(pih->fout
+	fprintf(pich->ih.fout
 			,"%s\"%s\"\n"
-			, pih->first ? (pih->first = false, "\t ") : "\t,"
+			, pich->ih.first ? (pich->ih.first = false, "\t ") : "\t,"
 			, pid->name
 			);
 
@@ -1202,18 +1078,17 @@ static bool print_quoted_pid_name_as_list_element(pLIST_ELEMENT pelem, void *dat
  */
 void writeDebugInfoShort(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-   unsigned i;
-   ITERATOR_HELPER helper;
+	ITERATOR_CALLBACK_HELPER ich = { 0 };
 
-   fprintf(pcmd->cFile, "\n#ifdef ");
-   printNameWithAncestry("DEBUG\n", pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmd->cFile
+		   , "\n#ifdef %s_DEBUG\nchar *%s_EVENT_NAMES[] = {\n"
+		   , fsmType(pcmd)
+		   , fsmType(pcmd)
+		   );
 
-   fprintf(pcmd->cFile, "char *");
-   printNameWithAncestry("EVENT_NAMES[] = {\n", pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-
-   helper.fout  = pcmd->cFile;
-   helper.first = true;
-   iterate_list(pmi->event_list, print_quoted_pid_name_as_list_element, &helper);
+   ich.ih.fout  = pcmd->cFile;
+   ich.ih.first = true;
+   iterate_list(pmi->event_list, print_quoted_pid_name_as_list_element, &ich);
 
    if (!(pmi->modFlags & mfActionsReturnStates) && !(pmi->modFlags & mfActionsReturnVoid))
    {
@@ -1224,17 +1099,20 @@ void writeDebugInfoShort(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    if (pmi->machine_list)
    {
-      iterate_list(pmi->machine_list,print_sub_machine_event_names,&helper);
+      iterate_list(pmi->machine_list,print_sub_machine_event_names,&ich);
    }
 
    fprintf(pcmd->cFile, "};\n\n");
 
-   fprintf(pcmd->cFile, "char *");
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile, "STATE_NAMES[] = {\n");
+   fprintf(pcmd->cFile
+		   , "char *%s_STATE_NAMES[%s_numStates] = {\n"
+		   , fsmType(pcmd)
+		   , pmi->name->name
+		   );
 
-   helper.first = true;
-   iterate_list(pmi->state_list, print_quoted_pid_name_as_list_element, &helper);
+   ich.ih.first = true;
+   ich.ih.pmi   = pmi;   //this got changed in the earlier list iterations
+   iterate_list(pmi->state_list, print_quoted_pid_name_as_list_element, &ich);
 
    if (pmi->modFlags & mfActionsReturnStates)
    {
@@ -1255,20 +1133,19 @@ void writeDebugInfoShort(pCMachineData pcmd, pMACHINE_INFO pmi)
  */
 void writeDebugInfoLong(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-   unsigned i;
-   ITERATOR_HELPER helper;
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
 
-   fprintf(pcmd->cFile, "\n#ifdef ");
-   printNameWithAncestry("DEBUG\n", pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
+   fprintf(pcmd->cFile
+		   , "\n#ifdef %s_DEBUG\nchar *%s_EVENT_NAMES[] = {\n"
+		   , fsmType(pcmd)
+		   , fsmType(pcmd)
+		   );
 
-   fprintf(pcmd->cFile, "char *");
-   printNameWithAncestry("EVENT_NAMES[] = {\n", pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
+   ich.ih.pmi   = pmi;
+   ich.ih.fout  = pcmd->cFile;
+   ich.ih.first = true;
 
-   helper.pmi   = pmi;
-   helper.fout  = pcmd->cFile;
-   helper.first = true;
-
-   iterate_list(pmi->event_list, print_quoted_pid_name_with_ancestry_as_list_element, &helper);
+   iterate_list(pmi->event_list, print_quoted_pid_name_with_ancestry_as_list_element, &ich);
 
    if (!(pmi->modFlags & mfActionsReturnStates) && !(pmi->modFlags & mfActionsReturnVoid))
    {
@@ -1285,23 +1162,29 @@ void writeDebugInfoLong(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    if (pmi->machine_list)
    {
-      helper.first   = false;
-      iterate_list(pmi->machine_list,print_sub_machine_event_names,&helper);
+      ich.ih.first   = false;
+      iterate_list(pmi->machine_list,print_sub_machine_event_names,&ich);
    }
 
    fprintf(pcmd->cFile, "};\n\n");
 
-   fprintf(pcmd->cFile, "char *");
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile, "STATE_NAMES[] = {\n");
+   fprintf(pcmd->cFile
+		   , "char *%s_STATE_NAMES[%s_numStates] = {\n"
+		   , fsmType(pcmd)
+		   , pmi->name->name
+		   );
 
-   helper.first = true;
+   ich.ih.first = true;
+   ich.ih.pmi   = pmi;   //this got changed in the earlier list iterations
 
-   iterate_list(pmi->state_list, print_quoted_pid_name_with_ancestry_as_list_element, &helper);
+   iterate_list(pmi->state_list, print_quoted_pid_name_with_ancestry_as_list_element, &ich);
 
    if (pmi->modFlags & mfActionsReturnStates)
    {
-	   printNameWithAncestry("noTransition", pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
+	   fprintf(pcmd->cFile
+			   , "\t, \"%s_noTransition\"\n"
+			   , fqMachineName(pcmd)
+			   );
    }
 
    fprintf(pcmd->cFile, "};\n\n");
@@ -1344,14 +1227,22 @@ pCMachineData	newCMachineData(char *baseFileName)
       if (!baseFileName)
       {
 
-         pcmd->cFile = pcmd->hFile = stdout;
+         pcmd->pubHFile = pcmd->subMachineHFile = stdout;
+		 pcmd->cFile    = pcmd->hFile           = stdout;
 
       }
       else
       {
 
-         pcmd->cName  = createFileName(baseFileName, ".c");
-         pcmd->hName  = createFileName(baseFileName, "_priv.h");
+		  /* 
+		  Create all file names now, even ones we may not use,
+		  because we want to put initialization pieces before other
+		  material.
+		  */
+         pcmd->cName            = createFileName(baseFileName, ".c");
+         pcmd->pubHName         = createFileName(baseFileName, ".h");
+         pcmd->hName            = createFileName(baseFileName, "_priv.h");
+         pcmd->subMachineHName  = createFileName(baseFileName, "_submach.h");
 
       }
 
@@ -1368,35 +1259,50 @@ void destroyCMachineData(pCMachineData pcmd, int good)
 
    if (good)
    {
-
       /* close the #ifndef on the header file(s) */
       fprintf(pcmd->hFile, "\n#endif\n");
+      fprintf(pcmd->subMachineHFile, "\n#endif\n");
 
 	  if (pcmd->pubHFile && (pcmd->pubHFile != pcmd->hFile))
 	  {
 		  fprintf(pcmd->pubHFile, "\n#endif\n");
 	  }
 
+	  if (!pcmd->a_sub_machine_was_encountered)
+	  {
+		  FCLOSE_AND_CLEAR(pcmd->subMachineHFile);
+		  (void) unlink(pcmd->subMachineHName);
+	  }
+
    }
 
-   if (pcmd->pubHFile != pcmd->hFile)
+   /* A special case */
+   if (pcmd->pubHFile == pcmd->hFile)
    {
-	   fclose(pcmd->pubHFile);
+	   pcmd->pubHFile = NULL;
    }
-   fclose(pcmd->hFile);
-   fclose(pcmd->cFile);
+   for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
+   {
+	   if (pcmd->file_array[cf])
+	   {
+		   FCLOSE_AND_CLEAR(pcmd->file_array[cf]);
+	   }
+   }
 
+   /* Delete the files if something went wrong somewhere. */
    if (!good)
    {
-
-      unlink(pcmd->hName);
-      unlink(pcmd->cName);
-
+	   for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
+	   {
+		   (void) unlink(pcmd->file_name_array[cf]);
+	   }
    }
 
-   CHECK_AND_FREE(pcmd->pubHName);
-   CHECK_AND_FREE(pcmd->hName);
-   CHECK_AND_FREE(pcmd->cName);
+   /* Free the file names */
+   for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
+   {
+	   CHECK_AND_FREE(pcmd->file_name_array[cf]);
+   }
 
    free(pcmd);
 
@@ -1412,12 +1318,12 @@ bool assignExternalEventValues(pMACHINE_INFO pmi)
 
 }
 
-static void print_plain_enum_member(char *name, pITERATOR_HELPER pih)
+static void print_plain_enum_member(char *name, pITERATOR_CALLBACK_HELPER pich)
 {
-	fprintf(pih->fout
+	fprintf(pich->ih.fout
 			, "\t%s%s_%s\n"
-			, pih->first ? (pih->first = false, "") : ", "
-			, pih->pmi->name->name
+			, pich->ih.first ? (pich->ih.first = false, "") : ", "
+			, pich->ih.pmi->name->name
 			, name
 			);
 }
@@ -1425,9 +1331,9 @@ static void print_plain_enum_member(char *name, pITERATOR_HELPER pih)
 static bool write_state_enum_member(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO state       = (pID_INFO)         pelem->mbr;
-	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-	print_plain_enum_member(state->name, pih);
+	print_plain_enum_member(state->name, pich);
 
 	return false;
 }
@@ -1435,18 +1341,18 @@ static bool write_state_enum_member(pLIST_ELEMENT pelem, void *data)
 static bool print_event_enum_member(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO event       = (pID_INFO)         pelem->mbr;
-	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-	fprintf(pih->fout
-			, pih->first ? (pih->first = false, "\t %s") : "\t, %s"
-			, pih->pmi->name->name
+	fprintf(pich->ih.fout
+			, pich->ih.first ? (pich->ih.first = false, "\t %s") : "\t, %s"
+			, pich->ih.pmi->name->name
 			);
-	fprintf(pih->fout
-			, assignExternalEventValues(pih->pmi)
+	fprintf(pich->ih.fout
+			, assignExternalEventValues(pich->ih.pmi)
 			  ? "_%s = %s\n"
 			  : "_%s%s\n"
 			, event->name
-			, assignExternalEventValues(pih->pmi)
+			, assignExternalEventValues(pich->ih.pmi)
 			  ? event->type_data.event_data.externalDesignation->name
 			  : ""
 		   );
@@ -1455,9 +1361,9 @@ static bool print_event_enum_member(pLIST_ELEMENT pelem, void *data)
 static bool print_event_cross_reference(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO event       = (pID_INFO)         pelem->mbr;
-   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-   print_event_cross_reference_entry(event->name, pih);
+   print_event_cross_reference_entry(event->name, pich);
 
    return false;
 }
@@ -1465,37 +1371,37 @@ static bool print_event_cross_reference(pLIST_ELEMENT pelem, void *data)
 static bool print_sub_machine_event_cross_reference(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO pmi    = (pMACHINE_INFO)    pelem->mbr;
-   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-   pih->pmi     = pmi;
+   pich->ih.pmi     = pmi;
 
-   iterate_list(pmi->event_list, print_event_cross_reference, pih);
+   iterate_list(pmi->event_list, print_event_cross_reference, pich);
 
    if (
        !(pmi->modFlags & mfActionsReturnStates)
        && !(pmi->modFlags & mfActionsReturnVoid)
       )
    {
-      print_event_cross_reference_entry("noEvent", pih);
+      print_event_cross_reference_entry("noEvent", pich);
    }
 
    if (pmi->machine_list)
    {
-	   iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, pih);
-	   pih->pmi = pmi;
+	   iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, pich);
+	   pich->ih.pmi = pmi;
    }
 
    return false;
 }
 
-static void print_event_cross_reference_entry(char *event_name, pITERATOR_HELPER pih)
+static void print_event_cross_reference_entry(char *event_name, pITERATOR_CALLBACK_HELPER pich)
 {
-   fprintf(pih->fout
+   fprintf(pich->ih.fout
            , eventXRefFormat0Str
-           , (*pih->counter0)++
+           , pich->ih.tab_level++
 		   );
-   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
-   fprintf(pih->fout
+   printAncestry(pich->ih.pmi, pich->ih.fout, "_", alc_lower, ai_include_self);
+   fprintf(pich->ih.fout
 		   , eventXRefFormat1Str
            , event_name
            );
@@ -1504,16 +1410,17 @@ static void print_event_cross_reference_entry(char *event_name, pITERATOR_HELPER
 static bool declare_event_user_data_union_mbrs(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO         pevent = (pID_INFO) pelem->mbr;
-   pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+   pITERATOR_CALLBACK_HELPER pich    = (pITERATOR_CALLBACK_HELPER) data;
 
    if (pevent->type_data.event_data.puser_event_data)
    {
       if (pevent->type_data.event_data.puser_event_data->data_fields)
       {
-         print_tab_levels(pih->fout, pih->tab_level);
-		 printAncestry(pih->pmi, pih->fout, "_", alc_upper, ai_include_self);
-		 streamHungarianToUnderbarCaps(pih->fout, pevent->name);
-         fprintf(pih->fout
+         print_tab_levels(pich->ih.fout, pich->ih.tab_level);
+		 printAncestry(pich->ih.pmi, pich->ih.fout, "_", alc_upper, ai_include_self);
+         fprintf(pich->ih.fout, "_");
+		 streamHungarianToUnderbarCaps(pich->ih.fout, pevent->name);
+         fprintf(pich->ih.fout
                  , "_DATA %s_data;\n"
                  , pevent->name
                  );
@@ -1525,34 +1432,36 @@ static bool declare_event_user_data_union_mbrs(pLIST_ELEMENT pelem, void *data)
 
 static bool declare_event_user_data_structs(pLIST_ELEMENT pelem, void *data)
 {
-   pID_INFO         pevent = (pID_INFO) pelem->mbr;
-   pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+   pID_INFO                  pevent  = (pID_INFO) pelem->mbr;
+   pITERATOR_CALLBACK_HELPER pich    = (pITERATOR_CALLBACK_HELPER) data;
+
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    if (pevent->type_data.event_data.puser_event_data)
    {
       if (pevent->type_data.event_data.puser_event_data->data_fields)
       {
-         fprintf(pih->fout, "typedef struct _");
-		 streamHungarianToUnderbarCaps(pih->fout, pih->pmi->name->name);
-         fprintf(pih->fout, "_");
-		 streamHungarianToUnderbarCaps(pih->fout, pevent->name);
-         fprintf(pih->fout, "_data_ {\n");
+         fprintf(pich->ih.fout
+				 , "typedef struct _%s_%s_data_ {\n"
+				 , machineName(pich->pcmd)
+				 , pevent->name
+				 );
 
-         pih->tab_level = 1;
+         pich->ih.tab_level = 1;
          iterate_list(pevent->type_data.event_data.puser_event_data->data_fields
                       , print_data_field
-                      , pih
+                      , pich
                       );
 
-         fprintf(pih->fout, "} ");
-		 streamHungarianToUnderbarCaps(pih->fout, pih->pmi->name->name);
-         fprintf(pih->fout, "_");
-		 streamHungarianToUnderbarCaps(pih->fout, pevent->name);
-         fprintf(pih->fout, "_DATA, *p");
-		 streamHungarianToUnderbarCaps(pih->fout, pih->pmi->name->name);
-         fprintf(pih->fout, "_");
-		 streamHungarianToUnderbarCaps(pih->fout, pevent->name);
-         fprintf(pih->fout, "_DATA;\n\n");
+         fprintf(pich->ih.fout, "} ");
+		 streamHungarianToUnderbarCaps(pich->ih.fout, pich->ih.pmi->name->name);
+         fprintf(pich->ih.fout, "_");
+		 streamHungarianToUnderbarCaps(pich->ih.fout, pevent->name);
+         fprintf(pich->ih.fout, "_DATA, *p");
+		 streamHungarianToUnderbarCaps(pich->ih.fout, pich->ih.pmi->name->name);
+         fprintf(pich->ih.fout, "_");
+		 streamHungarianToUnderbarCaps(pich->ih.fout, pevent->name);
+         fprintf(pich->ih.fout, "_DATA;\n\n");
       }
    }
 
@@ -1562,25 +1471,23 @@ static bool declare_event_user_data_structs(pLIST_ELEMENT pelem, void *data)
 static bool print_sub_machine_as_enum_member(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO pmi    = (pMACHINE_INFO) pelem->mbr;
-   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-   fprintf(pih->fout
-		   , "\t%s "
-           , pih->first ? "" : ", "
+   fprintf(pich->ih.fout
+		   , "\t%s %s_e\n"
+           , pich->ih.first ? "" : ", "
+		   , pmi->name->name
 		   );
-   printAncestry(pmi, pih->fout, "_", alc_lower, ai_include_self);
-   fprintf(pih->fout, "_e\n");
 
-   if (pih->first)
+   if (pich->ih.first)
    {
-      pih->first = false;
+      pich->ih.first = false;
 
-      fprintf(pih->fout, "\t, ");
-	  printAncestry(pmi, pih->fout, "_", alc_lower, ai_omit_self);
-	  fprintf(pih->fout, "_firstSubMachine = ");
-	  printAncestry(pmi, pih->fout, "_", alc_lower, ai_include_self);
-	  fprintf(pih->fout, "_e\n");
-
+      fprintf(pich->ih.fout
+			  , "\t, %s_firstSubMachine = %s_e\n"
+			  , fqMachineName(pich->pcmd)
+			  , pmi->name->name
+			  );
    }
 
    return false;
@@ -1588,81 +1495,99 @@ static bool print_sub_machine_as_enum_member(pLIST_ELEMENT pelem, void *data)
 
 static bool declare_sub_machine_if(pLIST_ELEMENT pelem, void *data)
 {
-   pMACHINE_INFO pmi    = (pMACHINE_INFO) pelem->mbr;
-   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+   pMACHINE_INFO             pmi  = (pMACHINE_INFO) pelem->mbr;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+   char                      *cp  = NULL;
 
-   printAncestry(pih->pmi, pih->fout, "_", alc_upper, ai_include_self);
-   fprintf(pih->fout, "_SUB_FSM_IF ");
-   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
-   fprintf(pih->fout, "_sub_fsm_if;\n");
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   fprintf(pich->ih.fout
+		   , "extern %s %s_sub_fsm_if;\n"
+		   , subFsmIfType(pich->pcmd)
+		   , nfMachineNamePmi(pmi, &cp)
+		   );
+
+   if (cp)
+   {
+	   free (cp);
+   }
 
    return false;
 }
 
 static void declare_parent_event_reference_data_structures(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-   ITERATOR_HELPER ih;
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
 
-   fprintf(pcmd->hFile
+   FSMLANG_DEVELOP_PRINTF(pcmd->subMachineHFile, "/* FSMLANG DEVELOP: %s */\n", __func__);
+
+   if (pmi->data_block_count)
+   {
+	   fprintf(pcmd->subMachineHFile
+			   , "typedef void (*%s)(p%s);\n"
+			   , dataTranslationFnType(pcmd)
+			   , fsmDataType(pcmd)
+			   );
+   }
+
+   fprintf(pcmd->subMachineHFile
            ,"/* Some sub-machines share parent events. */\n"
            );
 
-   fprintf(pcmd->hFile, "typedef void (*");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_DATA_TRANSLATION_FN)(p");
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, ");\n");
+   fprintf(pcmd->subMachineHFile
+		   , "typedef struct _%s_shared_event_str_ %s, *p%s;\n"
+		   , machineName(pcmd)
+		   , sharedEventStrType(pcmd)
+		   , sharedEventStrType(pcmd)
+		   );
 
-   fprintf(pcmd->hFile,"typedef struct _");
-   streamStrCaseAware(pcmd->hFile, pmi->name->name, alc_lower);
-   fprintf(pcmd->hFile, "_shared_event_str_ ");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_SHARED_EVENT_STR, *p");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_SHARED_EVENT_STR;\n");
+   fprintf(pcmd->subMachineHFile
+		   , "struct _%s_shared_event_str_\n{\n"
+		   , machineName(pcmd)
+		   );
 
-   fprintf(pcmd->hFile, "struct _");
-   streamStrCaseAware(pcmd->hFile, pmi->name->name, alc_lower);
-   fprintf(pcmd->hFile, "_shared_event_str_\n{");
-
-   fprintf(pcmd->hFile, "\t");
-   printAncestry(ultimateAncestor(pmi), pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile
-		   , "_EVENT%s      event;\n"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+   fprintf(pcmd->subMachineHFile
+		   , "\t%-*sevent;\n"
+		   , (int)pcmd->shared_event_str_format_width
+		   , eventType(pcmd)
            );
 
-   fprintf(pcmd->hFile, "\t");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_DATA_TRANSLATION_FN  data_translation_fn;\n");
+   if (pmi->data_block_count)
+   {
+	   fprintf(pcmd->subMachineHFile
+			   , "\t%-*sdata_translation_fn;\n"
+			   , (int)pcmd->shared_event_str_format_width
+			   , dataTranslationFnType(pcmd)
+			   );
+   }
 
-   fprintf(pcmd->hFile, "\tp");
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, "_SUB_FSM_IF          psub_fsm_if;\n");
+   fprintf(pcmd->subMachineHFile
+		   , "\tp%-*spsub_fsm_if;\n"
+		   , (int)pcmd->shared_event_str_format_width - 1
+		   , subFsmIfType(pcmd)
+		   );
 
-   fprintf(pcmd->hFile
+   fprintf(pcmd->subMachineHFile
            , "};\n"
            );
 
-   fprintf(pcmd->hFile, "extern ");
-   printAncestry(ultimateAncestor(pmi), pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile
-		   , "_EVENT%s "
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+   fprintf(pcmd->subMachineHFile
+		   , "extern %s %s_pass_shared_event(%s%s%sp%s[]);\n\n"
+		   , eventType(pcmd)
+		   , machineName(pcmd)
+		   , pmi->data_block_count ? "p" : ""
+		   , pmi->data_block_count ? fsmType(pcmd) : ""
+		   , pmi->data_block_count ? "," : ""
+		   , sharedEventStrType(pcmd)
            );
-   streamStrCaseAware(pcmd->hFile, pmi->name->name, alc_lower);
-   fprintf(pcmd->hFile, "_pass_shared_event(p");
-   printAncestry(ultimateAncestor(pmi), pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, ",p");
-   printAncestry(ultimateAncestor(pmi), pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, "_SHARED_EVENT_STR[]);\n\n");
 
-   ih.fout = pcmd->hFile;
-   ih.pmi  = pmi;
+   ich.ih.fout = pcmd->subMachineHFile;
+   ich.ih.pmi  = pmi;
+   ich.pcmd = pcmd;
 
-   iterate_list(pmi->event_list,declare_shared_event_lists,&ih);
+   iterate_list(pmi->event_list,declare_shared_event_lists,&ich);
 
-   fprintf(pcmd->hFile
+   fprintf(pcmd->subMachineHFile
            , "\n"
            );
 }
@@ -1670,34 +1595,33 @@ static void declare_parent_event_reference_data_structures(pCMachineData pcmd, p
 static bool define_shared_event_lists(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO pevent      = (pID_INFO)pelem->mbr;
-	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-#ifdef FSMLANG_DEVELOP
-	fprintf(pih->fout
-			, "/* define_shared_event_lists */\n"
-		   );
-#endif
+	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    if (pevent->type_data.event_data.psharing_sub_machines)
    {
-      pih->pid   = pevent;
-      pih->first = true;
+      pich->ih.pid   = pevent;
+      pich->ih.first = true;
 
-      fprintf(pih->fout, "p");
-	  streamHungarianToUnderbarCaps(pih->fout, pih->pmi->name->name);
-      fprintf(pih->fout
+      fprintf(pich->ih.fout, "p");
+	  streamHungarianToUnderbarCaps(pich->ih.fout, pich->ih.pmi->name->name);
+      fprintf(pich->ih.fout
 			  , "_SHARED_EVENT_STR sharing_%s_%s[] =\n{\n"
-              , pih->pmi->name->name
+              , pich->ih.pmi->name->name
               , pevent->name
               );
 
-      iterate_list(pevent->type_data.event_data.psharing_sub_machines, reference_shared_event_data_blocks, pih);
+      iterate_list(pevent->type_data.event_data.psharing_sub_machines
+				   , reference_shared_event_data_blocks
+				   , pich
+				   );
 
-      fprintf(pih->fout
+      fprintf(pich->ih.fout
               , "\t, NULL\n"
               );
 
-      fprintf(pih->fout
+      fprintf(pich->ih.fout
               , "};\n\n"
               );
 
@@ -1715,7 +1639,7 @@ static bool print_inhibited_state_case(pLIST_ELEMENT pelem, void *data)
    {
       pich->counter++;
       fprintf(pich->pcmd->cFile, "\t\tcase %s_%s:\n"
-             , pich->pmi->name->name
+             , pich->ih.pmi->name->name
              , pid->name
              );
    }
@@ -1725,59 +1649,51 @@ static bool print_inhibited_state_case(pLIST_ELEMENT pelem, void *data)
 
 static bool reference_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
 {
-   pMACHINE_INFO pmi    = (pMACHINE_INFO)pelem->mbr;
-   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+   pMACHINE_INFO             pmi  = (pMACHINE_INFO)             pelem->mbr;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-#ifdef FSMLANG_DEVELOP
-	fprintf(pih->fout
-			, "/* reference_shared_event_data_blocks */\n"
-		   );
-#endif
-   fprintf(pih->fout
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   fprintf(pich->ih.fout
            , "\t%s&"
-           , pih->first ? (pih->first = false, "  ") : ", "
+           , pich->ih.first ? (pich->ih.first = false, "  ") : ", "
            );
 
-   print_shared_event_data_block_signature(pih->fout, pmi, pih->pid->name, false /* do not include type information */);
+   print_shared_event_data_block_signature(pich->ih.fout, pich->pcmd, pmi, pich->ih.pid->name, false /* do not include type information */);
 
-   fprintf(pih->fout, "\n");
+   fprintf(pich->ih.fout, "\n");
 
    return false;
 }
 
 static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-#ifdef FSMLANG_DEVELOP
-	fprintf(pcmd->cFile
-			, "/* define_parent_event_reference_elements */\n"
-		   );
-#endif
-   ITERATOR_HELPER ih;
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   ih.pmi   = pmi;
-   ih.fout  = pcmd->cFile;
-   ih.first = true;
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
+
+   ich.pcmd  = pcmd;
+   ich.ih.pmi   = pmi;
+   ich.ih.fout  = pcmd->cFile;
+   ich.ih.first = true;
 
    /* define arrays */
-   iterate_list(pmi->event_list, define_shared_event_lists, &ih);
+   iterate_list(pmi->event_list, define_shared_event_lists, &ich);
 
    /* passing function */
-   streamHungarianToUnderbarCaps(pcmd->cFile, ultimateAncestor(pmi)->name->name);
    fprintf(pcmd->cFile
-           , "_EVENT%s %s_pass_shared_event(p"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-		   , pmi->name->name
+		   , "%s %s_pass_shared_event(%s%s%sp%s sharer_list[])\n{\n"
+		   , eventType(pcmd)
+		   , machineName(pcmd)
+		   , pmi->data_block_count ? "p" : ""
+		   , pmi->data_block_count ? fsmType(pcmd) : ""
+		   , pmi->data_block_count ? " pfsm," : ""
+		   , sharedEventStrType(pcmd)
            );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile, " pfsm, p");
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile, "_SHARED_EVENT_STR sharer_list[])\n{\n");
 
-   fprintf(pcmd->cFile, "\t");
-   streamHungarianToUnderbarCaps(pcmd->cFile, ultimateAncestor(pmi)->name->name);
    fprintf(pcmd->cFile
-		   , "_EVENT%s return_event = THIS(noEvent);\n"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+		   , "\t%s return_event = THIS(noEvent);\n"
+		   , eventType(pcmd)
            );
 
    fprintf(pcmd->cFile, "\tfor (p");
@@ -1786,13 +1702,16 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
 		   , "_SHARED_EVENT_STR *pcurrent_sharer = sharer_list;\n\t     *pcurrent_sharer && return_event == THIS(noEvent);\n\t     pcurrent_sharer++)\n\t{\n"
            );
 
-   fprintf(pcmd->cFile
-           , "\t\tif ((*pcurrent_sharer)->data_translation_fn)\n"
-           );
+   if (pmi->data_block_count)
+   {
+	   fprintf(pcmd->cFile
+			   , "\t\tif ((*pcurrent_sharer)->data_translation_fn)\n"
+			  );
 
-   fprintf(pcmd->cFile
-           , "\t\t\t(*(*pcurrent_sharer)->data_translation_fn)(pfsm);\n"
-           );
+	   fprintf(pcmd->cFile
+			   , "\t\t\t(*(*pcurrent_sharer)->data_translation_fn)(&pfsm->data);\n"
+			  );
+   }
 
    fprintf(pcmd->cFile
            , "\t\treturn_event = (*(*pcurrent_sharer)->psub_fsm_if->subFSM)((*pcurrent_sharer)->event);\n"
@@ -1813,7 +1732,7 @@ bool declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT pelem, v
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
-   print_transition_fn_declaration_for_when_actions_return_states(pich->pmi, pich->pcmd->hFile, pid_info->name);
+   print_transition_fn_declaration_for_when_actions_return_states(pich->ih.pmi, pich->pcmd->hFile, pid_info->name);
 
    return false;
 }
@@ -1823,47 +1742,37 @@ bool declare_state_only_transition_functions_for_when_actions_return_states(pLIS
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
-   print_state_only_transition_fn_declaration_for_when_actions_return_states(pich->pmi, pich->pcmd->hFile, pid_info->name);
+   print_state_only_transition_fn_declaration_for_when_actions_return_states(pich->ih.pmi, pich->pcmd->hFile, pid_info->name);
 
    return false;
 }
 
-static void print_transition_fn_declaration_for_when_actions_return_events(pMACHINE_INFO pmi, FILE *fout, char *name)
+static void print_transition_fn_declaration_for_when_actions_return_events(pCMachineData pcmd, FILE *fout, char *name)
 {
-	streamHungarianToUnderbarCaps(fout, pmi->name->name);
-	fprintf(fout, "_STATE ");
-	printAncestry(pmi, fout, "_", alc_lower, ai_include_self);
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	fprintf(fout
-			, "_%s("
+			, "%s %s_%s(p%s,%s);\n"
+			, stateType(pcmd)
+			, machineName(pcmd)
 			, name
+			, fsmType(pcmd)
+			, eventType(pcmd)
 			);
-	fprintf(fout, "p");
-	printAncestry(pmi, fout, "_", alc_upper, ai_include_self);
-	fprintf(fout, ",");
-	streamHungarianToUnderbarCaps(fout, ultimateAncestor(pmi)->name->name);
-	fprintf(fout
-			, "_EVENT%s);\n"
-			, ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-		   );
 }
 
-static void print_state_only_transition_fn_declaration_for_when_actions_return_events(pMACHINE_INFO pmi, FILE *fout, char *name)
+static void print_state_only_transition_fn_declaration_for_when_actions_return_events(pCMachineData pcmd, FILE *fout, char *name)
 {
-	streamHungarianToUnderbarCaps(fout, pmi->name->name);
-	fprintf(fout, "_STATE ");
-	printAncestry(pmi, fout, "_", alc_lower, ai_include_self);
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	fprintf(fout
-			, "_TransitionTo%s("
+			, "%s %s_transitionTo%s(p%s,%s);\n"
+			, stateType(pcmd)
+			, fqMachineName(pcmd)
 			, name
+			, fsmType(pcmd)
+			, eventType(pcmd)
 			);
-	fprintf(fout, "p");
-	printAncestry(pmi, fout, "_", alc_upper, ai_include_self);
-	fprintf(fout, ",");
-	streamHungarianToUnderbarCaps(fout, ultimateAncestor(pmi)->name->name);
-	fprintf(fout
-			, "_EVENT%s);\n"
-			, ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-		   );
 }
 
 bool declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT pelem, void *data)
@@ -1871,7 +1780,7 @@ bool declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT pelem, v
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
-   print_transition_fn_declaration_for_when_actions_return_events(pich->pmi, pich->pcmd->hFile, pid_info->name);
+   print_transition_fn_declaration_for_when_actions_return_events(pich->pcmd, pich->pcmd->hFile, pid_info->name);
 
    return false;
 }
@@ -1881,7 +1790,7 @@ bool declare_state_only_transition_functions_for_when_actions_return_events(pLIS
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
-   print_state_only_transition_fn_declaration_for_when_actions_return_events(pich->pmi, pich->pcmd->hFile, pid_info->name);
+   print_state_only_transition_fn_declaration_for_when_actions_return_events(pich->pcmd, pich->pcmd->hFile, pid_info->name);
 
    return false;
 }
@@ -1892,24 +1801,19 @@ static void print_entry_or_exit_fn_signature(pID_INFO pstate, pITERATOR_CALLBACK
    char    *no_fn_str = which == eoe_entry ? "onEntryTo_"                          : "onExitFrom_";
    FILE    *file      = pich->define       ? pich->pcmd->cFile                     : pich->pcmd->hFile;
     
+   FSMLANG_DEVELOP_PRINTF(file, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    fprintf(file
-           , "void %s"
-           , pich->define                      ? "__attribute__((weak)) " : ""
+           , "void %s%s_%s%s(%s%s%s)%s\n"
+           , pich->define                         ? "__attribute__((weak)) " : ""
+		   , machineName(pich->pcmd)
+           , fn                                   ? fn->name                 : no_fn_str
+           , fn                                   ? ""                       : pstate->name
+           , pich->ih.pmi->data                   ? "p"                      : "void"
+           , pich->ih.pmi->data                   ? fsmDataType(pich->pcmd)  : ""
+           , (pich->ih.pmi->data && pich->define) ? " pdata"                 : ""
+           , pich->define                         ? ""                       : ";"
           );
-   printAncestry(pich->pmi, file, "_", alc_lower, ai_include_self);
-   fprintf(file
-           , "_%s%s(%s"
-           , fn                                ? fn->name                 : no_fn_str
-           , fn                                ? ""                       : pstate->name
-           , pich->pmi->data                   ? "p"                      : "void"
-		   );
-   printAncestry(pich->pmi, file, "_", alc_upper, ai_include_self);
-   fprintf(file
-		   , "%s%s)%s\n"
-           , pich->pmi->data                   ? "_DATA"                  : ""
-           , (pich->pmi->data && pich->define) ? " pdata"                 : ""
-           , pich->define                      ? ""                       : ";"
-           );
 }
 
 bool declare_state_entry_and_exit_functions(pLIST_ELEMENT pelem, void *data)
@@ -1938,13 +1842,15 @@ static void print_entry_or_exit_fn_body(pID_INFO pstate, pITERATOR_CALLBACK_HELP
 	pID_INFO fn        = which == eoe_entry ? pstate->type_data.state_data.entry_fn : pstate->type_data.state_data.exit_fn;
 	char    *no_fn_str = which == eoe_entry ? "onEntryTo_"                          : "onExitFrom_";
 
+	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	fprintf(pich->pcmd->cFile
 			,"{\n%s\tDBG_PRINTF(\"weak: "
-			, pich->pmi->data
+			, pich->ih.pmi->data
 			  ? "\t(void) pdata;\n\n"
 			  : ""
 			);
-	printNameWithAncestry(fn ? fn->name : no_fn_str, pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
+	printNameWithAncestry(fn ? fn->name : no_fn_str, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
 	fprintf(pich->pcmd->cFile
 			, "%s\");\n}\n"
 			, pstate->type_data.state_data.entry_fn
@@ -1979,36 +1885,79 @@ bool define_state_entry_and_exit_functions(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+/**
+ * The data translator functions declared here are used by
+ * a top-level machine which has data-bearing events.
+ * 
+ * @author sstan (12/10/2023)
+ * 
+ * @param pelem  the mbr field must point to an ID_INFO struct,
+ *  			 which itself must represent an event
+ * @param data   this must point to an ITERATOR_CALLBACK_HELPER
+ *  			 struct
+ * 
+ * @return bool  always "false"
+ */
 bool declare_data_translator_functions(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pevent                = ((pID_INFO)pelem->mbr);
+   char *event_name_cp            = hungarianToUnderbarCaps(pevent->name);
+
+   FSMLANG_DEVELOP_PRINTF(pich->pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   if (pevent->type_data.event_data.puser_event_data && event_name_cp)
+   {
+	   fprintf(pich->pcmd->hFile
+			   , "void %s_"
+			   , machineName(pich->pcmd)
+			   );
+
+	   if (pevent->type_data.event_data.puser_event_data->translator)
+	   {
+		  fprintf(pich->pcmd->hFile
+				  , "%s"
+				  , pevent->type_data.event_data.puser_event_data->translator->name
+				 );
+	   }
+	   else
+	   {
+		  fprintf(pich->pcmd->hFile
+				  , "translate_%s_data"
+				  , pevent->name
+				  );
+	   }
+	   fprintf(pich->pcmd->hFile
+			   , "(p%s,p%s_%s_DATA);\n"
+			   , fsmDataType(pich->pcmd)
+			   , fsmType(pich->pcmd)
+			   , event_name_cp
+			   );
+   }
+
+   CHECK_AND_FREE(event_name_cp);
+
+   return false;
+}
+
+bool sub_machine_declare_data_translator_functions(pLIST_ELEMENT pelem, void *data)
+{
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
+   pID_INFO pevent                = ((pID_INFO)pelem->mbr);
+
+   FSMLANG_DEVELOP_PRINTF(pich->pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    if (pevent->type_data.event_data.puser_event_data)
    {
-	  fprintf(pich->pcmd->hFile, "void ");
-	  printAncestry(pich->pmi, pich->pcmd->hFile, "_", alc_lower, ai_include_self);
-
       if (pevent->type_data.event_data.puser_event_data->translator)
       {
          fprintf(pich->pcmd->hFile
-                 , "_%s(p"
+                 , "void %s_%s(p%s);\n"
+                 , machineName(pich->pcmd)
                  , pevent->type_data.event_data.puser_event_data->translator->name
-				 );
+				 , fsmDataType(pich->pcmd->parent_pcmd)
+                );
       }
-      else
-      {
-		  fprintf(pich->pcmd->hFile
-				  , "_translate_%s_data(p"
-				  , pevent->name
-				  );
-      }
-	  printAncestry(pich->pmi, pich->pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pich->pcmd->hFile, "_DATA,p");
-	  printAncestry(pich->pmi, pich->pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pich->pcmd->hFile, "_");
-	  streamHungarianToUnderbarCaps(pich->pcmd->hFile, pevent->name);
-	  fprintf(pich->pcmd->hFile, "_DATA);\n");
    }
 
    return false;
@@ -2019,37 +1968,37 @@ bool define_weak_data_translator_functions(pLIST_ELEMENT pelem, void *data)
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pevent                = ((pID_INFO)pelem->mbr);
 
+   FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    if (pevent->type_data.event_data.puser_event_data)
    {
       fprintf(pich->pcmd->cFile, "void __attribute__((weak)) ");
       if (pevent->type_data.event_data.puser_event_data->translator)
       {
-          printNameWithAncestry(pevent->type_data.event_data.puser_event_data->translator->name, pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
+          printNameWithAncestry(pevent->type_data.event_data.puser_event_data->translator->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
           fprintf(pich->pcmd->cFile, "(p");
-          printNameWithAncestry("DATA", pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
+          printNameWithAncestry("DATA", pich->ih.pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
           fprintf(pich->pcmd->cFile, " pfsm_data, p");
-          printAncestry(pich->pmi, pich->pcmd->cFile, " ", alc_upper, ai_include_self);
-          streamHungarianToUnderbarCaps(pich->pcmd->cFile, pevent->name);
+          printNameWithAncestry(pevent->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
           fprintf(pich->pcmd->cFile, " pdata)\n{\n\t(void) pfsm_data;\n\t(void) pdata;\n\t%s(\"weak: "
                   , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                  );
-          printNameWithAncestry(pevent->type_data.event_data.puser_event_data->translator->name, pich->pmi, pich->pcmd->cFile, " ", alc_lower, ai_include_self);
+          printNameWithAncestry(pevent->type_data.event_data.puser_event_data->translator->name, pich->ih.pmi, pich->pcmd->cFile, " ", alc_lower, ai_include_self);
       }
       else
       {
-         printNameWithAncestry("translate", pich->pmi, pich->pcmd->cFile, " ", alc_lower, ai_include_self);
+         printNameWithAncestry("translate", pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
          fprintf(pich->pcmd->cFile
                  , "_%s_data(p"
                  , pevent->name
                 );
-         printNameWithAncestry("DATA", pich->pmi, pich->pcmd->cFile, " ", alc_upper, ai_include_self);
+         printNameWithAncestry("DATA", pich->ih.pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
          fprintf(pich->pcmd->cFile, " pfsm_data, p");
-         printAncestry(pich->pmi, pich->pcmd->cFile, " ", alc_upper, ai_include_self);
-         streamHungarianToUnderbarCaps(pich->pcmd->cFile, pevent->name);
-         fprintf(pich->pcmd->cFile, " pdata)\n{\n\t(void) pfsm_data;\n\t(void) pdata;\n\t%s(\"weak: "
+         printNameWithAncestry(pevent->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
+         fprintf(pich->pcmd->cFile, "_DATA pdata)\n{\n\t(void) pfsm_data;\n\t(void) pdata;\n\t%s(\"weak: "
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                 );
-         printNameWithAncestry("translate", pich->pmi, pich->pcmd->cFile, " ", alc_lower, ai_include_self);
+         printNameWithAncestry("translate", pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
          fprintf(pich->pcmd->cFile
                  , "_%s_data(p"
                  , pevent->name
@@ -2061,16 +2010,35 @@ bool define_weak_data_translator_functions(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static void print_native_header(pCMachineData pcmd, pMACHINE_INFO pmi)
+{
+	FILE *f_array[] = {
+		pcmd->hFile
+		, pcmd->subMachineHFile
+		, pcmd->pubHFile
+	};
+
+	for (unsigned long f_iterator = 0; f_iterator < sizeof(f_array)/sizeof(f_array[0]); f_iterator++)
+	{
+		fprintf(f_array[f_iterator]
+				, "#ifndef %s_NATIVE\n#define %s_NATIVE\n%s\n#endif\n"
+				, fsmType(pcmd)
+				, fsmType(pcmd)
+				, pmi->native
+				);
+	}
+}
+
 void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 {
-   unsigned         i;
-   ITERATOR_HELPER  helper;
+	(void) arrayName;
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
 
-   helper.fout      = pcmd->hFile;
-   helper.pmi       = pmi;
+   ich.ih.fout      = pcmd->hFile;
+   ich.ih.pmi       = pmi;
 
    /* put the native code segment out to the header */
-   if (pmi->native) fprintf(pcmd->hFile, "%s\n", pmi->native);
+   if (pmi->native) print_native_header(pcmd, pmi);
 
    fprintf(pcmd->hFile, "#ifdef ");
    printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
@@ -2099,24 +2067,32 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
            , "#ifndef NO_EVENT_CONVENIENCE_MACROS\n"
            );
 
-   fprintf(pcmd->hFile, "#undef THIS\n#define THIS(A) ");
-   printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->hFile, "_##A\n");
+   fprintf(pcmd->hFile
+		   , "#undef THIS\n#define THIS(A) %s_##A\n"
+		   , fqMachineName(pcmd)
+		   );
 
-   fprintf(pcmd->hFile, "#undef PARENT\n#define PARENT(A) ");
-   printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_omit_self);
-   fprintf(pcmd->hFile, "_##A\n");
+   fprintf(pcmd->hFile
+		   , "#undef PARENT\n#define PARENT(A) %s_##A\n"
+		   , fqMachineName(pcmd->parent_pcmd)
+		   );
 
    fprintf(pcmd->hFile
            , "#endif\n"
            );
 
-   fprintf(pcmd->hFile, "\n#ifdef ");
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, "_DEBUG\n");
-   fprintf(pcmd->hFile, "extern char *");
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, "_EVENT_NAMES[];\n");
+   fprintf(pcmd->hFile
+		   , "\n#ifdef %s_DEBUG\n"
+		   , fsmType(pcmd)
+		   );
+   fprintf(pcmd->hFile
+		   , "extern char *%s_EVENT_NAMES[];\n"
+		   , fsmType(pcmd)
+		   );
+   fprintf(pcmd->hFile
+		   , "extern char *%s_STATE_NAMES[];\n"
+		   , fsmType(pcmd)
+		   );
    fprintf(pcmd->hFile, "#endif\n\n");
 
    /* put the state enum into the header file */
@@ -2125,8 +2101,8 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
           );
 
 
-   helper.first = true;
-   iterate_list(pmi->state_list, write_state_enum_member, &helper);
+   ich.ih.first = true;
+   iterate_list(pmi->state_list, write_state_enum_member, &ich);
 
    /*
      Though not a state, this needs have a value
@@ -2136,167 +2112,116 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    */
    if (pmi->modFlags & mfActionsReturnStates)
    {
-	   print_plain_enum_member("noTransition", &helper);
+	   print_plain_enum_member("noTransition", &ich);
    }
 
-   print_plain_enum_member("numStates", &helper);
+   print_plain_enum_member("numStates", &ich);
 
    fprintf(pcmd->hFile
-           , "}%s"
+           , "}%s %s_STATE;\n\n"
            , compact_action_array ? " __attribute__((__packed__))" : " "
+		   , fsmType(pcmd)
           );
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_STATE;\n\n");
 
-   fprintf(pcmd->hFile, "#ifdef ");
-   printNameWithAncestry("DEBUG\n", pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, "extern char *");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->hFile, "_STATE_NAMES[];\n\n");
-   fprintf(pcmd->hFile, "#endif\n\n");
-
-   /* put the data struct typedef into the header */
+   /* put the data struct typedef into the header file */
    if (pmi->data)
    {
-      fprintf(pcmd->hFile, "typedef struct _");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-	  fprintf(pcmd->hFile, "_data_struct_ ");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->hFile, "_DATA, *p");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->hFile, "_DATA;\n");
+      fprintf(pcmd->hFile
+			  , "typedef struct _%s_data_struct_ %s, *p%s;\n"
+			  , pmi->name->name
+			  , fsmDataType(pcmd)
+			  , fsmDataType(pcmd)
+			  );
+
    }
 
    /* put the machine struct typedef into the header */
-   fprintf(pcmd->hFile, "typedef struct _");
-   printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->hFile, "_struct_ ");
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, ", *p");
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, ";\n");
+   fprintf(pcmd->hFile
+		   , "typedef struct _%s_struct_ %s, *p%s;\n"
+		   , pmi->name->name
+		   , fsmType(pcmd)
+		   , fsmType(pcmd)
+		   );
 
-   fprintf(pcmd->hFile, "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p");
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, "\n");
+   fprintf(pcmd->hFile
+		   , "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
+		   , fsmType(pcmd)
+		   );
 
    if (generate_instance)
    {
-      fprintf(pcmd->hFile, "extern ");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->hFile, " ");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-	  fprintf(pcmd->hFile, ";\n\n");
+      fprintf(pcmd->hFile
+			  , "extern %s %s;\n\n"
+			  , fsmType(pcmd)
+			  , machineName(pcmd)
+			  );
 
-      fprintf(pcmd->hFile, "extern p");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->hFile, " p");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-	  fprintf(pcmd->hFile, ";\n\n");
+      fprintf(pcmd->hFile
+			  , "extern p%s p%s;\n\n"
+			  , fsmType(pcmd)
+			  , machineName(pcmd)
+			  );
+
    }
 
    /* put the action function typedef into the header */
-   fprintf(pcmd->hFile, "typedef ");
-   if (pmi->modFlags & mfActionsReturnStates)
-   {
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	  fprintf(pcmd->hFile, "_STATE (*");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->hFile, "_ACTION_FN)(p");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->hFile, ");\n\n");
-   }
-   else if (pmi->modFlags & mfActionsReturnVoid)
-   {
-      fprintf(pcmd->hFile, "void (*");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->hFile, "_ACTION_FN)(p");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	  fprintf(pcmd->hFile, ");\n\n");
-   }
-   else
-   {
-	  streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
-      fprintf(pcmd->hFile
-			  , "_EVENT%s (*"
-			  , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-			  );
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-      fprintf(pcmd->hFile, "_ACTION_FN)(p");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-      fprintf(pcmd->hFile, ");\n\n");
-   }
+   fprintf(pcmd->hFile
+		   , "typedef %s (*%s_ACTION_FN)(FSM_TYPE_PTR);\n\n"
+		   , actionReturnType(pcmd)
+		   , fsmType(pcmd)
+		   );
 
    /* typedef transition functions, if we have any */
    if (pmi->transition_fn_list->count)
    {
-      fprintf(pcmd->hFile, "typedef ");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-      fprintf(pcmd->hFile, "_STATE (*");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-      fprintf(pcmd->hFile, "_TRANSITION_FN)(p");
-	  printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-      fprintf(pcmd->hFile, ",");
-	  streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
-      fprintf(pcmd->hFile
-			  , "_EVENT%s);\n\n"
-              , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-             );
-
+	   fprintf(pcmd->hFile
+			   , "typedef %s_STATE (*%s_TRANSITION_FN)(FSM_TYPE_PTR,%s);\n\n"
+			   , fsmType(pcmd)
+			   , fsmType(pcmd)
+			   , eventType(pcmd)
+			   );
    }
 
    /* typedef the FSM function */
-   fprintf(pcmd->hFile, "typedef ");
-   streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
    fprintf(pcmd->hFile
-		   , "_EVENT%s (*"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-		  );
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, "_FSM)(p");
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, ",");
-   streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
-   fprintf(pcmd->hFile
-		   , "_EVENT%s);\n\n"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-           );
+		   , "typedef %s (*%s_FSM)(FSM_TYPE_PTR,%s);\n\n"
+		   , actionReturnType(pcmd)
+		   , fsmType(pcmd)
+		   , fsmFnEventType(pcmd)
+		   );
 
    /* declare the fsm function */
-   streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
    fprintf(pcmd->hFile
-           , "_EVENT%s "
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-		  );
-   printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->hFile, "FSM(p");
-   printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->hFile, ",");
-   streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
-   fprintf(pcmd->hFile
-		   , "_EVENT%s);\n\n"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+           , "%s %sFSM(FSM_TYPE_PTR,%s);\n\n"
+		   , actionReturnType(pcmd)
+		   , machineName(pcmd)
+		   , fsmFnEventType(pcmd)
            );
 
    /* put the data structure definition into the header */
    if (pmi->data)
    {
-      fprintf(pcmd->pubHFile, "struct _");
-	  printAncestry(pmi, pcmd->pubHFile, "_", alc_lower, ai_include_self);
-      fprintf(pcmd->pubHFile, "_data_struct_ {\n");
+      fprintf(pcmd->hFile
+			  , "struct _%s_data_struct_ {\n"
+			  , machineName(pcmd)
+			  );
 
-      helper.tab_level = 1;
-	  helper.fout	   = pcmd->pubHFile;
-      iterate_list(pmi->data, print_data_field, &helper);
-	  helper.fout	   = pcmd->hFile;
+      ich.ih.tab_level = 1;
+      iterate_list(pmi->data, print_data_field, &ich);
 
-      fprintf(pcmd->pubHFile 
+      fprintf(pcmd->hFile 
               , "};\n\n"
               );
    }
 
    if (pmi->machine_list)
    {
+	   /* The sub-machine header will hold things needed by the private header. */
+	   fprintf(pcmd->hFile
+			   ,"#include \"%s\"\n"
+			   , pcmd->subMachineHName
+			   );
+
 	   printSubMachinesDeclarations(pcmd, pmi);
    }
    
@@ -2305,6 +2230,8 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 
 void print_transition_fn_declaration_for_when_actions_return_states(pMACHINE_INFO pmi, FILE *fout, char *name)
 {
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	streamHungarianToUnderbarCaps(fout, pmi->name->name);
 	fprintf(fout, "_STATE ");
 	printAncestry(pmi, fout, "_", alc_lower, ai_include_self);
@@ -2317,68 +2244,90 @@ void print_transition_fn_declaration_for_when_actions_return_states(pMACHINE_INF
 
 static void print_state_only_transition_fn_declaration_for_when_actions_return_states(pMACHINE_INFO pmi, FILE *fout, char *name)
 {
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	streamHungarianToUnderbarCaps(fout, pmi->name->name);
 	fprintf(fout, "_STATE ");
 	printAncestry(pmi, fout, "_", alc_lower, ai_include_self);
-	fprintf(fout, "_TransitionTo%s(p"
+	fprintf(fout, "_transitionTo%s(p"
 			, name
 			);
 	printAncestry(pmi, fout, "_", alc_upper, ai_include_self);
 	fprintf(fout, ");\n");
 }
 
+/**
+ * This function defines "upward looking" structures used by a
+ * parent machine to share events to a sub-machine.
+ * 
+ * @author sstan (12/10/2023)
+ * 
+ * @param pelem  this must point to a mbr element of type
+ *  			 pID_INFO, which itself points to an event.
+ * @param data   this must point to an ITERATOR_CALLBACK_HELPER
+ *  			 structure.
+ * 
+ * @return bool always "false"
+ */
 static bool define_needed_shared_event_structures(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO pevent      = (pID_INFO) pelem->mbr;
-   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    if (pevent->type_data.event_data.shared_with_parent)
    {
 
-	   print_shared_event_data_block_signature(pih->fout, pih->pmi, pevent->name, true /* include type information */);
+	   print_shared_event_data_block_signature(pich->ih.fout, pich->pcmd->parent_pcmd, pich->ih.pmi, pevent->name, true /* include type information */);
 
-	   fprintf(pih->fout, " = {\n");
+	   fprintf(pich->ih.fout, " = {\n");
 
-      fprintf(pih->fout
+      fprintf(pich->ih.fout
               , "\t  .event               = THIS(%s)\n"
               , pevent->name
               );
 
-      fprintf(pih->fout
-              , "\t, .data_translation_fn = "
-              );
+	  if (pich->ih.pmi->parent->data_block_count)
+	  {
+		  fprintf(pich->ih.fout
+				  , "\t, .data_translation_fn = "
+				  );
 
-      if (pevent->type_data.event_data.puser_event_data)
-      {
-         if (pevent->type_data.event_data.puser_event_data->translator)
-         {
-            fprintf(pih->fout
-                    , "%s_%s\n"
-                    , pih->pmi->name->name
-                    , pevent->type_data.event_data.puser_event_data->translator->name
-                    );
-         }
-         else
-         {
-            fprintf(pih->fout
-                    , "NULL\n"
-                    );
+		  if (pevent->type_data.event_data.puser_event_data)
+		  {
+			 if (pevent->type_data.event_data.puser_event_data->translator)
+			 {
+				fprintf(pich->ih.fout
+						, "%s_%s\n"
+						, pich->ih.pmi->name->name
+						, pevent->type_data.event_data.puser_event_data->translator->name
+						);
+			 }
+			 else
+			 {
+				fprintf(pich->ih.fout
+						, "NULL\n"
+						);
 
-         }
-      }
-      else
-      {
-         fprintf(pih->fout
-                 , "NULL\n"
-                 );
+			 }
+		  }
+		  else
+		  {
+			 fprintf(pich->ih.fout
+					 , "NULL\n"
+					 );
 
-      }
+		  }
 
-      fprintf(pih->fout, "\t, .psub_fsm_if         = &");
-	  printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
-	  fprintf(pih->fout, "_sub_fsm_if\n");
+	  }
 
-      fprintf(pih->fout, "};\n\n");
+      fprintf(pich->ih.fout
+			  , "\t, .psub_fsm_if         = &%s_sub_fsm_if\n"
+			  , nfMachineName(pich->pcmd)
+			  );
+
+      fprintf(pich->ih.fout, "};\n\n");
 
    }
 
@@ -2387,43 +2336,45 @@ static bool define_needed_shared_event_structures(pLIST_ELEMENT pelem, void *dat
 
 void possiblyDefineSubMachineSharedEventStructures (pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-   ITERATOR_HELPER ih;
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    if (pmi->shared_event_count)
    {
-      ih.pmi  = pmi;
-      ih.fout = pcmd->cFile;
+      ich.ih.pmi  = pmi;
+	  ich.pcmd = pcmd;
+      ich.ih.fout = pcmd->cFile;
 
-      iterate_list(pmi->event_list, define_needed_shared_event_structures, &ih);
+      iterate_list(pmi->event_list, define_needed_shared_event_structures, &ich);
    }
 
 }
 
 void defineSubMachineIF (pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-	streamHungarianToUnderbarCaps(pcmd->cFile, ultimateAncestor(pmi)->name->name);
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    fprintf(pcmd->cFile
-           , "_EVENT%s "
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+           , "%s "
+		   , eventType(pcmd)
  		  );
    printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
    fprintf(pcmd->cFile, "_sub_machine_fn(");
-   streamHungarianToUnderbarCaps(pcmd->cFile, ultimateAncestor(pmi)->name->name);
    fprintf(pcmd->cFile
- 		  , "_EVENT%s e)\n{\n"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+ 		  , "%s e)\n{\n"
+		   , eventType(pcmd)
            );
 
-   fprintf(pcmd->cFile, "\treturn ");
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->cFile, "FSM(p");
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->cFile, ", e);\n}\n\n\n");
+   fprintf(pcmd->cFile
+		   , "\treturn %sFSM(p%s,e);\n}\n\n"
+		   , machineName(pcmd)
+		   , machineName(pcmd)
+		   );
 
-   printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->cFile, "_SUB_FSM_IF ");
-   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-   fprintf(pcmd->cFile, "_sub_fsm_if =\n{\n\t");
+   fprintf(pcmd->cFile
+		   , "%s %s_sub_fsm_if =\n{\n\t"
+		   , subFsmIfType(pcmd->parent_pcmd)
+		   , nfMachineName(pcmd)
+		   );
 
   fprintf(pcmd->cFile, "\t.subFSM = ");
   printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
@@ -2451,26 +2402,21 @@ void defineSubMachineIF (pCMachineData pcmd, pMACHINE_INFO pmi)
 
 void defineSubMachineArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-#ifdef FSMLANG_DEVELOP
-	fprintf(pcmd->cFile
-			, "/* defineSubMachineArray */\n"
-		   );
-#endif
-   ITERATOR_CALLBACK_HELPER ich;
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    if (pmi->machine_list)
    {
-      fprintf(pcmd->cFile, "\np");
-	  printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-      fprintf(pcmd->cFile, "_SUB_FSM_IF ");
-	  printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-      fprintf(pcmd->cFile, "_sub_fsm_if_array[");
-	  printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-      fprintf(pcmd->cFile, "_numSubMachines] =\n{\n");
+      fprintf(pcmd->cFile
+			   , "\np%s const %s_sub_fsm_if_array[THIS(numSubMachines)] =\n{\n"
+			   , subFsmIfType(pcmd)
+			   , machineName(pcmd)
+			  );
 
       ich.pcmd  = pcmd;
-      ich.pmi   = pmi;
-      ich.first = true;
+      ich.ih.pmi   = pmi;
+      ich.ih.first = true;
       iterate_list(pmi->machine_list, print_sub_machine_if,&ich);
 
       fprintf(pcmd->cFile
@@ -2485,37 +2431,13 @@ void defineSubMachineArray(pCMachineData pcmd, pMACHINE_INFO pmi)
    }
 }
 
-void print_action_function_declaration(pMACHINE_INFO pmi, FILE *fout, char *name)
+void print_action_function_declaration(pCMachineData pcmd, char *name)
 {
-	if (pmi->modFlags & mfActionsReturnVoid)
-	{
-	   fprintf(fout, "void ");
-	}
-	else
-	{
-	   if (pmi->modFlags & mfActionsReturnStates)
-	   {
-		  streamHungarianToUnderbarCaps(fout, pmi->name->name);
-		  fprintf(fout, "_STATE ");
-	   }
-	   else
-	   {
-		  streamHungarianToUnderbarCaps(fout, ultimateAncestor(pmi)->name->name);
-		  fprintf(fout
-				  , "_EVENT%s "
-				  , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-				 );
-	   }
-	}
-
-	printAncestry(pmi, fout, "_", alc_lower, ai_include_self);
-	fprintf(fout
-			, "_%s(p"
+	fprintf(pcmd->hFile
+			, "ACTION_RETURN_TYPE %s_%s(FSM_TYPE_PTR);\n"
+			, fqMachineName(pcmd)
 			, name
 			);
-	printAncestry(pmi, fout, "_", alc_upper, ai_include_self);
-	fprintf(fout, ");\n");
-
 }
 
 bool declare_action_function(pLIST_ELEMENT pelem, void *data)
@@ -2525,7 +2447,7 @@ bool declare_action_function(pLIST_ELEMENT pelem, void *data)
 
    if (pid_info->name && strlen(pid_info->name))
    {
-	   print_action_function_declaration(pich->pmi, pich->pcmd->hFile, pid_info->name);
+	   print_action_function_declaration(pich->pcmd, pid_info->name);
    }
 
    return false;
@@ -2535,19 +2457,41 @@ bool print_sub_machine_if(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO pmi              = (pMACHINE_INFO) pelem->mbr;
    pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+   char                      *cp  = NULL;
 
-#ifdef FSMLANG_DEVELOP
-	fprintf(pich->pcmd->cFile
-			, "/* print_sub_machine_if */\n"
-		   );
-#endif
+   FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    fprintf(pich->pcmd->cFile
-           ,"\t%s&"
-           ,pich->first ? (pich->first = false, "") : ", "
+           , "\t%s&%s_sub_fsm_if\n"
+           , pich->ih.first ? (pich->ih.first = false, "") : ", "
+		   , nfMachineNamePmi(pmi, &cp)
           );
-   printNameWithAncestry("sub_fsm_if\n", pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
+
+   if (cp)
+   {
+	   free(cp);
+   }
 
    return false;
+}
+
+void print_weak_action_function_body_omitting_return_statement(pCMachineData pcmd, char *name)
+{
+	fprintf(pcmd->cFile
+			, "%s __attribute__((weak)) THIS(%s)(FSM_TYPE_PTR pfsm)\n{\n"
+			, actionReturnType(pcmd)
+			, name
+		   );
+
+	fprintf(pcmd->cFile
+			, "\t%s(\"weak: %%s\", __func__);\n"
+			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+			);
+
+	fprintf(pcmd->cFile
+			, "\t(void) pfsm;\n"
+			);
+
 }
 
 bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
@@ -2555,106 +2499,52 @@ bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
+   FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    if (pid_info->name && strlen(pid_info->name))
    {
+	   print_weak_action_function_body_omitting_return_statement(pich->pcmd, pid_info->name);
 
-      if (pich->pmi->modFlags & mfActionsReturnVoid)
-      {
-         fprintf(pich->pcmd->cFile, "void __attribute__((weak)) ");
-		 printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-		 fprintf(pich->pcmd->cFile
-				 , "_%s(p"
-                 , pid_info->name
-                );
-		 printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
-		 fprintf(pich->pcmd->cFile, " pfsm)\n{\n");
+       if (pich->ih.pmi->modFlags & mfActionsReturnStates)
+       {
 
-         fprintf(pich->pcmd->cFile
-                 , "\t%s(\"weak: "
-                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-				 );
-		 printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-		 fprintf(pich->pcmd->cFile
-				 , "_%s\");\n"
-                 , pid_info->name
-                 );
+          fprintf(pich->pcmd->cFile
+				  , "\treturn %s_noTransition;\n"
+				  , machineName(pich->pcmd)
+				  );
+       }
+       else
+       {
 
-         fprintf(pich->pcmd->cFile
-                 , "\t(void) pfsm;\n"
-                 );
+          /* if this action is associated with a shared event, it will have exactly one event */
+          pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->actionInfo->matrix->event_list,0);
 
-      }
-      else
-      {
-         if (pich->pmi->modFlags & mfActionsReturnStates)
-         {
-			streamHungarianToUnderbarCaps(pich->pcmd->cFile, pich->pmi->name->name);
-            fprintf(pich->pcmd->cFile, "_STATE __attribute__((weak)) ");
-			printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-			fprintf(pich->pcmd->cFile
-					, "_%s(p"
-                    , pid_info->name
-					);
-			printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
-			fprintf(pich->pcmd->cFile, " pfsm)\n{\n");
+          /* and, that event will have a list of sharing machines */
+          if (pevent->type_data.event_data.psharing_sub_machines)
+          {
+             fprintf(pich->pcmd->cFile
+                     , "\t%s%s_pass_shared_event(%ssharing_%s_%s);\n"
+					 , pich->ih.pmi->modFlags & mfActionsReturnVoid ? "" : "return "
+					 , machineName(pich->pcmd)
+					 , pich->ih.pmi->data_block_count ? "pfsm, " : ""
+					 , machineName(pich->pcmd)
+					 , pevent->name
+					 );
+          }
+          else
+          {
+			  if (!(pich->ih.pmi->modFlags & mfActionsReturnVoid))
+			  {
+				  fprintf(pich->pcmd->cFile
+						  , "\treturn THIS(noEvent);\n"
+						 );
+			  }
+		  }
+       }
 
-            fprintf(pich->pcmd->cFile
-                    , "\t%s(\"weak: "
-                    , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-                    );
-			printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-			fprintf(pich->pcmd->cFile
-					, "_%s\");\n"
-                    , pid_info->name
-					);
-
-            fprintf(pich->pcmd->cFile
-                    , "\t(void) pfsm;\n"
-                    );
-
-            fprintf(pich->pcmd->cFile, "\treturn ");
-			printNameWithAncestry("noTransition;\n", pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-
-         }
-         else
-         {
-			 printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
-            fprintf(pich->pcmd->cFile
-                    , "_EVENT%s __attribute__((weak)) "
-                    , ultimateAncestor(pich->pmi)->data_block_count ? "_ENUM"  : ""
-                   );
-			printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-			fprintf(pich->pcmd->cFile
-					, "_%s(p"
-                    , pid_info->name
-					);
-			printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
-			fprintf(pich->pcmd->cFile, " pfsm)\n{\n");
-
-            fprintf(pich->pcmd->cFile
-                    , "\t%s(\"weak: "
-                    , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-                    );
-			printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-			fprintf(pich->pcmd->cFile
-					, "_%s\");\n"
-                    , pid_info->name
-					);
-
-            fprintf(pich->pcmd->cFile
-                    , "\t(void) pfsm;\n"
-                    );
-
-            fprintf(pich->pcmd->cFile
-                    , "\treturn THIS(noEvent);\n"
-                    );
-
-         }
-      }
-
-      fprintf(pich->pcmd->cFile
-              , "}\n\n"
-              );
+	   fprintf(pich->pcmd->cFile
+			   , "}\n\n"
+			   );
 
    }
 
@@ -2666,6 +2556,8 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
+   FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    if (pid_info->name && strlen(pid_info->name))
    {
       /* if this action is associated with a shared event, it will have exactly one event */
@@ -2674,27 +2566,28 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
       /* and, that event will have a list of sharing machines */
       if (pevent->type_data.event_data.psharing_sub_machines)
       {
-          streamHungarianToUnderbarCaps(pich->pcmd->cFile, ultimateAncestor(pich->pmi)->name->name);
+          streamHungarianToUnderbarCaps(pich->pcmd->cFile, ultimateAncestor(pich->ih.pmi)->name->name);
          fprintf(pich->pcmd->cFile
-                 , "_EVENT%s "
-                 , ultimateAncestor(pich->pmi)->data_block_count ? "_ENUM"  : ""
+                 , "%s "
+				 , eventType(pich->pcmd)
                 );
-         printNameWithAncestry(pid_info->name, pich->pmi, pich->pcmd->cFile, " ", alc_lower, ai_include_self);
+         printNameWithAncestry(pid_info->name, pich->ih.pmi, pich->pcmd->cFile, " ", alc_lower, ai_include_self);
          fprintf(pich->pcmd->cFile, "(p");
-         printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
+         printAncestry(pich->ih.pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
          fprintf(pich->pcmd->cFile, " pfsm)\n{\n");
 
          fprintf(pich->pcmd->cFile
                  , "\t%s(\"weak: "
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
                 );
-         printNameWithAncestry(pid_info->name, pich->pmi, pich->pcmd->cFile, " ", alc_lower, ai_include_self);
+         printNameWithAncestry(pid_info->name, pich->ih.pmi, pich->pcmd->cFile, " ", alc_lower, ai_include_self);
          fprintf(pich->pcmd->cFile, "\");\n");
 
          fprintf(pich->pcmd->cFile
-                 , "\treturn %s_pass_shared_event(pfsm, sharing_%s_%s);\n}\n\n"
-                 , pich->pmi->name->name
-                 , pich->pmi->name->name
+                 , "\treturn %s_pass_shared_event(%ssharing_%s_%s);\n}\n\n"
+                 , machineName(pich->pcmd)
+				 , pich->ih.pmi->data_block_count ? "pfsm, " : ""
+                 , machineName(pich->pcmd)
                  , pevent->name
                  );
       }
@@ -2709,7 +2602,7 @@ void defineEventPassingActions(pCMachineData pcmd, pMACHINE_INFO pmi)
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmd      = pcmd;
-   ich.pmi       = pmi;
+   ich.ih.pmi       = pmi;
 
    iterate_list(pmi->action_list
                 , define_event_passing_actions
@@ -2722,7 +2615,7 @@ void defineWeakDataTranslatorStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmd      = pcmd;
-   ich.pmi       = pmi;
+   ich.ih.pmi       = pmi;
 
    iterate_list(pmi->event_list
                 , define_weak_data_translator_functions
@@ -2737,8 +2630,10 @@ static void defineSubMachineInhibitor(pCMachineData pcmd, pMACHINE_INFO pmi)
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmd      = pcmd;
-   ich.pmi       = pmi;
+   ich.ih.pmi       = pmi;
    ich.counter   = 0;
+
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    fprintf(pcmd->cFile, "\nstatic bool doNotInhibitSubMachines(");
    streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
@@ -2775,26 +2670,18 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
       defineSubMachineInhibitor(pcmd, pmi);
    }
 
-   fprintf(pcmd->cFile, "\nstatic ");
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    fprintf(pcmd->cFile
-           , "_EVENT%s findAndRunSubMachine(p"
-           , pmi->data_block_count ? "_ENUM"  : ""
-          );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile, " pfsm, ");
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile
-           , "_EVENT%s e)\n{\n"
-           , pmi->data_block_count ? "_ENUM"  : ""
+           , "\nstatic %s findAndRunSubMachine(p%s pfsm, %s e)\n{\n"
+		   , eventType(pcmd)
+		   , fsmType(pcmd)
+		   , eventType(pcmd)
           );
 
-   fprintf(pcmd->cFile, "\tfor (");
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
    fprintf(pcmd->cFile
-           , "_SUB_MACHINES machineIterator = %s_firstSubMachine;\n\t     machineIterator < %s_numSubMachines;\n\t     machineIterator++\n\t    )\n\t{\n"
-           , pmi->name->name
-           , pmi->name->name
+		   , "\tfor (%s_SUB_MACHINES machineIterator = THIS(firstSubMachine);\n\t     machineIterator < THIS(numSubMachines);\n\t     machineIterator++\n\t    )\n\t{\n"
+		   , fsmType(pcmd)
            );
 
    fprintf(pcmd->cFile
@@ -2825,15 +2712,17 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
 bool print_event_macro(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO    pmi = ((pMACHINE_INFO)    pelem->mbr);
-   pITERATOR_HELPER pih = ((pITERATOR_HELPER) data      );
+   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER) data      );
 
-   fprintf(pih->fout, "#undef ");
-   printAncestry(pmi, pih->fout, "_", alc_upper, ai_include_self | ai_omit_ultimate);
-   fprintf(pih->fout, "\n#define ");
-   printAncestry(pmi, pih->fout, "_", alc_upper, ai_include_self | ai_omit_ultimate);
-   fprintf(pih->fout, "(A) ");
-   printAncestry(pmi, pih->fout, "_", alc_lower, ai_include_self);
-   fprintf(pih->fout, "_##A\n");
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   fprintf(pich->ih.fout, "#undef ");
+   printAncestry(pmi, pich->ih.fout, "_", alc_upper, ai_include_self | ai_omit_ultimate);
+   fprintf(pich->ih.fout, "\n#define ");
+   printAncestry(pmi, pich->ih.fout, "_", alc_upper, ai_include_self | ai_omit_ultimate);
+   fprintf(pich->ih.fout, "(A) ");
+   printAncestry(pmi, pich->ih.fout, "_", alc_lower, ai_include_self);
+   fprintf(pich->ih.fout, "_##A\n");
 
    if (pmi->machine_list)
    {
@@ -2844,24 +2733,22 @@ bool print_event_macro(pLIST_ELEMENT pelem, void *data)
 
 }
 
-static void print_shared_event_data_block_signature(FILE *file, pMACHINE_INFO pmi, char *event_name, bool include_type)
+static void print_shared_event_data_block_signature(FILE *file, pCMachineData pcmd, pMACHINE_INFO pmi, char *event_name, bool include_type)
 {
-#ifdef FSMLANG_DEVELOP
-	fprintf(file
-			, "/* print_shared_event_data_block_signature */\n"
-		   );
-#endif
+	FSMLANG_DEVELOP_PRINTF(file, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	if (include_type)
 	{
-		streamHungarianToUnderbarCaps(file, pmi->parent->name->name);
-		fprintf(file, "_SHARED_EVENT_STR ");
+		fprintf(file
+				, "%s "
+				, sharedEventStrType(pcmd)
+				);
 	}
 
 	fprintf(file
 			, "%s_share_%s_%s_str"
 			, pmi->name->name
-			, pmi->parent->name->name
+			, machineName(pcmd)
 			, event_name
 			);
 
@@ -2870,38 +2757,39 @@ static void print_shared_event_data_block_signature(FILE *file, pMACHINE_INFO pm
 static bool declare_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO pmi    = (pMACHINE_INFO)pelem->mbr;
-   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-   fprintf(pih->fout, "extern ");
+   fprintf(pich->ih.fout, "extern ");
 
-   print_shared_event_data_block_signature(pih->fout, pmi, pih->pid->name, true /* include type information */);
+   print_shared_event_data_block_signature(pich->ih.fout, pich->pcmd, pmi, pich->ih.pid->name, true /* include type information */);
 
-   fprintf(pih->fout, ";\n");
+   fprintf(pich->ih.fout, ";\n");
 
    return false;
 }
 
 static bool declare_shared_event_lists(pLIST_ELEMENT pelem, void *data)
 {
-   pID_INFO pevent      = (pID_INFO)pelem->mbr;
-   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+   pID_INFO                  pevent = (pID_INFO)pelem->mbr;
+   pITERATOR_CALLBACK_HELPER pich    = (pITERATOR_CALLBACK_HELPER) data;
+
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    if (pevent->type_data.event_data.psharing_sub_machines)
    {
 
-      pih->pid = pevent;
+      pich->ih.pid = pevent;
       iterate_list(pevent->type_data.event_data.psharing_sub_machines
 				   , declare_shared_event_data_blocks
-				   , pih
+				   , pich
 				  );
 
-      fprintf(pih->fout, "extern p");
-	  streamHungarianToUnderbarCaps(pih->fout, pih->pmi->name->name);
-	  fprintf(pih->fout
-			  , "_SHARED_EVENT_STR sharing_%s_%s[];\n\n"
-              , pih->pmi->name->name
-              , pevent->name
-              );
+      fprintf(pich->ih.fout
+			  , "extern p%s sharing_%s_%s[];\n\n"
+			  , sharedEventStrType(pich->pcmd)
+			  , machineName(pich->pcmd)
+			  , pevent->name
+			  );
 
    }
 
@@ -2913,7 +2801,7 @@ void addNativeImplementationIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
    if (pmi->native_impl)
    {
       fprintf(fout
-              , "%s\n"
+              , "%s\n\n"
               , pmi->native_impl
               );
    }
@@ -2921,37 +2809,35 @@ void addNativeImplementationIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
 
 void declareSubMachineManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-   fprintf(pcmd->cFile, "static ");
-   streamHungarianToUnderbarCaps(pcmd->cFile, ultimateAncestor(pmi)->name->name);
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    fprintf(pcmd->cFile
-		   , "_EVENT%s findAndRunSubMachine(p"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+		   , "static %s findAndRunSubMachine(p%s,%s);\n"
+		   , eventType(pcmd)
+		   , fsmType(pcmd)
+		   , eventType(pcmd)
 		  );
-   printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->cFile, ",");
-   streamHungarianToUnderbarCaps(pcmd->cFile, ultimateAncestor(pmi)->name->name);
-   fprintf(pcmd->cFile
-		   , "_EVENT%s);\n"
-           , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
-           );
 
    if (pmi->submachine_inhibitor_count)
    {
-      fprintf(pcmd->cFile, "static bool doNotInhibitSubMachines(");
-	  streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-	  fprintf(pcmd->cFile, "_STATE);\n");
+      fprintf(pcmd->cFile
+			  , "static bool doNotInhibitSubMachines(%s);\n"
+			  , stateType(pcmd)
+			  );
    }
 
    fprintf(pcmd->cFile, "\n");
 }
 
-void declareEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
+void declareEventDataManager(pCMachineData pcmd)
 {
-   fprintf(pcmd->cFile, "static void translateEventData(p");
-   printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->cFile, "_DATA,p");
-   printAncestry(pmi, pcmd->cFile, "_",  alc_upper, ai_include_self);
-   fprintf(pcmd->cFile, "_EVENT);\n\n");
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   fprintf(pcmd->cFile
+		   , "static void translateEventData(p%s,%s);\n\n"
+		   , fsmDataType(pcmd)
+		   , fsmFnEventType(pcmd)
+		   );
 }
 
 static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data)
@@ -2959,12 +2845,14 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
    pID_INFO pevent                = (pID_INFO)pelem->mbr;
    pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
+   FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    if (pevent->type_data.event_data.puser_event_data)
    {
       pich->counter++;
       fprintf(pich->pcmd->cFile
               , "\tcase %s_%s:\n"
-              , pich->pmi->name->name
+              , pich->ih.pmi->name->name
               , pevent->name
               );
 
@@ -2972,7 +2860,7 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
               , pevent->type_data.event_data.puser_event_data->translator
                  ? "\t\t%s_%s(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
                  : "\t\t%s_translate_%s_data(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
-              , pich->pmi->name->name
+              , pich->ih.pmi->name->name
               , pevent->type_data.event_data.puser_event_data->translator
                 ? pevent->type_data.event_data.puser_event_data->translator->name
                 : pevent->name
@@ -2989,13 +2877,15 @@ void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
    ITERATOR_CALLBACK_HELPER ich = {0};
 
    ich.pcmd    = pcmd;
-   ich.pmi     = pmi;
+   ich.ih.pmi     = pmi;
 
-   fprintf(pcmd->cFile, "static void translateEventData(p");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->cFile, "_DATA pfsm_data,p");
-   streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-   fprintf(pcmd->cFile, "_EVENT pevent)\n{\n");
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   fprintf(pcmd->cFile
+		   , "static void translateEventData(p%s pfsm_data, %s pevent)\n{\n"
+		   , fsmDataType(pcmd)
+		   , fsmFnEventType(pcmd)
+		   );
 
    fprintf(pcmd->cFile
            , "\tswitch(pevent->event)\n\t{\n"
@@ -3008,29 +2898,33 @@ void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
            );
 }
 
+static void print_state_entry_or_exit_manager_signature(pCMachineData pcmd, pMACHINE_INFO pmi,ENTRY_OR_EXIT eoe, DECLARE_OR_DEFINE dod)
+{
+	fprintf(pcmd->cFile
+			,"static void runAppropriate%sFunction(%s%s%s%s%s%s)%s\n"
+			, eoe == eoe_entry ? "Entry" : "Exit"
+			, pmi->data ? "p" : ""
+			, pmi->data ? fsmDataType(pcmd) : ""
+			, ((dod == dod_define) && pmi->data) ? " pdata" : ""
+			, pmi->data ? "," : ""
+			, stateType(pcmd)
+			, dod == dod_define ? " s" : ""
+			, dod == dod_define ? "\n{\n\tswitch(s)\n\t{" : ";"
+			);
+}
+
 void declareStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-#ifdef FSMLANG_DEVELOP
-	fprintf(pcmd->cFile
-			, "/* declareStateEntryAndExitManagers */\n"
-		   );
-#endif
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    if (pmi->states_with_entry_fns_count)
    {
-      fprintf(pcmd->cFile,"static void runAppropriateEntryFunction(");
+	   print_state_entry_or_exit_manager_signature(pcmd, pmi, eoe_entry, dod_declare);
    }
    if (pmi->states_with_exit_fns_count)
    {
-	   fprintf(pcmd->cFile,"static void runAppropriateExitFunction(");
+	   print_state_entry_or_exit_manager_signature(pcmd, pmi, eoe_exit, dod_declare);
    }
-   if (pmi->data)
-   {
-	   fprintf(pcmd->cFile,"p");
-	   printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-	   fprintf(pcmd->cFile,"_DATA_");
-   }
-   printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-   fprintf(pcmd->cFile,");");
 }
 
 static void print_state_entry_or_exit_fn_switch_case(pID_INFO pstate, pITERATOR_CALLBACK_HELPER pich, ENTRY_OR_EXIT which)
@@ -3038,21 +2932,22 @@ static void print_state_entry_or_exit_fn_switch_case(pID_INFO pstate, pITERATOR_
     pID_INFO fn        = which == eoe_entry ? pstate->type_data.state_data.entry_fn : pstate->type_data.state_data.exit_fn;
     char    *no_fn_str = which == eoe_entry ? "onEntryTo_"                          : "onExitFrom_";
 
-	pich->counter++;
-	fprintf(pich->pcmd->cFile, "\tcase ");
-	printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-	fprintf(pich->pcmd->cFile
-			, "_%s:\n\t\t"
-			, pstate->name
-		   );
-	printAncestry(pich->pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
+	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   fprintf(pich->pcmd->cFile
-			, "_%s%s(%s);\n\t\tbreak;\n"
+	pich->counter++;
+	fprintf(pich->pcmd->cFile
+			, "\tcase %s_%s:\n\t\t"
+			, machineName(pich->pcmd)
+			, pstate->name
+			);
+
+	fprintf(pich->pcmd->cFile
+			, "%s_%s%s(%s);\n\t\tbreak;\n"
+			, machineName(pich->pcmd)
 			, fn              ? fn->name : no_fn_str
 			, fn              ? ""       : pstate->name
-			, pich->pmi->data ? "pdata"  : ""
-			);
+			, pich->ih.pmi->data ? "pdata"  : ""
+		   );
 }
 
 static bool write_state_entry_fn_switch_case(pLIST_ELEMENT pelem, void *data)
@@ -3085,20 +2980,14 @@ void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
    ITERATOR_CALLBACK_HELPER ich;
 
-   ich.pmi  = pmi;
+   ich.ih.pmi  = pmi;
    ich.pcmd = pcmd;
+
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    if (pmi->states_with_entry_fns_count)
    {
-      fprintf(pcmd->cFile,"static void runAppropriateEntryFunction(");
-	  if (pmi->data)
-	  {
-		  fprintf(pcmd->cFile,"p");
-		  printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-		  fprintf(pcmd->cFile, "_DATA pdata, ");
-	  }
-	  streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-      fprintf(pcmd->cFile, "_STATE s)\n{\n\tswitch(s)\n\t{\n");
+	   print_state_entry_or_exit_manager_signature(pcmd, pmi, eoe_entry, dod_define);
 
       iterate_list(pmi->state_list, write_state_entry_fn_switch_case, &ich);
 
@@ -3111,15 +3000,7 @@ void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
    }
    if (pmi->states_with_exit_fns_count)
    {
-	   fprintf(pcmd->cFile,"static void runAppropriateExitFunction(");
-	   if (pmi->data)
-	   {
-		   fprintf(pcmd->cFile,"p");
-		   printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-		   fprintf(pcmd->cFile, "_DATA pdata, ");
-	   }
-	   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-	   fprintf(pcmd->cFile, "_STATE s)\n{\n\tswitch(s)\n\t{\n");
+	   print_state_entry_or_exit_manager_signature(pcmd, pmi, eoe_exit, dod_define);
 
       iterate_list(pmi->state_list, write_state_exit_fn_switch_case, &ich);
 
@@ -3132,101 +3013,90 @@ void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
    }
 }
 
+/**
+ * These are downward looking
+ * 
+ * @author sstan (12/3/2023)
+ * 
+ * @param pcmd   the current writer's data structure
+ * @param pmi    the current machine's data structure
+ */
 void printSubMachinesDeclarations(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-#ifdef FSMLANG_DEVELOP
-	fprintf(pcmd->cFile
-			, "/* printSubMachinesDeclarations */\n"
-		   );
-#endif
-	ITERATOR_HELPER helper;
+	FSMLANG_DEVELOP_PRINTF(pcmd->subMachineHFile , "/* FSMLANG_DEVELOP: %s */\n", __func__ );
 
-	helper.pmi   = pmi;
-	helper.fout  = pcmd->hFile;
-	helper.first = true;
+	ITERATOR_CALLBACK_HELPER ich = { 0 };
 
-	fprintf(pcmd->hFile,"/* Sub Machine Declarations */\n\n");
-	fprintf(pcmd->hFile
-			,"%s\ntypedef enum {\n"
-			,"/* enumerate sub-machines */"
-			);
+	ich.pcmd  = pcmd;
+	ich.ih.pmi   = pmi;
+	ich.ih.first = true;
 
+	fprintf(pcmd->subMachineHFile,"/* Sub Machine Declarations */\n\n");
+	fprintf(pcmd->subMachineHFile, "typedef enum {\n");
+
+	ich.ih.fout  = pcmd->subMachineHFile;
 	iterate_list(pmi->machine_list
 				 , print_sub_machine_as_enum_member
-				 ,&helper
+				 ,&ich
 				 );
 
-	fprintf(pcmd->hFile, "\t, ");
-	printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-	fprintf(pcmd->hFile, "_numSubMachines\n} ");
-	printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	fprintf(pcmd->hFile, "_SUB_MACHINES;\n\n");
-
-	fprintf(pcmd->hFile, "typedef ");
-	streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
-	fprintf(pcmd->hFile
-			, "_EVENT%s (*"
-			, pmi->data_block_count ? "_ENUM"  : ""
-			);
-	streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	fprintf(pcmd->hFile, "_SUB_MACHINE_FN)(");
-	streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
-	fprintf(pcmd->hFile
-			, "_EVENT%s);\n"
-			, pmi->data_block_count ? "_ENUM"  : ""
-		   );
-
-	fprintf(pcmd->hFile, "typedef struct _");
-	printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-	fprintf(pcmd->hFile, "_sub_fsm_if_ ");
-	printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	fprintf(pcmd->hFile, "_SUB_FSM_IF, *p");
-	printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	fprintf(pcmd->hFile, "_SUB_FSM_IF;\n");
-
-	fprintf(pcmd->hFile,"struct _");
-	printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-	fprintf(pcmd->hFile, "_sub_fsm_if_\n{\n");
-
-	fprintf(pcmd->hFile, "\t");
-	streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
-	fprintf(pcmd->hFile
-			, "_EVENT%s                first_event;\n"
-			, pmi->data_block_count ? "_ENUM"  : ""
+	fprintf(pcmd->subMachineHFile
+			, "\t, %s_numSubMachines\n} %s_SUB_MACHINES;\n\n"
+			, fqMachineName(pcmd)
+			, fsmType(pcmd)
 			);
 
-	fprintf(pcmd->hFile, "\t");
-	streamHungarianToUnderbarCaps(pcmd->hFile, ultimateAncestor(pmi)->name->name);
-	fprintf(pcmd->hFile
-			, "_EVENT%s                last_event;\n"
-			, pmi->data_block_count ? "_ENUM"  : ""
+	fprintf(pcmd->subMachineHFile
+			, "typedef %s (*%s)(%s);\n"
+			, actionReturnType(pcmd)
+			, subMachineFnType(pcmd)
+			, actionReturnType(pcmd)
 			);
 
-	fprintf(pcmd->hFile, "\t");
-	streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-	fprintf(pcmd->hFile, "_SUB_MACHINE_FN       subFSM;\n");
+	fprintf(pcmd->subMachineHFile
+			, "typedef struct _%s_sub_fsm_if_ %s, *p%s;\n"
+			, nfMachineName(pcmd)
+			, subFsmIfType(pcmd)
+			, subFsmIfType(pcmd)
+			);
 
-	fprintf(pcmd->hFile
+	fprintf(pcmd->subMachineHFile
+			,"struct _%s_sub_fsm_if_\n{\n"
+			, nfMachineName(pcmd)
+			);
+
+	fprintf(pcmd->subMachineHFile
+			, "\t%-*sfirst_event;\n"
+			, (int)pcmd->sub_fsm_if_format_width
+			, eventType(pcmd)
+			);
+
+	fprintf(pcmd->subMachineHFile
+			, "\t%-*slast_event;\n"
+			, (int)pcmd->sub_fsm_if_format_width
+			, eventType(pcmd)
+			);
+
+	fprintf(pcmd->subMachineHFile
+			, "\t%-*ssubFSM;\n"
+			, (int)pcmd->sub_fsm_if_format_width
+			, subMachineFnType(pcmd)
+			);
+
+	fprintf(pcmd->subMachineHFile
 			,"};\n\n"
 			);
 
-	fprintf(pcmd->hFile, "extern p");
-	printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-	fprintf(pcmd->hFile, "_SUB_FSM_IF ");
-	printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-	fprintf(pcmd->hFile, "_sub_fsm_if_array[");
-	printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-	fprintf(pcmd->hFile, "_numSubMachines];\n\n");
+	ich.ih.fout  = pcmd->cFile;
+	iterate_list(pmi->machine_list, declare_sub_machine_if, &ich);
 
-	iterate_list(pmi->machine_list, declare_sub_machine_if, &helper);
-
-	fprintf(pcmd->hFile
+	fprintf(pcmd->cFile
 			, "\n"
 			);
 
 	if (pmi->parent_event_reference_count)
 	{
-	   declare_parent_event_reference_data_structures(pcmd, pmi);
+		declare_parent_event_reference_data_structures(pcmd, pmi);
 	}
 }
 
@@ -3250,20 +3120,26 @@ void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
        fprintf(pcmd->cFile, "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,");
     }
 
-    streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
     fprintf(pcmd->cFile
-            , "_EVENT_NAMES[%s]\n,"
+            , "%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n#endif\n\n"
+			, fsmType(pcmd)
             , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, fsmType(pcmd)
            );
-	streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-    fprintf(pcmd->cFile, "_STATE_NAMES[pfsm->state]\n);\n}\n");
-
-    fprintf(pcmd->cFile, "#endif\n\n");
 
 }
 
 void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
+	fprintf(pcmd->cFile
+			, "#ifdef %s_DEBUG\n"
+			, fsmType(pcmd)
+			);
+	fprintf(pcmd->cFile
+			, "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
+			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			);
+
     fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");
 
     if (short_dbg_names && add_machine_name)
@@ -3275,15 +3151,14 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
     }
 
     fprintf(pcmd->cFile, "event: %%s; state: %%s\"\n,");
-    printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
-    fprintf(pcmd->cFile, "_EVENT_NAMES[%s - THIS(%s)]\n,"
-          , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-          , eventNameByIndex(pmi,0)
-          );
-	streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-    fprintf(pcmd->cFile, "_STATE_NAMES[pfsm->state]\n);\n}\n");
-
-    fprintf(pcmd->cFile, "#endif\n\n");
+    fprintf(pcmd->cFile
+			, "%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n#endif\n\n"
+			, fsmType(pcmd)
+			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, eventNameByIndex(pmi,0)
+			, fsmType(pcmd)
+			);
 
 }
+
 

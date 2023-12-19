@@ -1,4 +1,4 @@
-#include "parser-test12.h"
+#include "parser-test12_priv.h"
 
 NEW_MACHINE_STATE newMachine_a2(pNEW_MACHINE pfsm)
 {
@@ -51,10 +51,10 @@ int main()
 {
    fprintf(stdout,"hello, world\n");
 
-   RUN_STATE_MACHINE(pnewMachine, ext1);
-   RUN_STATE_MACHINE(pnewMachine, ext2);
-   RUN_STATE_MACHINE(pnewMachine, ext3);
-   RUN_STATE_MACHINE(pnewMachine, ext4);
+   run_newMachine((NEW_MACHINE_EVENT)ext1);
+   run_newMachine((NEW_MACHINE_EVENT)ext2);
+   run_newMachine((NEW_MACHINE_EVENT)ext3);
+   run_newMachine((NEW_MACHINE_EVENT)ext4);
 
    return 0;
 }

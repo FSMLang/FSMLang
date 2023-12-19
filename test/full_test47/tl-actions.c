@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "top_level.h"
+#include "top_level_priv.h"
 
 NEW_MACHINE_EVENT nme;
 

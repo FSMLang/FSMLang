@@ -13,13 +13,15 @@ ifeq ($(WEAK_FNS),FALSE)
 FSM_FLAGS += --generate-weak-fns=false
 endif
 
+FSM ?= fsm
+
 ifeq ($(TARGET),fsm_fail_is_pass)
 CALL_FSM_FAILURE_A_SUCCESS = ; if [ $$? -ne 0 ]; then echo "expected fsm failure; test passes"; true; else echo "did not find an expected fsm failure; test fails"; false; fi
 endif
 
-
-
-FSM ?= fsm
+GENERATED_SRC = $(shell $(FSM) -M -tc $(FSM_SRC))
+GENERATED_HEADERS = $(GENERATED_SRC:.c=_priv.h)
+GENERATED_HEADERS += $(FSM_SRC:.fsm=.h)
 
 .fsm.o:
 	@echo "FSM:" $(FSM) $(FSM_FLAGS)

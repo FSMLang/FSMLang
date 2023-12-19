@@ -38,6 +38,12 @@
 
 #include "list.h"
 
+#ifdef FSMLANG_DEVELOP
+#define FSMLANG_DEVELOP_PRINTF(A, ...) fprintf(A, __VA_ARGS__)
+#else
+#define FSMLANG_DEVELOP_PRINTF(...)
+#endif
+
 /**
 	These flags track the modifiers
 		of "machine" and also the action return specifiers.
@@ -308,9 +314,6 @@ void freeMachineInfo(pMACHINE_INFO);
 /* other general utilities */
 FILE *openFile(char *, char *);
 char *createFileName(char *,char *);
-char* createAncestryFileName(pMACHINE_INFO);
-char *hungarianToUnderbarCaps(char *);
-void streamHungarianToUnderbarCaps(FILE*,char *);
 char *eventNameByIndex(pMACHINE_INFO,int);
 pID_INFO eventPidByIndex(pMACHINE_INFO,int);
 char *stateNameByIndex(pMACHINE_INFO,int);
@@ -372,7 +375,7 @@ extern bool                 output_generated_file_names_only;
 /* other useful macros */
 #define CHECK_AND_FREE(A)	if ( A ) { free( A ); A = NULL; }
 #define FREE_AND_CLEAR(A) free( A ); A = NULL;
-#define FCLOSE_AND_CLEAR(A) fclose( A ); A = NULL;
+#define FCLOSE_AND_CLEAR(A) if (A) { fclose( A ); A = NULL; }
 
 /*
 	Output generation.

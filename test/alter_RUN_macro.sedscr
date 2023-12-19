@@ -1,0 +1,2 @@
+s/RUN_STATE_MACHINE(p\(.*\),[ \t]*\(.*\));/run_\1(\2);/
+

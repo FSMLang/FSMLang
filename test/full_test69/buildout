@@ -1,0 +1,81 @@
+FSM: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/linux/fsm
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/linux/fsm -ts --add-event-cross-reference another.fsm > fsmout 
+gcc -g -ggdb -Werror  -Wall -Wpedantic -Wextra -DLINUX   -c -o another.o another.c
+FSM: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/linux/fsm
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/linux/fsm -ts --add-event-cross-reference parser-test13.fsm > fsmout 
+gcc -g -ggdb -Werror  -Wall -Wpedantic -Wextra -DLINUX   -c -o parser-test13.o parser-test13.c
+gcc -g -ggdb -Werror  -Wall -Wpedantic -Wextra -DLINUX   -c -o anotherSubMachine1.o anotherSubMachine1.c
+gcc -g -ggdb -Werror  -Wall -Wpedantic -Wextra -DLINUX   -c -o anotherSubSubMachine1.o anotherSubSubMachine1.c
+gcc -g -ggdb -Werror  -Wall -Wpedantic -Wextra -DLINUX   -c -o anotherSubMachine2.o anotherSubMachine2.c
+gcc -g -ggdb -Werror  -Wall -Wpedantic -Wextra -DLINUX   -c -o subMachine1.o subMachine1.c
+gcc -g -ggdb -Werror  -Wall -Wpedantic -Wextra -DLINUX   -c -o subMachine2.o subMachine2.c
+/usr/bin/ld: another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:31: multiple definition of `anotherNewMachine_sub_fsm_if_array'; another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:31: first defined here
+/usr/bin/ld: another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:41: multiple definition of `sharing_anotherNewMachine_e1'; another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:41: first defined here
+/usr/bin/ld: another.o: in function `anotherNewMachine_pass_shared_event':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:53: multiple definition of `anotherNewMachine_pass_shared_event'; another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:53: first defined here
+/usr/bin/ld: another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:66: multiple definition of `anotherNewMachine'; another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:66: first defined here
+/usr/bin/ld: another.o: in function `anotherNewMachineFSM':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:94: multiple definition of `anotherNewMachineFSM'; another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:94: first defined here
+/usr/bin/ld: another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:74: multiple definition of `panotherNewMachine'; another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:74: first defined here
+/usr/bin/ld: another.o: in function `run_anotherNewMachine':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:77: multiple definition of `run_anotherNewMachine'; another.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:77: first defined here
+/usr/bin/ld: parser-test13.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:31: multiple definition of `newMachine_sub_fsm_if_array'; parser-test13.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:31: first defined here
+/usr/bin/ld: parser-test13.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:40: multiple definition of `newMachine'; parser-test13.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:40: first defined here
+/usr/bin/ld: parser-test13.o: in function `newMachineFSM':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:68: multiple definition of `newMachineFSM'; parser-test13.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:68: first defined here
+/usr/bin/ld: parser-test13.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:48: multiple definition of `pnewMachine'; parser-test13.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:48: first defined here
+/usr/bin/ld: parser-test13.o: in function `run_newMachine':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:51: multiple definition of `run_newMachine'; parser-test13.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:51: first defined here
+/usr/bin/ld: /usr/lib/gcc/x86_64-linux-gnu/11/../../../x86_64-linux-gnu/Scrt1.o: in function `_start':
+(.text+0x1b): undefined reference to `main'
+/usr/bin/ld: another.o: in function `checkWhetherEventIsHandledInAllStates':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:157: undefined reference to `anotherNewMachine_transitionFn1'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:161: undefined reference to `anotherNewMachine_transitionFn1'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:171: undefined reference to `anotherNewMachine_baz'
+/usr/bin/ld: another.o: in function `s1_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:201: undefined reference to `anotherNewMachine_baz'
+/usr/bin/ld: another.o: in function `s2_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:219: undefined reference to `anotherNewMachine_transitionFn'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:229: undefined reference to `anotherNewMachine_baz'
+/usr/bin/ld: another.o: in function `s3_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:247: undefined reference to `anotherNewMachine_transitionFn'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:257: undefined reference to `anotherNewMachine_baz'
+/usr/bin/ld: parser-test13.o: in function `checkWhetherEventIsHandledInAllStates':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:131: undefined reference to `newMachine_transitionFn1'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:135: undefined reference to `newMachine_transitionFn1'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:145: undefined reference to `newMachine_baz'
+/usr/bin/ld: parser-test13.o: in function `s1_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:175: undefined reference to `newMachine_baz'
+/usr/bin/ld: parser-test13.o: in function `s2_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:193: undefined reference to `newMachine_transitionFn'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:203: undefined reference to `newMachine_baz'
+/usr/bin/ld: parser-test13.o: in function `s3_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:221: undefined reference to `newMachine_transitionFn'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:231: undefined reference to `newMachine_baz'
+/usr/bin/ld: another.o: in function `checkWhetherEventIsHandledInAllStates':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:157: undefined reference to `anotherNewMachine_transitionFn1'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:161: undefined reference to `anotherNewMachine_transitionFn1'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:171: undefined reference to `anotherNewMachine_baz'
+/usr/bin/ld: another.o: in function `s1_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:201: undefined reference to `anotherNewMachine_baz'
+/usr/bin/ld: another.o: in function `s2_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:219: undefined reference to `anotherNewMachine_transitionFn'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:229: undefined reference to `anotherNewMachine_baz'
+/usr/bin/ld: another.o: in function `s3_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:247: undefined reference to `anotherNewMachine_transitionFn'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/another.c:257: undefined reference to `anotherNewMachine_baz'
+/usr/bin/ld: anotherSubMachine1.o:/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/anotherSubMachine1.c:53: undefined reference to `anotherSubMachine1_anotherSubSubMachine1_sub_fsm_if'
+/usr/bin/ld: parser-test13.o: in function `checkWhetherEventIsHandledInAllStates':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:131: undefined reference to `newMachine_transitionFn1'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:135: undefined reference to `newMachine_transitionFn1'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:145: undefined reference to `newMachine_baz'
+/usr/bin/ld: parser-test13.o: in function `s1_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:175: undefined reference to `newMachine_baz'
+/usr/bin/ld: parser-test13.o: in function `s2_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:193: undefined reference to `newMachine_transitionFn'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:203: undefined reference to `newMachine_baz'
+/usr/bin/ld: parser-test13.o: in function `s3_stateFn':
+/mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:221: undefined reference to `newMachine_transitionFn'
+/usr/bin/ld: /mnt/c/Users/sstanton/Documents/GitHub/FSMLang/test/full_test69/parser-test13.c:231: undefined reference to `newMachine_baz'
+collect2: error: ld returned 1 exit status
+make: *** [../test.mk:52: test] Error 1

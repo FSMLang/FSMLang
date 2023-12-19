@@ -4,4 +4,5 @@ LEX = flex -I
 YACC = bison -d -y -v #--debug -d
 CC = gcc -g -ggdb -Werror #-Wall
 DIFF = diff --strip-trailing-cr --ignore-space-change
+override CFLAGS+=-DLINUX
 

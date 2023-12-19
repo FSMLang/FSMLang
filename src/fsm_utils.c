@@ -37,6 +37,7 @@
 
 #include "fsm_priv.h"
 #include "list.h"
+#include "ancestry.h"
 
 #ifndef LEX_DEBUG
 
@@ -91,7 +92,7 @@ bool  compact_action_array                      = false;
 bool  short_dbg_names                           = false;
 bool  force_generation_of_event_passing_actions = false;
 bool  add_machine_name                          = false;
-bool  generate_run_function                     = false;
+bool  generate_run_function                     = true;
 bool  add_event_cross_reference                 = false;
 pLIST pplantuml_prefix_strings_list             = NULL;
 pLIST pplantuml_prefix_files_list               = NULL;
@@ -266,30 +267,6 @@ FILE *openFile(char *fileName, char *mode)
 
 }
 
-char *createAncestryFileName(pMACHINE_INFO pmi)
-{
-	FILE *tmp = tmpfile();
-	char *cp  = NULL;
-	unsigned long file_size;
-
-	if (tmp)
-	{
-		printAncestry(pmi, tmp, "_", alc_lower, ai_include_self);
-		file_size = ftell(tmp);
-		fseek(tmp, 0, SEEK_SET);
-
-		if ((cp = (char *) malloc(file_size+1)) != NULL)
-		{
-			fread(cp, 1, file_size, tmp);
-			cp[file_size] = 0;
-		}
-
-		fclose(tmp);
-	}
-
-	return cp;
-}
-
 char *createFileName(char *base, char *ext)
 {
 
@@ -320,129 +297,6 @@ char *createFileName(char *base, char *ext)
 	}
 
 	return cp;
-
-}
-
-/**
-	This function will take a string in hungarian notation
-		and change it into "capitalized underbar" notation.
-		For example, "newMachine" becomes "NEW_MACHINE", but
-		testFSM will become TEST_FSM
-
-	Moreover, escape characters are replaced by underbars.
-
-	Memory is allocated, which must be freed by the calling 
-		program.
-
-	returns :
-		pointer to the string on success,
-		NULL									on failure.
-
-*/
-char *hungarianToUnderbarCaps(char *str)
-{
-
-	int 	i,consecutive;
-	char	*cp, *cp1, *cp2;
-
-	/* first, use i and cp1 to figure out how much memory to get */
-	i = strlen(str);
-	i++;
-
-	for (cp = str; *cp; cp++)
-
-		if (!(*cp & 0x20))
-
-			i++;
-
-	/* now, cp becomes the pointer to the new memory */
-	if ((cp = (char *)malloc(i))) {
-
-		consecutive = 0;
-		for (cp1 = str, cp2 = cp; *cp1; cp1++) {
-
-			//deal with the escapes first
-			if (*cp1 == '\\') {
-				*cp2++ = '_';
-				continue;
-			}
-
-			if (
-          !(*cp1 & 0x20)
-          && (*cp1 != '_')
-		  && (cp1 != str)
-          )
-      {
-
-				if (!consecutive) {
-
-					*cp2++ = '_';
-
-					consecutive = 1;
-
-				}
-
-			}
-			else
-
-				consecutive = 0;
-
-			*cp2++ = isalpha(*cp1) ? toupper(*cp1) : *cp1;
-
-		}
-
-		*cp2 = 0;
-
-	}
-
-	return cp;
-
-}
-
-/**
- *  streamHungarianToUnderbarCaps
- *
- *  Behaves similarly to hungarianToUnderbarCaps, but writes
- *  the ouput to the given stream.
-*/
-void streamHungarianToUnderbarCaps(FILE *fout, char *str)
-{
-
-	int 	consecutive;
-	char	*cp;
-
-	consecutive = 0;
-	for (cp = str; *cp; cp++) {
-
-		//deal with the escapes first
-		if (*cp == '\\')
-		{
-			fputc('_',fout);
-			continue;
-		}
-
-		if (
-          !(*cp & 0x20)
-          && (*cp != '_')
-		  && (cp != str)
-          )
-      {
-
-			if (!consecutive) {
-
-				fputc('_',fout);
-				consecutive = 1;
-
-			}
-
-		}
-		else
-
-			consecutive = 0;
-
-		fputc((isalpha(*cp) ? toupper(*cp) : *cp), fout);
-
-	}
 
 }
 
@@ -930,16 +784,19 @@ int safe_strlen(const char *s)
 */
 char *getFileNameNoDir(const char *path)
 {
-	const char *cp;
-  char *cp1;
+  char *cp1 = NULL;
+  const char *cp;
 
-	for(cp = path; (cp1 = strpbrk(cp,"\\/")); cp = ++cp1)
-		;
+  if (path)
+  {
+	  for (cp = path; (cp1 = strpbrk(cp, "\\/")); cp = ++cp1)
+			;
 
-	if ((cp1 = malloc(safe_strlen(cp)+1)) != NULL)
-		strcpy(cp1,cp);
+		if ((cp1 = malloc(safe_strlen(cp)+1)) != NULL)
+			strcpy(cp1,cp);
+  }
 
-	return cp1;
+  return cp1;
 
 }
 
@@ -1067,6 +924,17 @@ bool print_sub_machine_component_name(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+/**
+ * prints the events for the current event list, followed by
+ * events for any sub-machines.
+ * 
+ * @author sstan (12/9/2023)
+ * 
+ * @param pelem  this must have a mbr of pMACHINE_INFO type
+ * @param data   this must point to an ITERATOR_HELPER structure
+ * 
+ * @return bool always "false"
+ */
 bool print_sub_machine_events(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
@@ -1109,6 +977,11 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    {
       fprintf(pih->fout
             , "\t, \"noEvent\"\n");
+   }
+
+   if (pih->pmi->machine_list)
+   {
+	   iterate_list(pih->pmi->machine_list, print_sub_machine_event_names, pih);
    }
 
 
@@ -1208,7 +1081,15 @@ void printNameWithAncestry(char *name, pMACHINE_INFO pmi, FILE *fout, char *sepa
 	printAncestry(pmi, fout, separator, alc, ai);
 
 	fputs(separator, fout);
-	fputs(name, fout);
+
+	if (alc == alc_upper)
+	{
+		streamHungarianToUnderbarCaps(fout, name);
+	}
+	else
+	{
+		fputs(name, fout);
+	}
 }
 
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO pmi)
@@ -1216,6 +1097,16 @@ pMACHINE_INFO ultimateAncestor(pMACHINE_INFO pmi)
 	return !pmi->parent ? pmi : ultimateAncestor(pmi->parent);
 }
 
+/**
+ * prints a data field
+ * 
+ * @author sstan (12/9/2023)
+ * 
+ * @param pelem  must have a mbr of type pDATA_FIELD
+ * @param data   must point to an ITERATOR_HELPER struct
+ * 
+ * @return bool always "false."
+ */
 bool print_data_field(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_HELPER pih       = (pITERATOR_HELPER) data;

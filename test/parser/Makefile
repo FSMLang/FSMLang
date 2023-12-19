@@ -15,6 +15,7 @@ SRC =	lexer.c \
 			parser.c \
 			fsm_utils.c \
 			list.c \
+			ancestry.c \
 			cwalk.c
 
 ifdef NEED_RINDEX

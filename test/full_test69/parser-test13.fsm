@@ -1,3 +1,7 @@
+native
+{
+#include "test.h"
+}
 /*
 	Here are some comments
 */
@@ -10,6 +14,10 @@ machine newMachine
 
 
 	/** a sub machine */
+native
+{
+#include "test.h"
+}
   machine subMachine1 {
 		state ss1, ss2, ss3;
 		event ee1, ee2, ee3;
@@ -29,6 +37,10 @@ machine newMachine
 	}
 
 	/** a second sub machine */
+native
+{
+#include "test.h"
+}
   machine subMachine2 {
 		state sss1, sss2, sss3;
 		event eee1, eee2, eee3;

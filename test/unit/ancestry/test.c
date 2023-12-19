@@ -3,6 +3,7 @@
 #include "unit_test.h"
 
 #include "fsm_priv.h"
+#include "ancestry.h"
 
 ID_INFO grand_parent_name = {
 	.name = "grandParent"
@@ -25,18 +26,26 @@ MACHINE_INFO grand_child = {
 	, .name = &grand_child_name
 };
 
+static void print_pmi_name(pMACHINE_INFO);
 static void leading_underbar(void);
 static void no_leading_underbar(void);
 static void internal_underbar(void);
 static void double_underbar(void);
 static void trailing_underbar(void);
 static void doubled_caps(void);
+static void all_caps(void);
 static void ancestry_no_caps_no_self(void);
 static void ancestry_no_caps_self(void);
 static void ancestry_caps_self(void);
 static void ancestry_caps_no_self(void);
 static void ancestry_caps_self_ultimate(void);
+static void ancestry_caps_self_stop_at_parent(void);
+static void ancestry_caps_ultimate_stop_at_parent(void);
+static void ancestry_caps_omit_self_stop_at_parent(void);
 static void ancestry_file_name(void);
+static void name_with_ancestry_lc_to_uc(void);
+static void name_with_ancestry_lc_to_lc(void);
+static void name_with_ancestry_uc_to_lc(void);
 
 VOID_TEST_FN tests[] = {
 	leading_underbar,
@@ -45,81 +54,208 @@ VOID_TEST_FN tests[] = {
 	double_underbar,
 	trailing_underbar,
 	doubled_caps,
+	all_caps,
 	ancestry_no_caps_no_self,
 	ancestry_no_caps_self,
 	ancestry_caps_self,
 	ancestry_caps_no_self,
 	ancestry_caps_self_ultimate,
 	ancestry_file_name,
+	ancestry_caps_self_stop_at_parent,
+	ancestry_caps_ultimate_stop_at_parent,
+	ancestry_caps_omit_self_stop_at_parent,
+	name_with_ancestry_lc_to_uc,
+	name_with_ancestry_lc_to_lc,
+	name_with_ancestry_uc_to_lc,
 	NULL
 };
 
 static void leading_underbar()
 {
-	streamHungarianToUnderbarCaps(stdout, "_fooBar");
+	char *input = "_fooBar";
+
+	printf("\n%s:\n", __func__);
+
+	printf("%s becomes: ", input);
+	streamHungarianToUnderbarCaps(stdout, input);
 }
 
 static void no_leading_underbar()
 {
-	streamHungarianToUnderbarCaps(stdout, "fooBar");
+	char *input = "fooBar";
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: ", input);
+	streamHungarianToUnderbarCaps(stdout, input);
 }
 
 static void double_underbar()
 {
-	streamHungarianToUnderbarCaps(stdout, "foo__bar");
+	char *input = "foo__bar";
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: ", input);
+	streamHungarianToUnderbarCaps(stdout, input);
 }
 
 static void internal_underbar()
 {
-	streamHungarianToUnderbarCaps(stdout, "foo_bar");
+	char *input = "foo_bar";
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: ", input);
+	streamHungarianToUnderbarCaps(stdout, input);
 }
 
 static void trailing_underbar()
 {
-	streamHungarianToUnderbarCaps(stdout, "fooBar_");
+	char *input = "fooBar_";
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: ", input);
+	streamHungarianToUnderbarCaps(stdout, input);
 }
 
 static void doubled_caps()
 {
-	streamHungarianToUnderbarCaps(stdout, "fooBAr");
+	char *input = "fooBAr";
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: ", input);
+	streamHungarianToUnderbarCaps(stdout, input);
+}
+
+static void all_caps()
+{
+	char *input = "FOOBAR";
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: ", input);
+	streamHungarianToUnderbarCaps(stdout, input);
 }
 
 static void ancestry_no_caps_no_self()
 {
-	(void) printAncestry(&grand_child, stdout, "_", alc_lower, ai_omit_self);
+	pMACHINE_INFO pmi = &grand_child;
+	
+	printf("\n%s:\n", __func__);
+	print_pmi_name(pmi);
+	(void) printAncestry(pmi, stdout, "_", alc_lower, ai_omit_self);
 }
 
 static void ancestry_no_caps_self()
 {
-	(void) printAncestry(&grand_child, stdout, "_", alc_lower, ai_include_self);
+	pMACHINE_INFO pmi = &grand_child;
+
+	printf("\n%s:\n", __func__);
+	print_pmi_name(pmi);
+	(void) printAncestry(pmi, stdout, "_", alc_lower, ai_include_self);
 }
 
 static void ancestry_caps_self()
 {
-	(void) printAncestry(&grand_child, stdout, "_", alc_upper, ai_include_self);
+	pMACHINE_INFO pmi = &grand_child;
+
+	printf("\n%s:\n", __func__);
+	print_pmi_name(pmi);
+	(void) printAncestry(pmi, stdout, "_", alc_upper, ai_include_self);
 }
 
 static void ancestry_caps_self_ultimate()
 {
-	(void) printAncestry(&grand_parent, stdout, "_", alc_upper, ai_include_self);
+	pMACHINE_INFO pmi = &grand_parent;
+	
+	printf("\n%s:\n", __func__);
+	print_pmi_name(pmi);
+	(void) printAncestry(pmi, stdout, "_", alc_upper, ai_include_self);
+}
+
+static void ancestry_caps_self_stop_at_parent()
+{
+	pMACHINE_INFO pmi = &grand_child;
+	
+	printf("\n%s:\n", __func__);
+	print_pmi_name(pmi);
+	(void) printAncestry(pmi, stdout, "_", alc_upper, ai_include_self | ai_stop_at_parent);
+}
+
+static void ancestry_caps_ultimate_stop_at_parent()
+{
+	pMACHINE_INFO pmi = &grand_parent;
+	
+	printf("\n%s:\n", __func__);
+	print_pmi_name(pmi);
+	(void) printAncestry(pmi, stdout, "_", alc_upper, ai_include_self | ai_stop_at_parent);
 }
 
 static void ancestry_caps_no_self()
 {
-	(void) printAncestry(&grand_child, stdout, "_", alc_upper, ai_omit_self);
+	pMACHINE_INFO pmi = &grand_child;
+	
+	printf("\n%s:\n", __func__);
+	print_pmi_name(pmi);
+	(void) printAncestry(pmi, stdout, "_", alc_upper, ai_omit_self);
+}
+
+static void ancestry_caps_omit_self_stop_at_parent()
+{
+	pMACHINE_INFO pmi = &grand_child;
+	
+	printf("\n%s:\n", __func__);
+	print_pmi_name(pmi);
+	(void) printAncestry(pmi, stdout, "_", alc_upper, ai_omit_self | ai_stop_at_parent);
 }
 
 static void ancestry_file_name()
 {
-	char *fn = createAncestryFileName(&grand_child);
+	pMACHINE_INFO pmi = &grand_child;
+	
+	printf("\n%s:\n", __func__);
+	print_pmi_name(pmi);
+
+	char *fn = createAncestryFileName(pmi);
 
 	printf("%s", fn);
 }
 
+static void name_with_ancestry_lc_to_uc(void)
+{
+	pMACHINE_INFO pmi = &grand_child;
+	
+	printf("\n%s:\n", __func__);
+
+	char *name = "name";
+
+	(void) printNameWithAncestry(name, pmi, stdout, "_", alc_upper, ai_include_self);
+
+}
+
+static void name_with_ancestry_lc_to_lc(void)
+{
+	pMACHINE_INFO pmi = &grand_child;
+	
+	printf("\n%s:\n", __func__);
+
+	char *name = "name";
+
+	(void) printNameWithAncestry(name, pmi, stdout, "_", alc_lower, ai_include_self);
+
+}
+
+static void name_with_ancestry_uc_to_lc(void)
+{
+	pMACHINE_INFO pmi = &grand_child;
+	
+	printf("\n%s:\n", __func__);
+
+	char *name = "NAME";
+
+	(void) printNameWithAncestry(name, pmi, stdout, "_", alc_lower, ai_include_self);
+
+}
+
 int main(int argc, char **argv)
 {
-	int result = 0;
-
 	printf("%s: hello, world\n",argv[0]);
 
 	for (VOID_TEST_FN *test_fn = tests; *test_fn; test_fn++)
@@ -128,6 +264,13 @@ int main(int argc, char **argv)
 		printf("\n");
 	}
 
-	return result;
+	(void) argc;
+
+	return 0;
+}
+
+static void print_pmi_name(pMACHINE_INFO pmi)
+{
+	printf("input %s: ", pmi->name->name);
 }
 
