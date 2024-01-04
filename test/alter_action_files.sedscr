@@ -1,0 +1,8 @@
+s/\<printf\>/DBG_PRINTF/
+/#include/s/"\(.*\)\.h"/"\1_priv.h"/
+s/\([ ]*\)sub_machine[123]_\(.*\)[(]/\1THIS(\2)(/
+s/\([ ]*\)subMachine[123]_\(.*\)[(]/\1THIS(\2)(/
+/DBG_PRINTF/s/".*"/"%s", __func__/
+s/top_level_\(.*\)\([(]\)/THIS(\1)\2/
+s/top_level_\(.*\)\([)]\)/THIS(\1)\2/
+s/top_level_\(.*\)\([;]\)/THIS(\1)\2/

@@ -270,6 +270,108 @@ char* fsmType(pCMachineData pcmd)
 	return pcmd->fsm_type;
 }
 
+char* actionFnType(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long file_size;
+
+	/* only create the string once */
+	if (!pcmd->action_fn_type)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			fprintf(tmp, "_ACTION_FN");
+			file_size = ftell(tmp);
+			fseek(tmp, 0, SEEK_SET);
+
+			if ((pcmd->action_fn_type = (char *)malloc(file_size + 1)) != NULL)
+			{
+				fread(pcmd->action_fn_type, 1, file_size, tmp);
+				pcmd->action_fn_type[file_size] = 0;
+			}
+
+			if (pcmd->c_machine_struct_format_width < file_size + 2)
+			{
+				pcmd->c_machine_struct_format_width = file_size + 2;
+			}
+
+			fclose(tmp);
+		}
+	}
+
+	return pcmd->action_fn_type;
+}
+
+char* actionTransType(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long file_size;
+
+	/* only create the string once */
+	if (!pcmd->action_trans_type)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			fprintf(tmp, "_ACTION_TRANS");
+			file_size = ftell(tmp);
+			fseek(tmp, 0, SEEK_SET);
+
+			if ((pcmd->action_trans_type = (char *)malloc(file_size + 1)) != NULL)
+			{
+				fread(pcmd->action_trans_type, 1, file_size, tmp);
+				pcmd->action_trans_type[file_size] = 0;
+			}
+
+			if (pcmd->c_machine_struct_format_width < file_size + 2)
+			{
+				pcmd->c_machine_struct_format_width = file_size + 2;
+			}
+
+			fclose(tmp);
+		}
+	}
+
+	return pcmd->action_trans_type;
+}
+
+char* transitionFnType(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long file_size;
+
+	/* only create the string once */
+	if (!pcmd->transition_fn_type)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			fprintf(tmp, "_TRANSITION_FN");
+			file_size = ftell(tmp);
+			fseek(tmp, 0, SEEK_SET);
+
+			if ((pcmd->transition_fn_type = (char *)malloc(file_size + 1)) != NULL)
+			{
+				fread(pcmd->transition_fn_type, 1, file_size, tmp);
+				pcmd->transition_fn_type[file_size] = 0;
+			}
+
+			if (pcmd->c_machine_struct_format_width < file_size + 2)
+			{
+				pcmd->c_machine_struct_format_width = file_size + 2;
+			}
+
+			fclose(tmp);
+		}
+	}
+
+	return pcmd->transition_fn_type;
+}
+
 char* fsmDataType(pCMachineData pcmd)
 {
 	FILE          *tmp;
@@ -295,6 +397,11 @@ char* fsmDataType(pCMachineData pcmd)
 			if (pcmd->sub_machine_struct_format_width < file_size + 2)
 			{
 				pcmd->sub_machine_struct_format_width = file_size + 2;
+			}
+
+			if (pcmd->c_machine_struct_format_width < file_size + 2)
+			{
+				pcmd->c_machine_struct_format_width = file_size + 2;
 			}
 
 			fclose(tmp);
@@ -329,6 +436,11 @@ char* fsmFnType(pCMachineData pcmd)
 			if (pcmd->sub_machine_struct_format_width < file_size + 2)
 			{
 				pcmd->sub_machine_struct_format_width = file_size + 2;
+			}
+
+			if (pcmd->c_machine_struct_format_width < file_size + 2)
+			{
+				pcmd->c_machine_struct_format_width = file_size + 2;
 			}
 
 			fclose(tmp);
@@ -376,6 +488,11 @@ char* eventType(pCMachineData pcmd)
 			if (pcmd->sub_machine_struct_format_width < file_size + 2)
 			{
 				pcmd->sub_machine_struct_format_width = file_size + 2;
+			}
+
+			if (pcmd->c_machine_struct_format_width < file_size + 2)
+			{
+				pcmd->c_machine_struct_format_width = file_size + 2;
 			}
 
 			fclose(tmp);
@@ -452,6 +569,11 @@ char* subFsmIfType(pCMachineData pcmd)
 				pcmd->sub_machine_struct_format_width = file_size + 2;
 			}
 
+			if (pcmd->c_machine_struct_format_width < file_size + 2)
+			{
+				pcmd->c_machine_struct_format_width = file_size + 2;
+			}
+
 			fclose(tmp);
 		}
 	}
@@ -484,6 +606,11 @@ char* stateType(pCMachineData pcmd)
 			if (pcmd->sub_machine_struct_format_width < file_size + 2)
 			{
 				pcmd->sub_machine_struct_format_width = file_size + 2;
+			}
+
+			if (pcmd->c_machine_struct_format_width < file_size + 2)
+			{
+				pcmd->c_machine_struct_format_width = file_size + 2;
 			}
 
 			fclose(tmp);

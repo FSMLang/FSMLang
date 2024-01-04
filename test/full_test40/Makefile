@@ -11,6 +11,7 @@ FSM_FLAGS = -ts
 FSM_SRC = parser-test5.fsm
 
 SRC = pt5-actions.c
+SRC += test.c
 
 OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o)
 

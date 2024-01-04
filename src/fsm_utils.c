@@ -906,20 +906,22 @@ bool print_sub_machine_component_name(pLIST_ELEMENT pelem, void *data)
    pID_INFO pid         = (pID_INFO) pelem->mbr;
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
-   if(!short_dbg_names)
+   if(short_dbg_names)
    {
-      fprintf(pih->fout, "\t, \"");
-	  printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
-	  fprintf(pih->fout
-			  , "_%s\"\n"
-            , pid->name
-            );
+	   fprintf(pih->fout
+			   , "\t, \"%s\"\n"
+			   , pid->name
+			   );
    }
    else
    {
-      fprintf(pih->fout, "\t, \"%s\"\n", pid->name);
+	   fprintf(pih->fout, "\t, \"");
+	   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
+	   fprintf(pih->fout
+			   , "_%s\"\n"
+			   , pid->name
+			   );
    }
-
 
    return false;
 }
@@ -965,7 +967,7 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    pih->pmi   = (pMACHINE_INFO) pelem->mbr;
    pih->first = false;
 
-   iterate_list(pih->pmi->event_list,print_sub_machine_component_name,pih);
+   iterate_list(pih->pmi->event_list, print_sub_machine_component_name, pih);
 
    if(!short_dbg_names)
    {

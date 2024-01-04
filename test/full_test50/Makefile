@@ -27,5 +27,8 @@ check_top_level_h: top_level.h
 	@rm test.result fsmout
 	-@rm $(FSM_SRC:.fsm=.c)
 	-@rm $(FSM_SRC:.fsm=.h)
+	-@rm $(FSM_SRC:.fsm=_priv.h)
+	-@rm $(FSM_SRC:.fsm=_submach.h)
 	-@rm $(GENERATED_SRC)
 	-@rm $(GENERATED_SRC:.c=.h)
+	-@rm $(GENERATED_SRC:.c=_priv.h)

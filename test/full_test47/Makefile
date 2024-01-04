@@ -14,6 +14,7 @@ override FSM_FLAGS += -ts                  \
                    --generate-run-function 
 
 SRC = $(shell find . -maxdepth 1 -name "*-actions.c" -printf "%P ")
+SRC += test.c
 FSM_SRC = $(shell find . -maxdepth 1 -name "*.fsm" -printf "%P ")
 
 GENERATED_SRC=subMachine1.c \

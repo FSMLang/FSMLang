@@ -1,4 +1,4 @@
-#include "full-test18.h"
+#include "full-test18_priv.h"
 
 NEW_MACHINE_EVENT newMachine_a1(pNEW_MACHINE pfsm)
 {
@@ -54,10 +54,8 @@ NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm,NEW_MACHINE_EVENT e
 
 int main()
 {
-	printf("Hello, world\n");
-
-	RUN_STATE_MACHINE(pnewMachine, newMachine_e1);
-	RUN_STATE_MACHINE(pnewMachine, newMachine_subMachine1_ee1);
+	run_newMachine(newMachine_e1);
+	run_newMachine(newMachine_subMachine1_ee1);
 
 	return 0;
 }

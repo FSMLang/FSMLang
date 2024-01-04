@@ -1,6 +1,6 @@
 #include <unistd.h>
 
-#include "top_level.h"
+#include "top_level_priv.h"
 
 TOP_LEVEL_EVENT top_level_activate_sub_machine1(pTOP_LEVEL pfsm)
 {
@@ -27,16 +27,16 @@ int main ()
 {
    DBG_PRINTF("Hello, world.\n");
 
-   RUN_STATE_MACHINE(ptop_level, top_level_e1);
-   RUN_STATE_MACHINE(ptop_level, top_level_e2);
-   RUN_STATE_MACHINE(ptop_level, top_level_e5);
+   run_top_level(top_level_e1);
+   run_top_level(top_level_e2);
+   run_top_level(top_level_e5);
 
 	 for (int i = 0; i < 5; i++)
    {
       DBG_PRINTF("\n%d\n"
             , i
             );
-      RUN_STATE_MACHINE(ptop_level, top_level_e5);
+      run_top_level(top_level_e5);
    }
 
    return 0;

@@ -1,6 +1,8 @@
 native
 {
 #include "test.h"
+
+#define INIT_FSM_DATA {0}
 }
 
 /**

@@ -199,6 +199,11 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
           , pmi->action_list->count
           );
 
+   if (pmi->data)
+   {
+	   printf("machine has data\n");
+   }
+
    printf("number of sub-machines: %u\n"
           , pmi->machine_list ? pmi->machine_list->count : 0
           );

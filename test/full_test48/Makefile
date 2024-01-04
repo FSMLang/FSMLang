@@ -13,6 +13,7 @@ override CFLAGS += -DFSM_DEBUG \
 override FSM_FLAGS += -ts
 
 SRC = $(shell find . -name "*-actions.c" -printf "%P ")
+SRC += test.c
 FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
 
 GENERATED_SRC=subMachine1.c \

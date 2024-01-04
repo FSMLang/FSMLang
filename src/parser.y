@@ -243,11 +243,12 @@ machine:	machine_prefix ID machine_qualifier
 																						 ,&($$->data_block_count)
 																						 );
 
- 					/* sanity check */
+ 					/* sanity checks */
  					if ($$->parent && $$->data_block_count)
 						{
  					   yyerror("event user data not allowed in sub-machines");
 						}
+
 
 						count_external_declarations     ($$->state_list,&($$->external_state_designation_count));
  					count_states_with_entry_exit_fns($$->state_list,&($$->states_with_entry_fns_count),&($$->states_with_exit_fns_count));
@@ -1360,6 +1361,11 @@ parent_namespace: PARENT NAMESPACE
 user_event_data: { $$ = NULL; }
   | DATA_KEY TRANSLATOR_KEY ID
    {
+		if (pmachineInfo->parent && !pmachineInfo->parent->data) 
+		{
+			yyerror("data translator declared for sub-machine having parent with no data");
+		}
+
   		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
   		   yyerror("out of memory");
  
@@ -1538,7 +1544,7 @@ native_impl: NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK
 
 	;
  
-machine_data: DATA_KEY data_block { $$ = $2; };
+machine_data: DATA_KEY data_block { $$ = $2; pmachineInfo->data = $$; };
 
 data_block:	'{' data_fields '}'
 	{

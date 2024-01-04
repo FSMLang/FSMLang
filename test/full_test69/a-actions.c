@@ -4,7 +4,7 @@
 
 ACTION_RETURN_TYPE anotherNewMachine_a1(FSM_TYPE_PTR pfsm)
 {
-	printf("%s\n", __func__);
+	DBG_PRINTF("%s", __func__);
 
 	(void) pfsm;
 
@@ -13,7 +13,7 @@ ACTION_RETURN_TYPE anotherNewMachine_a1(FSM_TYPE_PTR pfsm)
 
 ACTION_RETURN_TYPE anotherNewMachine_a2(FSM_TYPE_PTR pfsm)
 {
-	printf("%s\n", __func__);
+	DBG_PRINTF("%s", __func__);
 
 	(void) pfsm;
 
@@ -22,9 +22,8 @@ ACTION_RETURN_TYPE anotherNewMachine_a2(FSM_TYPE_PTR pfsm)
 
 void anotherNewMachine_baz(pANOTHER_NEW_MACHINE pfsm, ANOTHER_NEW_MACHINE_STATE s)
 {
-	printf("%s\n", __func__);
-
-	printf("Transitioning to %s because of %s\n"
+	DBG_PRINTF("%s\nTransitioning to %s because of %s"
+			 , __func__
           , ANOTHER_NEW_MACHINE_STATE_NAMES[s]
           , ANOTHER_NEW_MACHINE_EVENT_NAMES[pfsm->event]
           );
@@ -32,7 +31,7 @@ void anotherNewMachine_baz(pANOTHER_NEW_MACHINE pfsm, ANOTHER_NEW_MACHINE_STATE 
 
 ANOTHER_NEW_MACHINE_STATE anotherNewMachine_transitionFn(pANOTHER_NEW_MACHINE pfsm, ANOTHER_NEW_MACHINE_EVENT e)
 {
-	printf("%s\n", __func__);
+	DBG_PRINTF("%s", __func__);
 
 	(void) pfsm;
 
@@ -43,7 +42,7 @@ ANOTHER_NEW_MACHINE_STATE anotherNewMachine_transitionFn(pANOTHER_NEW_MACHINE pf
 
 ANOTHER_NEW_MACHINE_STATE anotherNewMachine_transitionFn1(pANOTHER_NEW_MACHINE pfsm, ANOTHER_NEW_MACHINE_EVENT e)
 {
-	printf("%s\n", __func__);
+	DBG_PRINTF("%s", __func__);
 
 	(void) pfsm;
 

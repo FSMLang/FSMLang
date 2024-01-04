@@ -112,11 +112,15 @@ struct _c_machine_data_
 	   , *state_fn_type
 	   , *fq_machine_name              //!< fully qualified name
 	   , *nf_machine_name              //!< "nuclear family" - parent and child.
+	   , *action_fn_type
+	   , *action_trans_type
+	   , *transition_fn_type
       ;
 
    unsigned long sub_fsm_if_format_width
 	   , shared_event_str_format_width
 	   , sub_machine_struct_format_width
+	   , c_machine_struct_format_width
 	   ;
 
    pCMachineData parent_pcmd;
@@ -172,6 +176,7 @@ bool            define_state_entry_and_exit_functions(pLIST_ELEMENT,void*);
 bool            declare_data_translator_functions(pLIST_ELEMENT,void*);
 bool            sub_machine_declare_data_translator_functions(pLIST_ELEMENT,void*);
 bool            define_weak_data_translator_functions(pLIST_ELEMENT,void*);
+bool            sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 
 void            subMachineHeaderStart(pCMachineData,pMACHINE_INFO,char*);
 void            defineSubMachineIF(pCMachineData,pMACHINE_INFO);
@@ -180,6 +185,7 @@ void            defineSubMachineArray(pCMachineData,pMACHINE_INFO);
 bool            print_sub_machine_if(pLIST_ELEMENT,void*);
 void            defineEventPassingActions(pCMachineData,pMACHINE_INFO);
 void            defineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO);
+void            defineSubMachineWeakDataTranslatorStubs(pCMachineData,pMACHINE_INFO);
 void            defineSubMachineFinder(pCMachineData,pMACHINE_INFO);
 bool            declare_action_function(pLIST_ELEMENT,void*);
 void            declareSubMachineManagers(pCMachineData,pMACHINE_INFO);

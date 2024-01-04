@@ -1,7 +1,7 @@
 /**
  * this test failed at compilation due to the FnBug.
  */
-#include "flashdriver.h"
+#include "flashdriver_priv.h"
 
 #include <stdio.h>
 

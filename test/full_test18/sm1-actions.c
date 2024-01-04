@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "subMachine1.h"
+#include "subMachine1_priv.h"
 
 NEW_MACHINE_EVENT subMachine1_aa1(pSUB_MACHINE1 pfsm1)
 {

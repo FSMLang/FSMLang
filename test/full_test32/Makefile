@@ -23,6 +23,8 @@ GENERATED_SRC = \
 	sub_machine3.c
 
 SRC = $(shell find . -name "*-actions.c" -printf "%P ")
+SRC += test.c
+SRC += test.c
 
 include ../test.mk
 

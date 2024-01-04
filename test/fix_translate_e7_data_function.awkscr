@@ -1,0 +1,72 @@
+BEGIN { 
+	found      = 0
+	translated = 0
+	count_dbg  = 0
+	RS="\r\n"
+}
+
+/translate_e7/ {
+	found      = 1
+	translated = 1
+	a = gensub(/(pTOP_LEVEL) (pfsm)/,"\\1_DATA \\2_data","g")
+	print a
+}
+
+/^}/ {
+
+	if (found == 1)
+	{
+		found = 0
+	}
+
+}
+
+/DBG_PRINTF/ {
+
+	if (found == 1)
+	{
+
+		if (++count_dbg > 1)
+		{
+			a = gensub(/, __func__/,"","g")
+
+			if (count_dbg == 2)
+			{
+				b = gensub(/%s/,"The int: %d","g",a)
+			}
+
+			if (count_dbg == 3)
+			{
+				b = gensub(/%s/,"The string: %s","g",a)
+			}
+
+			print b
+			translated = 1
+
+		}
+
+	}
+
+}
+
+/pfsm->/ {
+
+	if (found == 1)
+	{
+		a = gensub(/pfsm->data\./,"pfsm_data->","g")
+		print a
+		translated = 1
+	}
+
+}
+
+{
+	if (translated == 0)
+	{
+		print 
+	}
+	translated = 0
+}
+
+
+

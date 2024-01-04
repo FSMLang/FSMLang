@@ -41,25 +41,28 @@
 #include "fsm_priv.h"
 #include "fsm_c_common.h"
 
-char * createAncestryFileName(pMACHINE_INFO);
-char * hungarianToUnderbarCaps(char *);
-void   streamHungarianToUnderbarCaps(FILE*,char *);
+char * actionFnType(pCMachineData);
 char * actionReturnType(pCMachineData);
-char * fsmType(pCMachineData);
-char * fsmDataType(pCMachineData);
-char * fsmFnType(pCMachineData);
+char * actionTransType(pCMachineData);
+char * createAncestryFileName(pMACHINE_INFO);
+char * dataTranslationFnType(pCMachineData);
 char * eventType(pCMachineData);
-char * fsmFnEventType(pCMachineData);
-char * stateType(pCMachineData);
-char * stateFnType(pCMachineData);
-char * machineName(pCMachineData);
 char * fqMachineName(pCMachineData);
+char * fsmDataType(pCMachineData);
+char * fsmFnEventType(pCMachineData);
+char * fsmFnType(pCMachineData);
+char * fsmType(pCMachineData);
+char * hungarianToUnderbarCaps(char *);
+char * machineName(pCMachineData);
 char * nfMachineName(pCMachineData);
 char * nfMachineNamePmi(pMACHINE_INFO,char**);
+char * sharedEventStrType(pCMachineData);
+char * stateFnType(pCMachineData);
+char * stateType(pCMachineData);
+void   streamHungarianToUnderbarCaps(FILE*,char *);
 char * subFsmIfType(pCMachineData);
 char * subMachineFnType(pCMachineData);
-char * dataTranslationFnType(pCMachineData);
-char * sharedEventStrType(pCMachineData);
+char * transitionFnType(pCMachineData);
 
 #endif
 

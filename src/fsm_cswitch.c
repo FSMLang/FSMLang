@@ -507,25 +507,23 @@ static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_IN
     fprintf(pcmd->cFile, "static ");
     if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
     {
-        fprintf(pcmd->cFile, "bool eventIsNotHandledInAllStates(p");
+        fprintf(pcmd->cFile, "bool eventIsNotHandledInAllStates");
     }
     else
     {
-        streamHungarianToUnderbarCaps(pcmd->cFile, ultimateAncestor(pmi)->name->name);
         fprintf(pcmd->cFile
-                , "_EVENT%s checkWhetherEventIsHandledInAllStates(p"
-                , ultimateAncestor(pmi)->data_block_count ? "_ENUM" : ""
+                , "%s checkWhetherEventIsHandledInAllStates"
+				, eventType(pcmd)
                );
     }
-    printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
     fprintf(pcmd->cFile
-            , " %s,"
-            , dod == dod_declare ? "" : "pfsm"
+            , "(p%s%s,"
+			, fsmType(pcmd)
+			, dod == dod_declare ? "" : " pfsm"
             );
-    streamHungarianToUnderbarCaps(pcmd->cFile, ultimateAncestor(pmi)->name->name);
     fprintf(pcmd->cFile
-            , "_EVENT%s%s%s)%s"
-            , ultimateAncestor(pmi)->data_block_count ? "_ENUM" : ""
+            , "%s%s%s)%s"
+			, eventType(pcmd)
             , dod == dod_declare ? ""  : " "
             , dod == dod_define  ? "e" : ""
             , dod == dod_declare ? ";\n" : "\n{\n"
@@ -1528,16 +1526,13 @@ bool cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pL
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
-   printNameWithAncestry("STATE ", pich->ih.pmi, pich->pcmd->hFile, "_", alc_upper, ai_include_self);
-   printNameWithAncestry(pid_info->name, pich->ih.pmi, pich->pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pich->pcmd->hFile, "(p");
-   printAncestry(pich->ih.pmi, pich->pcmd->hFile, "_", alc_upper, ai_include_self);
-   fprintf(pich->pcmd->hFile, ",");
-   streamHungarianToUnderbarCaps(pich->pcmd->hFile, ultimateAncestor(pich->ih.pmi)->name->name);
    fprintf(pich->pcmd->hFile
-		   , "_EVENT%s);\n"
-           , ultimateAncestor(pich->ih.pmi)->data_block_count ? "_ENUM"  : ""
-          );
+		   , "%s THIS(%s)(p%s,%s);\n"
+		   , stateType(pich->pcmd)
+		   , pid_info->name
+		   , fsmType(pich->pcmd)
+		   , eventType(pich->pcmd)
+		   );
 
    return false;
 }
@@ -1551,20 +1546,21 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
    {
       pich->counter++;
 
-      fprintf(pich->pcmd->cFile, "\t\tcase ");
-      printNameWithAncestry(event->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-      fprintf(pich->pcmd->cFile, ":\n");
+      fprintf(pich->pcmd->cFile
+			  , "\t\tcase %s_%s:"
+			  , fqMachineName(pich->pcmd)
+			  , event->name
+			  );
 
       if (pich->ih.pmi->modFlags & ACTIONS_RETURN_FLAGS)
       {
          if (event->type_data.event_data.psingle_pai->transition)
          {
             fprintf(pich->pcmd->cFile
-                    , "\t\t\t%s = %s_%s%s;\n"
+                    , "\t\t\t%s = THIS(%s)%s;\n"
                     , (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
                       ? "new_s" 
                       : "pfsm->state"
-                    , pich->ih.pmi->name->name
                     , event->type_data.event_data.psingle_pai->transition->name
                     , event->type_data.event_data.psingle_pai->transition->type == STATE
                        ? ""
@@ -1577,12 +1573,11 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
             if (strlen(event->type_data.event_data.psingle_pai->action->name))
             {
                fprintf(pich->pcmd->cFile
-                       , "\t\t\t%s%s_%s(pfsm);\n"
+                       , "\t\t\t%sTHIS(%s)(pfsm);\n"
                        , pich->ih.pmi->modFlags & mfActionsReturnStates 
                           ? (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
                             ? "new_s = " : "pfsm->state = " 
                           : ""
-                       , pich->ih.pmi->name->name
                        , event->type_data.event_data.psingle_pai->action->name
                        );
             }
@@ -1590,13 +1585,12 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
             {
                fprintf(pich->pcmd->cFile
                        , (event->type_data.event_data.psingle_pai->transition->type == STATE)
-                         ? "\t\t\t%s%s_%s;\n"
-                         : "\t\t\t%s%s_%s(pfsm);\n"
+                         ? "\t\t\t%sTHIS(%s);\n"
+                         : "\t\t\t%sTHIS(%s)(pfsm);\n"
                        , pich->ih.pmi->modFlags & mfActionsReturnStates 
                           ? (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
                             ? "new_s = " : "pfsm->state = "
                           : ""
-                       , pich->ih.pmi->name->name
                        , event->type_data.event_data.psingle_pai->transition->name
                       );
             }
@@ -1613,10 +1607,9 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
          if (event->type_data.event_data.psingle_pai->transition)
          {
             fprintf(pich->pcmd->cFile
-                    , "\t\t\t%s = %s_%s%s;\n"
+                    , "\t\t\t%s = THIS(%s)%s;\n"
                     , (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
                       ? "new_s" : "pfsm->state"
-                    , pich->ih.pmi->name->name
                     , event->type_data.event_data.psingle_pai->transition->name
                     , event->type_data.event_data.psingle_pai->transition->type == STATE
                        ? ""
@@ -1627,16 +1620,13 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
          if (strlen(event->type_data.event_data.psingle_pai->action->name))
          {
             fprintf(pich->pcmd->cFile
-                    , "\t\t\tretVal = %s_%s(pfsm);\n"
-                    , pich->ih.pmi->name->name
+                    , "\t\t\tretVal = THIS(%s)(pfsm);\n"
                     , event->type_data.event_data.psingle_pai->action->name
                     );
          }
          else
          {
-            fprintf(pich->pcmd->cFile,"\t\t\tretVal = ");
-            printNameWithAncestry("noEvent", pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-            fprintf(pich->pcmd->cFile, ";\n");
+            fprintf(pich->pcmd->cFile,"\t\t\tretVal = THIS(noEvent);\n");
          }
 
       }
@@ -1662,10 +1652,9 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
    if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
    {
       fprintf(pcmd->cFile, "\t");
-      streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
       fprintf(pcmd->cFile
-              , "_EVENT%s retVal;\n"
-              , ultimateAncestor(pmi)->data_block_count ? "_ENUM"  : ""
+              , "%s retVal;\n"
+			  , eventType(pcmd)
              );
    }
    else
@@ -1677,9 +1666,10 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
-      fprintf(pcmd->cFile, "\t");
-      streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-      fprintf(pcmd->cFile, "_STATE new_s = pfsm->state;\n\n");
+      fprintf(pcmd->cFile
+			  , "\t%s new_s = pfsm->state;\n\n"
+			  , stateType(pcmd)
+			  );
    }
 
    fprintf(pcmd->cFile
@@ -1687,7 +1677,10 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
            );
 
    ich.counter = 0;
-   iterate_list(pmi->event_list,print_switch_cases_for_events_handled_in_all_states,&ich);
+   iterate_list(pmi->event_list
+				, print_switch_cases_for_events_handled_in_all_states
+				, &ich
+				);
 
    if (ich.counter == pmi->event_list->count)
    {
@@ -1717,9 +1710,11 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
 
       if (pmi->machineTransition)
       {
-         fprintf(pcmd->cFile, "\t\t");
-         printNameWithAncestry(pmi->machineTransition->name, pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-         fprintf(pcmd->cFile, "(pfsm,new_s);\n");
+         fprintf(pcmd->cFile
+				 , "\t\t%s_%s(pfsm, new_s);\n"
+				  , fqMachineName(pcmd)
+				  , pmi->machineTransition->name
+				 );
       }
 
       if (pmi->states_with_exit_fns_count)

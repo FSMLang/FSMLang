@@ -20,8 +20,8 @@ CALL_FSM_FAILURE_A_SUCCESS = ; if [ $$? -ne 0 ]; then echo "expected fsm failure
 endif
 
 GENERATED_SRC = $(shell $(FSM) -M -tc $(FSM_SRC))
-GENERATED_HEADERS = $(GENERATED_SRC:.c=_priv.h)
-GENERATED_HEADERS += $(FSM_SRC:.fsm=.h)
+#GENERATED_HEADERS = $(GENERATED_SRC:.c=_priv.h)
+#GENERATED_HEADERS += $(FSM_SRC:.fsm=.h)
 
 .fsm.o:
 	@echo "FSM:" $(FSM) $(FSM_FLAGS)

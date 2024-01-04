@@ -31,41 +31,13 @@
 
 */
 
-#include <stdio.h>
-
-#if defined (LINUX) || defined (CYGWIN)
-#include <stdlib.h>
-#endif
-
-#include "parser-test5.h"
-
-
-int main()
-{
-
-   printf("hello, world\n");
-
-/*
-	printf("sizes:\n\tFSM: %d\n\tarray: %d\n\n"
-					,sizeof(newMachine)
-					, sizeof(*newMachine.actionArray)
-					);
-*/
-
-   RUN_STATE_MACHINE(pnewMachine,newMachine_e1);
-   RUN_STATE_MACHINE(pnewMachine,newMachine_e2);
-   RUN_STATE_MACHINE(pnewMachine,newMachine_e3);
-   RUN_STATE_MACHINE(pnewMachine,newMachine_e4);
-
-	exit(0);
-
-}
+#include "parser-test5_priv.h"
 
 NEW_MACHINE_EVENT newMachine_a2(pNEW_MACHINE ptfsm)
 {
    (void) ptfsm;
 
-   DBG_PRINTF("newMachine_a2\n");
+   DBG_PRINTF("%s\n", __func__);
 
    return newMachine_noEvent;
 }
@@ -74,7 +46,7 @@ NEW_MACHINE_EVENT newMachine_a1(pNEW_MACHINE ptfsm)
 {
    (void) ptfsm;
 
-   DBG_PRINTF("newMachine_a1\n");
+   DBG_PRINTF("%s\n", __func__);
 
    return newMachine_noEvent;
 }
@@ -83,7 +55,7 @@ NEW_MACHINE_EVENT newMachine_noAction(pNEW_MACHINE ptfsm)
 {
    (void) ptfsm;
 
-   DBG_PRINTF("newMachine_noAction\n");
+   DBG_PRINTF("%s\n", __func__);
 
    return newMachine_noEvent;
 }
@@ -92,7 +64,7 @@ NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE ptfsm, NEW_MACHINE_EVENT 
 {
    (void) ptfsm;
 
-   DBG_PRINTF("newMachine_TransitionFn\n");
+   DBG_PRINTF("%s\n", __func__);
 
    return (e == newMachine_e2)
       ? newMachine_s1
@@ -106,7 +78,7 @@ NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE ptfsm, NEW_MACHINE_EVENT
    (void) e;
    NEW_MACHINE_STATE s = ptfsm->state;
 
-   DBG_PRINTF("newMachine_TransitionFn1\n");
+   DBG_PRINTF("%s\n", __func__);
 
    return (s < newMachine_s3)
             ? s++

@@ -4,6 +4,8 @@ native
 #include <stdio.h>
 #include "test.h"
 #endif
+
+#define INIT_FSM_DATA { .field1 = 0, .field2 = {0}}
 }
 
 /**
@@ -83,6 +85,11 @@ machine top_level
     /**
       This machine's happy path is e1 then e2, finishing with e3.
     */
+    native
+    {
+#undef INIT_FSM_DATA
+#define INIT_FSM_DATA { .field1 = 0, .field2 = {0}}
+    }
     machine sub_machine1
     {
         data

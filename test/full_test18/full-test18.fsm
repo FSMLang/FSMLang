@@ -1,5 +1,6 @@
 native
 {
+#include <stdio.h>
 #define DBG_PRINTF(...) printf(__VA_ARGS__); printf("\n")
 }
 

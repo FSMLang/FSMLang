@@ -7,6 +7,7 @@ native
 #include <stdbool.h>
 
 #define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e != THIS(e6))
+#define INIT_FSM_DATA {.field1 = 0, .field2 = {0}}
 }
 
 /**
@@ -97,6 +98,9 @@ machine top_level
       
 		#undef EVENT_IS_NOT_EXCLUDED_FROM_LOG
 		#define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e != THIS(e6))
+
+		#undef INIT_FSM_DATA
+		#define INIT_FSM_DATA {.field1 = 0, .field2 = {0}}
     }
     machine sub_machine1
     {

@@ -1,4 +1,4 @@
-#include "sub_machine2.h"
+#include "sub_machine2_priv.h"
 
 ACTION_RETURN_TYPE THIS(a3)(FSM_TYPE_PTR pfsm)
 {

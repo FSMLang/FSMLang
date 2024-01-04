@@ -4,6 +4,8 @@ native
 #include <stdio.h>
 #include "test.h"
 #endif
+
+#define INIT_FSM_DATA {.foo = 0 }
 }
 
 /**
@@ -18,6 +20,10 @@ native
 */
 machine top_level
 {
+data
+{
+	int foo;
+}
    /**
      This event causes the machine to initialize itself, then
      transition to state s2.  State s2 is the state from which

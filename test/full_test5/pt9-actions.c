@@ -1,24 +1,24 @@
-#include "parser-test9.h"
+#include "parser-test9_priv.h"
 
 void newMachine_a2(pNEW_MACHINE pfsm)
 {
    (void) pfsm;
 
-   printf("newMachine_a2\n");
+   DBG_PRINTF("%s", __func__);
 }
 
 void newMachine_a1(pNEW_MACHINE pfsm)
 {
    (void) pfsm;
 
-   printf("newMachine_a1\n");
+   DBG_PRINTF("%s", __func__);
 }
 
 void newMachine_noAction(pNEW_MACHINE pfsm)
 {
    (void) pfsm;
 
-   printf("newMachine_noAction\n");
+   DBG_PRINTF("%s", __func__);
 }
 
 NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
@@ -37,9 +37,3 @@ NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT 
    return newMachine_s1;
 }
 
-int main()
-{
-   printf("hello, world\n");
-
-   return 0;
-}
