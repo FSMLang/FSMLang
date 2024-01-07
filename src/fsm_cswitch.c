@@ -727,9 +727,10 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
 
        if (pmi->machineTransition)
        {
-          fprintf(pcmd->cFile, "\t\t");
-          printNameWithAncestry(pmi->machineTransition->name, pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-          fprintf(pcmd->cFile, "(pfsm,new_s);\n");
+          fprintf(pcmd->cFile
+                  , "\t\tTHIS(%s)(pfsm, new_s);\n"
+                  , pmi->machineTransition->name
+                  );
        }
 
        if (pmi->states_with_exit_fns_count)
@@ -737,8 +738,8 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
            fprintf(pcmd->cFile
                    ,"\t\trunAppropriateExitFunction(%s%s_%s);\n"
                    , pmi->data ? "&pfsm->data, " : ""
-				   , machineName(pcmd)
-				   , pstate->name
+                   , machineName(pcmd)
+                   , pstate->name
                   );
        }
 
@@ -809,11 +810,10 @@ static bool define_event_returning_state_fn(pLIST_ELEMENT pelem, void *data)
     if (pich->counter < pich->ih.pmi->event_list->count + 1)
     {
         fprintf(pich->pcmd->cFile
-                , "\tdefault:\n\t\t%s(\""
+                , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+                , fqMachineName(pich->pcmd)
                );
-        printNameWithAncestry("noAction", pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-        fprintf(pich->pcmd->cFile, "\");\n\t\tbreak;\n");
     }
 
     fprintf(pich->pcmd->cFile, "\t}\n");
@@ -836,14 +836,18 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
     pID_INFO                  pstate = (pID_INFO) pelem->mbr;
     pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
 
+    FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile
+                           , "/* FSMLANG_DEVELOP: %s */\n"
+                           , __func__
+                           );
+
     (void) print_state_fn_signature(pelem, pich);
 
     //do the body
-    fprintf(pich->pcmd->cFile, "\t");
-    streamHungarianToUnderbarCaps(pich->pcmd->cFile, pich->ih.pmi->name->name);
     fprintf(pich->pcmd->cFile
-            , "_STATE retVal = %s_noTransition;\n"
-            , pich->ih.pmi->name->name
+            , "\t%s retVal = %s_noTransition;\n"
+            , stateType(pich->pcmd)
+            , machineName(pich->pcmd)
            );
 
     /* are transitions possible? */
@@ -854,11 +858,12 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
         (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
        )
     {
-        fprintf(pich->pcmd->cFile,"\t");
-        printNameWithAncestry("STATE", pich->ih.pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self | ai_stop_at_parent);
-        fprintf(pich->pcmd->cFile, " new_s = ");
-        printNameWithAncestry(pstate->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self | ai_stop_at_parent);
-        fprintf(pich->pcmd->cFile, ";\n");
+        fprintf(pich->pcmd->cFile
+                , "\t%s new_s = %s_%s;\n"
+                , stateType(pich->pcmd)
+                , nfMachineName(pich->pcmd)
+                , pstate->name
+                );
     }
 
     fprintf(pich->pcmd->cFile, "\n\tswitch(e)\n\t{\n");
