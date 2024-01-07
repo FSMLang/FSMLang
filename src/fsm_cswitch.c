@@ -1482,16 +1482,12 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool need
    /* declare any machine transition function */
    if (pmi->machineTransition)
    {
-      fprintf(pcmd->hFile, "void ");
-      printAncestry(pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
       fprintf(pcmd->hFile
-              , "_%s(p"
+              , "void THIS(%s)(p%s,%s);\n\n"
               , pmi->machineTransition->name
-             );
-      printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self);
-      fprintf(pcmd->hFile, ",");
-      printAncestry(pmi, pcmd->hFile, "_", alc_upper, ai_include_self | ai_stop_at_parent);
-      fprintf(pcmd->hFile, "_STATE);\n\n");
+              , fsmType(pcmd)
+              , stateType(pcmd)
+              );
    }
 
    /* declare any transition functions */
