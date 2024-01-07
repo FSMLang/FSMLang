@@ -1396,13 +1396,12 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
    /* declare any machine transition function */
    if (pmi->machineTransition)
    {
-      fprintf(pcmd->hFile, "void ");
-      printNameWithAncestry(pmi->machineTransition->name, pmi, pcmd->hFile, "_", alc_lower, ai_include_self);
-      fprintf(pcmd->hFile, "(p");
-      streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-      fprintf(pcmd->hFile, ",");
-      streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-      fprintf(pcmd->hFile, "_STATE);\n\n");
+      fprintf(pcmd->hFile
+              , "void THIS(%s)(p%s,%s);\n\n"
+              , pmi->machineTransition->name
+              , fsmType(pcmd)
+              , stateType(pcmd)
+              );
    }
 
    /* declare any transition functions */
@@ -1410,13 +1409,12 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
    {
       if (pmi->transition_fn_list->count)
       {
-         streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
          fprintf(pcmd->hFile
-                 , "_STATE %s_noTransitionFn(p"
-                 , pmi->name->name
+                 , "%s %s_noTransitionFn(p%s);\n"
+                 , stateType(pcmd)
+                 , machineName(pcmd)
+                 , fsmType(pcmd)
                 );
-         streamHungarianToUnderbarCaps(pcmd->hFile, pmi->name->name);
-         fprintf(pcmd->hFile, ");\n");
 
          iterate_list(pmi->transition_fn_list
                       , declare_transition_fn_for_when_actions_return_states
