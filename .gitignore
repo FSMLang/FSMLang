@@ -106,3 +106,6 @@ build/
 *.vpwhist
 *.vtg
 
+# vi swap files
+*.swp
+

@@ -115,6 +115,8 @@ struct _c_machine_data_
 	   , *action_fn_type
 	   , *action_trans_type
 	   , *transition_fn_type
+       , *uc_machine_name
+       , *ucfq_machine_name
       ;
 
    unsigned long sub_fsm_if_format_width
@@ -179,7 +181,7 @@ bool            define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 bool            sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 
 void            subMachineHeaderStart(pCMachineData,pMACHINE_INFO,char*);
-void            defineSubMachineIF(pCMachineData,pMACHINE_INFO);
+void            defineSubMachineIF(pCMachineData);
 void            possiblyDefineSubMachineSharedEventStructures(pCMachineData,pMACHINE_INFO);
 void            defineSubMachineArray(pCMachineData,pMACHINE_INFO);
 bool            print_sub_machine_if(pLIST_ELEMENT,void*);
@@ -197,7 +199,7 @@ void            printSubMachinesDeclarations(pCMachineData,pMACHINE_INFO);
 void            printFSMMachineDebugBlock(pCMachineData,pMACHINE_INFO);
 void            printFSMSubMachineDebugBlock(pCMachineData,pMACHINE_INFO);
 void            print_action_function_declaration(pCMachineData,char*);
-void            print_transition_fn_declaration_for_when_actions_return_states(pMACHINE_INFO,FILE*,char*);
+void            print_transition_fn_declaration_for_when_actions_return_states(pCMachineData,FILE*,char*);
 void            print_weak_action_function_body_omitting_return_statement(pCMachineData, char *);
 
 #endif

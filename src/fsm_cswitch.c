@@ -379,7 +379,7 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    defineStateFnArray(pcmd, pmi);
 
-   defineSubMachineIF(pcmd, pmi);
+   defineSubMachineIF(pcmd);
 
    possiblyDefineSubMachineSharedEventStructures(pcmd, pmi);
 
@@ -581,10 +581,9 @@ static void defineCSwitchMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
-      fprintf(pcmd->cFile, "\t");
-      printAncestry(pmi, pcmd->cFile, "_", alc_upper, ai_include_self);
       fprintf(pcmd->cFile
-              , "_EVENT%s e = event%s;\n\n"
+              , "\t%s_EVENT%s e = event%s;\n\n"
+              , ucfqMachineName(pcmd)
               , pmi->data_block_count ? "_ENUM"  : ""
               , pmi->data_block_count ? "->event" : ""
              );
@@ -865,11 +864,10 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
     if (pich->counter < pich->ih.pmi->event_list->count + 1)
     {
         fprintf(pich->pcmd->cFile
-                , "\tdefault:\n\t\t%s(\""
+                , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
                 , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+                , fqMachineName(pich->pcmd)
                );
-        printNameWithAncestry("noAction", pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-        fprintf(pich->pcmd->cFile, "\");\n\t\tbreak;\n");
     }
 
     fprintf(pich->pcmd->cFile, "\t}\n");
@@ -1487,7 +1485,7 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool need
    {
       if (pmi->transition_fn_list->count)
       {
-         print_transition_fn_declaration_for_when_actions_return_states(pmi, pcmd->hFile, "noTransition");
+         print_transition_fn_declaration_for_when_actions_return_states(pcmd, pcmd->hFile, "noTransition");
          iterate_list(pmi->transition_fn_list
                       , declare_transition_fn_for_when_actions_return_states
                       , &ich

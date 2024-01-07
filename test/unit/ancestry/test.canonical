@@ -21,6 +21,27 @@ fooBAr becomes: FOO_BAR
 all_caps:
 FOOBAR becomes: FOOBAR
 
+stream_leading_underbar:
+_fooBar becomes: _FOO_BAR
+
+stream_no_leading_underbar:
+fooBar becomes: FOO_BAR
+
+stream_internal_underbar:
+foo_bar becomes: FOO_BAR
+
+stream_double_underbar:
+foo__bar becomes: FOO__BAR
+
+stream_trailing_underbar:
+fooBar_ becomes: FOO_BAR_
+
+stream_doubled_caps:
+fooBAr becomes: FOO_BAR
+
+stream_all_caps:
+FOOBAR becomes: FOOBAR
+
 ancestry_no_caps_no_self:
 input grandChild: grandParent_child
 

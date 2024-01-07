@@ -121,18 +121,16 @@ char *hungarianToUnderbarCaps(char *str)
           )
       {
 
-				if (!consecutive) {
-
+				if (!consecutive)
+				{
 					*cp2++ = '_';
-
 					consecutive = 1;
-
 				}
 
 			}
 			else
 			{
-				consecutive =  *cp & 0x20 ? 0 : 1;
+				consecutive =  *cp1 & 0x20 ? 0 : 1;
 			}
 
 			*cp2++ = isalpha(*cp1) ? toupper(*cp1) : *cp1;
@@ -178,10 +176,8 @@ void streamHungarianToUnderbarCaps(FILE *fout, char *str)
 
 			if (!consecutive)
 			{
-
 				fputc('_',fout);
 				consecutive = 1;
-
 			}
 
 		}
@@ -798,6 +794,71 @@ char *fqMachineName(pCMachineData pcmd)
 	}
 
 	return pcmd->fq_machine_name;
+
+}
+
+/**
+ * Returns the "fully qualified" machine name transformed by
+ * <i>hungarianToUnderbarCaps</i>.  "Fully qualified" means that
+ * the full ancestry is prepended to the name.
+ * 
+ * @author Steven Stanton (1/6/2024)
+ * 
+ * @param pcmd   
+ * 
+ * @return char* 
+ */
+char *ucfqMachineName(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long file_size;
+
+	if (!pcmd->ucfq_machine_name)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self);
+			file_size = ftell(tmp);
+			fseek(tmp, 0, SEEK_SET);
+
+			if ((pcmd->ucfq_machine_name = (char *)malloc(file_size + 1)) != NULL)
+			{
+				fread(pcmd->ucfq_machine_name, 1, file_size, tmp);
+				pcmd->ucfq_machine_name[file_size] = 0;
+			}
+
+			fclose(tmp);
+
+		}
+	}
+
+	return pcmd->ucfq_machine_name;
+
+}
+
+/**
+ * Return the hungarianToUnderbarCaps version of the local
+ * machine name.
+ * 
+ * @author Steven Stanton (1/6/2024)
+ * 
+ * @param pcmd   The writer data from which to take the machine
+ *  			 name.
+ * 
+ * @return char* The machine name, transformed by the function,
+ *  	   <i>hungarianToUnderbarCaps</i>.
+ */
+char *ucMachineName(pCMachineData pcmd)
+{
+	FSMLANG_DEVELOP_PRINTF(pcmd->hFile , "/* %s */\n", __func__ );
+
+	if (!pcmd->uc_machine_name)
+	{
+		pcmd->uc_machine_name = hungarianToUnderbarCaps(pcmd->pmi->name->name);
+	}
+
+	return pcmd->uc_machine_name;
 
 }
 

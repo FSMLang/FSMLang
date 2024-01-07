@@ -34,6 +34,13 @@ static void double_underbar(void);
 static void trailing_underbar(void);
 static void doubled_caps(void);
 static void all_caps(void);
+static void stream_leading_underbar(void);
+static void stream_no_leading_underbar(void);
+static void stream_internal_underbar(void);
+static void stream_double_underbar(void);
+static void stream_trailing_underbar(void);
+static void stream_doubled_caps(void);
+static void stream_all_caps(void);
 static void ancestry_no_caps_no_self(void);
 static void ancestry_no_caps_self(void);
 static void ancestry_caps_self(void);
@@ -55,6 +62,13 @@ VOID_TEST_FN tests[] = {
 	trailing_underbar,
 	doubled_caps,
 	all_caps,
+	stream_leading_underbar,
+	stream_no_leading_underbar,
+	stream_internal_underbar,
+	stream_double_underbar,
+	stream_trailing_underbar,
+	stream_doubled_caps,
+	stream_all_caps,
 	ancestry_no_caps_no_self,
 	ancestry_no_caps_self,
 	ancestry_caps_self,
@@ -73,6 +87,91 @@ VOID_TEST_FN tests[] = {
 static void leading_underbar()
 {
 	char *input = "_fooBar";
+	char *output = hungarianToUnderbarCaps(input);
+
+	printf("\n%s:\n", __func__);
+
+	printf("%s becomes: %s"
+			, input
+			, output
+		  );
+}
+
+static void no_leading_underbar()
+{
+	char *input = "fooBar";
+	char *output = hungarianToUnderbarCaps(input);
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: %s"
+			, input
+			, output
+		  );
+}
+
+static void double_underbar()
+{
+	char *input = "foo__bar";
+	char *output = hungarianToUnderbarCaps(input);
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: %s"
+			, input
+			, output
+		  );
+}
+
+static void internal_underbar()
+{
+	char *input = "foo_bar";
+	char *output = hungarianToUnderbarCaps(input);
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: %s"
+			, input
+			, output
+		  );
+}
+
+static void trailing_underbar()
+{
+	char *input = "fooBar_";
+	char *output = hungarianToUnderbarCaps(input);
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: %s"
+			, input
+			, output
+		  );
+}
+
+static void doubled_caps()
+{
+	char *input = "fooBAr";
+	char *output = hungarianToUnderbarCaps(input);
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: %s"
+			, input
+			, output
+		  );
+}
+
+static void all_caps()
+{
+	char *input = "FOOBAR";
+	char *output = hungarianToUnderbarCaps(input);
+
+	printf("\n%s:\n", __func__);
+	printf("%s becomes: %s"
+			, input
+			, output
+		  );
+}
+
+static void stream_leading_underbar()
+{
+	char *input = "_fooBar";
 
 	printf("\n%s:\n", __func__);
 
@@ -80,7 +179,7 @@ static void leading_underbar()
 	streamHungarianToUnderbarCaps(stdout, input);
 }
 
-static void no_leading_underbar()
+static void stream_no_leading_underbar()
 {
 	char *input = "fooBar";
 
@@ -89,7 +188,7 @@ static void no_leading_underbar()
 	streamHungarianToUnderbarCaps(stdout, input);
 }
 
-static void double_underbar()
+static void stream_double_underbar()
 {
 	char *input = "foo__bar";
 
@@ -98,7 +197,7 @@ static void double_underbar()
 	streamHungarianToUnderbarCaps(stdout, input);
 }
 
-static void internal_underbar()
+static void stream_internal_underbar()
 {
 	char *input = "foo_bar";
 
@@ -107,7 +206,7 @@ static void internal_underbar()
 	streamHungarianToUnderbarCaps(stdout, input);
 }
 
-static void trailing_underbar()
+static void stream_trailing_underbar()
 {
 	char *input = "fooBar_";
 
@@ -116,7 +215,7 @@ static void trailing_underbar()
 	streamHungarianToUnderbarCaps(stdout, input);
 }
 
-static void doubled_caps()
+static void stream_doubled_caps()
 {
 	char *input = "fooBAr";
 
@@ -125,7 +224,7 @@ static void doubled_caps()
 	streamHungarianToUnderbarCaps(stdout, input);
 }
 
-static void all_caps()
+static void stream_all_caps()
 {
 	char *input = "FOOBAR";
 

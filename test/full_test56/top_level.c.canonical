@@ -119,7 +119,7 @@ static TOP_LEVEL_EVENT findAndRunSubMachine(pTOP_LEVEL pfsm, TOP_LEVEL_EVENT e)
 			}
 	}
 
-	return top_level_noEvent;
+	return THIS(noEvent);
 
 }
 
