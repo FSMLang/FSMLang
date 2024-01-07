@@ -46,6 +46,7 @@ static void nf_machine_name(void);
 static void nf_machine_name_pmi(void);
 static void uc_machine_name(void);
 static void uc_fq_machine_name(void);
+static void uc_nf_machine_name(void);
 
 
 VOID_TEST_FN tests[] = {
@@ -62,6 +63,7 @@ VOID_TEST_FN tests[] = {
 	nf_machine_name_pmi,
 	uc_machine_name,
 	uc_fq_machine_name,
+	uc_nf_machine_name,
 	NULL
 };
 
@@ -190,6 +192,15 @@ static void uc_fq_machine_name()
 	printf("%s:\n", __func__);
 	printf("initial: %s\n",   cmd.pmi->name->name);
 	printf("subsequent: %s\n", ucfqMachineName(&cmd));
+}
+
+static void uc_nf_machine_name()
+{
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", ucnfMachineName(&cmd));
 }
 
 int main(int argc, char **argv)

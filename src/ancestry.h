@@ -57,6 +57,7 @@ char * fsmType(pCMachineData);
 char * hungarianToUnderbarCaps(char *);
 char * machineName(pCMachineData);
 char * nfMachineName(pCMachineData);
+char * ucnfMachineName(pCMachineData);
 char * nfMachineNamePmi(pMACHINE_INFO,char**);
 char * sharedEventStrType(pCMachineData);
 char * stateFnType(pCMachineData);

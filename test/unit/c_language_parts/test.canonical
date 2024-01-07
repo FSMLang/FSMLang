@@ -51,3 +51,7 @@ uc_fq_machine_name:
 initial: grandChild
 subsequent: GRAND_PARENT_CHILD_GRAND_CHILD
 
+uc_nf_machine_name:
+initial: grandChild
+subsequent: CHILD_GRAND_CHILD
+

@@ -112,6 +112,7 @@ struct _c_machine_data_
 	   , *state_fn_type
 	   , *fq_machine_name              //!< fully qualified name
 	   , *nf_machine_name              //!< "nuclear family" - parent and child.
+	   , *uc_nf_machine_name           
 	   , *action_fn_type
 	   , *action_trans_type
 	   , *transition_fn_type

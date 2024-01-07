@@ -134,7 +134,7 @@ static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 	{
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e1):
-		retVal = top_level_a1(pfsm);
+		retVal = THIS(a1)(pfsm);
 		new_s = top_level_s2;
 		break;
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
@@ -169,15 +169,15 @@ static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e2):
-		retVal = top_level_activate_sub_machine1(pfsm);
+		retVal = THIS(activate_sub_machine1)(pfsm);
 		break;
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e3):
-		retVal = top_level_activate_sub_machine2(pfsm);
+		retVal = THIS(activate_sub_machine2)(pfsm);
 		break;
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e4):
-		retVal = top_level_activate_sub_machine3(pfsm);
+		retVal = THIS(activate_sub_machine3)(pfsm);
 		new_s = top_level_s3;
 		break;
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
@@ -210,11 +210,11 @@ static TOP_LEVEL_EVENT s3_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e4):
-		retVal = top_level_activate_sub_machine3(pfsm);
+		retVal = THIS(activate_sub_machine3)(pfsm);
 		break;
 /* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e5):
-		retVal = top_level_activate_sub_machine2(pfsm);
+		retVal = THIS(activate_sub_machine2)(pfsm);
 		break;
 	default:
 		DBG_PRINTF("top_level_noAction");

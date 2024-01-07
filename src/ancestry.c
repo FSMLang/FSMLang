@@ -902,6 +902,35 @@ char *nfMachineName(pCMachineData pcmd)
 
 }
 
+char *ucnfMachineName(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long file_size;
+
+	if (!pcmd->uc_nf_machine_name)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self | ai_stop_at_parent);
+			file_size = ftell(tmp);
+			fseek(tmp, 0, SEEK_SET);
+
+			if ((pcmd->uc_nf_machine_name = (char *)malloc(file_size + 1)) != NULL)
+			{
+				fread(pcmd->uc_nf_machine_name, 1, file_size, tmp);
+				pcmd->uc_nf_machine_name[file_size] = 0;
+			}
+
+			fclose(tmp);
+
+		}
+	}
+
+	return pcmd->uc_nf_machine_name;
+
+}
+
 
 /**
  * Returns a string composed of the machine name prepended with
