@@ -1080,21 +1080,24 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
         if (pai)
         {
             pich->counter++;
-            fprintf(pich->pcmd->cFile, "\tcase ");
-            printNameWithAncestry(pevent->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-            fprintf(pich->pcmd->cFile, ":\n");
+            fprintf(pich->pcmd->cFile
+                    , "\tcase THIS(%s):\n"
+                    , pevent->name
+                    );
 
             fprintf(pich->pcmd->cFile, "\t\tretVal = ");
             if (strlen(pai->action->name))
             {
-                printNameWithAncestry(pai->action->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-                fprintf(pich->pcmd->cFile, "(pfsm);\n");
+                fprintf(pich->pcmd->cFile
+                        , "THIS(%s)(pfsm);\n"
+                        , pai->action->name
+                        );
             }
             else
             {
-               printNameWithAncestry(pai->transition->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
                fprintf(pich->pcmd->cFile
-                       , "%s;\n"
+                       , "THIS(%s)%s;\n"
+                       , pai->transition->name
                        , pai->transition->type == STATE ? "" : "(pfsm,e)"
                        );
             }
