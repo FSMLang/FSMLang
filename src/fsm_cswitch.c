@@ -1016,41 +1016,43 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
         if (pai)
         {
             pich->counter++;
-            fprintf(pich->pcmd->cFile, "\tcase ");
-            printNameWithAncestry(pevent->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-            fprintf(pich->pcmd->cFile, ":\n");
+            fprintf(pich->pcmd->cFile
+                    , "\tcase THIS(%s):\n"
+                    , pevent->name
+                    );
 
             if (strlen(pai->action->name))
             {
-                printNameWithAncestry(pai->action->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-                fprintf(pich->pcmd->cFile, "(pfsm);\n");
+                fprintf(pich->pcmd->cFile
+                        , "THIS(%s)(pfsm);\n"
+                        , pai->action->name
+                        );
             }
             else
             {
-                fprintf(pich->pcmd->cFile, "#ifdef ");
-                printNameWithAncestry("DEBUG", pich->ih.pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
                 fprintf(pich->pcmd->cFile
-                        , "\n\t\t%s(\""
+                        , "#ifdef %s_DEBUG\n\t\t%s(\"%s_noAction\");\n#endif\n"
+                        , ucfqMachineName(pich->pcmd)
                         , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+                       , fqMachineName(pich->pcmd)
                         );
-                printNameWithAncestry("noAction", pich->ih.pmi, pich->pcmd->cFile, "_", alc_upper, ai_include_self);
-                fprintf(pich->pcmd->cFile, "\");\n#endif\n");
             }
 
             if (pai->transition)
             {
                fprintf(pich->pcmd->cFile
-                       , "\t\t%s = "
-                       , (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
+                       , "\t\t%s = %s_%s%s;\n"
+                       , (pich->ih.pmi->machineTransition
+                          || pich->ih.pmi->states_with_entry_fns_count
+                          || pich->ih.pmi->states_with_exit_fns_count
+                          )
                          ? "new_s" 
                          : "pfsm->state"
+                       , fqMachineName(pich->pcmd)
+                       , pai->transition->name
+                       , pai->transition->type == STATE ? "" : "(pfsm,e)"
                       );
 
-               printNameWithAncestry(pai->transition->name, pich->ih.pmi, pich->pcmd->cFile, "_", alc_lower, ai_include_self);
-               fprintf(pich->pcmd->cFile
-                       , "%s;\n"
-                       , pai->transition->type == STATE ? "" : "(pfsm,e)"
-                       );
             }
 
             fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
