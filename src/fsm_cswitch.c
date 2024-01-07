@@ -158,12 +158,10 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmd, pMACHINE_INFO p
 
       if (pmi->machineTransition)
       {
-         fprintf(pcmd->cFile, "\t\t\t");
-		 printAncestry(pmi, pcmd->cFile, "_", alc_lower, ai_include_self);
-		 fprintf(pcmd->cFile
-				 , "_%s(pfsm,s);\n"
-                 , pmi->machineTransition->name
-                );
+         fprintf(pcmd->cFile
+                 , "\t\t\tTHIS(%s)(pfsm,s);\n"
+                     , pmi->machineTransition->name
+                 );
       }
 
       if (pmi->states_with_exit_fns_count)
@@ -1692,9 +1690,9 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    if (ich.counter == pmi->event_list->count)
    {
-      printf("warning: (");
-      printAncestry(pmi, stdout, "_", alc_lower, ai_include_self);
-      printf( ") all events are handled identically in all states.\n");
+      printf("warning: (%s): all events are handled identically in all states.\n"
+             , fqMachineName(pcmd)
+             );
    }
 
    if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
