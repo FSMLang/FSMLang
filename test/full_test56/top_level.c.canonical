@@ -149,7 +149,7 @@ static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 
 	if (top_level_s1 != new_s)
 	{
-		top_level_foo(pfsm,new_s);
+		THIS(foo)(pfsm, new_s);
 		pfsm->state = new_s;
 
 	}
@@ -189,7 +189,7 @@ static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 
 	if (top_level_s2 != new_s)
 	{
-		top_level_foo(pfsm,new_s);
+		THIS(foo)(pfsm, new_s);
 		pfsm->state = new_s;
 
 	}

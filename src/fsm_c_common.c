@@ -103,7 +103,7 @@ static void writeHeaderPreamble                                                 
 static void print_transition_function_signature                                      (FILE*,pCMachineData,char*,char*,bool);
 static void print_transition_function_body                                           (FILE*,pCMachineData,char*);
 static void print_state_entry_or_exit_manager_signature                              (pCMachineData,pMACHINE_INFO,ENTRY_OR_EXIT,DECLARE_OR_DEFINE);
-static void print_native_header                                                      (pCMachineData,pMACHINE_INFO);
+static void print_native_prologue                                                      (pCMachineData,pMACHINE_INFO);
 static void print_data_translator_fn_signature                                       (FILE*,pCMachineData,pID_INFO,DECLARE_OR_DEFINE);
 static void print_sub_machine_data_translator_fn_signature                                       (FILE*,pCMachineData,pID_INFO,DECLARE_OR_DEFINE);
 
@@ -407,7 +407,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
    };
 
    /* put the native code segment out to the header */
-   if (pmi->native) print_native_header(pcmd, pmi);
+   if (pmi->native_prologue) print_native_prologue(pcmd, pmi);
 
    fprintf(pcmd->hFile
 		   , "\n#ifdef %s_DEBUG\n"
@@ -838,6 +838,9 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
 					, &ich
 					);
    }
+
+   /* put the native_epilogue code segment out to the header */
+   if (pmi->native_epilogue) print_native_epilogue(pcmd, pmi);
 
 }
 
@@ -2049,7 +2052,7 @@ bool sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT pelem, void
    return false;
 }
 
-static void print_native_header(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void print_native_prologue(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	FILE *f_array[] = {
 		pcmd->hFile
@@ -2060,10 +2063,29 @@ static void print_native_header(pCMachineData pcmd, pMACHINE_INFO pmi)
 	for (unsigned long f_iterator = 0; f_iterator < sizeof(f_array)/sizeof(f_array[0]); f_iterator++)
 	{
 		fprintf(f_array[f_iterator]
-				, "#ifndef %s_NATIVE\n#define %s_NATIVE\n%s\n#endif\n"
+				, "#ifndef %s_NATIVE_PROLOG\n#define %s_NATIVE_PROLOG\n%s\n#endif\n"
 				, fsmType(pcmd)
 				, fsmType(pcmd)
-				, pmi->native
+				, pmi->native_prologue
+				);
+	}
+}
+
+void print_native_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi)
+{
+	FILE *f_array[] = {
+		pcmd->hFile
+		, pcmd->subMachineHFile
+		, pcmd->pubHFile
+	};
+
+	for (unsigned long f_iterator = 0; f_iterator < sizeof(f_array)/sizeof(f_array[0]); f_iterator++)
+	{
+		fprintf(f_array[f_iterator]
+				, "#ifndef %s_NATIVE_EPILOG\n#define %s_NATIVE_EPILOG\n%s\n#endif\n"
+				, fsmType(pcmd)
+				, fsmType(pcmd)
+				, pmi->native_epilogue
 				);
 	}
 }
@@ -2077,7 +2099,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    ich.ih.pmi       = pmi;
 
    /* put the native code segment out to the header */
-   if (pmi->native) print_native_header(pcmd, pmi);
+   if (pmi->native_prologue) print_native_prologue(pcmd, pmi);
 
    fprintf(pcmd->hFile
 		   , "#ifdef %s_DEBUG\n"
@@ -2829,13 +2851,24 @@ static bool declare_shared_event_lists(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-void addNativeImplementationIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
+void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
 {
-   if (pmi->native_impl)
+   if (pmi->native_impl_prologue)
    {
       fprintf(fout
-              , "%s\n\n"
-              , pmi->native_impl
+              , "%s\n"
+              , pmi->native_impl_prologue
+              );
+   }
+}
+
+void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
+{
+   if (pmi->native_impl_epilogue)
+   {
+      fprintf(fout
+              , "%s\n"
+              , pmi->native_impl_epilogue
               );
    }
 }
@@ -3194,5 +3227,4 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 			);
 
 }
-
 

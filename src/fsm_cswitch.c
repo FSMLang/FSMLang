@@ -240,7 +240,7 @@ static int writeCSwitchMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
    };
 
    /* do this now, since some header stuff puts content into the source file.*/
-   addNativeImplementationIfThereIsAny(pmi, pcmd->cFile);
+   addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
    commonHeaderStart(pcmd, pmi, "state_fn");
 
@@ -319,6 +319,8 @@ static int writeCSwitchMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    writeDebugInfo(pcmd, pmi);
 
+	addNativeImplementationEpilogIfThereIsAny(pmi, pcmd->cFile);
+
    return 0;
 }
 
@@ -358,7 +360,7 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
    };
 
    /* do this now, since some header stuff puts content into the source file.*/
-   addNativeImplementationIfThereIsAny(pmi, pcmd->cFile);
+   addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
    subMachineHeaderStart(pcmd, pmi, "state_fn");
 
@@ -421,6 +423,8 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
    }
 
    writeDebugInfo(pcmd, pmi);
+
+	addNativeImplementationEpilogIfThereIsAny(pmi, pcmd->cFile);
 
    return 0;
 }
@@ -1454,6 +1458,8 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
       fprintf(pcmd->hFile, "\n");
    }
 
+	if (pmi->native_epilogue) print_native_epilogue(pcmd, pmi);
+
 }
 
 void cswitchSubMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
@@ -1524,6 +1530,8 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool need
       iterate_list(pmi->state_list, declare_state_entry_and_exit_functions, &ich);
       fprintf(pcmd->hFile, "\n");
    }
+
+	if (pmi->native_epilogue) print_native_epilogue(pcmd, pmi);
 
 }
 

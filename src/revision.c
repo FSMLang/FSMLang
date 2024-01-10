@@ -336,5 +336,22 @@
    State functions now return correct types when events have data.
 */
 
-const char rev_string[] = "1.40";
+/*
+   Revision 1.41:
+ 
+   New keywords, prologue and epilogue are provided.  epilogue causes the native
+   blocks to be placed at the end of the header and source files.
+
+   prolog is optional; native blocks modified by it are still placed at the
+   beginning of the respective files.
+
+   Usage:
+   native prologue {  blah  }
+   native epilogue {  blah  }
+   
+   native impl prologue {  blah  }
+   native impl epilogue {  blah  }
+*/
+
+const char rev_string[] = "1.41";
 

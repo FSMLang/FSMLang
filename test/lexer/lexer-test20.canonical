@@ -1,8 +1,15 @@
 NATIVE_KEY
+PROLOGUE_KEY
 Native:
 
 Copy this to the header file.
 DEFINE INIT_FSM_DATA {{0,0}, 1}
+
+NATIVE_KEY
+EPILOGUE_KEY
+Native:
+
+Copy this to the header file at the end.
 
 MACHINE_KEY
 Added : newMachine of type ID
@@ -14,8 +21,14 @@ baz : ID
 ;
 NATIVE_KEY
 IMPLEMENTATION_KEY
+PROLOGUE_KEY
 Native:
  copy this to the source file; 
+NATIVE_KEY
+IMPLEMENTATION_KEY
+EPILOGUE_KEY
+Native:
+ copy this to the source file at the end; 
 {
 DATA_KEY
 {
@@ -29,6 +42,8 @@ Added : a of type ID
 a : ID
 ;
 }
+Added : str_int of type ID
+str_int : ID
 Added : foo of type ID
 foo : ID
 ;
@@ -38,12 +53,10 @@ Added : float of type ID
 float : ID
 Added : f of type ID
 f : ID
-[
-Added : NUM_FLOATS of type ID
-NUM_FLOATS : ID
-]
 ;
 }
+Added : str_float of type ID
+str_float : ID
 Added : beep of type ID
 beep : ID
 ;
@@ -51,80 +64,10 @@ Found : int of type ID
 int : ID
 Added : bop of type ID
 bop : ID
-[
-NUMERIC_STRING: 20
-]
-;
-}
-Added : u of type ID
-u : ID
-;
-}
-EVENT_KEY
-Added : e1 of type ID
-e1 : ID
-DATA_KEY
-TRANSLATOR_KEY
-Added : e1_dt of type ID
-e1_dt : ID
-{
-Added : char of type ID
-char : ID
-*
-Added : cp of type ID
-cp : ID
-;
-Found : float of type ID
-float : ID
-Found : f of type ID
-f : ID
-;
-}
-,
-Added : e2 of type ID
-e2 : ID
-DATA_KEY
-{
-Found : int of type ID
-int : ID
-Added : i of type ID
-i : ID
-;
-Found : float of type ID
-float : ID
-Found : f of type ID
-f : ID
 ;
 }
 ;
-EVENT_KEY
-Added : e3 of type ID
-e3 : ID
-DATA_KEY
-{
-Found : int of type ID
-int : ID
-Found : i of type ID
-i : ID
-;
-STRUCT_KEY
-{
-Found : int of type ID
-int : ID
-Found : i of type ID
-i : ID
-;
-Found : float of type ID
-float : ID
-Found : f of type ID
-f : ID
-;
 }
-Added : s of type ID
-s : ID
-;
-}
-;
 STATE_KEY
 Added : s1 of type ID
 s1 : ID
@@ -137,6 +80,27 @@ s3 : ID
 ,
 Added : s4 of type ID
 s4 : ID
+INHIBITS
+SUBMACHINES
+ON
+ENTRY
+;
+EVENT_KEY
+Added : e1 of type ID
+e1 : ID
+,
+Added : e2 of type ID
+e2 : ID
+,
+Added : e3 of type ID
+e3 : ID
+;
+EVENT_KEY
+Added : e4 of type ID
+e4 : ID
+=
+Added : BAR of type ID
+BAR : ID
 ;
 Doc Comment:
  a sub machine 
@@ -293,8 +257,8 @@ ACTION_KEY
 Added : aaa1 of type ID
 aaa1 : ID
 [
-Found : eee1 of type ID
-eee1 : ID
+Found : ee1 of type ID
+ee1 : ID
 ,
 Found : sss1 of type ID
 sss1 : ID

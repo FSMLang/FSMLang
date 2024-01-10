@@ -7,8 +7,8 @@
 #ifndef _TOP_LEVEL_H_
 #define _TOP_LEVEL_H_
 
-#ifndef NEW_MACHINE_NATIVE
-#define NEW_MACHINE_NATIVE
+#ifndef NEW_MACHINE_NATIVE_PROLOG
+#define NEW_MACHINE_NATIVE_PROLOG
 
 #include "test.h"
 #define NUM_INTS (2)
@@ -20,7 +20,7 @@
                        }
 
 #endif
-#define FSM_VERSION "1.40"
+#define FSM_VERSION "1.41"
 
 #undef THIS
 #define THIS(A) newMachine_##A

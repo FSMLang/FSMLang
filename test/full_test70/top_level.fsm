@@ -1,231 +1,152 @@
-native
+/*
+	Here are some comments
+*/
+native prologue
 {
-#ifdef TOP_LEVEL_DEBUG
-#include <stdio.h>
 #include "test.h"
-#endif
+#define NUM_INTS (2)
+#define NUM_CHARS (20)
+#define INIT_FSM_DATA {.u.bop = {0}  \
+                       , .u.foo.a = {0}  \
+                       , .u.foo.count_ints = 0                    \
+                       , .u.beep.f = 0                            \
+                       }
+
+#undef  FSM_END_CRITICAL
+
 }
 
-/**
-  After its own initialization, this machine transitions to its
-    second state, in which it uses the first two of its sub machines
-    to acommplish other initialization chores.  The third sub machine
-    is then run, and the top level transitions into its third state.
-
-    The machine remains in its third state for the rest of its life
-    responding to e5 by re-running sub machine 2, followed by sub
-    machine 3.
-*/
-machine top_level
+native epilogue
 {
-   /**
-     This event causes the machine to initialize itself, then
-     transition to state s2.  State s2 is the state from which
-     the initial sub machines are invoked.  When those machines
-     are finished, the top level machine will transition to
-     its "steady state."
-   */
-   event e1;
+#define FSM_START_CRITICAL do_start_critical();
+#define FSM_END_CRITICAL do_end_critical();
+}
 
-   /**
-     sub_machine1 is finished.
-   */
-   event e2;
+reentrant machine newMachine
+ on transition baz;
+ native impl prologue
+ {
+	static void do_start_critical(void);
+	static void do_end_critical(void);
+ }
 
-   /**
-     sub_machine2 is finished.
-   */
-   event e3;
+ native impl epilogue
+ {
+	static void do_start_critical()
+   {
+     DBG_PRINTF("do_start_critical");
+   }
 
-   /**
-     sub_machine3 is finished.
-   */
-   event e4;
+	static void do_end_critical()
+   {
+     DBG_PRINTF("do_end_critical");
+   }
+ }
+{
+data
+{
 
-   /**
-     It is time to do the periodic chore.  This chore requires that 
-     sub machine 2 be run, followed by sub machine 3.
-   */
-   event e5;
+ struct
+ {
+  struct 
+  {
+  	int a[NUM_INTS];
+	int count_ints;
+  } foo;
+  
+  struct
+  {
+   float f;
+  } beep;
+ 
+  int   e3_int;
+  char  bop[NUM_CHARS];
+ } u;
 
-   /**
-      This is the "dispatch loop" event.
-   */
-   event e6;
+}
 
-   /**
-     This is another event to be passed to some sub-machines.
-   */
-   event e7;
+event e1 data 
+ {
+  char  *  cp;
+ }
+, e2 data
+ {
+   int   i;
+   float f;
+ }
+ ;
 
-   /**
-     startup state; initialize the machine when e1 happens.
-   */
-   state s1;
+event e3 data 
+ {
+   int i;
+   struct
+   {
+     int i;
+     float f;
+   } s;
+ }
+ ;
 
-   /**
-     Execute the first two sub machines in this state
-   */
-   state s2;
+event e4;
 
-   /**
-     When e5 is received in this state, execute sub machines 2 and 3.
-   */
-   state s3;
+event eShared;
 
-    /**
-      This machine's happy path is e1 then e2, finishing with e3.
-    */
-		machine sub_machine1
-		{
-       /**
-         This event starts sub_machine1.
-       */
-		   event e1;
-       event e2;
-       event e3;
+state s1, s2, s3, s4;
 
-	event parent::e6, parent::e7 data translator translate_e7_data;
+	/** a sub machine */
+  native
+  {
+  #if defined(INIT_FSM_DATA)
+  #undef INIT_FSM_DATA
+  #endif
+  #define INIT_FSM_DATA { .cp = NULL }
+  }
+  machine subMachine1 {
+		data
+      {
+			char *cp;
+      }
+		state ss1 on entry foo on exit bar
+           , ss2 on entry on exit
+           , ss3 on entry foo1
+           , ss4 on exit bar1
+           ;
+		event parent::eShared data translator eShared_dt 
+            , ee2 , ee3
+            ;
 
-		   state s1;
-       state s2;
+		action aa1[eShared,ss1] transition ss2;
+		action aa2[ee2, ss1] transition ss3;
+	}
 
-       /**
-         Arriving in this state means sub_machine1's job is done.
-       */
-       state s3;
-		
-		   action a1[e1, s1] transition s2;
-		   action a2[e2, s2] transition s3;
+	/** a second sub machine */
+  machine subMachine2 {
+		state sss1, sss2, sss3;
+		event eee1, eee2, eee3;
 
-       /**
-         This action returns the parent's event e3 to signal sub
-           machine completion.
-       */
-		   action a3[e3, s3] transition s1;
+		action aaa1[eee1,sss1] transition sss2;
+		action aaa2[eee2, sss1] transition sss3;
+	}
 
-       /**
-         handle the parent e7 event
-       */
-       action handle_e7[e7, (s1, s2, s3)];
+	//This is a one-line comment
+	action a1[e1,s1];
 
-		}
-		
-    /**
-      This machine's happy path is e1 then e2, finishing with e3.
-    */
-		machine sub_machine2
-		{
-       /**
-         This event starts sub_machine2.
-       */
-		   event e1;
-       event e2;
-       event e3, parent::e6;
+	/**
+		A Document Comment
+	*/
+	action a2[e1,(s2,s3)] transition transitionFn;
+	transition[(e2,e3),(s1,s2,s3)] transitionFn1;
 
-		   state s1;
-       state s2;
+	transition [e4, (s1, s2, s3)] s4;
 
-       /**
-         Arriving in this state means sub_machine1's job is done.
-       */
-       state s3;
-		
-		   action a1[e1, s1] transition s2;
-		   action a2[e2, s2] transition s3;
+	action doNothing[(e1, e2, e3, e4), s4];
 
-       /**
-         This action returns the parent's event e4 to signal sub
-           machine completion.
-       */
-		   action a3[e3, s3] transition s1;
+	action shareSharedEvent[eShared,(all)];
 
-       a3 returns parent::e4;
-		}
-		
-    /**
-      This machine's happy path is e1 then e2, finishing with e3.
+	transitionFn  returns s1,s2;
+	transitionFn1 returns s2,s3;
 
-      It is not necessary to inform the parent when this machine
-        is finished.
-    */
-		machine sub_machine3
-		{
-       /**
-         This event starts sub_machine3.
-       */
-		   event e1;
-       event e2;
-       event e3;
-       event parent::e7;
-
-		   state s1;
-       state s2;
-		
-       /**
-         Arriving in this state means sub_machine1's job is done.
-       */
-       state s3;
-		
-		   action a1[e1, s1] transition s2;
-		   action a2[e2, s2] transition s3;
-
-       /**
-         This machine will return the parent's "noEvent" bringing
-           the current action sequence to an end.
-       */
-		   action a3[e3, s3] transition s1;
-
-       /**
-         handle the parent e7 event
-       */
-       action handle_e7[e7, (s1, s2, s3)];
-
-		}
-		
-    /**
-      Do a top level action
-    */
-   action a1[e1,s1] transition s2;
-
-   /**
-     Make sub_machine1 the active machine, then
-       start it working by returning its first
-       event.
-   */
-   action activate_sub_machine1[e2, s2];
-
-   /**
-     Make sub_machine2 the active machine, then
-       start it working by returning its first
-       event.
-   */
-   action activate_sub_machine2[e3, s2];
-
-   /**
-     Make sub_machine3 the active machine, then
-       start it working by returning its first
-       event.  Trasition to s3, which is the
-       "steady state" for this machine.
-   */
-   action activate_sub_machine3[e4, s2] transition s3;
-
-   /**
-     In the steady state, e5 triggers us to re-run sub
-     machines 2 and 3.
-   */
-   action activate_sub_machine2[e5, s3];
-   action activate_sub_machine3[e4, s3];
-
-   action handle_dispatch[e6, (s1, s2, s3)];
-   action handle_other_passed_event[e7, (s1, s2, s3)];
-
-   activate_sub_machine1 returns sub_machine1::e1;
-   activate_sub_machine2 returns sub_machine2::e1, noEvent;
-   activate_sub_machine3 returns noEvent, sub_machine3::e1;
-
-   handle_dispatch           returns noEvent;
-   handle_other_passed_event returns noEvent;
+	a2 returns noEvent;
 
 }
 

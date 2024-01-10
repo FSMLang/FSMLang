@@ -1,5 +1,5 @@
 /*
-	fsm_utils.c
+	lexer_debug.c
 
 
 	Contains code, &c. necessary for debugging the stand-alone lexer.
@@ -72,5 +72,7 @@ char *strings[]  = {
   , "NUMERIC_STRING"
   , "STRUCT_KEY"
   , "UNION_KEY"
+  , "PROLOGUE_KEY"
+  , "EPILOGUE_KEY"
 };
 

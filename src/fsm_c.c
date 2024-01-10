@@ -212,7 +212,7 @@ static int writeCSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (!pmi || !pcmd) return 1;
 
 	/* do this now, since some header stuff puts content into the source file.*/
-	addNativeImplementationIfThereIsAny(pmi, pcmd->cFile);
+	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
 	subMachineHeaderStart(pcmd, pmi, "action");
 
@@ -283,7 +283,9 @@ static int writeCSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	writeDebugInfo(pcmd, pmi);
 
-	return 0;
+   addNativeImplementationEpilogIfThereIsAny(pmi, pcmd->cFile);
+
+   return 0;
 
 }
 
@@ -292,7 +294,7 @@ static int writeCMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (!pmi || !pcmd) return 1;
 
 	/* do this now, since some header stuff puts content into the source file.*/
-	addNativeImplementationIfThereIsAny(pmi, pcmd->cFile);
+	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
 	commonHeaderStart(pcmd, pmi, "action");
 
@@ -305,6 +307,7 @@ static int writeCMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 	/*
 	  Source File
 	*/
+
 
 	defineActionArray(pcmd, pmi);
 
@@ -367,7 +370,9 @@ static int writeCMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	writeDebugInfo(pcmd, pmi);
 
-	return 0;
+   addNativeImplementationEpilogIfThereIsAny(pmi, pcmd->cFile);
+
+   return 0;
 
 }
 

@@ -39,7 +39,7 @@
 #include "list.h"
 
 #ifdef FSMLANG_DEVELOP
-#define FSMLANG_DEVELOP_PRINTF(A, ...) fprintf(A, __VA_ARGS__)
+#define FSMLANG_DEVELOP_PRINTF(A, ...) if (A) fprintf(A, __VA_ARGS__)
 #else
 #define FSMLANG_DEVELOP_PRINTF(...)
 #endif
@@ -118,6 +118,7 @@ typedef union  _data_type_union_         DATA_TYPE_UNION,         *pDATA_TYPE_UN
 typedef struct _data_type_struct_        DATA_TYPE_STRUCT,        *pDATA_TYPE_STRUCT;
 typedef struct _data_field_name_         DATA_FIELD_NAME,         *pDATA_FIELD_NAME;
 typedef struct _user_event_data_         USER_EVENT_DATA,         *pUSER_EVENT_DATA;
+typedef struct _native_info_             NATIVE_INFO,             *pNATIVE_INFO;
 
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
@@ -262,11 +263,16 @@ struct _action_info_ {
    char             *docCmnt;
 };
 
+struct _native_info_ {
+   char *prologue;
+   char *epilogue;
+};
 struct _machine_qualifier_
 {
    MOD_FLAGS			modFlags;
    pID_INFO      machineTransition;
-   char          *native_impl;
+   char          *native_impl_prologue;
+   char          *native_impl_epilogue;
 };
 
 struct _machine_info_ {
@@ -286,8 +292,10 @@ struct _machine_info_ {
   pLIST         action_info_list;
 	pACTION_INFO	**actionArray;
 	pLIST					data;
-	char					*native;
-	char					*native_impl;
+	char					*native_prologue;
+	char					*native_epilogue;
+	char					*native_impl_prologue;
+	char					*native_impl_epilogue;
 	MOD_FLAGS			modFlags;
   pID_INFO      machineTransition;
   pLIST         machine_list;
@@ -330,7 +338,8 @@ void count_event_user_data_attributes(pLIST,unsigned*,unsigned*);
 void count_states_with_entry_exit_fns(pLIST,unsigned*,unsigned*);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
-void addNativeImplementationIfThereIsAny(pMACHINE_INFO, FILE*);
+void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO, FILE*);
+void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO, FILE*);
 bool printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 void printNameWithAncestry(char*,pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);

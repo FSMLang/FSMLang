@@ -88,7 +88,7 @@ unsigned brace_cnt = 0;
 					#else
 					;
 					#endif
-					}
+			}
 <CMNT>"*/"	BEGIN INITIAL;
 
 \/\/.*	;
@@ -101,7 +101,7 @@ data	{
          return DATA_KEY;
          #endif
 
-			}
+		}
 
 translator {
 
@@ -116,7 +116,7 @@ translator {
 	/* native language declarations */
 native	{
 
-				BEGIN NATIVE;
+		BEGIN NATIVE;
 
        #ifndef LEX_DEBUG
        return NATIVE_KEY;
@@ -129,12 +129,12 @@ native	{
 <NATIVE>"{"	{
        if (0 == brace_cnt++)
        {
-				   BEGIN NATIVE_BLCK;
-				   charOffset = 0;
+			BEGIN NATIVE_BLCK;
+			charOffset = 0;
        }
        else
        {
-				   charData[charOffset++] = *yytext;
+			charData[charOffset++] = *yytext;
        }
     }
 
@@ -144,6 +144,26 @@ native	{
        return IMPLEMENTATION_KEY;
        #else
        printf("%s\n", strings[IMPLEMENTATION_KEY]);
+       #endif
+
+    }
+
+<NATIVE>prologue {
+
+       #ifndef LEX_DEBUG
+       return PROLOGUE_KEY;
+       #else
+       printf("%s\n", strings[PROLOGUE_KEY]);
+       #endif
+
+    }
+
+<NATIVE>epilogue {
+
+       #ifndef LEX_DEBUG
+       return EPILOGUE_KEY;
+       #else
+       printf("%s\n", strings[EPILOGUE_KEY]);
        #endif
 
     }
@@ -162,7 +182,7 @@ native	{
 
 <NATIVE_BLCK>"{"	{
         if (0 != brace_cnt++)
-				    charData[charOffset++] = *yytext;
+			charData[charOffset++] = *yytext;
    }
 
 <NATIVE_BLCK>"}"	{
@@ -174,25 +194,26 @@ native	{
    					#ifdef LEX_DEBUG
    					printf("Native:\n%s\n",charData);
    					#else
-   
    					yylval.charData = strdup(charData);
    					return NATIVE_BLOCK;
    					#endif
          }
          else
          {
-						charData[charOffset++] = *yytext;
+					charData[charOffset++] = *yytext;
          }
 
-				}
+	}
+
 <NATIVE_BLCK>\n	{
-						charData[charOffset++] = *yytext;
+					charData[charOffset++] = *yytext;
 					#ifndef LEX_DEBUG
 					lineno++;
 					#else
 					;
 					#endif
-					}
+	}
+
 <NATIVE_BLCK>.	charData[charOffset++] = *yytext;
 
 	/* statement end */
@@ -418,12 +439,12 @@ union {
 	/* identifiers */
 [a-zA-Z_][a-zA-Z0-9_]*	{ 
 
-					int				wordType;
-					pID_INFO	pid_info;
+		int				wordType;
+		pID_INFO	pid_info;
 
          wordType = add_id(id_list,ID,yytext,&pid_info);
 
-					#ifndef LEX_DEBUG
+		#ifndef LEX_DEBUG
 
          if (currDocCmnt)
          {
@@ -431,23 +452,23 @@ union {
              currDocCmnt       = NULL;
          }
 
-					yylval.pid_info = pid_info;
+		 yylval.pid_info = pid_info;
 
          #ifdef PARSE_DEBUG
-					printf("found: %s : %s\n"
+		 printf("found: %s : %s\n"
                 ,yytext
                 ,strings[wordType]
                 );
          #endif
 
-					return(wordType);
+		 return(wordType);
 
          #else
-					printf("%s : %s\n"
+			   	printf("%s : %s\n"
                 ,yytext
                 ,strings[wordType]
                 );
-					#endif
+		 #endif
 
 		} 
 
