@@ -254,7 +254,7 @@ machine:	machine_prefix ID machine_qualifier
 																						 );
 
  					/* sanity checks */
- 					if ($$->parent && $$->data_block_count)
+ 					if ($$->parent && $$->data_block_count && !output_generated_file_names_only)
 						{
  					   yyerror("event user data not allowed in sub-machines");
 						}
@@ -2201,8 +2201,8 @@ const struct option longopts[] =
 int main(int argc, char **argv)
 {
 
-	char	*cp,*cp1;
-	char  *outFileBase = 0;
+	char	*cp1;
+	char    *outFileBase = 0;
 
  #ifndef PARSER_DEBUG
  int   c;
@@ -2224,7 +2224,7 @@ int main(int argc, char **argv)
 
 #ifndef PARSER_DEBUG
 
-	while ((c = getopt_long(argc,argv,"vht:o:i:csM", longopts, &longindex)) != -1) {
+	while ((c = getopt_long(argc,argv,"vht:o:i:csM::", longopts, &longindex)) != -1) {
 
 		switch(c) {
   
@@ -2403,6 +2403,22 @@ int main(int argc, char **argv)
 
      case 'M':
 		output_generated_file_names_only = true;
+		if (optarg)
+		{
+			switch (optarg[0])
+			{
+				case 'd':
+					output_make_recipe = true;
+					break;
+
+				case 'h':
+					output_header_files = true;
+				break;
+
+				default:
+					break;
+			}
+		}
 		break;
 
      case '?':
@@ -2424,10 +2440,10 @@ int main(int argc, char **argv)
 
 	for (int fnind = optind; fnind < argc && good; fnind++) {
 
-		cp = strdup(argv[fnind]);
+		inputFileName = strdup(argv[fnind]);
 
 		/* find the extension */
-		cp1 = rindex(cp,'.');
+		cp1 = rindex(inputFileName,'.');
 		if (!cp1) {
 
 			usage();
@@ -2455,7 +2471,7 @@ int main(int argc, char **argv)
 		if (!outFileBase) {
 			/* use the base input file name */
 			*cp1 = 0;
-			cwk_path_get_basename(cp, (const char**)&outFileBase, NULL);
+			cwk_path_get_basename(inputFileName, (const char**)&outFileBase, NULL);
 		}
 
 		#ifndef PARSER_DEBUG
@@ -2564,6 +2580,9 @@ void usage(void)
  fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
  fprintf(stdout,"\t\tthat will be generated \n");
  fprintf(stdout,"\t\t(e.g. GENERATED_FILES=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
+ fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
+ fprintf(stdout,"\t-Md print a lines suitable for inclusion in a Makefile giving the recipe for\n");
+ fprintf(stdout,"\t\tcreating dependent files.\n");
  fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	

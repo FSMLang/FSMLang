@@ -24,7 +24,7 @@ include ../../fsmrules.mk
 
 check_top_level_h: top_level.h
 	$(DIFF) top_level.h top_level.h.canonical > test.result
-	@rm test.result fsmout
+	-@rm test.result fsmout
 	-@rm $(FSM_SRC:.fsm=.c)
 	-@rm $(FSM_SRC:.fsm=.h)
 	-@rm $(FSM_SRC:.fsm=_priv.h)

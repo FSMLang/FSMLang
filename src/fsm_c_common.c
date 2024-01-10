@@ -139,7 +139,7 @@ int initCMachineFN(pFSMOutputGenerator pfsmog, char *fileName)
 
    if ((pfsmcog->pcmd = newCMachineData(fileName)))
    {
-      return 0;
+	   return 0;
    }
 
    return 1;
@@ -320,7 +320,8 @@ int initCSubMachineFN(pFSMOutputGenerator pfsmog, char *fileName)
 
    if ((pfsmcsmog->pcmd = newCMachineData(fileName)))
    {
-      return 0;
+	   pfsmcsmog->pcmd->parent_pcmd = pfsmcsmog->parent_fsmcog->pcmd;
+	   return 0;
    }
 
    return 1;

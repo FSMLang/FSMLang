@@ -87,6 +87,7 @@ static bool print_sharing_sub_machine(pLIST_ELEMENT,void*);
 
 /* the general use data */
 char  *me = "I don't know who I am, but I'm";
+char  *inputFileName = "";
 bool  generate_instance                         = true;
 bool  compact_action_array                      = false;
 bool  short_dbg_names                           = false;
@@ -97,6 +98,8 @@ bool  add_event_cross_reference                 = false;
 pLIST pplantuml_prefix_strings_list             = NULL;
 pLIST pplantuml_prefix_files_list               = NULL;
 bool  output_generated_file_names_only          = false;
+bool  output_header_files                       = false;
+bool  output_make_recipe                        = false;
 
 void print_tab_levels(FILE *output, unsigned levels)
 {

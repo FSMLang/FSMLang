@@ -19,9 +19,12 @@ ifeq ($(TARGET),fsm_fail_is_pass)
 CALL_FSM_FAILURE_A_SUCCESS = ; if [ $$? -ne 0 ]; then echo "expected fsm failure; test passes"; true; else echo "did not find an expected fsm failure; test fails"; false; fi
 endif
 
-GENERATED_SRC = $(shell $(FSM) -M -tc $(FSM_SRC))
-#GENERATED_HEADERS = $(GENERATED_SRC:.c=_priv.h)
-#GENERATED_HEADERS += $(FSM_SRC:.fsm=.h)
+GENERATED_SRC = $(shell $(FSM) -M $(FSM_FLAGS) $(FSM_SRC))
+GENERATED_HDR = $(shell $(FSM) -Mh $(FSM_FLAGS) $(FSM_SRC))
+
+cleanfsm:
+	@-rm $(GENERATED_SRC) 2> /dev/null
+	@-rm $(GENERATED_HDR) 2> /dev/null
 
 .fsm.o:
 	@echo "FSM:" $(FSM) $(FSM_FLAGS)
@@ -55,3 +58,11 @@ $(FSM_SRC:.fsm=.plantuml): $(FSM_SRC) $(FSM)
 
 $(SRC): $(FSM_SRC:.fsm=.h)
 
+%.fsmd: %.fsm
+	@set -e; $(FSM) -Md $(FSM_FLAGS) $< > $@
+
+ifneq ($(TARGET),fsm_fail_is_pass)
+ifneq ($(MAKECMDGOALS),clean)
+-include $(FSM_SRC:.fsm=.fsmd)
+endif
+endif

@@ -3,7 +3,7 @@
 # Generic rules for creating and running tests.
 #
 #
-.PHONEY: do_runtest
+.PHONY: do_runtest show_objs
 
 override CFLAGS += -Wall -Wpedantic -Wextra -I../
 
@@ -35,22 +35,10 @@ do_runtest: test
 	@-rm test test.out test.result test.stderr
 	@-rm fsmout                         2> /dev/null
 	@-rm *.d*                           2> /dev/null
+	@-rm *.fsmd*                        2> /dev/null
 	@-rm *.o                            2> /dev/null
-	@-rm $(FSM_SRC:.fsm=.c)             2> /dev/null
-	@-rm $(FSM_SRC:.fsm=.h)             2> /dev/null
-	@-rm $(FSM_SRC:.fsm=.html)          2> /dev/null
-	@-rm $(FSM_SRC:.fsm=.svg)           2> /dev/null
-	@-rm $(FSM_SRC:.fsm=.plantuml)      2> /dev/null
-	@-rm $(FSM_SRC:.fsm=_priv.h)        2> /dev/null
-	@-rm $(FSM_SRC:.fsm=_submach.h)     2> /dev/null
 	@-rm $(GENERATED_SRC)               2> /dev/null
-	@-rm $(GENERATED_SRC:.c=.h)         2> /dev/null
-	@-rm $(GENERATED_SRC:.c=_priv.h)    2> /dev/null
-	@-rm $(GENERATED_SRC:.c=_submach.h) 2> /dev/null
-	@-rm $(GENERATED_SRC:.c=.html)      2> /dev/null
-	@-rm $(GENERATED_SRC:.c=.html)      2> /dev/null
-	@-rm $(GENERATED_SRC:.c=.svg)       2> /dev/null
-	@-rm $(GENERATED_SRC:.c=.plantuml)  2> /dev/null
+	@-rm $(GENERATED_HDR)               2> /dev/null
 	@-rm $(GENERATED_PLANTUML)          2> /dev/null
 
 test: $(OBJS)
@@ -60,7 +48,10 @@ fail_is_pass: $(OBJS)
 	@$(CC) -o $@ $(OBJS) $(LDFLAGS) $(CALL_FAILURE_A_SUCCESS)
 
 fsm_fail_is_pass: $(FSM_SRC:.fsm=.c)
-		
+	@echo "fsm failure expectation"
+
+show_objs:
+	@echo $(OBJS)
 
 clean::
 	-@rm *.exe                          2> /dev/null
@@ -69,24 +60,11 @@ clean::
 	-@rm *.stderr                       2> /dev/null
 	-@rm fsmout                         2> /dev/null
 	-@rm *.d*                           2> /dev/null
+	-@rm *.fsmd*                        2> /dev/null
 	-@rm *.o                            2> /dev/null
 	-@rm *.stackdump                    2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.c)             2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.h)             2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.html)          2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.svg)           2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.plantuml)      2> /dev/null
-	@-rm $(FSM_SRC:.fsm=_priv.h)        2> /dev/null
-	@-rm $(FSM_SRC:.fsm=_submach.h)     2> /dev/null
 	-@rm $(GENERATED_SRC)               2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.h)         2> /dev/null
-	-@rm $(GENERATED_SRC:.c=_priv.h)    2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.html)      2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.html)      2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.svg)       2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.plantuml)  2> /dev/null
-	@-rm $(GENERATED_SRC:.c=_priv.h)    2> /dev/null
-	@-rm $(GENERATED_SRC:.c=_submach.h) 2> /dev/null
+	-@rm $(GENERATED_HDR)               2> /dev/null
 	-@rm $(GENERATED_PLANTUML)          2> /dev/null
 	-@rm test                           2> /dev/null
 	-@rm y.output                       2> /dev/null

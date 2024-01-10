@@ -378,14 +378,56 @@ static int writeCMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 static void writeCMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
-
 	pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator)pfsmog;
 
-	printf("%s ", pfsmcog->pcmd->cName);
+	if (output_make_recipe)
+	{
+		for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
+		{
+			if (pfsmcog->pcmd->file_name_array[cf])
+			{
+				printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
+			}
+		}
+	}
+	else
+	{
+		if (output_header_files)
+		{
+			for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
+			{
+				//sub machines do not have public headers
+				if (pfsmcog->pcmd->parent_pcmd)
+				{
+					if (cf == cf_pubH)
+					{
+						continue;
+					}
+				}
+				if (cf != cf_c && pfsmcog->pcmd->file_name_array[cf])
+				{
+					printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
+				}
+			}
+		}
+		else
+		{
+			printf("%s ", pfsmcog->pcmd->cName);
+		}
+	}
 
 	if (pmi->machine_list)
 	{
 		write_machines(pmi->machine_list, generateCMachineWriter, pfsmog);
+	}
+
+	if (output_make_recipe && !pfsmcog->pcmd->parent_pcmd)
+	{
+		printf(": %s.fsm\n"
+			   , inputFileName
+			   );
+
+		printf("\t$(FSM) $(FSM_FLAGS) $<\n\n");
 	}
 
 }
@@ -1600,7 +1642,7 @@ pFSMOutputGenerator generateCMachineWriter(pFSMOutputGenerator parent)
 
 	if (output_generated_file_names_only)
 	{
-		pfsmog->initOutput   = initCMachineFN;
+		pfsmog->initOutput   = parent ? initCSubMachineFN : initCMachineFN;
 		pfsmog->writeMachine = writeCMachineFN;
 		pfsmog->closeOutput  = closeCMachineFN;
 	}
