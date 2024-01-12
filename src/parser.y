@@ -2576,11 +2576,16 @@ void usage(void)
 	fprintf(stdout,"\t\tThis option can be specified multiple times; all text will be\n");
  fprintf(stdout,"\t\tadded in the order given\n");
  fprintf(stdout,"\t\tfor the content copy.\n");
- fprintf(stdout,"\t-M prints the file name(s) that would have been created to stdout.\n");
+ fprintf(stdout,"\t-M prints the file name(s) of the source files that would have been created to stdout.\n");
  fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
  fprintf(stdout,"\t\tthat will be generated \n");
- fprintf(stdout,"\t\t(e.g. GENERATED_FILES=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
+ fprintf(stdout,"\t\t(e.g. GENERATED_SRC=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
  fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
+ fprintf(stdout,"\t-Mh prints the file name(s) of the headers that would have been created to stdout.\n");
+ fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
+ fprintf(stdout,"\t\tthat will be generated \n");
+ fprintf(stdout,"\t\t(e.g. GENERATED_HDRS=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
+ fprintf(stdout,"\t\tThis option must preceed the -t option.  And, only tc or ts are applicable.\n");
  fprintf(stdout,"\t-Md print a lines suitable for inclusion in a Makefile giving the recipe for\n");
  fprintf(stdout,"\t\tcreating dependent files.\n");
  fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
