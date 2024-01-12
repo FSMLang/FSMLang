@@ -38,14 +38,15 @@ runtest: $(TESTS) test_multiple_files
 
 $(TESTS): test 
 	./test $@.fsm > $@.out 2> $@.stderr
-	cat $@.stderr >> $@.out; rm -f $@.stderr
-	@$(DIFF) $@.out $@.canonical > $@.result
+	@$(DIFF) $@.out $@.canonical
 	@echo $@ successful
 	@rm -f $@.out $@.result
       
 test_multiple_files:
+	echo $(DIFF)
 	./test $(FSMS) > $@.out 2> $@.stderr
 	cat $@.stderr >> $@.out; rm -f $@.stderr
+	cat $@.out
 	@$(DIFF) $@.out $@.canonical > $@.result
 	@echo $@ successful
 	@rm -f $@.out $@.result
