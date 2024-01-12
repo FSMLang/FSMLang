@@ -27,7 +27,7 @@ check_top_level_plantuml: top_level.plantuml $(GENERATED_PLANTUML)
 	@$(DIFF) top_level.plantuml top_level.plantuml.canonical > test.result
 	@$(DIFF) subMachine1.plantuml subMachine1.plantuml.canonical > test.result
 	@$(DIFF) subMachine2.plantuml subMachine2.plantuml.canonical > test.result
-	@rm test.result
-	@rm *.plantuml
+	@rm -f test.result
+	@rm -f *.plantuml
 
 $(GENERATED_PLANTUML): top_level.plantuml

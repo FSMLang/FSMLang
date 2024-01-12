@@ -32,7 +32,7 @@ include ../../fsmrules.mk
 
 check_top_level_c: top_level.c
 	@$(DIFF) top_level.c top_level.c.canonical > test.result
-	@-rm $(GENERATED_SRC)
-	@-rm $(GENERATED_SRC:.c=.h)
+	@-rm -f $(GENERATED_SRC)
+	@-rm -f $(GENERATED_SRC:.c=.h)
 
 

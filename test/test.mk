@@ -32,14 +32,14 @@ do_runtest: test
 	@cat test.stderr >> test.out
 	@cat fsmout >> test.out
 	@$(DIFF) test.out test.canonical > test.result
-	@-rm test test.out test.result test.stderr
-	@-rm fsmout                         2> /dev/null
-	@-rm *.d*                           2> /dev/null
-	@-rm *.fsmd*                        2> /dev/null
-	@-rm *.o                            2> /dev/null
-	@-rm $(GENERATED_SRC)               2> /dev/null
-	@-rm $(GENERATED_HDR)               2> /dev/null
-	@-rm $(GENERATED_PLANTUML)          2> /dev/null
+	@-rm -f test test.out test.result test.stderr
+	@-rm -f fsmout                         2> /dev/null
+	@-rm -f *.d*                           2> /dev/null
+	@-rm -f *.fsmd*                        2> /dev/null
+	@-rm -f *.o                            2> /dev/null
+	@-rm -f $(GENERATED_SRC)               2> /dev/null
+	@-rm -f $(GENERATED_HDR)               2> /dev/null
+	@-rm -f $(GENERATED_PLANTUML)          2> /dev/null
 
 test: $(OBJS)
 	@$(CC) -o $@ $(OBJS) $(LDFLAGS)
@@ -54,19 +54,19 @@ show_objs:
 	@echo $(OBJS)
 
 clean::
-	-@rm *.exe                          2> /dev/null
-	-@rm *.out                          2> /dev/null
-	-@rm *.result                       2> /dev/null
-	-@rm *.stderr                       2> /dev/null
-	-@rm fsmout                         2> /dev/null
-	-@rm *.d*                           2> /dev/null
-	-@rm *.fsmd*                        2> /dev/null
-	-@rm *.o                            2> /dev/null
-	-@rm *.stackdump                    2> /dev/null
-	-@rm $(GENERATED_SRC)               2> /dev/null
-	-@rm $(GENERATED_HDR)               2> /dev/null
-	-@rm $(GENERATED_PLANTUML)          2> /dev/null
-	-@rm test                           2> /dev/null
-	-@rm y.output                       2> /dev/null
-	-@rm lexer.c                        2> /dev/null
+	-@rm -f *.exe                          2> /dev/null
+	-@rm -f *.out                          2> /dev/null
+	-@rm -f *.result                       2> /dev/null
+	-@rm -f *.stderr                       2> /dev/null
+	-@rm -f fsmout                         2> /dev/null
+	-@rm -f *.d*                           2> /dev/null
+	-@rm -f *.fsmd*                        2> /dev/null
+	-@rm -f *.o                            2> /dev/null
+	-@rm -f *.stackdump                    2> /dev/null
+	-@rm -f $(GENERATED_SRC)               2> /dev/null
+	-@rm -f $(GENERATED_HDR)               2> /dev/null
+	-@rm -f $(GENERATED_PLANTUML)          2> /dev/null
+	-@rm -f test                           2> /dev/null
+	-@rm -f y.output                       2> /dev/null
+	-@rm -f lexer.c                        2> /dev/null
 

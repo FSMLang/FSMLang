@@ -30,9 +30,9 @@ check_html: $(TEST_INPUT)
 	$(DIFF) sub1.html sub1.html.canonical > test.result
 	$(DIFF) comment_test.plantuml comment_test.plantuml.canonical > test.result
 	$(DIFF) sub1.plantuml sub1.plantuml.canonical > test.result
-	@rm test.result
-	@rm *.html
-	@rm *.plantuml
+	@rm -f test.result
+	@rm -f *.html
+	@rm -f *.plantuml
 
 $(addsuffix .html, $(SUB_MACHINES)) : $(FSM_SRC)
 $(addsuffix .plantuml, $(SUB_MACHINES)) : $(FSM_SRC)

@@ -38,22 +38,22 @@ runtest: $(TESTS) test_multiple_files
 
 $(TESTS): test 
 	./test $@.fsm > $@.out 2> $@.stderr
-	cat $@.stderr >> $@.out; rm $@.stderr
+	cat $@.stderr >> $@.out; rm -f $@.stderr
 	@$(DIFF) $@.out $@.canonical > $@.result
 	@echo $@ successful
-	@rm $@.out $@.result
+	@rm -f $@.out $@.result
       
 test_multiple_files:
 	./test $(FSMS) > $@.out 2> $@.stderr
-	cat $@.stderr >> $@.out; rm $@.stderr
+	cat $@.stderr >> $@.out; rm -f $@.stderr
 	@$(DIFF) $@.out $@.canonical > $@.result
 	@echo $@ successful
-	@rm $@.out $@.result
+	@rm -f $@.out $@.result
 
 %fsm_utils.o %lexer.o: y.tab.h
 
 y.tab.h: parser.o
 
 clean::
-	-@rm *.[hc] > /dev/null
+	-@rm -f *.[hc] > /dev/null
 

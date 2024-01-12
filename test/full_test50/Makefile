@@ -24,11 +24,11 @@ include ../../fsmrules.mk
 
 check_top_level_h: top_level.h
 	$(DIFF) top_level.h top_level.h.canonical > test.result
-	-@rm test.result fsmout
-	-@rm $(FSM_SRC:.fsm=.c)
-	-@rm $(FSM_SRC:.fsm=.h)
-	-@rm $(FSM_SRC:.fsm=_priv.h)
-	-@rm $(FSM_SRC:.fsm=_submach.h)
-	-@rm $(GENERATED_SRC)
-	-@rm $(GENERATED_SRC:.c=.h)
-	-@rm $(GENERATED_SRC:.c=_priv.h)
+	-@rm -f test.result fsmout
+	-@rm -f $(FSM_SRC:.fsm=.c)
+	-@rm -f $(FSM_SRC:.fsm=.h)
+	-@rm -f $(FSM_SRC:.fsm=_priv.h)
+	-@rm -f $(FSM_SRC:.fsm=_submach.h)
+	-@rm -f $(GENERATED_SRC)
+	-@rm -f $(GENERATED_SRC:.c=.h)
+	-@rm -f $(GENERATED_SRC:.c=_priv.h)

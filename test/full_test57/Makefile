@@ -27,8 +27,8 @@ check_plantuml: $(TEST_INPUT)
 	@echo $(TEST_INPUT)
 	$(DIFF) comment_test.plantuml comment_test.plantuml.canonical > test.result
 	$(DIFF) sub1.plantuml sub1.plantuml.canonical > test.result
-	@rm test.result
-	@rm *.plantuml fsmout
+	@rm -f test.result
+	@rm -f *.plantuml fsmout
 
 $(GENERATED_SRC:.c=.plantuml) : $(FSM_SRC:.fsm=.plantuml)
 

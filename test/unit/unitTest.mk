@@ -24,13 +24,13 @@ test: $(OBJ)
 
 runtest: test
 	./test > test.out
-	-@rm test.out
+	-@rm -f test.out
 	-@rm -f $(OBJ) test test.out test.result *.d
 
 diff_canonical: test
 	./test > test.out
 	diff test.out test.canonical > test.result
-	-@rm test.result test.out
+	-@rm -f test.result test.out
 	-@rm -f $(OBJ) test test.out test.result *.d
 
 include ../../../depends.mk

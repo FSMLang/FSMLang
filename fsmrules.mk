@@ -23,14 +23,14 @@ GENERATED_SRC = $(shell $(FSM) -M $(FSM_FLAGS) $(FSM_SRC))
 GENERATED_HDR = $(shell $(FSM) -Mh $(FSM_FLAGS) $(FSM_SRC))
 
 cleanfsm:
-	@-rm $(GENERATED_SRC) 2> /dev/null
-	@-rm $(GENERATED_HDR) 2> /dev/null
+	@-rm -f $(GENERATED_SRC) 2> /dev/null
+	@-rm -f $(GENERATED_HDR) 2> /dev/null
 
 .fsm.o:
 	@echo "FSM:" $(FSM) $(FSM_FLAGS)
 	$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
 	$(CC) -c $(CFLAGS) $*.c
-	rm $*.c
+	rm -f $*.c
 
 .fsm.c:
 	@echo "FSM:" $(FSM)

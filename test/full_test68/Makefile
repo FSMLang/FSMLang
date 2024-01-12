@@ -18,10 +18,10 @@ TARGET     = check_html
 include ../test.mk
 
 check_html: $(addsuffix .result, $(GENERATED_SRC))
-	@-rm $(GENERATED_SRC)
-	@-rm fsmout
+	@-rm -f $(GENERATED_SRC)
+	@-rm -f fsmout
 
 $(addsuffix .result, $(GENERATED_SRC)): $(GENERATED_SRC)
 	$(DIFF) $(basename $@) $(basename $@).canonical > $@
-	@rm $@
+	@rm -f $@
 

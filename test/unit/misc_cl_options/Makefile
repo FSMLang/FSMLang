@@ -14,12 +14,12 @@ TARGET=diff_canonical
 
 test_file_listers: test_m_c test_m_s test_md_c test_md_s test_mh_c test_mh_s
 	for f in `ls *.out`; do diff $$f $${f%.*}.canonical > $${f%.*}.result; done
-	-rm *.out
-	-rm *.result
+	-rm -f *.out
+	-rm -f *.result
 
 test_m_c test_m_s test_md_c test_md_s test_mh_c test_mh_s:
 	$(FSM) $(FSM_FLAGS) test.fsm > $@.out
 
 clean::
-	-@rm *.out 2> /dev/null
-	-@rm *.result 2> /dev/null
+	-@rm -f *.out 2> /dev/null
+	-@rm -f *.result 2> /dev/null
