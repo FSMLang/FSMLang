@@ -2505,7 +2505,7 @@ int main(int argc, char **argv)
 
 	}
 
-	return (!good);
+	return (good == 1 ? 0 : 1);
 
 }
 
@@ -2513,9 +2513,9 @@ void yyerror(char *s)
 {
 
   fprintf(stderr,"%s: %s\n",me,s);
-	fprintf(stderr,"\tline %d : %s\n",lineno,yytext);
+  fprintf(stderr,"\tline %d : %s\n",lineno,yytext);
 
- #ifndef PARSER_DEBUG
+    #ifndef PARSER_DEBUG
 	good = 0;
 	#else
 	//always return good so that the makefile can pick up stderr
