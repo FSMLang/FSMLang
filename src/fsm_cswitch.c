@@ -868,7 +868,8 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     fprintf(pich->pcmd->cFile, "\n\tswitch(e)\n\t{\n");
     
-    pich->counter = 0;
+    pich->counter    = 0;
+    pich->pOtherElem = pelem;
     iterate_list(pich->ih.pmi->event_list, print_state_returning_state_fn_case, pich);
 
     if (pich->counter < pich->ih.pmi->event_list->count + 1)
