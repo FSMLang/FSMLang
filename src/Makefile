@@ -33,7 +33,7 @@ $(ARCHITECTURES):
 	$(MAKE) CFLAGS="$(CFLAGS)" -C $(OUT_DIR) fsm
 
 $(addsuffix .clean, $(ARCHITECTURES)):
-	$(MAKE) -C $(OUT_DIR) clean
+	$(MAKE) -j -C $(OUT_DIR) clean
 	$(MAKE) -C ../test clean
 
 $(addsuffix .test, $(ARCHITECTURES)): $$(basename $$@)
