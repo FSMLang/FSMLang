@@ -716,6 +716,13 @@ static void closePlantUMLFileNameWriter(pFSMOutputGenerator pfsmog, int good)
 {
 	pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
 
+	(void) good;
+
+	if (!pfsmpumlog || !pfsmpumlog->pmd)
+	{
+		return;
+	}
+
 	CHECK_AND_FREE(pfsmpumlog->pmd->pumlName);
 }
 

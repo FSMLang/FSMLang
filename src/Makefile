@@ -3,7 +3,7 @@
 
 .SECONDEXPANSION:
 
-CFLAGS += -I ../src -I . -DFSMLANG_DEVELOP
+CFLAGS += -I ../src -I . 
 
 ARCHITECTURES=Cygwin \
 	Mingw        \

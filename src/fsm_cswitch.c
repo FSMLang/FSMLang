@@ -63,7 +63,7 @@ static void            defineAllStateHandler(pCMachineData,pMACHINE_INFO);
 static void            defineCSwitchMachineFSM(pCMachineData,pMACHINE_INFO);
 static void            defineCSwitchSubMachineFSM(pCMachineData,pMACHINE_INFO);
 static void            defineCSwitchMachineStruct(pCMachineData,pMACHINE_INFO);
-static void            declareCSwitchMachineStateFnArray(pCMachineData,pMACHINE_INFO);
+static void            declareCSwitchMachineStateFnArray(pCMachineData);
 static void            writeActionsReturnStateSwitchFSM(pCMachineData, pMACHINE_INFO);
 static void            writeReentrantSwitchFSM(pCMachineData,pMACHINE_INFO);
 static void            writeOriginalSwitchFSM(pCMachineData,pMACHINE_INFO);
@@ -78,7 +78,6 @@ static void            defineStateFnArray(pCMachineData,pMACHINE_INFO);
 static void            cswitchMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
 static void            cswitchSubMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
 static bool            cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
-static bool            areTransitionsPossible(pMACHINE_INFO,unsigned);
 static bool            print_state_fn_signature(pLIST_ELEMENT,void*);
 static bool            print_state_fn_name(pLIST_ELEMENT,void*);
 static void            declareOrDefineSinglePAIEventHandler(pCMachineData,pMACHINE_INFO,DECLARE_OR_DEFINE);
@@ -244,7 +243,7 @@ static int writeCSwitchMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    commonHeaderStart(pcmd, pmi, "state_fn");
 
-   declareCSwitchMachineStateFnArray(pcmd, pmi);
+   declareCSwitchMachineStateFnArray(pcmd);
 
    defineCSwitchMachineStruct(pcmd, pmi);
 
@@ -364,7 +363,7 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    subMachineHeaderStart(pcmd, pmi, "state_fn");
 
-   declareCSwitchMachineStateFnArray(pcmd, pmi);
+   declareCSwitchMachineStateFnArray(pcmd);
 
    defineCSwitchMachineStruct(pcmd, pmi);
 
@@ -429,7 +428,7 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
    return 0;
 }
 
-static void declareCSwitchMachineStateFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void declareCSwitchMachineStateFnArray(pCMachineData pcmd)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -669,7 +668,10 @@ static bool define_void_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     /* are transitions possible? */
     pich->pOtherElem = pelem;
-    ptransitionEvent = iterate_list(pich->ih.pmi->event_list, find_first_array_element_with_transition, pich);
+    ptransitionEvent = iterate_list(pich->ih.pmi->event_list
+                                    , find_first_array_element_with_transition
+                                    , pich
+                                    );
 
     if (
         (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
@@ -852,10 +854,6 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
             , machineName(pich->pcmd)
            );
 
-    /* are transitions possible? */
-    pich->pOtherElem = pelem;
-    pID_INFO ptransitionEvent = (pID_INFO)(iterate_list(pich->ih.pmi->event_list, find_first_array_element_with_transition, pich))->mbr;
-
     if (
         (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
        )
@@ -884,7 +882,7 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     fprintf(pich->pcmd->cFile, "\t}\n");
 
-	print_state_fn_epilogue(pich->pcmd, pich->ih.pmi, pstate, true);
+    print_state_fn_epilogue(pich->pcmd, pich->ih.pmi, pstate, true);
 
     return false;
 
@@ -1109,25 +1107,6 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
     }
 
     return false;
-}
-
-static bool areTransitionsPossible(pMACHINE_INFO pmi, unsigned state)
-{
-   bool transition_found = false;
-
-   if (pmi->modFlags & mfActionsReturnStates)
-   {
-      transition_found = true;
-   }
-   else
-   {
-      for (unsigned event = 0; event < pmi->event_list->count && !transition_found; event++)
-      {
-         transition_found = pmi->actionArray[event][state] && (pmi->actionArray[event][state]->transition != NULL);
-      }
-   }
-
-   return transition_found;
 }
 
 static void writeOriginalSwitchFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, char *tabstr)

@@ -715,6 +715,8 @@ static void closeHTMLFileNameWriter(pFSMOutputGenerator pfsmog, int good)
 {
 	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) pfsmog;
 
+	(void) good;
+
 	if (!pfsmhtmlog || !pfsmhtmlog->pmd)
 	{
 		return;

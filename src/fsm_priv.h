@@ -231,11 +231,11 @@ struct _state_and_event_decls_
 };
 
 struct _id_info_ {
-  char    			  *name;
-  int     			  type;
-  pID_INFO			  nextID;
-	char					  *docCmnt;
+  char           *name;
+  int             type;
   unsigned        order;
+  pID_INFO        nextID;
+  char           *docCmnt;
   PID_TYPE_DATA   type_data;
   pMACHINE_INFO   powningMachine;
   pACTION_INFO    actionInfo;

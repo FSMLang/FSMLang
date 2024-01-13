@@ -503,8 +503,6 @@ static void writeOriginalFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 */
 static void writeOriginalSubFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-	char *parent_cp = hungarianToUnderbarCaps(pmi->parent->name->name);
-
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
 	if (!(pmi->modFlags & mfActionsReturnVoid))

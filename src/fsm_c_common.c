@@ -2609,7 +2609,7 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
       if (pevent->type_data.event_data.psharing_sub_machines)
       {
          fprintf(pich->pcmd->cFile
-                 , "%s THIS(%s)(p%s pfsm)\n\{\n"
+                 , "%s THIS(%s)(p%s pfsm)\n{\n"
 				 , eventType(pich->pcmd)
 				 , pid_info->name
 				 , fsmType(pich->pcmd)
