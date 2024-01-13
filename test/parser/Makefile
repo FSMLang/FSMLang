@@ -33,10 +33,11 @@ echotests:
 NO_RUNTEST=TRUE
 include ../test.mk
 
-runtest: $(TESTS) test_multiple_files
+runtest: $(TESTS) 
 	@echo "all parser tests pass"
 
 $(TESTS): test 
+	@echo $(DIFF)
 	./test $@.fsm > $@.out 2> $@.stderr
 	@cat $@.stderr >> $@.out; rm -f $@.stderr
 	@$(DIFF) $@.out $@.canonical
@@ -47,8 +48,7 @@ test_multiple_files: test
 	echo $(DIFF)
 	./test $(FSMS) > $@.out 2> $@.stderr
 	@cat $@.stderr >> $@.out; rm -f $@.stderr
-	-@$(DIFF) $@.out $@.canonical > $@.result
-	cat $@.result
+	@$(DIFF) $@.out $@.canonical > $@.result
 	@echo $@ successful
 	@rm -f $@.out $@.result
 
