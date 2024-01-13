@@ -26,10 +26,8 @@
 #define THIS(A) newMachine_##A
 #undef NEW_MACHINE
 #define NEW_MACHINE(A) newMachine_##A
-/* FSMLANG_DEVELOP: print_event_macro */
 #undef SUB_MACHINE1
 #define SUB_MACHINE1(A) newMachine_subMachine1_##A
-/* FSMLANG_DEVELOP: print_event_macro */
 #undef SUB_MACHINE2
 #define SUB_MACHINE2(A) newMachine_subMachine2_##A
 
@@ -75,18 +73,15 @@ typedef enum NEW_MACHINE_EVENT_ENUM {
 
 #undef ACTION_RETURN_TYPE
 #define ACTION_RETURN_TYPE NEW_MACHINE_EVENT_ENUM
-/* FSMLANG_DEVELOP: declare_event_user_data_structs */
 typedef struct _newMachine_e1_data_ {
 	char * cp ;
 } NEW_MACHINE_E1_DATA, *pNEW_MACHINE_E1_DATA;
 
-/* FSMLANG_DEVELOP: declare_event_user_data_structs */
 typedef struct _newMachine_e2_data_ {
 	int  i ;
 	float  f ;
 } NEW_MACHINE_E2_DATA, *pNEW_MACHINE_E2_DATA;
 
-/* FSMLANG_DEVELOP: declare_event_user_data_structs */
 typedef struct _newMachine_e3_data_ {
 	int  i ;
 	struct {
@@ -95,8 +90,6 @@ typedef struct _newMachine_e3_data_ {
 	} s;
 } NEW_MACHINE_E3_DATA, *pNEW_MACHINE_E3_DATA;
 
-/* FSMLANG_DEVELOP: declare_event_user_data_structs */
-/* FSMLANG_DEVELOP: declare_event_user_data_structs */
 typedef union {
 	NEW_MACHINE_E1_DATA e1_data;
 	NEW_MACHINE_E2_DATA e2_data;

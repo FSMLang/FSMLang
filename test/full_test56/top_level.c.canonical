@@ -11,18 +11,12 @@
 #define DBG_PRINTF(...)
 #endif
 
-/* FSMLANG_DEVELOP: declare_sub_machine_if */
 extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine1_sub_fsm_if;
-/* FSMLANG_DEVELOP: declare_sub_machine_if */
 extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine2_sub_fsm_if;
-/* FSMLANG_DEVELOP: declare_sub_machine_if */
 extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine3_sub_fsm_if;
 
-/* FSMLANG_DEVELOP: print_state_fn_signature */
 static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
-/* FSMLANG_DEVELOP: print_state_fn_signature */
 static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
-/* FSMLANG_DEVELOP: print_state_fn_signature */
 static TOP_LEVEL_EVENT s3_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
 static const TOP_LEVEL_STATE_FN top_level_state_fn_array[top_level_numStates] = 
 {
@@ -31,19 +25,14 @@ static const TOP_LEVEL_STATE_FN top_level_state_fn_array[top_level_numStates] =
 	, s3_stateFn
 };
 
-/* FSMLANG_DEVELOP: defineSubMachineArray */
 
 const pTOP_LEVEL_SUB_FSM_IF top_level_sub_fsm_if_array[THIS(numSubMachines)] =
 {
-/* FSMLANG_DEVELOP: print_sub_machine_if */
 	&top_level_sub_machine1_sub_fsm_if
-/* FSMLANG_DEVELOP: print_sub_machine_if */
 	, &top_level_sub_machine2_sub_fsm_if
-/* FSMLANG_DEVELOP: print_sub_machine_if */
 	, &top_level_sub_machine3_sub_fsm_if
 };
 
-/* FSMLANG_DEVELOP: generateInstance */
 TOP_LEVEL top_level = {
 	top_level_s1,
 	THIS(e1),
@@ -62,7 +51,6 @@ void run_top_level(TOP_LEVEL_EVENT e)
 	}
 }
 
-/* FSMLANG_DEVELOP: declareSubMachineManagers */
 static TOP_LEVEL_EVENT findAndRunSubMachine(pTOP_LEVEL,TOP_LEVEL_EVENT);
 
 
@@ -73,7 +61,6 @@ void top_levelFSM(pTOP_LEVEL pfsm, TOP_LEVEL_EVENT event)
 {
 	TOP_LEVEL_EVENT e = event;
 
-/* FSMLANG_DEVELOP: writeOriginalSwitchFSMLoop */
 	while (e != top_level_noEvent) {
 
 #ifdef TOP_LEVEL_DEBUG
@@ -101,7 +88,6 @@ if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 	}
 }
 
-/* FSMLANG_DEVELOP: defineSubMachineFinder */
 
 static TOP_LEVEL_EVENT findAndRunSubMachine(pTOP_LEVEL pfsm, TOP_LEVEL_EVENT e)
 {
@@ -123,8 +109,6 @@ static TOP_LEVEL_EVENT findAndRunSubMachine(pTOP_LEVEL pfsm, TOP_LEVEL_EVENT e)
 
 }
 
-/* FSMLANG_DEVELOP: defineStateEntryAndExitManagers */
-/* FSMLANG_DEVELOP: print_state_fn_signature */
 static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 {
 	TOP_LEVEL_EVENT retVal = THIS(noEvent);
@@ -132,15 +116,10 @@ static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 
 	switch(e)
 	{
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e1):
 		retVal = THIS(a1)(pfsm);
 		new_s = top_level_s2;
 		break;
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	default:
 		DBG_PRINTF("top_level_noAction");
 		break;
@@ -158,7 +137,6 @@ static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 	return retVal;
 }
 
-/* FSMLANG_DEVELOP: print_state_fn_signature */
 static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 {
 	TOP_LEVEL_EVENT retVal = THIS(noEvent);
@@ -166,21 +144,16 @@ static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 
 	switch(e)
 	{
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e2):
 		retVal = THIS(activate_sub_machine1)(pfsm);
 		break;
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e3):
 		retVal = THIS(activate_sub_machine2)(pfsm);
 		break;
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e4):
 		retVal = THIS(activate_sub_machine3)(pfsm);
 		new_s = top_level_s3;
 		break;
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	default:
 		DBG_PRINTF("top_level_noAction");
 		break;
@@ -198,21 +171,15 @@ static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 	return retVal;
 }
 
-/* FSMLANG_DEVELOP: print_state_fn_signature */
 static TOP_LEVEL_EVENT s3_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 {
 	TOP_LEVEL_EVENT retVal = THIS(noEvent);
 
 	switch(e)
 	{
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e4):
 		retVal = THIS(activate_sub_machine3)(pfsm);
 		break;
-/* FSMLANG_DEVELOP: print_event_returning_state_fn_case */
 	case THIS(e5):
 		retVal = THIS(activate_sub_machine2)(pfsm);
 		break;
@@ -225,7 +192,6 @@ static TOP_LEVEL_EVENT s3_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 }
 
 
-/* FSMLANG_DEVELOP: define_weak_action_function */
 TOP_LEVEL_EVENT __attribute__((weak)) THIS(a1)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
@@ -233,7 +199,6 @@ TOP_LEVEL_EVENT __attribute__((weak)) THIS(a1)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
-/* FSMLANG_DEVELOP: define_weak_action_function */
 TOP_LEVEL_EVENT __attribute__((weak)) THIS(activate_sub_machine1)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
@@ -241,7 +206,6 @@ TOP_LEVEL_EVENT __attribute__((weak)) THIS(activate_sub_machine1)(FSM_TYPE_PTR p
 	return THIS(noEvent);
 }
 
-/* FSMLANG_DEVELOP: define_weak_action_function */
 TOP_LEVEL_EVENT __attribute__((weak)) THIS(activate_sub_machine2)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
@@ -249,7 +213,6 @@ TOP_LEVEL_EVENT __attribute__((weak)) THIS(activate_sub_machine2)(FSM_TYPE_PTR p
 	return THIS(noEvent);
 }
 
-/* FSMLANG_DEVELOP: define_weak_action_function */
 TOP_LEVEL_EVENT __attribute__((weak)) THIS(activate_sub_machine3)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
