@@ -43,11 +43,12 @@ $(TESTS): test
 	@echo $@ successful
 	@rm -f $@.out $@.result
       
-test_multiple_files:
+test_multiple_files: test
 	echo $(DIFF)
 	./test $(FSMS) > $@.out 2> $@.stderr
 	@cat $@.stderr >> $@.out; rm -f $@.stderr
-	@$(DIFF) $@.out $@.canonical > $@.result
+	-@$(DIFF) $@.out $@.canonical > $@.result
+	cat $@.result
 	@echo $@ successful
 	@rm -f $@.out $@.result
 
