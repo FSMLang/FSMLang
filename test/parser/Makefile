@@ -44,6 +44,9 @@ $(TESTS): test
 	@echo $@ successful
 	@rm -f $@.out $@.result
       
+#
+# This is not working on GitHub, though it does locally.
+#
 test_multiple_files: test
 	echo $(DIFF)
 	./test $(FSMS) > $@.out 2> $@.stderr
