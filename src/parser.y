@@ -200,11 +200,11 @@ machine_prefix: native machine_modifier MACHINE_KEY
 				}
 
        /* grab any modifiers */
- 			$$->pmachineInfo->modFlags = $2;
+ 			 $$->pmachineInfo->modFlags = $2;
 
        id_list = $$->pmachineInfo->id_list = init_list();
 
-       $$->pmachineInfo->parent = pmachineInfo;
+        $$->pmachineInfo->parent = pmachineInfo;
 				pmachineInfo             = $$->pmachineInfo;
 
    }
@@ -382,6 +382,11 @@ machine:	machine_prefix ID machine_qualifier
                      ,"this machine has %u sub-machines\n"
                      ,$$->machine_list->count
                      );
+
+								fprintf(yyout
+												, "the sub-machine depth is %u\n"
+												, $$->sub_machine_depth
+												);
             }
 
 						fprintf(yyout,"\n");
@@ -519,6 +524,9 @@ machine_list:
 
         if (NULL == add_to_list($$,$1))
             yyerror("out of memory");
+
+				/* Bump the depth count. The function is a no-op if we're at the top. */
+				increase_sub_machine_depth($1->parent);
 
     }
     | machine_list machine

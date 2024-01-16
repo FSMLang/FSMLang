@@ -98,11 +98,11 @@ typedef enum ANCESTRY_INCLUSION
 
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
 
-typedef struct _id_info_				         ID_INFO,                 *pID_INFO;
+typedef struct _id_info_				 ID_INFO,                 *pID_INFO;
 typedef struct _action_se_info_	         ACTION_SE_INFO,          *pACTION_SE_INFO;
-typedef struct _matrix_info_	           MATRIX_INFO,             *pMATRIX_INFO;
-typedef struct _action_info_		         ACTION_INFO,             *pACTION_INFO;
-typedef struct _machine_info_		         MACHINE_INFO,            *pMACHINE_INFO;
+typedef struct _matrix_info_	         MATRIX_INFO,             *pMATRIX_INFO;
+typedef struct _action_info_		     ACTION_INFO,             *pACTION_INFO;
+typedef struct _machine_info_		     MACHINE_INFO,            *pMACHINE_INFO;
 typedef struct _state_and_event_decls_   STATE_AND_EVENT_DECLS,   *pSTATE_AND_EVENT_DECLS;
 typedef struct _statement_decl_list_     STATEMENT_DECL_LIST,     *pSTATEMENT_DECL_LIST;   
 typedef struct _actions_and_transitions_ ACTIONS_AND_TRANSITIONS, *pACTIONS_AND_TRANSITIONS;
@@ -285,18 +285,18 @@ struct _machine_info_ {
   unsigned      submachine_inhibitor_count;
   pLIST         event_list;
   unsigned      external_event_designation_count;
-	pLIST   			transition_list;
-	pLIST   			transition_fn_list;
-	pLIST         action_list;
-	pID_INFO			name;
+  pLIST         transition_list;
+  pLIST         transition_fn_list;
+  pLIST         action_list;
+  pID_INFO      name;
   pLIST         action_info_list;
-	pACTION_INFO	**actionArray;
-	pLIST					data;
-	char					*native_prologue;
-	char					*native_epilogue;
-	char					*native_impl_prologue;
-	char					*native_impl_epilogue;
-	MOD_FLAGS			modFlags;
+  pACTION_INFO  **actionArray;
+  pLIST          data;
+  char          *native_prologue;
+  char          *native_epilogue;
+  char          *native_impl_prologue;
+  char          *native_impl_epilogue;
+  MOD_FLAGS      modFlags;
   pID_INFO      machineTransition;
   pLIST         machine_list;
   unsigned      shared_event_count;
@@ -304,6 +304,7 @@ struct _machine_info_ {
   bool          has_single_pai_events;
   unsigned      states_with_entry_fns_count;
   unsigned      states_with_exit_fns_count;
+  unsigned      sub_machine_depth;
 };
 
 /* lexer id list handlers */
@@ -345,6 +346,7 @@ void printNameWithAncestry(char*,pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);
 void print_tab_levels(FILE*,unsigned);
 void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
+void increase_sub_machine_depth(pMACHINE_INFO);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);

@@ -1160,6 +1160,15 @@ bool print_data_field(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+void increase_sub_machine_depth(pMACHINE_INFO pmi)
+{
+	if (pmi)
+	{
+		pmi->sub_machine_depth++;
+		increase_sub_machine_depth(pmi->parent);
+	}
+}
+
 #ifdef PARSER_DEBUG
 
 typedef struct _debug_list_helper_ DEBUG_LIST_HELPER, *pDEBUG_LIST_HELPER;
