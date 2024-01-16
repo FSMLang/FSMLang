@@ -1541,7 +1541,7 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
       pich->counter++;
 
       fprintf(pich->pcmd->cFile
-			  , "\t\tcase %s_%s:"
+			  , "\t\tcase %s_%s:\n"
 			  , fqMachineName(pich->pcmd)
 			  , event->name
 			  );
