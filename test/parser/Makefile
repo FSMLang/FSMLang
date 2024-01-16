@@ -37,8 +37,7 @@ runtest: $(TESTS)
 	@echo "all parser tests pass"
 
 $(TESTS): test 
-	@echo $(DIFF)
-	./test $@.fsm > $@.out 2> $@.stderr
+	@./test $@.fsm > $@.out 2> $@.stderr
 	@cat $@.stderr >> $@.out; rm -f $@.stderr
 	@$(DIFF) $@.out $@.canonical
 	@echo $@ successful
