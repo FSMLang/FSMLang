@@ -542,5 +542,6 @@ The 2 transitions :
 	s2
 	s3
 this machine has 3 sub-machines
+the sub-machine depth is 1
 
 found a single machine

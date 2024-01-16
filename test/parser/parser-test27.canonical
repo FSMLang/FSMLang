@@ -204,6 +204,7 @@ The 2 transitions :
 	ss2
 	ss3
 this machine has 1 sub-machines
+the sub-machine depth is 1
 
 found the start of a state declaration list
 added another id to the state declaration list
@@ -431,5 +432,6 @@ union {
 } u;
 
 this machine has 2 sub-machines
+the sub-machine depth is 2
 
 found a single machine
