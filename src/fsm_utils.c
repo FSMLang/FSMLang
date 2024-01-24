@@ -1103,9 +1103,25 @@ pMACHINE_INFO ultimateAncestor(pMACHINE_INFO pmi)
 }
 
 /**
+ * Get the maximum sub-machine depth, which is the sub-machine
+ * depth of the top-level machine.
+ * 
+ * @author Steven Stanton (1/23/2024)
+ * 
+ * @param pmi    Pointer to machine info object
+ * 
+ * @return unsigned The sub-machine depth of the top-level
+ *  	   machine.
+ */
+unsigned maxDepth(pMACHINE_INFO pmi)
+{
+	return ultimateAncestor(pmi)->sub_machine_depth;
+}
+
+/**
  * prints a data field
  * 
- * @author sstan (12/9/2023)
+ * @author Steven Stanton (12/9/2023)
  * 
  * @param pelem  must have a mbr of type pDATA_FIELD
  * @param data   must point to an ITERATOR_HELPER struct

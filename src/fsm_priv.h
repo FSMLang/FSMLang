@@ -344,6 +344,7 @@ void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO, FILE*);
 bool printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 void printNameWithAncestry(char*,pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);
+unsigned maxDepth(pMACHINE_INFO);
 void print_tab_levels(FILE*,unsigned);
 void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
 void increase_sub_machine_depth(pMACHINE_INFO);
