@@ -2574,7 +2574,6 @@ void usage(void)
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");
 	fprintf(stdout,"\t\tno RUN_STATE_MACHINE macro is provided.\n");
- fprintf(stdout,"\t\tThe default is to generate the macro; the option argument is optional, if not given, \"true\" is assumed.\n");
 	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
 	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
 	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
