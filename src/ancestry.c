@@ -798,6 +798,55 @@ char *fqMachineName(pCMachineData pcmd)
 }
 
 /**
+ * This function returns a name suitable for use with user
+ * defined functions.  If the command line argument
+ * --short-user-fn-names was set <i>true</i>, then this is
+ *   simply the machine name; otherwise, it is the
+ *   fully-qualified machine name.
+ * 
+ * @author Steven Stanton (1/26/2024)
+ * 
+ * @param pcmd  
+ * 
+ * @return char* 
+ */
+char *ufMachineName(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long file_size;
+
+	if (!pcmd->uf_machine_name)
+	{
+		if ((short_user_fn_names == true) && (maxDepth(pcmd->pmi) == 1))
+		{
+			pcmd->uf_machine_name = strdup(pcmd->pmi->name->name);
+		}
+		else
+		{
+			/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+			if (NULL != (tmp = tmpfile()))
+			{
+				printAncestry(pcmd->pmi, tmp, "_", alc_lower, ai_include_self);
+				file_size = ftell(tmp);
+				fseek(tmp, 0, SEEK_SET);
+
+				if ((pcmd->uf_machine_name = (char *)malloc(file_size + 1)) != NULL)
+				{
+					fread(pcmd->uf_machine_name, 1, file_size, tmp);
+					pcmd->uf_machine_name[file_size] = 0;
+				}
+
+				fclose(tmp);
+
+			}
+		}
+	}
+
+	return pcmd->uf_machine_name;
+
+}
+
+/**
  * Returns the "fully qualified" machine name transformed by
  * <i>hungarianToUnderbarCaps</i>.  "Fully qualified" means that
  * the full ancestry is prepended to the name.

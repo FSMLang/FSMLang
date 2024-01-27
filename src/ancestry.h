@@ -48,6 +48,7 @@ char * createAncestryFileName(pMACHINE_INFO);
 char * dataTranslationFnType(pCMachineData);
 char * eventType(pCMachineData);
 char * fqMachineName(pCMachineData);
+char * ufMachineName(pCMachineData);
 char * ucMachineName(pCMachineData);
 char * ucfqMachineName(pCMachineData);
 char * fsmDataType(pCMachineData);

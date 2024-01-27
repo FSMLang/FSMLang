@@ -19,16 +19,28 @@ ID_INFO grand_child_name = {
 
 MACHINE_INFO grand_parent = {
 	.name = &grand_parent_name
+	, .sub_machine_depth = 2
 };
 
 MACHINE_INFO child = {
 	.parent = &grand_parent
 	, .name = &child_name
+	, .sub_machine_depth = 1
 };
 
 MACHINE_INFO grand_child = {
 	.parent = &child
 	, .name = &grand_child_name
+};
+
+MACHINE_INFO two_generation_parent = {
+	.name = &grand_parent_name
+	, .sub_machine_depth = 1
+};
+
+MACHINE_INFO two_generation_child = {
+	.name = &child_name
+	, .parent = &two_generation_parent
 };
 
 CMachineData cmd;
@@ -47,6 +59,8 @@ static void nf_machine_name_pmi(void);
 static void uc_machine_name(void);
 static void uc_fq_machine_name(void);
 static void uc_nf_machine_name(void);
+static void uf_machine_name_two_generation(void);
+static void uf_machine_name_two_generation_restricted(void);
 
 
 VOID_TEST_FN tests[] = {
@@ -64,6 +78,8 @@ VOID_TEST_FN tests[] = {
 	uc_machine_name,
 	uc_fq_machine_name,
 	uc_nf_machine_name,
+	uf_machine_name_two_generation,
+	uf_machine_name_two_generation_restricted,
 	NULL
 };
 
@@ -201,6 +217,28 @@ static void uc_nf_machine_name()
 	printf("%s:\n", __func__);
 	printf("initial: %s\n",   cmd.pmi->name->name);
 	printf("subsequent: %s\n", ucnfMachineName(&cmd));
+}
+
+static void uf_machine_name_two_generation(void)
+{
+	short_user_fn_names = false;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &two_generation_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", ufMachineName(&cmd));
+}
+
+static void uf_machine_name_two_generation_restricted(void)
+{
+	short_user_fn_names = true;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &two_generation_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", ufMachineName(&cmd));
 }
 
 int main(int argc, char **argv)

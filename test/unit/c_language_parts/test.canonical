@@ -55,3 +55,11 @@ uc_nf_machine_name:
 initial: grandChild
 subsequent: CHILD_GRAND_CHILD
 
+uf_machine_name_two_generation:
+initial: child
+subsequent: grandParent_child
+
+uf_machine_name_two_generation_restricted:
+initial: child
+subsequent: child
+

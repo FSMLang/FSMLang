@@ -2089,6 +2089,7 @@ typedef enum {
  , lo_exclude_actions_from_plantuml_legend
  , lo_add_plantuml_prefix_string
  , lo_add_plantuml_prefix_file
+ , lo_short_user_fn_names
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2202,6 +2203,18 @@ const struct option longopts[] =
         , .has_arg = required_argument
         , .flag    = &longval
         , .val     = lo_add_plantuml_prefix_file
+    }
+    , {
+        .name      = "add-plantuml-prefix-file"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_add_plantuml_prefix_file
+    }
+    , {
+        .name      = "short-user-fn-names"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_short_user_fn_names
     }
     , {0}
 };
@@ -2346,6 +2359,10 @@ int main(int argc, char **argv)
  							    pplantuml_prefix_files_list = init_list();
  							 add_to_list(pplantuml_prefix_files_list, optarg);
  							 break;
+			    case lo_short_user_fn_names:
+		            if (!optarg || !strcmp(optarg, "true"))
+			            short_user_fn_names=true;
+		            break;
             default:
                 usage();
                 return(0);
@@ -2550,6 +2567,7 @@ void usage(void)
 	fprintf(stdout,"\t-o  <outfile> will use <outfile> as the filename for the top-level machine output.\n");
 	fprintf(stdout,"\t\tAny sub-machines will be put into files based on the sub-machine names.\n");
 	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
+	fprintf(stdout,"\t--short-user-fn-names=true causes user functions (such as action functions to use only the machine name when the sub-machine depth is 1.\n");
 	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of actions which pass events\n");
  fprintf(stdout,"\t\twhen weak function generation is disabled..\n");
  fprintf(stdout,"\t\tThe generated functions are not weak.\n");

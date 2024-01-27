@@ -111,7 +111,7 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmd, pMACHINE_INFO p
            , "\t%s s%s;\n"
            , stateType(pcmd)
            , (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-             ? " = THIS(noTransition)" 
+             ? " = UFMN(noTransition)" 
              : ""
            );
 
@@ -146,7 +146,7 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmd, pMACHINE_INFO p
            );
 
    fprintf(pcmd->cFile
-           , "\tif (s != THIS(noTransition))\n\t{\n"
+           , "\tif (s != UFMN(noTransition))\n\t{\n"
            );
 
    if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
@@ -158,7 +158,7 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmd, pMACHINE_INFO p
       if (pmi->machineTransition)
       {
          fprintf(pcmd->cFile
-                 , "\t\t\tTHIS(%s)(pfsm,s);\n"
+                 , "\t\t\tUFMN(%s)(pfsm,s);\n"
                      , pmi->machineTransition->name
                  );
       }
@@ -732,7 +732,7 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
        if (pmi->machineTransition)
        {
           fprintf(pcmd->cFile
-                  , "\t\tTHIS(%s)(pfsm, new_s);\n"
+                  , "\t\tUFMN(%s)(pfsm, new_s);\n"
                   , pmi->machineTransition->name
                   );
        }
@@ -952,7 +952,7 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
             if (strlen(pai->action->name))
             {
                 fprintf(pich->pcmd->cFile
-                        , "\t\tretVal = THIS(%s)(pfsm);\n"
+                        , "\t\tretVal = UFMN(%s)(pfsm);\n"
                         , pai->action->name
                         );
             }
@@ -986,7 +986,7 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 			   else
 			   {
 				   fprintf(pich->pcmd->cFile
-                       , "THIS(%s)(pfsm,e);\n"
+                       , "UFMN(%s)(pfsm,e);\n"
                        , pai->transition->name
                        );
 			   }
@@ -1025,7 +1025,7 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
             if (strlen(pai->action->name))
             {
                 fprintf(pich->pcmd->cFile
-                        , "THIS(%s)(pfsm);\n"
+                        , "UFMN(%s)(pfsm);\n"
                         , pai->action->name
                         );
             }
@@ -1090,14 +1090,14 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
             if (strlen(pai->action->name))
             {
                 fprintf(pich->pcmd->cFile
-                        , "THIS(%s)(pfsm);\n"
+                        , "UFMN(%s)(pfsm);\n"
                         , pai->action->name
                         );
             }
             else
             {
                fprintf(pich->pcmd->cFile
-                       , "THIS(%s)%s;\n"
+                       , "UFMN(%s)%s;\n"
                        , pai->transition->name
                        , pai->transition->type == STATE ? "" : "(pfsm,e)"
                        );
@@ -1379,7 +1379,7 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
    if (pmi->machineTransition)
    {
       fprintf(pcmd->hFile
-              , "void THIS(%s)(p%s,%s);\n\n"
+              , "void UFMN(%s)(p%s,%s);\n\n"
               , pmi->machineTransition->name
               , fsmType(pcmd)
               , stateType(pcmd)
@@ -1467,7 +1467,7 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool need
    if (pmi->machineTransition)
    {
       fprintf(pcmd->hFile
-              , "void THIS(%s)(p%s,%s);\n\n"
+              , "void UFMN(%s)(p%s,%s);\n\n"
               , pmi->machineTransition->name
               , fsmType(pcmd)
               , stateType(pcmd)
@@ -1521,7 +1521,7 @@ bool cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pL
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
    fprintf(pich->pcmd->hFile
-		   , "%s THIS(%s)(p%s,%s);\n"
+		   , "%s UFMN(%s)(p%s,%s);\n"
 		   , stateType(pich->pcmd)
 		   , pid_info->name
 		   , fsmType(pich->pcmd)
@@ -1551,7 +1551,7 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
          if (event->type_data.event_data.psingle_pai->transition)
          {
             fprintf(pich->pcmd->cFile
-                    , "\t\t\t%s = THIS(%s)%s;\n"
+                    , "\t\t\t%s = UFMN(%s)%s;\n"
                     , (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
                       ? "new_s" 
                       : "pfsm->state"
@@ -1567,7 +1567,7 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
             if (strlen(event->type_data.event_data.psingle_pai->action->name))
             {
                fprintf(pich->pcmd->cFile
-                       , "\t\t\t%sTHIS(%s)(pfsm);\n"
+                       , "\t\t\t%sUFMN(%s)(pfsm);\n"
                        , pich->ih.pmi->modFlags & mfActionsReturnStates 
                           ? (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
                             ? "new_s = " : "pfsm->state = " 
@@ -1579,8 +1579,8 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
             {
                fprintf(pich->pcmd->cFile
                        , (event->type_data.event_data.psingle_pai->transition->type == STATE)
-                         ? "\t\t\t%sTHIS(%s);\n"
-                         : "\t\t\t%sTHIS(%s)(pfsm);\n"
+                         ? "\t\t\t%sUFMN(%s);\n"
+                         : "\t\t\t%sUFMN(%s)(pfsm);\n"
                        , pich->ih.pmi->modFlags & mfActionsReturnStates 
                           ? (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
                             ? "new_s = " : "pfsm->state = "
@@ -1601,7 +1601,7 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
          if (event->type_data.event_data.psingle_pai->transition)
          {
             fprintf(pich->pcmd->cFile
-                    , "\t\t\t%s = THIS(%s)%s;\n"
+                    , "\t\t\t%s = UFMN(%s)%s;\n"
                     , (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
                       ? "new_s" : "pfsm->state"
                     , event->type_data.event_data.psingle_pai->transition->name
@@ -1614,7 +1614,7 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
          if (strlen(event->type_data.event_data.psingle_pai->action->name))
          {
             fprintf(pich->pcmd->cFile
-                    , "\t\t\tretVal = THIS(%s)(pfsm);\n"
+                    , "\t\t\tretVal = UFMN(%s)(pfsm);\n"
                     , event->type_data.event_data.psingle_pai->action->name
                     );
          }

@@ -384,6 +384,7 @@ extern pLIST                pplantuml_prefix_files_list;
 extern bool                 output_generated_file_names_only;
 extern bool                 output_header_files;
 extern bool                 output_make_recipe;
+extern bool                 short_user_fn_names;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

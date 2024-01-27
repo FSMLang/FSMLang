@@ -118,6 +118,7 @@ struct _c_machine_data_
 	   , *transition_fn_type
        , *uc_machine_name
        , *ucfq_machine_name
+	   , *uf_machine_name
       ;
 
    unsigned long sub_fsm_if_format_width
