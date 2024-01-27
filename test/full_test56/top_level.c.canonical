@@ -117,7 +117,7 @@ static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 	switch(e)
 	{
 	case THIS(e1):
-		retVal = THIS(a1)(pfsm);
+		retVal = UFMN(a1)(pfsm);
 		new_s = top_level_s2;
 		break;
 	default:
@@ -128,7 +128,7 @@ static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 
 	if (top_level_s1 != new_s)
 	{
-		THIS(foo)(pfsm, new_s);
+		UFMN(foo)(pfsm, new_s);
 		pfsm->state = new_s;
 
 	}
@@ -145,13 +145,13 @@ static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 	switch(e)
 	{
 	case THIS(e2):
-		retVal = THIS(activate_sub_machine1)(pfsm);
+		retVal = UFMN(activate_sub_machine1)(pfsm);
 		break;
 	case THIS(e3):
-		retVal = THIS(activate_sub_machine2)(pfsm);
+		retVal = UFMN(activate_sub_machine2)(pfsm);
 		break;
 	case THIS(e4):
-		retVal = THIS(activate_sub_machine3)(pfsm);
+		retVal = UFMN(activate_sub_machine3)(pfsm);
 		new_s = top_level_s3;
 		break;
 	default:
@@ -162,7 +162,7 @@ static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 
 	if (top_level_s2 != new_s)
 	{
-		THIS(foo)(pfsm, new_s);
+		UFMN(foo)(pfsm, new_s);
 		pfsm->state = new_s;
 
 	}
@@ -178,10 +178,10 @@ static TOP_LEVEL_EVENT s3_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 	switch(e)
 	{
 	case THIS(e4):
-		retVal = THIS(activate_sub_machine3)(pfsm);
+		retVal = UFMN(activate_sub_machine3)(pfsm);
 		break;
 	case THIS(e5):
-		retVal = THIS(activate_sub_machine2)(pfsm);
+		retVal = UFMN(activate_sub_machine2)(pfsm);
 		break;
 	default:
 		DBG_PRINTF("top_level_noAction");
@@ -192,28 +192,28 @@ static TOP_LEVEL_EVENT s3_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 }
 
 
-TOP_LEVEL_EVENT __attribute__((weak)) THIS(a1)(FSM_TYPE_PTR pfsm)
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(a1)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
 	(void) pfsm;
 	return THIS(noEvent);
 }
 
-TOP_LEVEL_EVENT __attribute__((weak)) THIS(activate_sub_machine1)(FSM_TYPE_PTR pfsm)
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(activate_sub_machine1)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
 	(void) pfsm;
 	return THIS(noEvent);
 }
 
-TOP_LEVEL_EVENT __attribute__((weak)) THIS(activate_sub_machine2)(FSM_TYPE_PTR pfsm)
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(activate_sub_machine2)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
 	(void) pfsm;
 	return THIS(noEvent);
 }
 
-TOP_LEVEL_EVENT __attribute__((weak)) THIS(activate_sub_machine3)(FSM_TYPE_PTR pfsm)
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(activate_sub_machine3)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
 	(void) pfsm;
@@ -244,7 +244,7 @@ char *TOP_LEVEL_EVENT_NAMES[] = {
 	, "top_level_sub_machine3_noEvent"
 };
 
-char *TOP_LEVEL_STATE_NAMES[top_level_numStates] = {
+char *TOP_LEVEL_STATE_NAMES[] = {
 	 "top_level_s1"
 	,"top_level_s2"
 	,"top_level_s3"
