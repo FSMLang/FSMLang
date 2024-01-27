@@ -2572,8 +2572,8 @@ void usage(void)
  fprintf(stdout,"\t\twhen weak function generation is disabled..\n");
  fprintf(stdout,"\t\tThe generated functions are not weak.\n");
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
- fprintf(stdout,"\t--generate-run-function<=true|false> enables or supresses the generation of a run\n");
-	fprintf(stdout,"\t\tfunction to replace the RUN_STATE_MACHINE machro.\n");
+ fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");
+	fprintf(stdout,"\t\tno RUN_STATE_MACHINE macro is provided.\n");
  fprintf(stdout,"\t\tThe default is to generate the macro; the option argument is optional, if not given, \"true\" is assumed.\n");
 	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
 	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
