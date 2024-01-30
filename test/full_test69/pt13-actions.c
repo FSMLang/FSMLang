@@ -2,7 +2,7 @@
 #include "parser-test13_priv.h"
 
 
-ACTION_RETURN_TYPE THIS(a1)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE UFMN(a1)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
 
@@ -11,7 +11,7 @@ ACTION_RETURN_TYPE THIS(a1)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
-ACTION_RETURN_TYPE THIS(a2)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE UFMN(a2)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
 
@@ -20,7 +20,7 @@ ACTION_RETURN_TYPE THIS(a2)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
-void THIS(baz)(FSM_TYPE_PTR pfsm, NEW_MACHINE_STATE s)
+void UFMN(baz)(FSM_TYPE_PTR pfsm, NEW_MACHINE_STATE s)
 {
 	DBG_PRINTF("%s\nTransitioning to %s because of %s"
 			 , __func__
@@ -29,7 +29,7 @@ void THIS(baz)(FSM_TYPE_PTR pfsm, NEW_MACHINE_STATE s)
           );
 }
 
-NEW_MACHINE_STATE THIS(transitionFn)(FSM_TYPE_PTR pfsm, NEW_MACHINE_EVENT e)
+NEW_MACHINE_STATE UFMN(transitionFn)(FSM_TYPE_PTR pfsm, NEW_MACHINE_EVENT e)
 {
 	DBG_PRINTF("%s", __func__);
 
@@ -40,7 +40,7 @@ NEW_MACHINE_STATE THIS(transitionFn)(FSM_TYPE_PTR pfsm, NEW_MACHINE_EVENT e)
 	return (NEW_MACHINE_STATE) u_e;
 }
 
-NEW_MACHINE_STATE THIS(transitionFn1)(FSM_TYPE_PTR pfsm, NEW_MACHINE_EVENT e)
+NEW_MACHINE_STATE UFMN(transitionFn1)(FSM_TYPE_PTR pfsm, NEW_MACHINE_EVENT e)
 {
 	DBG_PRINTF("%s", __func__);
 

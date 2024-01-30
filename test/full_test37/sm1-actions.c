@@ -2,7 +2,7 @@
 
 #include "sub_machine1_priv.h"
 
-ACTION_RETURN_TYPE THIS(a3)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE UFMN(a3)(FSM_TYPE_PTR pfsm)
 {
 	(void) pfsm;
 	DBG_PRINTF(__func__);
@@ -10,7 +10,7 @@ ACTION_RETURN_TYPE THIS(a3)(FSM_TYPE_PTR pfsm)
    return PARENT(e3);
 }
 
-ACTION_RETURN_TYPE THIS(a2)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE UFMN(a2)(FSM_TYPE_PTR pfsm)
 {
 	(void) pfsm;
 	DBG_PRINTF(__func__);
@@ -18,7 +18,7 @@ ACTION_RETURN_TYPE THIS(a2)(FSM_TYPE_PTR pfsm)
    return THIS(e3);
 }
 
-ACTION_RETURN_TYPE THIS(a1)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE UFMN(a1)(FSM_TYPE_PTR pfsm)
 {
 	(void) pfsm;
 	DBG_PRINTF(__func__);
@@ -26,7 +26,7 @@ ACTION_RETURN_TYPE THIS(a1)(FSM_TYPE_PTR pfsm)
    return THIS(e2);
 }
 
-ACTION_RETURN_TYPE THIS(noAction)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
 {
 	(void) pfsm;
 	DBG_PRINTF(__func__);
@@ -34,7 +34,7 @@ ACTION_RETURN_TYPE THIS(noAction)(FSM_TYPE_PTR pfsm)
    return THIS(noEvent);
 }
 
-SUB_MACHINE1_STATE THIS(checkTransition)(FSM_TYPE_PTR pfsm, ACTION_RETURN_TYPE e)
+SUB_MACHINE1_STATE UFMN(checkTransition)(FSM_TYPE_PTR pfsm, ACTION_RETURN_TYPE e)
 {
 	DBG_PRINTF(__func__);
 
@@ -44,7 +44,7 @@ SUB_MACHINE1_STATE THIS(checkTransition)(FSM_TYPE_PTR pfsm, ACTION_RETURN_TYPE e
    return sub_machine1_s3;
 }
 
-void THIS(translate_e7_data)(pTOP_LEVEL_DATA pfsm_data)
+void UFMN(translate_e7_data)(pTOP_LEVEL_DATA pfsm_data)
 {
 	DBG_PRINTF(__func__);
 
@@ -55,7 +55,7 @@ void THIS(translate_e7_data)(pTOP_LEVEL_DATA pfsm_data)
 	DBG_PRINTF("The string: %s\n", psub_machine1->data.field2);
 }
 
-ACTION_RETURN_TYPE THIS(handle_e7)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE UFMN(handle_e7)(FSM_TYPE_PTR pfsm)
 {
 	(void) pfsm;
 	DBG_PRINTF(__func__);
