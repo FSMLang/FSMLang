@@ -48,11 +48,11 @@ char *createAncestryFileName(pMACHINE_INFO pmi)
 {
 	FILE *tmp = tmpfile();
 	char *cp  = NULL;
-	const unsigned long file_size = ftell(tmp);
 
 	if (tmp)
 	{
 		printAncestry(pmi, tmp, "_", alc_lower, ai_include_self);
+		const unsigned long file_size = ftell(tmp);
 		fseek(tmp, 0, SEEK_SET);
 
 		if ((cp = (char *) malloc(file_size+1)) != NULL)
