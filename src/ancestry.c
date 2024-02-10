@@ -35,14 +35,12 @@
 
 #include "ancestry.h"
 
+#include <stdio.h>
 #if defined (CYGWIN) || defined (LINUX)
-	#include <stdio.h>
 	#include <ctype.h>
 	#include <unistd.h>
 #endif
-#if defined (LINUX) || defined (VS) || defined (CYGWIN)
-	#include <time.h>
-#endif
+#include <time.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -50,12 +48,11 @@ char *createAncestryFileName(pMACHINE_INFO pmi)
 {
 	FILE *tmp = tmpfile();
 	char *cp  = NULL;
-	unsigned long file_size;
+	const unsigned long file_size = ftell(tmp);
 
 	if (tmp)
 	{
 		printAncestry(pmi, tmp, "_", alc_lower, ai_include_self);
-		file_size = ftell(tmp);
 		fseek(tmp, 0, SEEK_SET);
 
 		if ((cp = (char *) malloc(file_size+1)) != NULL)
@@ -89,12 +86,13 @@ char *createAncestryFileName(pMACHINE_INFO pmi)
 char *hungarianToUnderbarCaps(char *str)
 {
 
-	int 	i,consecutive;
+	int 	i = strlen(str) + 1;
+	int     consecutive = 0;
+
 	char	*cp, *cp1, *cp2;
 
 	/* first, use i and cp1 to figure out how much memory to get */
-	i = strlen(str);
-	i++;
+	i = strlen(str) + 1;
 
 	for (cp = str; *cp; cp++)
 
@@ -154,29 +152,29 @@ char *hungarianToUnderbarCaps(char *str)
 void streamHungarianToUnderbarCaps(FILE *fout, char *str)
 {
 
-	int 	consecutive;
+	int 	consecutive = 0;
 	char	*cp;
 
-	consecutive = 0;
-	for (cp = str; *cp; cp++) {
+	for (cp = str; *cp; cp++)
+	{
 
 		//deal with the escapes first
 		if (*cp == '\\')
 		{
-			fputc('_',fout);
+			fputc('_', fout);
 			continue;
 		}
 
 		if (
-          !(*cp & 0x20)
-          && (*cp != '_')
-		  && (cp != str)
-          )
-        {
+			!(*cp & 0x20)
+			&& (*cp != '_')
+			&& (cp != str)
+		   )
+		{
 
 			if (!consecutive)
 			{
-				fputc('_',fout);
+				fputc('_', fout);
 				consecutive = 1;
 			}
 
@@ -189,6 +187,7 @@ void streamHungarianToUnderbarCaps(FILE *fout, char *str)
 		fputc((isalpha(*cp) ? toupper(*cp) : *cp), fout);
 
 	}
+
 
 }
 

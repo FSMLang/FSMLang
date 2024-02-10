@@ -78,7 +78,7 @@ typedef enum VERTICAL_PLACEMENT {
 } VERTICAL_PLACEMENT;
 
 /**
- * Set tbe letter case for outputting
+ * Set the letter case for outputting
  * ancestry.
  * 
  * @author sstan (10/20/2023)

@@ -47,7 +47,7 @@ extern int yylex(void);
 char *rindex(const char *str,int c);
 
 pMACHINE_INFO               pmachineInfo = NULL;
-pFSMOutputGenerator	        pfsmog       = NULL;
+pFSMOutputGenerator         pfsmog       = NULL;
 fpFSMOutputGeneratorFactory fpfsmogf     = NULL;
 pSTATE_AND_EVENT_DECLS      psedecls     = NULL;
 
