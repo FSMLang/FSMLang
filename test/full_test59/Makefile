@@ -25,9 +25,9 @@ include ../../fsmrules.mk
 check_plantuml: $(TEST_INPUT)
 	$(DIFF) comment_test.plantuml comment_test.plantuml.canonical > test.result
 	$(DIFF) sub1.plantuml sub1.plantuml.canonical > test.result
-	-@rm -f $(TEST_INPUT) > /dev/null 2>1
-	-@rm -f test.result > /dev/null 2>1
-	-@rm -f fsmout > /dev/null 2>1
+	-@rm -f $(TEST_INPUT) 2> /dev/null
+	-@rm -f test.result   2> /dev/null
+	-@rm -f fsmout        2> /dev/null
 
 $(GENERATED_SRC:.c=.plantuml) : $(FSM_SRC:.fsm=.plantuml)
 
