@@ -29,3 +29,10 @@ jobs:
         cd src
         make Linux.testonly
 
+    - name: Archive Test Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-failures
+        path: |
+              test/**/test.result
+              test/**/test.out
