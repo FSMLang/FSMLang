@@ -175,5 +175,3 @@ anotherNewMachine_anotherSubMachine2_noAction
 event: anotherNewMachine_anotherSubMachine2_eee3; state: anotherNewMachine_s3
 anotherNewMachine_anotherSubMachine2_noAction
 event: anotherNewMachine_anotherSubMachine2_noEvent; state: anotherNewMachine_s3
-warning: cannot print cross reference with external designations
-warning: cannot use external event designations
