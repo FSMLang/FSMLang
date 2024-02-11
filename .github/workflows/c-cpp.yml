@@ -30,6 +30,7 @@ jobs:
         make Linux.testonly
 
     - name: Archive Test Results
+        if: failure()
       uses: actions/upload-artifact@v4
       with:
         name: test-failures
