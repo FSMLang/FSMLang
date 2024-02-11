@@ -44,6 +44,48 @@
 #include <string.h>
 #include <stdlib.h>
 
+static char *create_string_from_file(FILE*,unsigned long*);
+
+/**
+ * Creates a string comprising the contents of the provided
+ * file.  The file is closed after reading.  Memory is
+ * allocated, which must be freed by the caller.
+ * 
+ * @author Steven Stanton (2/10/2024)
+ * 
+ * @param file   FILE* pointer to the file containing the
+ *  			 desrired string contents
+ * 
+ * @return char* pointer to the created string.
+ */
+static char *create_string_from_file(FILE *file, unsigned long *str_len)
+{
+	char *cp = NULL;
+
+	if (file)
+	{
+		fseek(file, 0, SEEK_END);
+		const unsigned long file_size = ftell(file);
+
+		fseek(file, 0, SEEK_SET);
+
+		if ((cp = (char *) malloc(file_size + 1)) != NULL)
+		{
+			fread(cp, 1, file_size, file);
+			cp[file_size] = 0;
+		}
+
+		fclose(file);
+
+		if (str_len)
+		{
+			*str_len = file_size;
+		}
+	}
+
+	return cp;
+}
+
 char *createAncestryFileName(pMACHINE_INFO pmi)
 {
 	FILE *tmp = tmpfile();
@@ -52,16 +94,7 @@ char *createAncestryFileName(pMACHINE_INFO pmi)
 	if (tmp)
 	{
 		printAncestry(pmi, tmp, "_", alc_lower, ai_include_self);
-		const unsigned long file_size = ftell(tmp);
-		fseek(tmp, 0, SEEK_SET);
-
-		if ((cp = (char *) malloc(file_size+1)) != NULL)
-		{
-			fread(cp, 1, file_size, tmp);
-			cp[file_size] = 0;
-		}
-
-		fclose(tmp);
+		cp = create_string_from_file(tmp, NULL);
 	}
 
 	return cp;
@@ -79,8 +112,7 @@ char *createAncestryFileName(pMACHINE_INFO pmi)
 		program.
 
 	returns :
-		pointer to the string on success,
-		NULL									on failure.
+		pointer to the string on success, NULL on failure.
 
 */
 char *hungarianToUnderbarCaps(char *str)
@@ -94,30 +126,29 @@ char *hungarianToUnderbarCaps(char *str)
 	/* first, use i and cp1 to figure out how much memory to get */
 	i = strlen(str) + 1;
 
-	for (cp = str; *cp; cp++)
-
-		if (!(*cp & 0x20))
-
-			i++;
+	for (cp = str; *cp; cp++) if (!(*cp & 0x20)) i++;
 
 	/* now, cp becomes the pointer to the new memory */
-	if ((cp = (char *)malloc(i))) {
+	if ((cp = (char *)malloc(i)))
+	{
 
 		consecutive = 0;
-		for (cp1 = str, cp2 = cp; *cp1; cp1++) {
+		for (cp1 = str, cp2 = cp; *cp1; cp1++)
+		{
 
 			//deal with the escapes first
-			if (*cp1 == '\\') {
+			if (*cp1 == '\\')
+			{
 				*cp2++ = '_';
 				continue;
 			}
 
 			if (
-          !(*cp1 & 0x20)
-          && (*cp1 != '_')
-		  && (cp1 != str)
-          )
-      {
+				!(*cp1 & 0x20)
+				&& (*cp1 != '_')
+				&& (cp1 != str)
+			   )
+			{
 
 				if (!consecutive)
 				{
@@ -139,7 +170,8 @@ char *hungarianToUnderbarCaps(char *str)
 
 	}
 
-	return cp;
+	return cp; 
+
 
 }
 
@@ -194,7 +226,6 @@ void streamHungarianToUnderbarCaps(FILE *fout, char *str)
 char* actionReturnType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
 
 	/* only create the string once */
 	if (!pcmd->action_return_type)
@@ -221,16 +252,8 @@ char* actionReturnType(pCMachineData pcmd)
 							);
 				}
 			}
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->action_return_type = (char *)malloc(file_size + 1)) != NULL)
-			{
-				fread(pcmd->action_return_type, 1, file_size, tmp);
-				pcmd->action_return_type[file_size] = 0;
-			}
-
-			fclose(tmp);
+			pcmd->action_return_type = create_string_from_file(tmp, NULL);
 		}
 	}
 
@@ -240,7 +263,6 @@ char* actionReturnType(pCMachineData pcmd)
 char* fsmType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
 
 	/* only create the string once */
 	if (!pcmd->fsm_type)
@@ -249,16 +271,7 @@ char* fsmType(pCMachineData pcmd)
 		if (NULL != (tmp = tmpfile()))
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
-
-			if ((pcmd->fsm_type = (char *)malloc(file_size + 1)) != NULL)
-			{
-				fread(pcmd->fsm_type, 1, file_size, tmp);
-				pcmd->fsm_type[file_size] = 0;
-			}
-
-			fclose(tmp);
+			pcmd->fsm_type = create_string_from_file(tmp, NULL);
 		}
 	}
 
@@ -268,7 +281,7 @@ char* fsmType(pCMachineData pcmd)
 char* actionFnType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->action_fn_type)
@@ -278,21 +291,14 @@ char* actionFnType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp, "_ACTION_FN");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->action_fn_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->action_fn_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->c_machine_struct_format_width < str_len + 2)
 			{
-				fread(pcmd->action_fn_type, 1, file_size, tmp);
-				pcmd->action_fn_type[file_size] = 0;
+				pcmd->c_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->c_machine_struct_format_width < file_size + 2)
-			{
-				pcmd->c_machine_struct_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -302,7 +308,7 @@ char* actionFnType(pCMachineData pcmd)
 char* actionTransType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->action_trans_type)
@@ -312,21 +318,14 @@ char* actionTransType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp, "_ACTION_TRANS");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->action_trans_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->action_trans_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->c_machine_struct_format_width < str_len + 2)
 			{
-				fread(pcmd->action_trans_type, 1, file_size, tmp);
-				pcmd->action_trans_type[file_size] = 0;
+				pcmd->c_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->c_machine_struct_format_width < file_size + 2)
-			{
-				pcmd->c_machine_struct_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -336,7 +335,7 @@ char* actionTransType(pCMachineData pcmd)
 char* transitionFnType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->transition_fn_type)
@@ -346,21 +345,14 @@ char* transitionFnType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp, "_TRANSITION_FN");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->transition_fn_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->transition_fn_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->c_machine_struct_format_width < str_len + 2)
 			{
-				fread(pcmd->transition_fn_type, 1, file_size, tmp);
-				pcmd->transition_fn_type[file_size] = 0;
+				pcmd->c_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->c_machine_struct_format_width < file_size + 2)
-			{
-				pcmd->c_machine_struct_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -370,7 +362,7 @@ char* transitionFnType(pCMachineData pcmd)
 char* fsmDataType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->fsm_data_type)
@@ -380,26 +372,19 @@ char* fsmDataType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp,"_DATA");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->fsm_data_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->fsm_data_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->sub_machine_struct_format_width < str_len + 2)
 			{
-				fread(pcmd->fsm_data_type, 1, file_size, tmp);
-				pcmd->fsm_data_type[file_size] = 0;
+				pcmd->sub_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->sub_machine_struct_format_width < file_size + 2)
+			if (pcmd->c_machine_struct_format_width < str_len + 2)
 			{
-				pcmd->sub_machine_struct_format_width = file_size + 2;
+				pcmd->c_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->c_machine_struct_format_width < file_size + 2)
-			{
-				pcmd->c_machine_struct_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -409,7 +394,7 @@ char* fsmDataType(pCMachineData pcmd)
 char* fsmFnType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->fsm_fn_type)
@@ -419,26 +404,19 @@ char* fsmFnType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp,"_FSM");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->fsm_fn_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->fsm_fn_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->sub_machine_struct_format_width < str_len + 2)
 			{
-				fread(pcmd->fsm_fn_type, 1, file_size, tmp);
-				pcmd->fsm_fn_type[file_size] = 0;
+				pcmd->sub_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->sub_machine_struct_format_width < file_size + 2)
+			if (pcmd->c_machine_struct_format_width < str_len + 2)
 			{
-				pcmd->sub_machine_struct_format_width = file_size + 2;
+				pcmd->c_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->c_machine_struct_format_width < file_size + 2)
-			{
-				pcmd->c_machine_struct_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -448,7 +426,7 @@ char* fsmFnType(pCMachineData pcmd)
 char* eventType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->event_type)
@@ -461,36 +439,29 @@ char* eventType(pCMachineData pcmd)
 					,"_EVENT%s"
 					, pcmd->pmi->data_block_count ? "_ENUM" : ""
 					);
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->event_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->event_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->sub_fsm_if_format_width < str_len + 2)
 			{
-				fread(pcmd->event_type, 1, file_size, tmp);
-				pcmd->event_type[file_size] = 0;
+				pcmd->sub_fsm_if_format_width = str_len + 2;
 			}
 
-			if (pcmd->sub_fsm_if_format_width < file_size + 2)
+			if (pcmd->shared_event_str_format_width < str_len + 2)
 			{
-				pcmd->sub_fsm_if_format_width = file_size + 2;
+				pcmd->shared_event_str_format_width = str_len + 2;
 			}
 
-			if (pcmd->shared_event_str_format_width < file_size + 2)
+			if (pcmd->sub_machine_struct_format_width < str_len + 2)
 			{
-				pcmd->shared_event_str_format_width = file_size + 2;
+				pcmd->sub_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->sub_machine_struct_format_width < file_size + 2)
+			if (pcmd->c_machine_struct_format_width < str_len + 2)
 			{
-				pcmd->sub_machine_struct_format_width = file_size + 2;
+				pcmd->c_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->c_machine_struct_format_width < file_size + 2)
-			{
-				pcmd->c_machine_struct_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -500,7 +471,7 @@ char* eventType(pCMachineData pcmd)
 char* fsmFnEventType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->fsm_fn_event_type)
@@ -516,21 +487,14 @@ char* fsmFnEventType(pCMachineData pcmd)
 			fprintf(tmp
 					,"_EVENT"
 					);
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->fsm_fn_event_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->fsm_fn_event_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->sub_fsm_if_format_width < str_len + 2)
 			{
-				fread(pcmd->fsm_fn_event_type, 1, file_size, tmp);
-				pcmd->fsm_fn_event_type[file_size] = 0;
+				pcmd->sub_fsm_if_format_width = str_len + 2;
 			}
 
-			if (pcmd->sub_fsm_if_format_width < file_size + 2)
-			{
-				pcmd->sub_fsm_if_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -540,7 +504,7 @@ char* fsmFnEventType(pCMachineData pcmd)
 char* subFsmIfType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->sub_fsm_if_type)
@@ -550,26 +514,19 @@ char* subFsmIfType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp ,"_SUB_FSM_IF");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->sub_fsm_if_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->sub_fsm_if_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->sub_machine_struct_format_width < str_len + 2)
 			{
-				fread(pcmd->sub_fsm_if_type, 1, file_size, tmp);
-				pcmd->sub_fsm_if_type[file_size] = 0;
+				pcmd->sub_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->sub_machine_struct_format_width < file_size + 2)
+			if (pcmd->c_machine_struct_format_width < str_len + 2)
 			{
-				pcmd->sub_machine_struct_format_width = file_size + 2;
+				pcmd->c_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->c_machine_struct_format_width < file_size + 2)
-			{
-				pcmd->c_machine_struct_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -579,7 +536,7 @@ char* subFsmIfType(pCMachineData pcmd)
 char* stateType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->state_type)
@@ -589,26 +546,19 @@ char* stateType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp ,"_STATE");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->state_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->state_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->sub_machine_struct_format_width < str_len + 2)
 			{
-				fread(pcmd->state_type, 1, file_size, tmp);
-				pcmd->state_type[file_size] = 0;
+				pcmd->sub_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->sub_machine_struct_format_width < file_size + 2)
+			if (pcmd->c_machine_struct_format_width < str_len + 2)
 			{
-				pcmd->sub_machine_struct_format_width = file_size + 2;
+				pcmd->c_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->c_machine_struct_format_width < file_size + 2)
-			{
-				pcmd->c_machine_struct_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -618,7 +568,7 @@ char* stateType(pCMachineData pcmd)
 char* stateFnType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->state_fn_type)
@@ -628,21 +578,14 @@ char* stateFnType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp ,"_STATE_FN");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->state_fn_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->state_fn_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->sub_machine_struct_format_width < str_len + 2)
 			{
-				fread(pcmd->state_fn_type, 1, file_size, tmp);
-				pcmd->state_fn_type[file_size] = 0;
+				pcmd->sub_machine_struct_format_width = str_len + 2;
 			}
 
-			if (pcmd->sub_machine_struct_format_width < file_size + 2)
-			{
-				pcmd->sub_machine_struct_format_width = file_size + 2;
-			}
-
-			fclose(tmp);
 		}
 	}
 
@@ -652,7 +595,7 @@ char* stateFnType(pCMachineData pcmd)
 char* subMachineFnType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->sub_machine_fn_type)
@@ -662,20 +605,12 @@ char* subMachineFnType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp ,"_SUB_MACHINE_FN");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->sub_machine_fn_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->sub_machine_fn_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->sub_fsm_if_format_width < str_len + 2)
 			{
-				fread(pcmd->sub_machine_fn_type, 1, file_size, tmp);
-				pcmd->sub_machine_fn_type[file_size] = 0;
-			}
-
-			fclose(tmp);
-
-			if (pcmd->sub_fsm_if_format_width < file_size + 2)
-			{
-				pcmd->sub_fsm_if_format_width = file_size + 2;
+				pcmd->sub_fsm_if_format_width = str_len + 2;
 			}
 
 		}
@@ -687,7 +622,7 @@ char* subMachineFnType(pCMachineData pcmd)
 char* dataTranslationFnType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->data_translation_fn_type)
@@ -697,20 +632,12 @@ char* dataTranslationFnType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp ,"_DATA_TRANSLATION_FN");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->data_translation_fn_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->data_translation_fn_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->shared_event_str_format_width < str_len + 2)
 			{
-				fread(pcmd->data_translation_fn_type, 1, file_size, tmp);
-				pcmd->data_translation_fn_type[file_size] = 0;
-			}
-
-			fclose(tmp);
-
-			if (pcmd->shared_event_str_format_width < file_size + 2)
-			{
-				pcmd->shared_event_str_format_width = file_size + 2;
+				pcmd->shared_event_str_format_width = str_len + 2;
 			}
 		}
 	}
@@ -721,7 +648,7 @@ char* dataTranslationFnType(pCMachineData pcmd)
 char* sharedEventStrType(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
+	unsigned long str_len;
 
 	/* only create the string once */
 	if (!pcmd->shared_event_str_type)
@@ -731,20 +658,12 @@ char* sharedEventStrType(pCMachineData pcmd)
 		{
 			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
 			fprintf(tmp, "_SHARED_EVENT_STR");
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->shared_event_str_type = (char *)malloc(file_size + 1)) != NULL)
+			pcmd->shared_event_str_type = create_string_from_file(tmp, &str_len);
+			
+			if (pcmd->shared_event_str_format_width < str_len + 2)
 			{
-				fread(pcmd->shared_event_str_type, 1, file_size, tmp);
-				pcmd->shared_event_str_type[file_size] = 0;
-			}
-
-			fclose(tmp);
-
-			if (pcmd->shared_event_str_format_width < file_size + 2)
-			{
-				pcmd->shared_event_str_format_width = file_size + 2;
+				pcmd->shared_event_str_format_width = str_len + 2;
 			}
 		}
 	}
@@ -770,7 +689,6 @@ char *machineName(pCMachineData pcmd)
 char *fqMachineName(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
 
 	if (!pcmd->fq_machine_name)
 	{
@@ -778,16 +696,8 @@ char *fqMachineName(pCMachineData pcmd)
 		if (NULL != (tmp = tmpfile()))
 		{
 			printAncestry(pcmd->pmi, tmp, "_", alc_lower, ai_include_self);
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->fq_machine_name = (char *)malloc(file_size + 1)) != NULL)
-			{
-				fread(pcmd->fq_machine_name, 1, file_size, tmp);
-				pcmd->fq_machine_name[file_size] = 0;
-			}
-
-			fclose(tmp);
+			pcmd->fq_machine_name = create_string_from_file(tmp, NULL);
 
 		}
 	}
@@ -812,7 +722,6 @@ char *fqMachineName(pCMachineData pcmd)
 char *ufMachineName(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
 
 	if (!pcmd->uf_machine_name)
 	{
@@ -826,16 +735,8 @@ char *ufMachineName(pCMachineData pcmd)
 			if (NULL != (tmp = tmpfile()))
 			{
 				printAncestry(pcmd->pmi, tmp, "_", alc_lower, ai_include_self);
-				file_size = ftell(tmp);
-				fseek(tmp, 0, SEEK_SET);
 
-				if ((pcmd->uf_machine_name = (char *)malloc(file_size + 1)) != NULL)
-				{
-					fread(pcmd->uf_machine_name, 1, file_size, tmp);
-					pcmd->uf_machine_name[file_size] = 0;
-				}
-
-				fclose(tmp);
+				pcmd->uf_machine_name = create_string_from_file(tmp, NULL);
 
 			}
 		}
@@ -859,7 +760,6 @@ char *ufMachineName(pCMachineData pcmd)
 char *ucfqMachineName(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
 
 	if (!pcmd->ucfq_machine_name)
 	{
@@ -867,16 +767,8 @@ char *ucfqMachineName(pCMachineData pcmd)
 		if (NULL != (tmp = tmpfile()))
 		{
 			printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self);
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->ucfq_machine_name = (char *)malloc(file_size + 1)) != NULL)
-			{
-				fread(pcmd->ucfq_machine_name, 1, file_size, tmp);
-				pcmd->ucfq_machine_name[file_size] = 0;
-			}
-
-			fclose(tmp);
+			pcmd->ucfq_machine_name = create_string_from_file(tmp, NULL);
 
 		}
 	}
@@ -924,7 +816,6 @@ char *ucMachineName(pCMachineData pcmd)
 char *nfMachineName(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
 
 	if (!pcmd->nf_machine_name)
 	{
@@ -932,16 +823,8 @@ char *nfMachineName(pCMachineData pcmd)
 		if (NULL != (tmp = tmpfile()))
 		{
 			printAncestry(pcmd->pmi, tmp, "_", alc_lower, ai_include_self | ai_stop_at_parent);
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->nf_machine_name = (char *)malloc(file_size + 1)) != NULL)
-			{
-				fread(pcmd->nf_machine_name, 1, file_size, tmp);
-				pcmd->nf_machine_name[file_size] = 0;
-			}
-
-			fclose(tmp);
+			pcmd->nf_machine_name = create_string_from_file(tmp, NULL);
 
 		}
 	}
@@ -953,7 +836,6 @@ char *nfMachineName(pCMachineData pcmd)
 char *ucnfMachineName(pCMachineData pcmd)
 {
 	FILE          *tmp;
-	unsigned long file_size;
 
 	if (!pcmd->uc_nf_machine_name)
 	{
@@ -961,16 +843,8 @@ char *ucnfMachineName(pCMachineData pcmd)
 		if (NULL != (tmp = tmpfile()))
 		{
 			printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self | ai_stop_at_parent);
-			file_size = ftell(tmp);
-			fseek(tmp, 0, SEEK_SET);
 
-			if ((pcmd->uc_nf_machine_name = (char *)malloc(file_size + 1)) != NULL)
-			{
-				fread(pcmd->uc_nf_machine_name, 1, file_size, tmp);
-				pcmd->uc_nf_machine_name[file_size] = 0;
-			}
-
-			fclose(tmp);
+			pcmd->uc_nf_machine_name = create_string_from_file(tmp, NULL);
 
 		}
 	}
@@ -998,7 +872,6 @@ char *ucnfMachineName(pCMachineData pcmd)
 char *nfMachineNamePmi(pMACHINE_INFO pmi, char **pcp)
 {
 	FILE          *tmp;
-	unsigned long file_size;
 
 	*pcp = NULL;
 
@@ -1006,16 +879,8 @@ char *nfMachineNamePmi(pMACHINE_INFO pmi, char **pcp)
 	if (NULL != (tmp = tmpfile()))
 	{
 		printAncestry(pmi, tmp, "_", alc_lower, ai_include_self | ai_stop_at_parent);
-		file_size = ftell(tmp);
-		fseek(tmp, 0, SEEK_SET);
 
-		if ((*pcp = (char *)malloc(file_size + 1)) != NULL)
-		{
-			fread(*pcp, 1, file_size, tmp);
-			(*pcp)[file_size] = 0;
-		}
-
-		fclose(tmp);
+		*pcp = create_string_from_file(tmp, NULL);
 
 	}
 
