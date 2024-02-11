@@ -10,7 +10,7 @@ machine newMachine
 {
 	state s1, s2, s3;
 	event e1, e2, e3;
-  event e4 = BAR;
+  event e4;
 
 
 	/** a sub machine */
