@@ -13,7 +13,7 @@
 #endif
 
 #include <stdbool.h>
-#define FSM_VERSION "1.41"
+#define FSM_VERSION "1.42"
 
 #define RUN_STATE_MACHINE(A,B) \
 	((*(A)->fsm)((A),((NEW_MACHINE_EVENT) B)))
