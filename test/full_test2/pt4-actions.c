@@ -37,17 +37,17 @@
 #include <stdlib.h>
 #endif
 
-#include "parser-test4.h"
+#include "parser-test4_priv.h"
 
 
 int main()
 {
 
-	RUN_STATE_MACHINE(ptest4FSM,test4FSM_goodMessage);
-	RUN_STATE_MACHINE(ptest4FSM,test4FSM_badMessage);
-	RUN_STATE_MACHINE(ptest4FSM,test4FSM_goodMessage);
-	RUN_STATE_MACHINE(ptest4FSM,test4FSM_goodMessage);
-	RUN_STATE_MACHINE(ptest4FSM,test4FSM_badMessage);
+	run_test4FSM(test4FSM_goodMessage);
+	run_test4FSM(test4FSM_badMessage);
+	run_test4FSM(test4FSM_goodMessage);
+	run_test4FSM(test4FSM_goodMessage);
+	run_test4FSM(test4FSM_badMessage);
 
 	exit(0);
 

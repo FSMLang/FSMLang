@@ -46,9 +46,10 @@ extern int yylex(void);
 
 char *rindex(const char *str,int c);
 
-pMACHINE_INFO          pmachineInfo = NULL;
-pFSMOutputGenerator	  pfsmog;
-pSTATE_AND_EVENT_DECLS psedecls = NULL;
+pMACHINE_INFO               pmachineInfo = NULL;
+pFSMOutputGenerator         pfsmog       = NULL;
+fpFSMOutputGeneratorFactory fpfsmogf     = NULL;
+pSTATE_AND_EVENT_DECLS      psedecls     = NULL;
 
 void yyerror(char *);
 
@@ -199,11 +200,11 @@ machine_prefix: native machine_modifier MACHINE_KEY
 				}
 
        /* grab any modifiers */
- 			$$->pmachineInfo->modFlags = $2;
+ 			 $$->pmachineInfo->modFlags = $2;
 
        id_list = $$->pmachineInfo->id_list = init_list();
 
-       $$->pmachineInfo->parent = pmachineInfo;
+        $$->pmachineInfo->parent = pmachineInfo;
 				pmachineInfo             = $$->pmachineInfo;
 
    }
@@ -252,11 +253,12 @@ machine:	machine_prefix ID machine_qualifier
 																						 ,&($$->data_block_count)
 																						 );
 
- 					/* sanity check */
- 					if ($$->parent && $$->data_block_count)
+ 					/* sanity checks */
+ 					if ($$->parent && $$->data_block_count && !output_generated_file_names_only)
 						{
  					   yyerror("event user data not allowed in sub-machines");
 						}
+
 
 						count_external_declarations     ($$->state_list,&($$->external_state_designation_count));
  					count_states_with_entry_exit_fns($$->state_list,&($$->states_with_entry_fns_count),&($$->states_with_exit_fns_count));
@@ -380,6 +382,11 @@ machine:	machine_prefix ID machine_qualifier
                      ,"this machine has %u sub-machines\n"
                      ,$$->machine_list->count
                      );
+
+								fprintf(yyout
+												, "the sub-machine depth is %u\n"
+												, $$->sub_machine_depth
+												);
             }
 
 						fprintf(yyout,"\n");
@@ -517,6 +524,9 @@ machine_list:
 
         if (NULL == add_to_list($$,$1))
             yyerror("out of memory");
+
+				/* Bump the depth count. The function is a no-op if we're at the top. */
+				increase_sub_machine_depth($1->parent);
 
     }
     | machine_list machine
@@ -1374,6 +1384,11 @@ parent_namespace: PARENT NAMESPACE
 user_event_data: { $$ = NULL; }
   | DATA_KEY TRANSLATOR_KEY ID
    {
+		if (pmachineInfo->parent && !pmachineInfo->parent->data) 
+		{
+			yyerror("data translator declared for sub-machine having parent with no data");
+		}
+
   		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
   		   yyerror("out of memory");
  
@@ -1672,7 +1687,7 @@ native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY EPILOGUE_KEY NATIVE_BLOCK
 
 	;
  
-machine_data: DATA_KEY data_block { $$ = $2; };
+machine_data: DATA_KEY data_block { $$ = $2; pmachineInfo->data = $$; };
 
 data_block:	'{' data_fields '}'
 	{
@@ -2074,6 +2089,7 @@ typedef enum {
  , lo_exclude_actions_from_plantuml_legend
  , lo_add_plantuml_prefix_string
  , lo_add_plantuml_prefix_file
+ , lo_short_user_fn_names
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2188,14 +2204,26 @@ const struct option longopts[] =
         , .flag    = &longval
         , .val     = lo_add_plantuml_prefix_file
     }
+    , {
+        .name      = "add-plantuml-prefix-file"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_add_plantuml_prefix_file
+    }
+    , {
+        .name      = "short-user-fn-names"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_short_user_fn_names
+    }
     , {0}
 };
       
 int main(int argc, char **argv)
 {
 
-	char	*cp,*cp1;
-	char  *outFileBase = 0;
+	char	*cp1;
+	char    *outFileBase = 0;
 
  #ifndef PARSER_DEBUG
  int   c;
@@ -2216,13 +2244,11 @@ int main(int argc, char **argv)
 	}
 
 #ifndef PARSER_DEBUG
-	/* default to writing a c machine */
-	pfsmog = pCMachineWriter;
 
-	while ((c = getopt_long(argc,argv,"vht:o:i:cs", longopts, &longindex)) != -1) {
+	while ((c = getopt_long(argc,argv,"vht:o:i:csM::", longopts, &longindex)) != -1) {
 
 		switch(c) {
-
+  
      case 0:
 
         switch (longval)
@@ -2256,8 +2282,8 @@ int main(int argc, char **argv)
                 force_generation_of_event_passing_actions = true;
                 break;
             case lo_generate_run_function:
-                if (!optarg || !strcmp(optarg,"true"))
-                    generate_run_function = true;
+                if (optarg && !strcmp(optarg,"false"))
+                    generate_run_function = false;
                 break;
  			   case lo_add_event_cross_reference:
  					 if (!optarg || !strcmp(optarg,"true"))
@@ -2333,6 +2359,10 @@ int main(int argc, char **argv)
  							    pplantuml_prefix_files_list = init_list();
  							 add_to_list(pplantuml_prefix_files_list, optarg);
  							 break;
+			    case lo_short_user_fn_names:
+		            if (!optarg || !strcmp(optarg, "true"))
+			            short_user_fn_names=true;
+		            break;
             default:
                 usage();
                 return(0);
@@ -2340,9 +2370,9 @@ int main(int argc, char **argv)
         }
         break;
 
-			case 'h':
-				usage();
-				return (1);
+		case 'h':
+			usage();
+			return (1);
 
  		case 's':
  			pfsmog = pMachineStatisticsWriter;
@@ -2353,37 +2383,34 @@ int main(int argc, char **argv)
 				switch (optarg[0]) {
 
 					case 'c':
-
-						pfsmog = pCMachineWriter;
+                        fpfsmogf = generateCMachineWriter;
 						break;
 
 					case 'h':
-
-						pfsmog = pHTMLMachineWriter;
+						fpfsmogf = generateHTMLMachineWriter;
 						break;
 
-         case 's':
-           pfsmog = pCSwitchMachineWriter;
+					case 's':
+						fpfsmogf = generateCSwitchMachineWriter;
 						break;
 
-         case 'p':
-           pfsmog = pPlantUMLMachineWriter;
+					case 'p':
+						fpfsmogf = generatePlantUMLMachineWriter;
 						break;
 
 					default:
-
 						usage();
 						return (1);
 
 				}
 				break;
 
-     case 'i':
-        if ('0' == optarg[0])
-        {
-            generate_instance = false;
-        }
-        break;
+		case 'i':
+			if ('0' == optarg[0])
+			{
+				generate_instance = false;
+			}
+			break;
 
      case 'c':
         compact_action_array = true;
@@ -2399,23 +2426,49 @@ int main(int argc, char **argv)
         fprintf(stdout,"version %s\n",rev_string);
         return (0);
 
-			case '?':
-			case ':':
+     case 'M':
+		output_generated_file_names_only = true;
+		if (optarg)
+		{
+			switch (optarg[0])
+			{
+				case 'd':
+					output_make_recipe = true;
+					break;
 
-				usage();
-				return (0);
+				case 'h':
+					output_header_files = true;
+				break;
+
+				default:
+					break;
+			}
+		}
+		break;
+
+     case '?':
+     case ':':
+
+        usage();
+        return (0);
 
 		}
 
 	}
 #endif
 
-	if (argv[optind]) {
+	if (optind >= argc)
+	{
+		fprintf(stdout,"need a file name to work with.\n");
+		return (!good);
+	}
 
-		cp = strdup(argv[optind]);
+	for (int fnind = optind; fnind < argc && good; fnind++) {
+
+		inputFileName = strdup(argv[fnind]);
 
 		/* find the extension */
-		cp1 = rindex(cp,'.');
+		cp1 = rindex(inputFileName,'.');
 		if (!cp1) {
 
 			usage();
@@ -2433,7 +2486,7 @@ int main(int argc, char **argv)
 
 		}
 
-		if ((yyin = openFile(argv[optind],"r")) == NULL) {
+		if ((yyin = openFile(argv[fnind],"r")) == NULL) {
 
 			return 1;
 
@@ -2443,32 +2496,41 @@ int main(int argc, char **argv)
 		if (!outFileBase) {
 			/* use the base input file name */
 			*cp1 = 0;
-			cwk_path_get_basename(cp, (const char**)&outFileBase, NULL);
+			cwk_path_get_basename(inputFileName, (const char**)&outFileBase, NULL);
 		}
 
 		#ifndef PARSER_DEBUG
+
+		if (NULL == pfsmog)
+		{
+
+    	    /* default to writing a c machine */
+    	    if (NULL == fpfsmogf)
+    	    {
+    			fpfsmogf = generateCMachineWriter;
+    	    }
+   
+			pfsmog = fpfsmogf(NULL);
+		}
+
 		if (!(*pfsmog->initOutput)(pfsmog,outFileBase)) {
+
 		#endif
 
 			yyparse();
 
 		#ifndef PARSER_DEBUG
 			(*pfsmog->closeOutput)(pfsmog,good);
+			CHECK_AND_FREE(outFileBase);
 
 		}
 		#endif
 
 		fclose(yyin);
 
-		return (!good);
-
 	}
-	else {
 
-		usage();
-		return (!good);
-
-	}
+	return (good == 1 ? 0 : 1);
 
 }
 
@@ -2476,9 +2538,9 @@ void yyerror(char *s)
 {
 
   fprintf(stderr,"%s: %s\n",me,s);
-	fprintf(stderr,"\tline %d : %s\n",lineno,yytext);
+  fprintf(stderr,"\tline %d : %s\n",lineno,yytext);
 
- #ifndef PARSER_DEBUG
+    #ifndef PARSER_DEBUG
 	good = 0;
 	#else
 	//always return good so that the makefile can pick up stderr
@@ -2505,13 +2567,13 @@ void usage(void)
 	fprintf(stdout,"\t-o  <outfile> will use <outfile> as the filename for the top-level machine output.\n");
 	fprintf(stdout,"\t\tAny sub-machines will be put into files based on the sub-machine names.\n");
 	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
+	fprintf(stdout,"\t--short-user-fn-names=true causes user functions (such as action functions to use only the machine name when the sub-machine depth is 1.\n");
 	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of actions which pass events\n");
  fprintf(stdout,"\t\twhen weak function generation is disabled..\n");
  fprintf(stdout,"\t\tThe generated functions are not weak.\n");
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
- fprintf(stdout,"\t--generate-run-function<=true|false> enables or supresses the generation of a run\n");
-	fprintf(stdout,"\t\tfunction to replace the RUN_STATE_MACHINE machro.\n");
- fprintf(stdout,"\t\tThe default is to generate the macro; the option argument is optional, if not given, \"true\" is assumed.\n");
+ fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");
+	fprintf(stdout,"\t\tno RUN_STATE_MACHINE macro is provided.\n");
 	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
 	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
 	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
@@ -2539,6 +2601,19 @@ void usage(void)
 	fprintf(stdout,"\t\tThis option can be specified multiple times; all text will be\n");
  fprintf(stdout,"\t\tadded in the order given\n");
  fprintf(stdout,"\t\tfor the content copy.\n");
+ fprintf(stdout,"\t-M prints the file name(s) of the source files that would have been created to stdout.\n");
+ fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
+ fprintf(stdout,"\t\tthat will be generated \n");
+ fprintf(stdout,"\t\t(e.g. GENERATED_SRC=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
+ fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
+ fprintf(stdout,"\t-Mh prints the file name(s) of the headers that would have been created to stdout.\n");
+ fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
+ fprintf(stdout,"\t\tthat will be generated \n");
+ fprintf(stdout,"\t\t(e.g. GENERATED_HDRS=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
+ fprintf(stdout,"\t\tThis option must preceed the -t option.  And, only tc or ts are applicable.\n");
+ fprintf(stdout,"\t-Md print a lines suitable for inclusion in a Makefile giving the recipe for\n");
+ fprintf(stdout,"\t\tcreating dependent files.\n");
+ fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }

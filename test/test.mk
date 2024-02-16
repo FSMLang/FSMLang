@@ -3,7 +3,9 @@
 # Generic rules for creating and running tests.
 #
 #
-override CFLAGS += -Wall -Wpedantic -Wextra
+.PHONY: do_runtest show_objs
+
+override CFLAGS += -Wall -Wpedantic -Wextra -I../
 
 
 ifdef OUTPUT_DIR
@@ -12,7 +14,8 @@ endif
 
 include ../../depends.mk
 
-OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o) $(GENERATED_SRC:.c=.o)
+POSSIBLE_OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o) $(GENERATED_SRC:.c=.o)
+OBJS = $(sort $(POSSIBLE_OBJS))
 
 TARGET ?= do_runtest
 
@@ -29,7 +32,14 @@ do_runtest: test
 	@cat test.stderr >> test.out
 	@cat fsmout >> test.out
 	@$(DIFF) test.out test.canonical > test.result
-	@rm test.out test.result test.stderr
+	@-rm -f test test.out test.result test.stderr
+	@-rm -f fsmout                         2> /dev/null
+	@-rm -f *.d*                           2> /dev/null
+	@-rm -f *.fsmd*                        2> /dev/null
+	@-rm -f *.o                            2> /dev/null
+	@-rm -f $(GENERATED_SRC)               2> /dev/null
+	@-rm -f $(GENERATED_HDR)               2> /dev/null
+	@-rm -f $(GENERATED_PLANTUML)          2> /dev/null
 
 test: $(OBJS)
 	@$(CC) -o $@ $(OBJS) $(LDFLAGS)
@@ -38,30 +48,25 @@ fail_is_pass: $(OBJS)
 	@$(CC) -o $@ $(OBJS) $(LDFLAGS) $(CALL_FAILURE_A_SUCCESS)
 
 fsm_fail_is_pass: $(FSM_SRC:.fsm=.c)
-		
+	@echo "fsm failure expectation"
+
+show_objs:
+	@echo $(OBJS)
 
 clean::
-	-@rm *.exe                         2> /dev/null
-	-@rm *.out                         2> /dev/null
-	-@rm *.result                      2> /dev/null
-	-@rm *.stderr                      2> /dev/null
-	-@rm fsmout                        2> /dev/null
-	-@rm *.d*                          2> /dev/null
-	-@rm *.o                           2> /dev/null
-	-@rm *.stackdump                   2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.c)            2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.h)            2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.html)         2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.svg)          2> /dev/null
-	-@rm $(FSM_SRC:.fsm=.plantuml)     2> /dev/null
-	-@rm $(GENERATED_SRC)              2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.h)        2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.html)     2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.html)     2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.svg)      2> /dev/null
-	-@rm $(GENERATED_SRC:.c=.plantuml) 2> /dev/null
-	-@rm $(GENERATED_PLANTUML)         2> /dev/null
-	-@rm test                          2> /dev/null
-	-@rm y.output                      2> /dev/null
-	-@rm lexer.c                       2> /dev/null
+	-@rm -f *.exe                          2> /dev/null
+	-@rm -f *.out                          2> /dev/null
+	-@rm -f *.result                       2> /dev/null
+	-@rm -f *.stderr                       2> /dev/null
+	-@rm -f fsmout                         2> /dev/null
+	-@rm -f *.d*                           2> /dev/null
+	-@rm -f *.fsmd*                        2> /dev/null
+	-@rm -f *.o                            2> /dev/null
+	-@rm -f *.stackdump                    2> /dev/null
+	-@rm -f $(GENERATED_SRC)               2> /dev/null
+	-@rm -f $(GENERATED_HDR)               2> /dev/null
+	-@rm -f $(GENERATED_PLANTUML)          2> /dev/null
+	-@rm -f test                           2> /dev/null
+	-@rm -f y.output                       2> /dev/null
+	-@rm -f lexer.c                        2> /dev/null
 

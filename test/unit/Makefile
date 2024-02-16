@@ -8,13 +8,13 @@ RUN_TESTS   = $(addsuffix .run   ,$(TESTS))
 all: runtest
 
 $(TESTS):
-	$(MAKE) -C $@ CFLAGS="$(CFLAGS)" test
+	$(MAKE) -C $@ CFLAGS="$(CFLAGS)" ARCH="$(ARCH)" test
 
 $(CLEAN_TESTS):
 	$(MAKE) -C $(basename $@) CFLAGS="$(CFLAGS)" clean
 
 $(RUN_TESTS):
-	$(MAKE) -C $(basename $@) CFLAGS="$(CFLAGS)" runtest
+	$(MAKE) -C $(basename $@) CFLAGS="$(CFLAGS)" ARCH="$(ARCH)"  
 
 clean: $(CLEAN_TESTS)
 

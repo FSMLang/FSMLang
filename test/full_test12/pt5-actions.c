@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #endif
 
-#include "parser-test5.h"
+#include "parser-test5_priv.h"
 
 
 int main()
@@ -52,10 +52,10 @@ int main()
 					);
 */
 
-   RUN_STATE_MACHINE(pnewMachine,newMachine_e1);
-   RUN_STATE_MACHINE(pnewMachine,newMachine_e2);
-   RUN_STATE_MACHINE(pnewMachine,newMachine_e3);
-   RUN_STATE_MACHINE(pnewMachine,newMachine_e4);
+   run_newMachine(newMachine_e1);
+   run_newMachine(newMachine_e2);
+   run_newMachine(newMachine_e3);
+   run_newMachine(newMachine_e4);
 
 	exit(0);
 

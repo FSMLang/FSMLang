@@ -1,33 +1,33 @@
-#include "sub_machine2.h"
+#include "sub_machine2_priv.h"
 
-TOP_LEVEL_EVENT sub_machine2_a3(pSUB_MACHINE2 pfsm)
+TOP_LEVEL_EVENT UFMN(a3)(pSUB_MACHINE2 pfsm)
 {
 	(void) pfsm;
-   printf("sub_machine2_a3\n");
+   DBG_PRINTF("%s\n", __func__);
 
    return PARENT(e4);
 }
 
-TOP_LEVEL_EVENT sub_machine2_a2(pSUB_MACHINE2 pfsm)
+TOP_LEVEL_EVENT UFMN(a2)(pSUB_MACHINE2 pfsm)
 {
 	(void) pfsm;
-   printf("sub_machine2_a2\n");
+   DBG_PRINTF("%s\n", __func__);
 
    return THIS(e3);
 }
 
-TOP_LEVEL_EVENT sub_machine2_a1(pSUB_MACHINE2 pfsm)
+TOP_LEVEL_EVENT UFMN(a1)(pSUB_MACHINE2 pfsm)
 {
 	(void) pfsm;
-   printf("sub_machine2_a1\n");
+   DBG_PRINTF("%s\n", __func__);
 
    return THIS(e2);
 }
 
-TOP_LEVEL_EVENT sub_machine2_noAction(pSUB_MACHINE2 pfsm)
+TOP_LEVEL_EVENT UFMN(noAction)(pSUB_MACHINE2 pfsm)
 {
 	(void) pfsm;
-   printf("sub_machine2_noAction\n");
+   DBG_PRINTF("%s\n", __func__);
 
    return THIS(noEvent);
 }

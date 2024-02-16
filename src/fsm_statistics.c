@@ -78,7 +78,6 @@ static int initMachineStatisticsWriter(pFSMOutputGenerator pfsmog, char *ofBase)
    return 0;
 }
 
-/**********************************************************************************************************************/
 /**
  * @brief Write statistics for a machine
  * 
@@ -151,7 +150,7 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
    (void) data;
 
    printf("machine name: ");
-   printAncestry(pmi, stdout);
+   printAncestry(pmi, stdout, "::", alc_lower, ai_include_self);
    printf("\n");
 
    printf("reentrance protection: %s\n"
@@ -200,9 +199,21 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
           , pmi->action_list->count
           );
 
-   printf("number of sub-machines: %u\n"
-          , pmi->machine_list ? pmi->machine_list->count : 0
-          );
+   if (pmi->data)
+   {
+	   printf("machine has data\n");
+   }
+
+   if (pmi->machine_list)
+   {
+	   printf("number of sub-machines: %u\n"
+			  , pmi->machine_list->count
+			  );
+
+	   printf("depth of sub-machines: %u\n"
+			  , pmi->sub_machine_depth 
+			  );
+   }
 
    printf("Action Array:\n");
    for (unsigned e = 0; e < pmi->event_list->count; e++)
@@ -236,4 +247,5 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 
    return false;
 }
+
 

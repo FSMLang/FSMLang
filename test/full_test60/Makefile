@@ -14,10 +14,8 @@ FSM_PLANTUML_FLAGS = --add-plantuml-title --add-plantuml-legend=left
 
 FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
 
-GENERATED_SRC=sub1.c
-
 TARGET     = check_plantuml
-TEST_INPUT = $(GENERATED_SRC:.c=.plantuml) $(FSM_SRC:.fsm=.plantuml)
+TEST_INPUT = $(shell $(FSM) -M -tp $(FSM_SRC))
 
 include ../test.mk
 include ../../fsmrules.mk
@@ -25,10 +23,8 @@ include ../../fsmrules.mk
 check_plantuml: $(TEST_INPUT)
 	$(DIFF) comment_test.plantuml comment_test.plantuml.canonical > test.result
 	$(DIFF) sub1.plantuml sub1.plantuml.canonical > test.result
-	@rm $(TEST_INPUT)
-	@rm test.result
-	@rm fsmout
-
-$(GENERATED_SRC:.c=.plantuml) : $(FSM_SRC:.fsm=.plantuml)
+	-@rm -f $(TEST_INPUT)
+	-@rm -f test.result
+	-@rm -f fsmout
 
 

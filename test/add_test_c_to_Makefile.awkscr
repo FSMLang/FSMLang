@@ -1,0 +1,10 @@
+/^SRC[ \t]*=/{
+	print $0
+	print "SRC += test.c"
+	next
+	RS="\r\n"
+}
+{
+	print $0
+}
+

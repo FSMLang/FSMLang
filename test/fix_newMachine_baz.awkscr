@@ -1,0 +1,40 @@
+BEGIN { 
+	found      = 0
+	translated = 0
+}
+
+/newMachine_baz/ {
+	# skip decl and invocations
+	if (!($0 ~ /;$/))
+	{
+		found      = 1
+	}
+}
+
+/^}/ {
+
+	found = 0
+}
+
+/DBG_PRINTF/ {
+
+	if (found == 1)
+	{
+		a = gensub(/%s/,"%s: Event %s caused transition from %s to %s","g")
+		b = gensub(/(, __func__)/,"\n\t\t\t \\1","g",a)
+		print b
+		translated = 1
+	}
+
+}
+
+{
+	if (translated == 0)
+	{
+		print 
+	}
+	translated = 0
+}
+
+
+

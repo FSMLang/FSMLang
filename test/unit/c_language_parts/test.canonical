@@ -1,0 +1,65 @@
+./test: hello, world
+action_return_type_event:
+initial: grandParent
+subsequent: GRAND_PARENT_EVENT
+
+action_return_type_event_enum:
+initial: grandParent
+subsequent: GRAND_PARENT_EVENT_ENUM
+
+action_return_type_state:
+initial: grandParent
+subsequent: GRAND_PARENT_STATE
+
+action_return_type_void:
+initial: grandParent
+subsequent: void
+
+fsm_type_ultimate:
+initial: grandParent
+subsequent: GRAND_PARENT
+
+fsm_type_child:
+initial: child
+subsequent: CHILD
+
+event_type_ultimate:
+initial: grandParent
+subsequent: GRAND_PARENT_EVENT
+
+event_type_ultimate_enum:
+initial: grandParent
+subsequent: GRAND_PARENT_EVENT_ENUM
+
+fq_machine_name:
+initial: grandChild
+subsequent: grandParent_child_grandChild
+
+nf_machine_name:
+initial: grandChild
+subsequent: child_grandChild
+
+nf_machine_name_pmi:
+initial: child
+subsequent: grandParent_child
+
+uc_machine_name:
+initial: grandChild
+subsequent: GRAND_CHILD
+
+uc_fq_machine_name:
+initial: grandChild
+subsequent: GRAND_PARENT_CHILD_GRAND_CHILD
+
+uc_nf_machine_name:
+initial: grandChild
+subsequent: CHILD_GRAND_CHILD
+
+uf_machine_name_two_generation:
+initial: child
+subsequent: grandParent_child
+
+uf_machine_name_two_generation_restricted:
+initial: child
+subsequent: child
+

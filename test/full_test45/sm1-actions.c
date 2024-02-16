@@ -1,4 +1,5 @@
 #include <stdio.h>
-#include "subMachine1.h"
+#include "subMachine1_priv.h"
+
 
 

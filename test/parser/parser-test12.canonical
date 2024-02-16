@@ -290,5 +290,6 @@ The 2 transition functions :
 				s2
 				s3
 this machine has 2 sub-machines
+the sub-machine depth is 1
 
 found a single machine

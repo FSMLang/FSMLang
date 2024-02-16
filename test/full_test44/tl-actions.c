@@ -1,13 +1,4 @@
-#include <stdio.h>
-#include "top_level.h"
-
-int main(int argc, char **argv)
-{
-	printf("Hello, world.\n");
-
-	return 0;
-}
-
+#include "top_level_priv.h"
 
 NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {

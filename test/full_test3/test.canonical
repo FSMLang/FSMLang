@@ -6,15 +6,15 @@ weak: newMachine_transitionTos2
 event: newMachine_e2; state: newMachine_s2
 newMachine_noAction
 
-newMachine_TransitionFn1
+newMachine_transitionFn1
 
 event: newMachine_e3; state: newMachine_s2
 newMachine_noAction
 
-newMachine_TransitionFn1
+newMachine_transitionFn1
 
 event: newMachine_e4; state: newMachine_s2
 newMachine_a2
 
-newMachine_TransitionFn
+newMachine_transitionFn
 

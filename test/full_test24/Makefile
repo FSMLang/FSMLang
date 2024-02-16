@@ -4,6 +4,8 @@
 #
 #
 
+include ../../fsmrules.mk
+
 override CFLAGS += -DFSM_DEBUG \
          -DSUB_MACHINE1_DEBUG \
          -DSUB_MACHINE2_DEBUG \
@@ -19,15 +21,11 @@ FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
 
 TARGET=fail_is_pass
 
-GENERATED_SRC = \
-	sub_machine1.c \
-	sub_machine2.c \
-	sub_machine3.c
+GENERATED_SRC = $(shell $(FSM) -M -ts $(FSM_SRC))
+GENERATED_HDR = $(shell $(FSM) -Mh -ts $(FSM_SRC))
 
 SRC = $(shell find . -name "*-actions.c" -printf "%P ")
+SRC += test.c
 
 include ../test.mk
-
-include ../../fsmrules.mk
-
 

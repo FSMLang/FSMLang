@@ -100,4 +100,13 @@ _deps
 build/
 
 # SlickEdit
+
+*.vpj
+*.vpw
+*.vpwhist
 *.vtg
+
+# vi swap files
+
+*.swp
+

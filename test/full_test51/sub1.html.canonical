@@ -11,7 +11,7 @@
 <script>window.name="FSMLang-sub1"</script>
 <link REL=stylesheet type="text/css" href="../../fsmlang.css">
 </head><body>
-<h2>sub1</h2>
+<h2>foo::sub1</h2>
 <p> sub machines are also easy </p>
 <div class="scrollable">
 <table class="machine">

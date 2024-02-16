@@ -2,33 +2,27 @@
 #
 # makefile for individual test
 #
-.PHONEY: check_plantuml#
+#
+.PHONEY: check_plantuml
 
-override CFLAGS += -DFSM_DEBUG \
-                   -DNEW_MACHINE_DEBUG \
-                   -DSUB_MACHINE1_DEBUG \
-                   -DSUB_MACHINE2_DEBUG \
-                   -I../
+include ../../fsmrules.mk
 
 FSM_PLANTUML_FLAGS = --add-plantuml-title --add-plantuml-legend="top,right" --exclude-actions-from-plantuml-legend
 
-FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
+FSM_SRC := $(shell find . -name "*.fsm" -printf "%P ")
 
-GENERATED_SRC=sub1.c
+GENERATED_SRC = $(shell $(FSM) -M -tp $(FSM_SRC))
 
 TARGET     = check_plantuml
-TEST_INPUT = $(GENERATED_SRC:.c=.plantuml) $(FSM_SRC:.fsm=.plantuml)
 
 include ../test.mk
-include ../../fsmrules.mk
 
-check_plantuml: $(TEST_INPUT)
-	$(DIFF) comment_test.plantuml comment_test.plantuml.canonical > test.result
-	$(DIFF) sub1.plantuml sub1.plantuml.canonical > test.result
-	@rm $(TEST_INPUT)
-	@rm test.result
-	@rm fsmout
+check_plantuml: $(addsuffix .result, $(GENERATED_SRC))
+	@-rm -f fsmout
+	@-rm -f $(GENERATED_SRC)
 
-$(GENERATED_SRC:.c=.plantuml) : $(FSM_SRC:.fsm=.plantuml) $(FSM)
+$(addsuffix .result, $(GENERATED_SRC)): $(GENERATED_SRC)
+	@$(DIFF) $(basename $@) $(basename $@).canonical > $@
+	@rm -f $@
 
 

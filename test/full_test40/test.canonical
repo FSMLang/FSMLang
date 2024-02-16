@@ -1,23 +1,22 @@
-hello, world
 event: newMachine_e1; state: newMachine_s1
 newMachine_a1
 
-newMachine_machineTransitionFn
+newMachine_machineTransition:
 	old state: newMachine_s1
 	new state: newMachine_s2
 
 event: newMachine_e2; state: newMachine_s2
-newMachine_TransitionFn1
+newMachine_transitionFn1
 
 event: newMachine_e3; state: newMachine_s2
-newMachine_TransitionFn1
+newMachine_transitionFn1
 
 event: newMachine_e4; state: newMachine_s2
 newMachine_a2
 
-newMachine_TransitionFn
+newMachine_transitionFn
 
-newMachine_machineTransitionFn
+newMachine_machineTransition:
 	old state: newMachine_s2
 	new state: newMachine_s3
 

@@ -38,7 +38,13 @@
 
 #include "list.h"
 
-/*
+#ifdef FSMLANG_DEVELOP
+#define FSMLANG_DEVELOP_PRINTF(A, ...) if (A) fprintf(A, __VA_ARGS__)
+#else
+#define FSMLANG_DEVELOP_PRINTF(...)
+#endif
+
+/**
 	These flags track the modifiers
 		of "machine" and also the action return specifiers.
 */
@@ -71,13 +77,32 @@ typedef enum VERTICAL_PLACEMENT {
    , vp_bottom
 } VERTICAL_PLACEMENT;
 
+/**
+ * Set the letter case for outputting
+ * ancestry.
+ * 
+ * @author sstan (10/20/2023)
+ */
+typedef enum ANCESTRY_LETTER_CASE {
+	alc_upper
+	, alc_lower
+} ANCESTRY_LETTER_CASE;
+
+typedef enum ANCESTRY_INCLUSION
+{
+	ai_omit_self        = 1
+	, ai_include_self   = 2
+	, ai_omit_ultimate  = 4
+	, ai_stop_at_parent = 8
+} ANCESTRY_INCLUSION;
+
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
 
-typedef struct _id_info_				         ID_INFO,                 *pID_INFO;
+typedef struct _id_info_				 ID_INFO,                 *pID_INFO;
 typedef struct _action_se_info_	         ACTION_SE_INFO,          *pACTION_SE_INFO;
-typedef struct _matrix_info_	           MATRIX_INFO,             *pMATRIX_INFO;
-typedef struct _action_info_		         ACTION_INFO,             *pACTION_INFO;
-typedef struct _machine_info_		         MACHINE_INFO,            *pMACHINE_INFO;
+typedef struct _matrix_info_	         MATRIX_INFO,             *pMATRIX_INFO;
+typedef struct _action_info_		     ACTION_INFO,             *pACTION_INFO;
+typedef struct _machine_info_		     MACHINE_INFO,            *pMACHINE_INFO;
 typedef struct _state_and_event_decls_   STATE_AND_EVENT_DECLS,   *pSTATE_AND_EVENT_DECLS;
 typedef struct _statement_decl_list_     STATEMENT_DECL_LIST,     *pSTATEMENT_DECL_LIST;   
 typedef struct _actions_and_transitions_ ACTIONS_AND_TRANSITIONS, *pACTIONS_AND_TRANSITIONS;
@@ -158,13 +183,10 @@ struct _iterator_helper_
 {
    FILE          *fout;
    pMACHINE_INFO pmi;
-   pMACHINE_INFO pparent;
    pID_INFO      pid;
    pACTION_INFO  pai;
    bool          error;
    bool          first;
-   char          *cp;
-   char          *parent_cp;
    int           event;
    unsigned      *counter0;
    unsigned      *counter1;
@@ -209,11 +231,11 @@ struct _state_and_event_decls_
 };
 
 struct _id_info_ {
-  char    			  *name;
-  int     			  type;
-  pID_INFO			  nextID;
-	char					  *docCmnt;
+  char           *name;
+  int             type;
   unsigned        order;
+  pID_INFO        nextID;
+  char           *docCmnt;
   PID_TYPE_DATA   type_data;
   pMACHINE_INFO   powningMachine;
   pACTION_INFO    actionInfo;
@@ -263,18 +285,18 @@ struct _machine_info_ {
   unsigned      submachine_inhibitor_count;
   pLIST         event_list;
   unsigned      external_event_designation_count;
-	pLIST   			transition_list;
-	pLIST   			transition_fn_list;
-	pLIST         action_list;
-	pID_INFO			name;
+  pLIST         transition_list;
+  pLIST         transition_fn_list;
+  pLIST         action_list;
+  pID_INFO      name;
   pLIST         action_info_list;
-	pACTION_INFO	**actionArray;
-	pLIST					data;
-	char					*native_prologue;
-	char					*native_epilogue;
-	char					*native_impl_prologue;
-	char					*native_impl_epilogue;
-	MOD_FLAGS			modFlags;
+  pACTION_INFO  **actionArray;
+  pLIST          data;
+  char          *native_prologue;
+  char          *native_epilogue;
+  char          *native_impl_prologue;
+  char          *native_impl_epilogue;
+  MOD_FLAGS      modFlags;
   pID_INFO      machineTransition;
   pLIST         machine_list;
   unsigned      shared_event_count;
@@ -282,6 +304,7 @@ struct _machine_info_ {
   bool          has_single_pai_events;
   unsigned      states_with_entry_fns_count;
   unsigned      states_with_exit_fns_count;
+  unsigned      sub_machine_depth;
 };
 
 /* lexer id list handlers */
@@ -300,7 +323,6 @@ void freeMachineInfo(pMACHINE_INFO);
 /* other general utilities */
 FILE *openFile(char *, char *);
 char *createFileName(char *,char *);
-char *hungarianToUnderbarCaps(char *);
 char *eventNameByIndex(pMACHINE_INFO,int);
 pID_INFO eventPidByIndex(pMACHINE_INFO,int);
 char *stateNameByIndex(pMACHINE_INFO,int);
@@ -319,8 +341,13 @@ bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO, FILE*);
 void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO, FILE*);
-void printAncestry(pMACHINE_INFO,FILE*);
+bool printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
+void printNameWithAncestry(char*,pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
+pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);
+unsigned maxDepth(pMACHINE_INFO);
 void print_tab_levels(FILE*,unsigned);
+void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
+void increase_sub_machine_depth(pMACHINE_INFO);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);
@@ -334,6 +361,7 @@ void parser_debug_print_data_block(pLIST,FILE*);
 
 /* general use data */
 extern char                 *me;	/* main will set this to the program name (argv[0]) */
+extern char                 *inputFileName;
 extern bool                 generate_instance;
 extern bool                 compact_action_array;
 extern bool                 generate_weak_fns;
@@ -353,13 +381,17 @@ extern HORIZONTAL_PLACEMENT plantuml_legend_horizontal_placement;
 extern VERTICAL_PLACEMENT   plantuml_legend_vertical_placement;
 extern pLIST                pplantuml_prefix_strings_list;
 extern pLIST                pplantuml_prefix_files_list;
+extern bool                 output_generated_file_names_only;
+extern bool                 output_header_files;
+extern bool                 output_make_recipe;
+extern bool                 short_user_fn_names;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 
 /* other useful macros */
 #define CHECK_AND_FREE(A)	if ( A ) { free( A ); A = NULL; }
 #define FREE_AND_CLEAR(A) free( A ); A = NULL;
-#define FCLOSE_AND_CLEAR(A) fclose( A ); A = NULL;
+#define FCLOSE_AND_CLEAR(A) if (A) { fclose( A ); A = NULL; }
 
 /*
 	Output generation.
@@ -374,22 +406,33 @@ extern pLIST                pplantuml_prefix_files_list;
 	Only one instance of an output device will be run at a time.
 */
 
-typedef struct _fsm_output_generator_      FSMOutputGenerator, *pFSMOutputGenerator;
+typedef struct _fsm_output_generator_         FSMOutputGenerator
+                                              , *pFSMOutputGenerator;
+typedef struct _fsm_output_generator_factory_ FSMOutputGeneratorFactoryStr
+                                                , *pFSMOutputGeneratorFactoryStr;
 
-typedef int (*InitOutput)(pFSMOutputGenerator,char *);
-typedef void (*WriteMachine)(pFSMOutputGenerator,pMACHINE_INFO);
-typedef void (*CloseOutput)(pFSMOutputGenerator,int);
+typedef int (*fpInitOutput)(pFSMOutputGenerator,char *);
+typedef void (*fpWriteMachine)(pFSMOutputGenerator,pMACHINE_INFO);
+typedef void (*fpCloseOutput)(pFSMOutputGenerator,int);
+
+typedef pFSMOutputGenerator (*fpFSMOutputGeneratorFactory)(pFSMOutputGenerator);
 
 struct _fsm_output_generator_
 {
-	InitOutput		initOutput;
-	WriteMachine	writeMachine;
-	CloseOutput		closeOutput;
+	fpInitOutput	initOutput;
+	fpWriteMachine	writeMachine;
+	fpCloseOutput	closeOutput;
+};
+
+struct _fsm_output_generator_factory_
+{
+	fpFSMOutputGeneratorFactory fsmogf;
+	pFSMOutputGenerator         parent_fsmog;
 };
 
 extern void yyerror(char*);
 
-void write_machines(pLIST, pFSMOutputGenerator);
+void write_machines(pLIST,fpFSMOutputGeneratorFactory, pFSMOutputGenerator);
 bool print_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component(pLIST_ELEMENT,void*);
 bool print_sub_machine_component_name(pLIST_ELEMENT,void*);

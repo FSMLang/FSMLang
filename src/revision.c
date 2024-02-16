@@ -353,5 +353,12 @@
    native impl epilogue {  blah  }
 */
 
-const char rev_string[] = "1.41";
+/*
+	Revision 1.42
+
+	Multiple levels of submachines are now supported.
+
+	CL options to support interaction with gnu make are provided.
+*/
+const char rev_string[] = "1.42";
 

@@ -352,5 +352,6 @@ The actions :
 The 1 transitions :
 	s2
 this machine has 3 sub-machines
+the sub-machine depth is 1
 
 found a single machine

@@ -1,0 +1,43 @@
+BEGIN { 
+	found      = 0
+	translated = 0
+	count_dbg  = 0
+}
+
+/eShared_dt/ {
+	found      = 1
+	translated = 1
+	a = gensub(/(pNEW_MACHINE) (pfsm)/,"\\1_DATA \\2_data","g")
+	print a
+}
+
+/^}/ {
+
+	if (found == 1)
+	{
+		found = 0
+	}
+
+}
+
+/pfsm->/ {
+
+	if (found == 1)
+	{
+		a = gensub(/pfsm->data\./,"pfsm_data->","g")
+		print a
+		translated = 1
+	}
+
+}
+
+{
+	if (translated == 0)
+	{
+		print 
+	}
+	translated = 0
+}
+
+
+

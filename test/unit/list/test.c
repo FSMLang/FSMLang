@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "unit_test.h"
+
 #include "list.h"
 #include "fsm_priv.h"
 
@@ -15,8 +17,6 @@ struct _comparitor_helper_
 
 bool comparitor         (pLIST_ELEMENT,void*);
 bool print_id_info_name (pLIST_ELEMENT,void*);
-
-typedef bool (*TEST_FN)(void);
 
 bool add_to_list_test(void);
 bool join_lists      (void);
@@ -155,13 +155,13 @@ bool join_lists()
 	iterate_list(pthe_first_list,print_id_info_name,pthe_first_list);
 
 	printf("pdest %p; pthe_first_list %p\n"
-					, pdest
-					, pthe_first_list
+					, (void*) pdest
+					, (void*) pthe_first_list
 				);
 
 	printf("pthe_second_list:\n\thead: %p\n\ttail: %p\n\tcount: %u\n"
-					, pthe_second_list->head
-					, pthe_second_list->tail
+					, (void*) pthe_second_list->head
+					, (void*) pthe_second_list->tail
 					, pthe_second_list->count
 					);
 
@@ -197,9 +197,9 @@ bool finder_test_0()
 	pID_INFO pid = (pID_INFO) find_nth_list_member(pthe_list, record_to_find);
 
 	printf("pid: %p; &id_infos_0[%u]: %p; pid->name: %s\n"
-					, pid
+					, (void*) pid
 					, record_to_find
-					, &id_infos_0[record_to_find]
+					, (void*) &id_infos_0[record_to_find]
 					, pid->name
 					);
 
@@ -224,7 +224,7 @@ bool finder_test_1()
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
-						, &id_infos_0[id_info_counter_0]
+						, (void*) &id_infos_0[id_info_counter_0]
 						);
 	}
 	
@@ -241,7 +241,7 @@ bool finder_test_1()
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
-						, &id_infos_1[id_info_counter_1]
+						, (void*) &id_infos_1[id_info_counter_1]
 						);
 	}
 	
@@ -263,17 +263,17 @@ bool finder_test_1()
 												;
 
 	printf("id_infos_0: %p; id_infos_1: %p; infos: %p\nid_info_counter_0: %u; offset: %u\n"
-					, id_infos_0
-					, id_infos_1
-					, infos
+					, (void*) id_infos_0
+					, (void*) id_infos_1
+					, (void*) infos
 					, id_info_counter_0
 					, offset
 					);
 
 	printf("pid: %p; &infos[%u]: %p; pid->name: %s\n"
-					, pid
+					, (void*) pid
 					, offset
-					, &infos[offset]
+					, (void*) &infos[offset]
 					, pid->name
 					);
 
@@ -299,7 +299,7 @@ bool finder_test_2()
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
-						, &id_infos_0[id_info_counter_0]
+						, (void*) &id_infos_0[id_info_counter_0]
 						);
 	}
 	
@@ -316,7 +316,7 @@ bool finder_test_2()
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
-						, &id_infos_1[id_info_counter_1]
+						, (void*) &id_infos_1[id_info_counter_1]
 						);
 	}
 	
@@ -338,17 +338,17 @@ bool finder_test_2()
 												;
 
 	printf("id_infos_0: %p; id_infos_1: %p; infos: %p\nid_info_counter_0: %u; offset: %u\n"
-					, id_infos_0
-					, id_infos_1
-					, infos
+					, (void*) id_infos_0
+					, (void*) id_infos_1
+					, (void*) infos
 					, id_info_counter_0
 					, offset
 					);
 
 	printf("pid: %p; &infos[%u]: %p; pid->name: %s\n"
-					, pid
+					, (void*) pid
 					, offset
-					, &infos[offset]
+					, (void*) &infos[offset]
 					, pid->name
 					);
 
@@ -373,7 +373,7 @@ bool finder_test_3()
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
-						, &id_infos_0[id_info_counter_0]
+						, (void*) &id_infos_0[id_info_counter_0]
 						);
 	}
 	
@@ -390,7 +390,7 @@ bool finder_test_3()
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
-						, &id_infos_1[id_info_counter_1]
+						, (void*) &id_infos_1[id_info_counter_1]
 						);
 	}
 	
@@ -412,17 +412,17 @@ bool finder_test_3()
 												;
 
 	printf("id_infos_0: %p; id_infos_1: %p; infos: %p\nid_info_counter_0: %u; offset: %u\n"
-					, id_infos_0
-					, id_infos_1
-					, infos
+					, (void*) id_infos_0
+					, (void*) id_infos_1
+					, (void*) infos
 					, id_info_counter_0
 					, offset
 					);
 
 	printf("pid: %p; &infos[%u]: %p; pid->name: %s\n"
-					, pid
+					, (void*) pid
 					, offset
-					, &infos[offset]
+					, (void*) &infos[offset]
 					, pid->name
 					);
 
@@ -447,7 +447,7 @@ bool finder_test_4()
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
-						, &id_infos_0[id_info_counter_0]
+						, (void*) &id_infos_0[id_info_counter_0]
 						);
 	}
 	
@@ -464,7 +464,7 @@ bool finder_test_4()
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
-						, &id_infos_1[id_info_counter_1]
+						, (void*) &id_infos_1[id_info_counter_1]
 						);
 	}
 	
@@ -486,17 +486,17 @@ bool finder_test_4()
 												;
 
 	printf("id_infos_0: %p; id_infos_1: %p; infos: %p\nid_info_counter_0: %u; offset: %u\n"
-					, id_infos_0
-					, id_infos_1
-					, infos
+					, (void*) id_infos_0
+					, (void*) id_infos_1
+					, (void*) infos
 					, id_info_counter_0
 					, offset
 					);
 
 	printf("pid: %p; &infos[%u]: %p; pid->name: %s\n"
-					, pid
+					, (void*) pid
 					, offset
-					, &infos[offset]
+					, (void*) &infos[offset]
 					, pid->name
 					);
 
@@ -522,7 +522,7 @@ bool finder_test_5()
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
-						, &id_infos_0[id_info_counter_0]
+						, (void*) &id_infos_0[id_info_counter_0]
 						);
 	}
 	
@@ -539,7 +539,7 @@ bool finder_test_5()
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
-						, &id_infos_1[id_info_counter_1]
+						, (void*) &id_infos_1[id_info_counter_1]
 						);
 	}
 	
@@ -604,6 +604,8 @@ bool copy_test_1(void)
 
 int main(int argc, char **argv)
 {
+	(void) argc;
+
 	int result = 0;
 
 	printf("%s: hello, world\n",argv[0]);

@@ -3,7 +3,7 @@
 
 .SECONDEXPANSION:
 
-CFLAGS += -I ../src -I .
+CFLAGS += -I ../src -I . 
 
 ARCHITECTURES=Cygwin \
 	Mingw        \
@@ -33,8 +33,8 @@ $(ARCHITECTURES):
 	$(MAKE) CFLAGS="$(CFLAGS)" -C $(OUT_DIR) fsm
 
 $(addsuffix .clean, $(ARCHITECTURES)):
-	$(MAKE) -C $(OUT_DIR) clean
 	$(MAKE) -C ../test clean
+	$(MAKE) -j -C $(OUT_DIR) clean
 
 $(addsuffix .test, $(ARCHITECTURES)): $$(basename $$@)
 	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) test

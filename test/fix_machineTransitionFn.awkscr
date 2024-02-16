@@ -1,0 +1,29 @@
+BEGIN {
+	found      = 0
+	translated = 0
+}
+
+/machineTransitionFn[(]/ {
+	found = 1
+}
+
+/DBG_PRINTF/ {
+
+	if (found == 1)
+	{
+		a = gensub(/%s/,"%s\\\\n\\\\told state: %s\\\\n\\\\tnew state: %s\\\\n","g")
+		b = gensub(/(, __func__)/,"\n\t\t\t\t \\1","g",a)
+		print b
+		translated = 1
+		found = 0
+	}
+}
+
+{
+	if (translated == 0)
+	{
+		print
+	}
+	translated = 0
+}
+

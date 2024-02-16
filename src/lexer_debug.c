@@ -1,5 +1,5 @@
 /*
-	fsm_utils.c
+	lexer_debug.c
 
 
 	Contains code, &c. necessary for debugging the stand-alone lexer.

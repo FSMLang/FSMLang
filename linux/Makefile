@@ -30,10 +30,10 @@ clean::
 
 test: 
 	$(MAKE) -C ../test clean
-	$(MAKE) CFLAGS="-DLINUX" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
+	$(MAKE) ARCH="$(ARCH)" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
 
 testonly:
-	$(MAKE) CFLAGS="-DCYGWIN" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
+	$(MAKE) ARCH="$(ARCH)" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
 
 lexer.o fsm_utils.o: y.tab.h
 

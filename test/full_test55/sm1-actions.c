@@ -1,77 +1,78 @@
 #include <stdio.h>
-#include "subMachine1.h"
+#include "subMachine1_priv.h"
 
 static void print_machine_data(pSUB_MACHINE1_DATA);
 
-NEW_MACHINE_EVENT_ENUM  subMachine1_aa1(pSUB_MACHINE1 pfsm)
+NEW_MACHINE_EVENT_ENUM  UFMN(aa1)(pSUB_MACHINE1 pfsm)
 {
-	DBG_PRINTF("subMachine1_aa1");
+	DBG_PRINTF("%s", __func__);
 	(void) pfsm;
 	return THIS(noEvent);
 }
 
-NEW_MACHINE_EVENT_ENUM  subMachine1_aa2(pSUB_MACHINE1 pfsm)
+NEW_MACHINE_EVENT_ENUM  UFMN(aa2)(pSUB_MACHINE1 pfsm)
 {
-	DBG_PRINTF("subMachine1_aa2");
+	DBG_PRINTF("%s", __func__);
 	(void) pfsm;
 	return THIS(noEvent);
 }
 
-NEW_MACHINE_EVENT_ENUM  subMachine1_noAction(pSUB_MACHINE1 pfsm)
+NEW_MACHINE_EVENT_ENUM  UFMN(noAction)(pSUB_MACHINE1 pfsm)
 {
-	DBG_PRINTF("subMachine1_noAction");
+	DBG_PRINTF("%s", __func__);
 	print_machine_data(&pfsm->data);
 	return PARENT(noEvent);
 }
 
-void  subMachine1_eShared_dt(pNEW_MACHINE pfsm)
+void  UFMN(eShared_dt)(pNEW_MACHINE_DATA pfsm_data)
 {
-	DBG_PRINTF("subMachine1_eShared_dt");
-	psubMachine1->data.cp = pfsm->data.u.bop;
+	DBG_PRINTF("%s", __func__);
+	psubMachine1->data.cp = pfsm_data->u.bop;
 	print_machine_data(&psubMachine1->data);
 }
 
 
-void  subMachine1_foo(pSUB_MACHINE1_DATA pdata)
+void  UFMN(foo)(pSUB_MACHINE1_DATA pdata)
 {
-	DBG_PRINTF("subMachine1_foo");
+	DBG_PRINTF("%s", __func__);
 	print_machine_data(pdata);
 }
 
-void  subMachine1_bar(pSUB_MACHINE1_DATA pdata)
+void  UFMN(bar)(pSUB_MACHINE1_DATA pdata)
 {
-	DBG_PRINTF("subMachine1_bar");
+	DBG_PRINTF("%s", __func__);
 	print_machine_data(pdata);
 }
 
-void  subMachine1_onEntryTo_ss2(pSUB_MACHINE1_DATA pdata)
+void  UFMN(onEntryTo_ss2)(pSUB_MACHINE1_DATA pdata)
 {
-	DBG_PRINTF("subMachine1_onEntryTo_ss2");
+	DBG_PRINTF("%s", __func__);
 	print_machine_data(pdata);
 }
 
-void  subMachine1_onExitFrom_ss2(pSUB_MACHINE1_DATA pdata)
+void  UFMN(onExitFrom_ss2)(pSUB_MACHINE1_DATA pdata)
 {
-	DBG_PRINTF("subMachine1_onExitFrom_ss2");
+	DBG_PRINTF("%s", __func__);
 	print_machine_data(pdata);
 }
 
-void  subMachine1_foo1(pSUB_MACHINE1_DATA pdata)
+void  UFMN(foo1)(pSUB_MACHINE1_DATA pdata)
 {
-	DBG_PRINTF("subMachine1_foo1");
+	DBG_PRINTF("%s", __func__);
 	print_machine_data(pdata);
 }
 
-void  subMachine1_bar1(pSUB_MACHINE1_DATA pdata)
+void  UFMN(bar1)(pSUB_MACHINE1_DATA pdata)
 {
-	DBG_PRINTF("subMachine1_bar1");
+	DBG_PRINTF("%s", __func__);
 	print_machine_data(pdata);
 }
 
 static void print_machine_data(pSUB_MACHINE1_DATA pmd)
 {
-	printf("sub_machine1.data.cp: %s\n"
+	DBG_PRINTF("sub_machine1.data.cp: %s"
           , pmd->cp
          );
 }
+
 

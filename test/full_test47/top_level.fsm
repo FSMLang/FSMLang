@@ -70,10 +70,11 @@ state s1, s2, s3, s4;
 	/** a sub machine */
   native
   {
-  #if defined(INIT_FSM_DATA)
-  #undef INIT_FSM_DATA
-  #endif
-  #define INIT_FSM_DATA { .cp = NULL }
+#include "test.h"
+#if defined(INIT_FSM_DATA)
+#undef INIT_FSM_DATA
+#endif
+#define INIT_FSM_DATA { .cp = NULL }
   }
   machine subMachine1 {
 		data
@@ -94,6 +95,10 @@ state s1, s2, s3, s4;
 	}
 
 	/** a second sub machine */
+	native
+	{
+#include "test.h"
+	}
   machine subMachine2 {
 		state sss1, sss2, sss3;
 		event eee1, eee2, eee3;

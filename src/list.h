@@ -48,7 +48,8 @@ struct _list_ {
 
 struct _list_element_ {
   void  		    *mbr;
-  pLIST_ELEMENT next;
+  pLIST_ELEMENT      next;
+  unsigned           ordinal;
 };
 
 /**********************************************************************************************************************/

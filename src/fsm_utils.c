@@ -37,6 +37,7 @@
 
 #include "fsm_priv.h"
 #include "list.h"
+#include "ancestry.h"
 
 #ifndef LEX_DEBUG
 
@@ -61,17 +62,45 @@ struct _action_array_population_helper_
    bool          error;
 };
 
+
+static bool recursePrintAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
+static bool write_machine(pLIST_ELEMENT,void*);
+static bool count_entry_and_exit_handlers(pLIST_ELEMENT,void*);
+static bool count_data_xlate(pLIST_ELEMENT,void*);
+static bool count_shared_evts(pLIST_ELEMENT,void*);
+static bool count_parent_event_refs(pLIST_ELEMENT,void*);
+static bool count_inhibitors(pLIST_ELEMENT,void*);
+static bool count_external(pLIST_ELEMENT,void*);
+static bool enumerate_pid(pLIST_ELEMENT,void*);
+static bool process_action_info(pLIST_ELEMENT,void*);
+static bool iterate_matrix_states(pLIST_ELEMENT,void*);
+static bool add_to_action_array(pLIST_ELEMENT,void*);
+static bool find_id_by_name(pLIST_ELEMENT,void*);
+#ifdef PARSER_DEBUG
+static bool print_state_id_info(pLIST_ELEMENT,void*);
+static bool print_transition_info(pLIST_ELEMENT,void*);
+static bool print_full_action_info(pLIST_ELEMENT,void*);
+static bool print_pid_name(pLIST_ELEMENT,void*);
+static bool print_event_id_info(pLIST_ELEMENT,void*);
+static bool print_sharing_sub_machine(pLIST_ELEMENT,void*);
+#endif
+
 /* the general use data */
-char	*me = "I don't know who I am, but I'm";
+char  *me = "I don't know who I am, but I'm";
+char  *inputFileName = "";
 bool  generate_instance                         = true;
 bool  compact_action_array                      = false;
 bool  short_dbg_names                           = false;
 bool  force_generation_of_event_passing_actions = false;
 bool  add_machine_name                          = false;
-bool  generate_run_function                     = false;
+bool  generate_run_function                     = true;
 bool  add_event_cross_reference                 = false;
 pLIST pplantuml_prefix_strings_list             = NULL;
 pLIST pplantuml_prefix_files_list               = NULL;
+bool  output_generated_file_names_only          = false;
+bool  output_header_files                       = false;
+bool  output_make_recipe                        = false;
+bool  short_user_fn_names                               = false;
 
 void print_tab_levels(FILE *output, unsigned levels)
 {
@@ -276,81 +305,6 @@ char *createFileName(char *base, char *ext)
 }
 
 /**
-	This function will take a string in hungarian notation
-		and change it into "capitalized underbar" notation.
-		For example, "newMachine" becomes "NEW_MACHINE", but
-		testFSM will become TEST_FSM
-
-	Moreover, escape characters are replaced by underbars.
-
-	Memory is allocated, which must be freed by the calling 
-		program.
-
-	returns :
-		pointer to the string on success,
-		NULL									on failure.
-
-*/
-char *hungarianToUnderbarCaps(char *str)
-{
-
-	int 	i,consecutive;
-	char	*cp, *cp1, *cp2;
-
-	/* first, use i and cp1 to figure out how much memory to get */
-	i = strlen(str);
-	i++;
-
-	for (cp = str; *cp; cp++)
-
-		if (!(*cp & 0x20))
-
-			i++;
-
-	/* now, cp becomes the pointer to the new memory */
-	if ((cp = (char *)malloc(i))) {
-
-		consecutive = 0;
-		for (cp1 = str, cp2 = cp; *cp1; cp1++) {
-
-			//deal with the escapes first
-			if (*cp1 == '\\') {
-				*cp2++ = '_';
-				continue;
-			}
-
-			if (
-          !(*cp1 & 0x20)
-          && (*cp1 != '_')
-          )
-      {
-
-				if (!consecutive) {
-
-					*cp2++ = '_';
-
-					consecutive = 1;
-
-				}
-
-			}
-			else
-
-				consecutive = 0;
-
-			*cp2++ = isalpha(*cp1) ? toupper(*cp1) : *cp1;
-
-		}
-
-		*cp2 = 0;
-
-	}
-
-	return cp;
-
-}
-
-/**
 	function : allocateActionArray
 
 	Memory is allocated for the ActionArray, which must be freed
@@ -449,6 +403,7 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
 
    return paaph->error;
 }
+
 static bool process_action_info(pLIST_ELEMENT pelem, void *data)
 {
    pACTION_ARRAY_POPULATION_HELPER paaph = (pACTION_ARRAY_POPULATION_HELPER) data;
@@ -729,6 +684,7 @@ static bool count_parent_event_refs(pLIST_ELEMENT pelem, void *data)
    }
    return false;
 }
+
 static bool count_shared_evts(pLIST_ELEMENT pelem, void *data)
 {
    if (((pID_INFO)pelem->mbr)->type_data.event_data.shared_with_parent)
@@ -737,6 +693,7 @@ static bool count_shared_evts(pLIST_ELEMENT pelem, void *data)
    }
    return false;
 }
+
 static bool count_data_xlate(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO pevent      = (pID_INFO)pelem->mbr;
@@ -831,16 +788,19 @@ int safe_strlen(const char *s)
 */
 char *getFileNameNoDir(const char *path)
 {
-	const char *cp;
-  char *cp1;
+  char *cp1 = NULL;
+  const char *cp;
 
-	for(cp = path; (cp1 = strpbrk(cp,"\\/")); cp = ++cp1)
-		;
+  if (path)
+  {
+	  for (cp = path; (cp1 = strpbrk(cp, "\\/")); cp = ++cp1)
+			;
 
-	if ((cp1 = malloc(safe_strlen(cp)+1)) != NULL)
-		strcpy(cp1,cp);
+		if ((cp1 = malloc(safe_strlen(cp)+1)) != NULL)
+			strcpy(cp1,cp);
+  }
 
-	return cp1;
+  return cp1;
 
 }
 
@@ -862,17 +822,23 @@ char *getFileNameNoDir(const char *path)
  * 
  * @return bool always returns false, indicating that list processing should continue
  *
- * Require a list member pointing to a valid MACHINE_INFO struct, and data pointing to a valid FSMOutputGenerator struct.
+ * Require a list member pointing to a valid MACHINE_INFO struct, and data pointing to a valid FSMOutputGeneratorFactoryStr.
  * Call the generator's writeMachine function, passing the pointer to the MACHINE_INFO struct.
  ***********************************************************************************************************************/
 static bool write_machine(pLIST_ELEMENT pelem, void *data)
 {
-   pFSMOutputGenerator pfsmog = (pFSMOutputGenerator) data;
-   pMACHINE_INFO       pmi    = (pMACHINE_INFO) pelem->mbr;
+   pFSMOutputGeneratorFactoryStr pfsmogf = (pFSMOutputGeneratorFactoryStr) data;
+   pMACHINE_INFO                 pmi     = (pMACHINE_INFO) pelem->mbr;
 
-   (*pfsmog->initOutput)(pfsmog, pmi->name->name);
-   (*pfsmog->writeMachine)(pfsmog, pmi);
-   (*pfsmog->closeOutput)(pfsmog,1);
+   pFSMOutputGenerator pfsmog = pfsmogf->fsmogf(pfsmogf->parent_fsmog);
+   if (pfsmog)
+   {
+	   pfsmog->initOutput(pfsmog, pmi->name->name);
+	   pfsmog->writeMachine(pfsmog, pmi);
+	   pfsmog->closeOutput(pfsmog,1);
+
+	   free(pfsmog);
+   }
 
    return false;
 }
@@ -896,9 +862,14 @@ static bool write_machine(pLIST_ELEMENT pelem, void *data)
  * Require a valid list of pointers to valid MACHINE_INFO structure and a pointer to a valid FSMOutputGenerator.
  * Use the output generator to write each member of the list.
  ***********************************************************************************************************************/
-void write_machines(pLIST plist, pFSMOutputGenerator pfsmog)
+void write_machines(pLIST plist, fpFSMOutputGeneratorFactory fpfsmogg, pFSMOutputGenerator parent_fsmog)
 {
-   iterate_list(plist, write_machine, pfsmog);
+   FSMOutputGeneratorFactoryStr fsmogg;
+
+   fsmogg.fsmogf       = fpfsmogg;
+   fsmogg.parent_fsmog = parent_fsmog;
+
+   iterate_list(plist, write_machine, &fsmogg);
 }
 
 bool print_machine_component(pLIST_ELEMENT pelem, void *data)
@@ -922,10 +893,12 @@ bool print_sub_machine_component(pLIST_ELEMENT pelem, void *data)
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
    fprintf(pih->fout
-           , "\t%s%s_%s_%s\n"
+           , "\t%s"
            , pih->first ? "" : ", "
-           , pih->pparent->name->name
-           , pih->pmi->name->name
+		   );
+   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
+   fprintf(pih->fout
+		   , "_%s\n"
            , pid->name
            );
 
@@ -937,24 +910,37 @@ bool print_sub_machine_component_name(pLIST_ELEMENT pelem, void *data)
    pID_INFO pid         = (pID_INFO) pelem->mbr;
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
-   if(!short_dbg_names)
+   if(short_dbg_names)
    {
-      fprintf(pih->fout
-            , "\t, \"%s_%s_%s\"\n"
-            , pih->pparent->name->name
-            , pih->pmi->name->name
-            , pid->name
-            );
+	   fprintf(pih->fout
+			   , "\t, \"%s\"\n"
+			   , pid->name
+			   );
    }
    else
    {
-      fprintf(pih->fout, "\t, \"%s\"\n", pid->name);
+	   fprintf(pih->fout, "\t, \"");
+	   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
+	   fprintf(pih->fout
+			   , "_%s\"\n"
+			   , pid->name
+			   );
    }
-
 
    return false;
 }
 
+/**
+ * prints the events for the current event list, followed by
+ * events for any sub-machines.
+ * 
+ * @author sstan (12/9/2023)
+ * 
+ * @param pelem  this must have a mbr of pMACHINE_INFO type
+ * @param data   this must point to an ITERATOR_HELPER structure
+ * 
+ * @return bool always "false"
+ */
 bool print_sub_machine_events(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
@@ -964,11 +950,16 @@ bool print_sub_machine_events(pLIST_ELEMENT pelem, void *data)
 
    iterate_list(pih->pmi->event_list,print_sub_machine_component,pih);
 
+   fprintf(pih->fout , "\t, ");
+   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
    fprintf(pih->fout
-           , "\t, %s_%s_noEvent\n"
-           , pih->pparent->name->name
-           , pih->pmi->name->name
+		   , "_noEvent\n"
            );
+
+   if (pih->pmi->machine_list)
+   {
+	   iterate_list(pih->pmi->machine_list, print_sub_machine_events, pih);
+   }
 
    return false;
 }
@@ -980,20 +971,23 @@ bool print_sub_machine_event_names(pLIST_ELEMENT pelem, void *data)
    pih->pmi   = (pMACHINE_INFO) pelem->mbr;
    pih->first = false;
 
-   iterate_list(pih->pmi->event_list,print_sub_machine_component_name,pih);
+   iterate_list(pih->pmi->event_list, print_sub_machine_component_name, pih);
 
    if(!short_dbg_names)
    {
-      fprintf(pih->fout
-            , "\t, \"%s_%s_noEvent\"\n"
-            , pih->pparent->name->name
-            , pih->pmi->name->name
-            );
+      fprintf(pih->fout, "\t, \"");
+	  printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
+	  fprintf(pih->fout, "_noEvent\"\n");
    }
    else
    {
       fprintf(pih->fout
             , "\t, \"noEvent\"\n");
+   }
+
+   if (pih->pmi->machine_list)
+   {
+	   iterate_list(pih->pmi->machine_list, print_sub_machine_event_names, pih);
    }
 
 
@@ -1028,25 +1022,113 @@ int copyFileContents(const FILE *fDest, const char *src)
     return ferror(fSrc) + ferror((FILE*)fDest);
 }
 
-void printAncestry(pMACHINE_INFO pmi, FILE *fout)
+void streamStrCaseAware(FILE *fout, char *str, ANCESTRY_LETTER_CASE alc)
 {
-   if (!pmi->parent)
+	if (alc == alc_upper)
+	{
+		streamHungarianToUnderbarCaps(fout, str);
+	}
+	else
+	{
+		fputs(str, fout);
+	}
+}
+
+static bool recursePrintAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUSION ai)
+{
+   bool something_was_printed = false;
+
+   if (pmi->parent
+	   && !(ai & ai_stop_at_parent)
+	   )
    {
-      fprintf(fout
-              , "%s"
-              , pmi->name->name
-              );
+	   if ((something_was_printed = recursePrintAncestry(pmi->parent, fout, separator, alc, ai))) 
+		   fputs(separator, fout);
+	   streamStrCaseAware(fout, pmi->name->name, alc);
    }
    else
    {
-      printAncestry(pmi->parent, fout);
-      fprintf(fout
-              , "::%s"
-              , pmi->name->name
-              );
+	   if (!(ai & ai_omit_ultimate))
+	   {
+		   streamStrCaseAware(fout, pmi->name->name, alc);
+		   something_was_printed = true;
+	   }
    }
+
+   return something_was_printed;
+
 }
 
+bool printAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUSION ai)
+{
+	bool something_was_printed = false;
+
+	if (pmi->parent)
+	{
+		something_was_printed = recursePrintAncestry(pmi->parent,fout,separator,alc, ai);
+	}
+
+	if (ai & ai_include_self)
+	{
+		if (something_was_printed)
+		{
+			fputs(separator, fout);
+		}
+
+		streamStrCaseAware(fout, pmi->name->name, alc);
+		something_was_printed = true;
+	}
+
+	return something_was_printed;
+}
+
+void printNameWithAncestry(char *name, pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUSION ai)
+{
+	printAncestry(pmi, fout, separator, alc, ai);
+
+	fputs(separator, fout);
+
+	if (alc == alc_upper)
+	{
+		streamHungarianToUnderbarCaps(fout, name);
+	}
+	else
+	{
+		fputs(name, fout);
+	}
+}
+
+pMACHINE_INFO ultimateAncestor(pMACHINE_INFO pmi)
+{
+	return !pmi->parent ? pmi : ultimateAncestor(pmi->parent);
+}
+
+/**
+ * Get the maximum sub-machine depth, which is the sub-machine
+ * depth of the top-level machine.
+ * 
+ * @author Steven Stanton (1/23/2024)
+ * 
+ * @param pmi    Pointer to machine info object
+ * 
+ * @return unsigned The sub-machine depth of the top-level
+ *  	   machine.
+ */
+unsigned maxDepth(pMACHINE_INFO pmi)
+{
+	return ultimateAncestor(pmi)->sub_machine_depth;
+}
+
+/**
+ * prints a data field
+ * 
+ * @author Steven Stanton (12/9/2023)
+ * 
+ * @param pelem  must have a mbr of type pDATA_FIELD
+ * @param data   must point to an ITERATOR_HELPER struct
+ * 
+ * @return bool always "false."
+ */
 bool print_data_field(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_HELPER pih       = (pITERATOR_HELPER) data;
@@ -1093,6 +1175,15 @@ bool print_data_field(pLIST_ELEMENT pelem, void *data)
    }
 
    return false;
+}
+
+void increase_sub_machine_depth(pMACHINE_INFO pmi)
+{
+	if (pmi)
+	{
+		pmi->sub_machine_depth++;
+		increase_sub_machine_depth(pmi->parent);
+	}
 }
 
 #ifdef PARSER_DEBUG

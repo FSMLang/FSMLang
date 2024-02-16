@@ -8,7 +8,7 @@ newMachine.data.u.e3_int: 0
 
 marker 1
 do_start_critical
-translate_e1_data
+newMachine_translate_e1_data
 event: newMachine_e1; state: newMachine_s1
 newMachine_a1
 machine.data.u.bop: Hello, world.
@@ -23,16 +23,17 @@ do_end_critical
 
 marker 2
 do_start_critical
-translate_e2_data
+newMachine_translate_e2_data
 event: newMachine_e2; state: newMachine_s1
 newMachine_noAction
 newMachine_transitionFn1
+newMachine_baz
 Event newMachine_e2 caused transition from newMachine_s1 to newMachine_s3
 do_end_critical
 
 marker 3
 do_start_critical
-translate_e1_data
+newMachine_translate_e1_data
 event: newMachine_e1; state: newMachine_s3
 newMachine_a2
 machine.data.u.bop: Good-bye, world.
@@ -44,21 +45,23 @@ newMachine.data.u.e3_int: 0
 
 
 newMachine_transitionFn
+newMachine_baz
 Event newMachine_e1 caused transition from newMachine_s3 to newMachine_s1
 do_end_critical
 
 marker 4
 do_start_critical
-translate_e2_data
+newMachine_translate_e2_data
 event: newMachine_e2; state: newMachine_s1
 newMachine_noAction
 newMachine_transitionFn1
+newMachine_baz
 Event newMachine_e2 caused transition from newMachine_s1 to newMachine_s3
 do_end_critical
 
 marker 5
 do_start_critical
-translate_e2_data
+newMachine_translate_e2_data
 event: newMachine_e2; state: newMachine_s3
 newMachine_noAction
 newMachine_transitionFn1
@@ -66,7 +69,7 @@ do_end_critical
 
 marker 6
 do_start_critical
-translate_e3_data
+newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s3
 newMachine_noAction
 newMachine_transitionFn1
@@ -76,12 +79,13 @@ marker 7
 do_start_critical
 event: newMachine_e4; state: newMachine_s3
 newMachine_noAction
+newMachine_baz
 Event newMachine_e4 caused transition from newMachine_s3 to newMachine_s4
 do_end_critical
 
 marker 8
 do_start_critical
-translate_e3_data
+newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s4
 newMachine_doNothing
 machine.data.u.bop: Good-bye, world.
@@ -93,11 +97,11 @@ newMachine.data.u.e3_int: 5
 
 
 event: newMachine_subMachine1_ee2; state: newMachine_s4
-event: subMachine1_ee2; state: subMachine1_ss1
-subMachine1_aa2
-subMachine1_bar
+event: newMachine_subMachine1_ee2; state: newMachine_subMachine1_ss1
+newMachine_subMachine1_aa2
+newMachine_subMachine1_bar
 sub_machine1.data.cp: (null)
-subMachine1_foo1
+newMachine_subMachine1_foo1
 sub_machine1.data.cp: (null)
 do_end_critical
 
@@ -114,13 +118,13 @@ newMachine.data.u.e3_int: 5
 
 
 event: newMachine_subMachine1_ee2; state: newMachine_s4
-event: subMachine1_ee2; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_ee2; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 10
 do_start_critical
-translate_e3_data
+newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s4
 newMachine_doNothing
 machine.data.u.bop: Good-bye, world.
@@ -132,8 +136,8 @@ newMachine.data.u.e3_int: 6
 
 
 event: newMachine_subMachine1_ee3; state: newMachine_s4
-event: subMachine1_ee3; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_ee3; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 11
@@ -149,24 +153,24 @@ newMachine.data.u.e3_int: 6
 
 
 event: newMachine_subMachine1_ee3; state: newMachine_s4
-event: subMachine1_ee3; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_ee3; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 12
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 weak: newMachine_shareSharedEvent
-subMachine1_eShared_dt
+newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: subMachine1_eShared; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 13
 do_start_critical
-translate_e3_data
+newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s4
 newMachine_doNothing
 machine.data.u.bop: Good-bye, world.
@@ -178,19 +182,19 @@ newMachine.data.u.e3_int: 7
 
 
 event: newMachine_subMachine2_eee1; state: newMachine_s4
-event: subMachine2_eee1; state: subMachine2_sss1
-weak: subMachine2_aaa1
+event: newMachine_subMachine2_eee1; state: newMachine_subMachine2_sss1
+weak: newMachine_subMachine2_aaa1
 do_end_critical
 
 marker 14
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 weak: newMachine_shareSharedEvent
-subMachine1_eShared_dt
+newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: subMachine1_eShared; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 do_start_critical
@@ -205,24 +209,24 @@ newMachine.data.u.e3_int: 7
 
 
 event: newMachine_subMachine2_eee1; state: newMachine_s4
-event: subMachine2_eee1; state: subMachine2_sss2
-subMachine2_noAction
+event: newMachine_subMachine2_eee1; state: newMachine_subMachine2_sss2
+newMachine_subMachine2_noAction
 do_end_critical
 
 marker 15
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 weak: newMachine_shareSharedEvent
-subMachine1_eShared_dt
+newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: subMachine1_eShared; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 16
 do_start_critical
-translate_e3_data
+newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s4
 newMachine_doNothing
 machine.data.u.bop: Good-bye, world.
@@ -234,19 +238,19 @@ newMachine.data.u.e3_int: 8
 
 
 event: newMachine_subMachine2_eee2; state: newMachine_s4
-event: subMachine2_eee2; state: subMachine2_sss2
-subMachine2_noAction
+event: newMachine_subMachine2_eee2; state: newMachine_subMachine2_sss2
+newMachine_subMachine2_noAction
 do_end_critical
 
 marker 17
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 weak: newMachine_shareSharedEvent
-subMachine1_eShared_dt
+newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: subMachine1_eShared; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 18
@@ -262,24 +266,24 @@ newMachine.data.u.e3_int: 8
 
 
 event: newMachine_subMachine2_eee2; state: newMachine_s4
-event: subMachine2_eee2; state: subMachine2_sss2
-subMachine2_noAction
+event: newMachine_subMachine2_eee2; state: newMachine_subMachine2_sss2
+newMachine_subMachine2_noAction
 do_end_critical
 
 marker 19
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 weak: newMachine_shareSharedEvent
-subMachine1_eShared_dt
+newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: subMachine1_eShared; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 20
 do_start_critical
-translate_e3_data
+newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s4
 newMachine_doNothing
 machine.data.u.bop: Good-bye, world.
@@ -291,19 +295,19 @@ newMachine.data.u.e3_int: 9
 
 
 event: newMachine_subMachine2_eee3; state: newMachine_s4
-event: subMachine2_eee3; state: subMachine2_sss2
-subMachine2_noAction
+event: newMachine_subMachine2_eee3; state: newMachine_subMachine2_sss2
+newMachine_subMachine2_noAction
 do_end_critical
 
 marker 21
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 weak: newMachine_shareSharedEvent
-subMachine1_eShared_dt
+newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: subMachine1_eShared; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 22
@@ -319,13 +323,13 @@ newMachine.data.u.e3_int: 9
 
 
 event: newMachine_subMachine2_eee3; state: newMachine_s4
-event: subMachine2_eee3; state: subMachine2_sss2
-subMachine2_noAction
+event: newMachine_subMachine2_eee3; state: newMachine_subMachine2_sss2
+newMachine_subMachine2_noAction
 do_end_critical
 
 marker 23
 do_start_critical
-translate_e3_data
+newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s4
 newMachine_doNothing
 machine.data.u.bop: Good-bye, world.
@@ -337,19 +341,19 @@ newMachine.data.u.e3_int: 10
 
 
 event: newMachine_subMachine1_ee2; state: newMachine_s4
-event: subMachine1_ee2; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_ee2; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 24
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 weak: newMachine_shareSharedEvent
-subMachine1_eShared_dt
+newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: subMachine1_eShared; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 25
@@ -365,24 +369,24 @@ newMachine.data.u.e3_int: 10
 
 
 event: newMachine_subMachine1_ee2; state: newMachine_s4
-event: subMachine1_ee2; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_ee2; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 26
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 weak: newMachine_shareSharedEvent
-subMachine1_eShared_dt
+newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: subMachine1_eShared; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 27
 do_start_critical
-translate_e3_data
+newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s4
 newMachine_doNothing
 machine.data.u.bop: Good-bye, world.
@@ -394,8 +398,8 @@ newMachine.data.u.e3_int: 11
 
 
 event: newMachine_subMachine1_ee3; state: newMachine_s4
-event: subMachine1_ee3; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_ee3; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 28
@@ -411,18 +415,18 @@ newMachine.data.u.e3_int: 11
 
 
 event: newMachine_subMachine1_ee3; state: newMachine_s4
-event: subMachine1_ee3; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_ee3; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 
 marker 29
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 weak: newMachine_shareSharedEvent
-subMachine1_eShared_dt
+newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: subMachine1_eShared; state: subMachine1_ss3
-subMachine1_noAction
+event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
+newMachine_subMachine1_noAction
 do_end_critical
 

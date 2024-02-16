@@ -69,7 +69,7 @@ data
 		state sss1, sss2, sss3;
 		event eee1, eee2, eee3;
 
-		action aaa1[ee1,sss1] transition sss2;
+		action aaa1[eee1,sss1] transition sss2;
 		action aaa2[eee2, sss1] transition sss3;
 	}
 

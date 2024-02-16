@@ -37,33 +37,7 @@
 #include <stdlib.h>
 #endif
 
-#include "parser-test2.h"
-
-extern TEST_FSM_ACTION_FN testFSM_action_fns[3];
-
-int main()
-{
-
-   printf("hello, world\n");
-
-/*
-	printf("sizes:\n\tFSM: %d\n\tactionArray: %d\naction_fns: %d\n\n"
-					,sizeof(testFSM)
-					, sizeof(*testFSM.actionArray)
-					, sizeof(testFSM_action_fns)
-					);
-*/
-
-
-	RUN_STATE_MACHINE(ptestFSM,testFSM_goodMessage);
-	RUN_STATE_MACHINE(ptestFSM,testFSM_badMessage);
-	RUN_STATE_MACHINE(ptestFSM,testFSM_goodMessage);
-	RUN_STATE_MACHINE(ptestFSM,testFSM_goodMessage);
-	RUN_STATE_MACHINE(ptestFSM,testFSM_badMessage);
-
-	exit(0);
-
-}
+#include "parser-test2_priv.h"
 
 TEST_FSM_EVENT testFSM_processMessage(pTEST_FSM ptfsm)
 {

@@ -114,5 +114,6 @@ The 2 transitions :
 	s2
 	s1
 this machine has 1 sub-machines
+the sub-machine depth is 1
 
 found a single machine
