@@ -71,11 +71,18 @@ static bool count_shared_evts(pLIST_ELEMENT,void*);
 static bool count_parent_event_refs(pLIST_ELEMENT,void*);
 static bool count_inhibitors(pLIST_ELEMENT,void*);
 static bool count_external(pLIST_ELEMENT,void*);
+static bool count_zero_event_states(pLIST_ELEMENT,void*);
+static bool count_one_event_states(pLIST_ELEMENT,void*);
+static bool count_zero_event_handlers(pLIST_ELEMENT,void*);
+static bool count_one_event_handlers(pLIST_ELEMENT,void*);
+static bool count_no_way_in_states(pLIST_ELEMENT,void*);
+static bool count_no_way_out_states(pLIST_ELEMENT,void*);
 static bool enumerate_pid(pLIST_ELEMENT,void*);
 static bool process_action_info(pLIST_ELEMENT,void*);
 static bool iterate_matrix_states(pLIST_ELEMENT,void*);
 static bool add_to_action_array(pLIST_ELEMENT,void*);
 static bool find_id_by_name(pLIST_ELEMENT,void*);
+static bool compute_state_density_pct_and_average(pLIST_ELEMENT,void*);
 #ifdef PARSER_DEBUG
 static bool print_state_id_info(pLIST_ELEMENT,void*);
 static bool print_transition_info(pLIST_ELEMENT,void*);
@@ -343,6 +350,7 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
 {
    pACTION_ARRAY_POPULATION_HELPER paaph  = (pACTION_ARRAY_POPULATION_HELPER) data;
    pID_INFO                        pstate = (pID_INFO)      pelem->mbr;
+   pSTATE_DATA                     psd    = &pstate->type_data.state_data;
 
    #ifdef PARSER_DEBUG
    fprintf(paaph->fout, "\t\tadd_to_action_array: state: %s\n"
@@ -370,6 +378,34 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
       {
          paaph->pevent->type_data.event_data.single_pai_state_count++;
       }
+
+	  if (paaph->pai)
+	  {
+		  psd->events_handled++;
+		  paaph->pevent->type_data.event_data.handling_state_count++;
+	  }
+
+	  pID_INFO transition = paaph->pai->transition;
+
+	  if (transition 
+		  && transition->type == STATE
+		  && transition != pstate
+		 )
+	  {
+		  add_unique_to_list(transition->type_data.state_data.pinbound_transitions
+							 , pstate
+							 );
+	  }
+
+	  if (transition 
+		  && transition->type == STATE
+		  && transition != pstate
+		 )
+	  {
+		  add_unique_to_list(pstate->type_data.state_data.poutbound_transitions
+							 , transition
+							 );
+	  }
    }
 
    return paaph->error;
@@ -380,6 +416,7 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
    pACTION_ARRAY_POPULATION_HELPER paaph = (pACTION_ARRAY_POPULATION_HELPER) data;
    
    paaph->pevent = (pID_INFO) pelem->mbr;
+   pEVENT_DATA ped = &paaph->pevent->type_data.event_data;
 
    /* look for events which are handled identically in all states */
    paaph->pevent->type_data.event_data.single_pai_state_count = 0;
@@ -394,12 +431,20 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
 
    iterate_list(paaph->pai->matrix->state_list,add_to_action_array,paaph);
 
-   if (paaph->pevent->type_data.event_data.single_pai_state_count == 
-   paaph->pmi->state_list->count)
+   if (ped->single_pai_state_count == paaph->pmi->state_list->count)
    {
-      paaph->pevent->type_data.event_data.single_pai_for_all_states = true;
-      paaph->pmi->has_single_pai_events                             = true;
+      ped->single_pai_for_all_states    = true;
+      paaph->pmi->has_single_pai_events = true;
    }
+
+   /* Integral math. */
+   ped->state_density_pct = 100 * ped->handling_state_count;
+
+   /* Accumulate into machine record; will be divided by state count later. */
+   paaph->pmi->average_event_state_density_pct += ped->state_density_pct;
+
+   /* Now fix this event's pct. */
+   ped->state_density_pct /= paaph->pmi->state_list->count;
 
    return paaph->error;
 }
@@ -730,6 +775,118 @@ static bool count_entry_and_exit_handlers(pLIST_ELEMENT pelem, void *data)
 
    return false;
 
+}
+
+static bool count_zero_event_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pstate->type_data.state_data.events_handled == 0)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_states_with_zero_events(pLIST plist, unsigned *count)
+{
+	iterate_list(plist, count_zero_event_states, count);
+}
+
+static bool count_one_event_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pstate->type_data.state_data.events_handled == 1)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_states_with_one_event(pLIST plist, unsigned *count)
+{
+	iterate_list(plist, count_one_event_states, count);
+}
+
+static bool count_zero_event_handlers(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pevent->type_data.event_data.handling_state_count == 0)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_events_with_zero_handlers(pLIST plist, unsigned *count)
+{
+	iterate_list(plist, count_zero_event_handlers, count);
+}
+
+static bool count_one_event_handlers(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pevent->type_data.event_data.handling_state_count == 1)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_events_with_one_handler(pLIST plist, unsigned *count)
+{
+	iterate_list(plist, count_one_event_handlers, count);
+}
+
+static bool count_no_way_in_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	/* the first state has a way in, by default */
+	if (pelem->ordinal)
+	{
+		if (pstate->type_data.state_data.pinbound_transitions->count == 0)
+		{
+			(*count)++;
+		}
+	}
+
+	return false;
+}
+
+void count_states_with_no_way_in(pLIST plist, unsigned *data)
+{
+	iterate_list(plist, count_no_way_in_states, data);
+}
+
+static bool count_no_way_out_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pstate->type_data.state_data.poutbound_transitions->count == 0)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_states_with_no_way_out(pLIST plist, unsigned *data)
+{
+	iterate_list(plist, count_no_way_out_states, data);
 }
 
 void count_external_declarations(pLIST plist, unsigned *counter)
@@ -1184,6 +1341,33 @@ void increase_sub_machine_depth(pMACHINE_INFO pmi)
 		pmi->sub_machine_depth++;
 		increase_sub_machine_depth(pmi->parent);
 	}
+}
+
+void compute_event_and_state_density_pct(pMACHINE_INFO pmi)
+{
+	/* The event density was computed during actionArray population. */
+	iterate_list(pmi->state_list, compute_state_density_pct_and_average, pmi);
+
+	pmi->average_state_event_density_pct /= pmi->state_list->count;
+	pmi->average_event_state_density_pct /= pmi->event_list->count;
+}
+
+static bool compute_state_density_pct_and_average(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO pstate   = (pID_INFO)pelem->mbr;
+	pMACHINE_INFO pmi = (pMACHINE_INFO) data;
+	pSTATE_DATA psd   = &pstate->type_data.state_data;
+
+	/* Integral math. */
+	psd->event_density_pct = 100 * psd->events_handled;
+	
+	/* Accumulate into machine record; will be divided by state count later. */
+	pmi->average_state_event_density_pct += psd->event_density_pct;
+
+	/* Now, do the division for this state. */
+	psd->event_density_pct /= pmi->event_list->count;
+
+	return false;
 }
 
 #ifdef PARSER_DEBUG

@@ -134,6 +134,10 @@ struct _state_data_
    STATE_FLAGS state_flags;
    pID_INFO    entry_fn;
    pID_INFO    exit_fn;
+   unsigned    events_handled;
+   unsigned    event_density_pct;
+   pLIST       pinbound_transitions;
+   pLIST       poutbound_transitions;
 };
 
 struct _event_data_
@@ -145,6 +149,8 @@ struct _event_data_
    pACTION_INFO     psingle_pai;
    bool             single_pai_for_all_states;
    pUSER_EVENT_DATA puser_event_data;
+   unsigned         handling_state_count;
+   unsigned         state_density_pct;
 };
 
 union _pid_type_data_
@@ -305,6 +311,14 @@ struct _machine_info_ {
   unsigned      states_with_entry_fns_count;
   unsigned      states_with_exit_fns_count;
   unsigned      sub_machine_depth;
+  unsigned      events_with_zero_handlers;
+  unsigned      events_with_one_handler;
+  unsigned      states_with_zero_events;
+  unsigned      states_with_one_event;
+  unsigned      states_with_no_way_in;
+  unsigned      states_with_no_way_out;
+  unsigned      average_state_event_density_pct;
+  unsigned      average_event_state_density_pct;
 };
 
 /* lexer id list handlers */
@@ -337,6 +351,13 @@ void count_parent_event_referenced(pLIST,unsigned*);
 void count_shared_events(pLIST,unsigned*);
 void count_event_user_data_attributes(pLIST,unsigned*,unsigned*);
 void count_states_with_entry_exit_fns(pLIST,unsigned*,unsigned*);
+void count_states_with_zero_events(pLIST,unsigned*);
+void count_states_with_one_event(pLIST,unsigned*);
+void count_states_with_no_way_in(pLIST,unsigned*);
+void count_states_with_no_way_out(pLIST,unsigned*);
+void count_events_with_zero_handlers(pLIST,unsigned*);
+void count_events_with_one_handler(pLIST,unsigned*);
+void compute_event_and_state_density_pct(pMACHINE_INFO);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO, FILE*);
@@ -385,6 +406,7 @@ extern bool                 output_generated_file_names_only;
 extern bool                 output_header_files;
 extern bool                 output_make_recipe;
 extern bool                 short_user_fn_names;
+extern bool                 print_action_array;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

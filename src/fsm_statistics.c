@@ -41,10 +41,16 @@
 #include <string.h>
 #include <stdlib.h>
 
+bool print_action_array = false;
+
 static int  initMachineStatisticsWriter(pFSMOutputGenerator,char*);
 static void writeMachineStatistics(pFSMOutputGenerator,pMACHINE_INFO);
 static void closeMachineStatisticsWriter(pFSMOutputGenerator,int);
 static bool write_machine_statistics(pLIST_ELEMENT,void*);
+static bool write_events(pLIST_ELEMENT,void*);
+static bool write_states(pLIST_ELEMENT,void*);
+static bool print_state_name(pLIST_ELEMENT,void*);
+static bool write_action_array_pointers(pLIST_ELEMENT,void*);
 
 FSMOutputGenerator MachineStatisticsWriter = {
    initMachineStatisticsWriter,
@@ -179,6 +185,14 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
    printf("number of events: %u\n"
           , pmi->event_list->count
           );
+   printf("number of events handled in zero states: %u\n"
+		  , pmi->events_with_zero_handlers
+		  );
+
+   printf("number of events handled in one state: %u\n"
+		  , pmi->events_with_one_handler
+		  );
+
    printf("machine has events with single pai: %s\n"
           , pmi->has_single_pai_events ? "yes" : "no"
          );
@@ -194,6 +208,22 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
    printf("number of states with exit fns: %u\n"
           , pmi->states_with_exit_fns_count
           );
+
+   printf("number of states handling zero events: %u\n"
+		  , pmi->states_with_zero_events
+		  );
+
+   printf("number of states handling one event: %u\n"
+		  , pmi->states_with_one_event
+		  );
+
+   printf("number of states with no way in: %u\n"
+		  , pmi->states_with_no_way_in
+		  );
+
+   printf("number of states with no way out: %u\n"
+		  , pmi->states_with_no_way_out
+		  );
 
    printf("number of actions: %u\n"
           , pmi->action_list->count
@@ -216,27 +246,31 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
    }
 
    printf("Action Array:\n");
-   for (unsigned e = 0; e < pmi->event_list->count; e++)
-   {
+   printf("%-20.20s%-*.*s%-14.14s %-11.11s %-11.11s\n"
+		  , "Event Name"
+		  , (int)(print_action_array ? pmi->state_list->count * 16 : 0)
+		  , (int)(print_action_array ? pmi->state_list->count * 16 : 0)
+		  , print_action_array ? "PAI locations" : ""
+		  , "PAI Count"
+		  , "State Count"
+		  , "Avg Use (%)"
+		  );
 
-      printf("event %s: "
-             , eventNameByIndex(pmi, e)
-             );
+   ITERATOR_HELPER ih = {
+	   .pmi = pmi
+   };
 
-      for (unsigned s = 0; s < pmi->state_list->count; s++)
-      {
-         printf("%s%16p"
-                , s ? ", " : "  "
-                , (void*) pmi->actionArray[e][s]
-                );
-      }
-      printf("   %s\n"
-             , eventPidByIndex(pmi, e)->type_data.event_data.single_pai_for_all_states
-                    ? "single pai"
-                    : "multiple pai's"
-             );
+   iterate_list(pmi->event_list, write_events, &ih);
 
-   }
+   printf("\n");
+
+   printf("%-20.20s %-14.14s %-11.11s %-20.20s\n"
+		  , "State Name"
+		  , "Events Handled"
+		  , "Avg Use (%)"
+		  , "Transitions (In/Out)"
+		  );
+   iterate_list(pmi->state_list, write_states, &ih);
 
    printf("\n");
 
@@ -248,4 +282,114 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+
+static bool write_events(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+	pEVENT_DATA      ped    = &pevent->type_data.event_data;
+
+	printf("%-20.20s"
+		   , pevent->name
+		   );
+
+	if (print_action_array)
+	{
+		pih->event = pelem->ordinal;
+		iterate_list(pih->pmi->state_list, write_action_array_pointers, pih);
+		printf(" ");
+	}
+
+	printf("%-14.14s"
+		   , ped->single_pai_for_all_states
+				  ? "single"
+				  : "multiple"
+		   );
+
+	printf(" %-11u"
+		   , ped->handling_state_count
+		  );
+
+	printf(" %-11u"
+		   , ped->state_density_pct
+		  );
+
+	printf("\n");
+
+	return false;
+}
+
+static bool write_action_array_pointers(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+
+	printf("%s%-14p"
+		   , pelem->ordinal ? ", " : ""
+		   , (void *)pih->pmi->actionArray[pih->event][pelem->ordinal]
+		   );
+
+	return false;
+}
+
+static bool write_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+	pSTATE_DATA      psd    = &pstate->type_data.state_data;
+	bool             first  = true;
+
+	printf("%-20.20s %-14u %-11u %-2u/ %-2u"
+		   , pstate->name
+		   , psd->events_handled
+		   , psd->event_density_pct
+		   , psd->pinbound_transitions->count
+		   , psd->poutbound_transitions->count
+		   );
+
+	if (
+		psd->pinbound_transitions->count
+		|| psd->poutbound_transitions->count
+		)
+	{
+		printf(": ");
+	}
+
+	if (psd->pinbound_transitions->count)
+	{
+		iterate_list(psd->pinbound_transitions, print_state_name, &first);
+	}
+	else
+	{
+		printf("none");
+	}
+
+
+	first = true;
+	if (psd->poutbound_transitions->count)
+	{
+		printf(" / ");
+		iterate_list(psd->poutbound_transitions, print_state_name, &first);
+	}
+
+
+	printf("\n");
+
+	return false;
+}
+
+static bool print_state_name(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO) pelem->mbr;
+	bool             *first = (bool*)    data;
+
+	printf("%s%s"
+		   , *first ? "" : ", "
+		   , pstate->name
+		   );
+
+	*first = false;
+
+	return false;
+}
 

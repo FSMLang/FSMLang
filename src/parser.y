@@ -255,13 +255,18 @@ machine:	machine_prefix ID machine_qualifier
 
  					/* sanity checks */
  					if ($$->parent && $$->data_block_count && !output_generated_file_names_only)
-						{
+					{
  					   yyerror("event user data not allowed in sub-machines");
-						}
+					}
 
 
-						count_external_declarations     ($$->state_list,&($$->external_state_designation_count));
- 					count_states_with_entry_exit_fns($$->state_list,&($$->states_with_entry_fns_count),&($$->states_with_exit_fns_count));
+					count_external_declarations($$->state_list
+																				,&($$->external_state_designation_count)
+																				);
+ 					count_states_with_entry_exit_fns($$->state_list
+																					 ,&($$->states_with_entry_fns_count)
+																					 ,&($$->states_with_exit_fns_count)
+																					 );
 
  					if ($$->machine_list)
 						{
@@ -276,6 +281,27 @@ machine:	machine_prefix ID machine_qualifier
 
 						if (populate_action_array($$, yyout))
  						yyerror("Action array population failed");
+
+					 count_states_with_zero_events($$->state_list
+																				 , &($$->states_with_zero_events)
+																				 );
+					 count_states_with_one_event($$->state_list
+																			 , &($$->states_with_one_event)
+																			 );
+					 count_states_with_no_way_in($$->state_list
+																			 , &($$->states_with_no_way_in)
+																			 );
+					 count_states_with_no_way_out($$->state_list
+																			 , &($$->states_with_no_way_out)
+																			 );
+					 count_events_with_zero_handlers($$->event_list
+																					 , &($$->events_with_zero_handlers)
+																					 );
+					 count_events_with_one_handler($$->event_list
+																				 , &($$->events_with_one_handler)
+																				 );
+
+					 compute_event_and_state_density_pct($$);
 
            free($1);
 
@@ -1241,6 +1267,17 @@ state: ID
  				  $$ = $1;
            set_id_type($$,STATE);
            $$->powningMachine = pmachineInfo;
+
+					 if (NULL == ($$->type_data.state_data.pinbound_transitions = init_list()))
+					 {
+					    yyerror("out of memory");
+					 }
+
+					 if (NULL == ($$->type_data.state_data.poutbound_transitions = init_list()))
+					 {
+					    yyerror("out of memory");
+					 }
+
          }
  	| state INHIBITS SUBMACHINES
 					{
