@@ -41,6 +41,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define name_separator(A) ((A)->first ? "" : ", ")
+
 bool print_action_array = false;
 
 static int  initMachineStatisticsWriter(pFSMOutputGenerator,char*);
@@ -49,7 +51,8 @@ static void closeMachineStatisticsWriter(pFSMOutputGenerator,int);
 static bool write_machine_statistics(pLIST_ELEMENT,void*);
 static bool write_events(pLIST_ELEMENT,void*);
 static bool write_states(pLIST_ELEMENT,void*);
-static bool print_state_name(pLIST_ELEMENT,void*);
+static bool print_pid_name(pLIST_ELEMENT,void*);
+static bool compute_pid_name_len(pLIST_ELEMENT,void*);
 static bool write_action_array_pointers(pLIST_ELEMENT,void*);
 
 FSMOutputGenerator MachineStatisticsWriter = {
@@ -245,8 +248,17 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 			  );
    }
 
+   unsigned        str_len = 0;
+   ITERATOR_HELPER ih      = {
+	   .pmi        = pmi
+	   , .counter0 = &str_len
+	   , .first    = true
+   };
+
+   iterate_list(pmi->event_list, compute_pid_name_len, &ih);
+
    printf("Action Array:\n");
-   printf("%-20.20s%-*.*s%-14.14s %-11.11s %-11.11s\n"
+   printf("%-20.20s%-*.*s%-14.14s %-11.11s %-11.11s %-*.*s\n"
 		  , "Event Name"
 		  , (int)(print_action_array ? pmi->state_list->count * 16 : 0)
 		  , (int)(print_action_array ? pmi->state_list->count * 16 : 0)
@@ -254,22 +266,30 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 		  , "PAI Count"
 		  , "State Count"
 		  , "Avg Use (%)"
+		  , str_len
+		  , str_len
+		  , "Actions Triggered"
 		  );
 
-   ITERATOR_HELPER ih = {
-	   .pmi = pmi
-   };
-
+   //ih.first does not need to be reset here.
    iterate_list(pmi->event_list, write_events, &ih);
 
    printf("\n");
 
-   printf("%-20.20s %-14.14s %-11.11s %-20.20s\n"
+   ih.first = true;
+   iterate_list(pmi->state_list, compute_pid_name_len, &ih);
+
+   printf("%-20.20s %-14.14s %-11.11s %-20.20s %-*.*s\n"
 		  , "State Name"
 		  , "Events Handled"
 		  , "Avg Use (%)"
 		  , "Transitions (In/Out)"
+		  , str_len
+		  , str_len
+		  , "Actions Invoked"
 		  );
+
+   //ih.first does not need to be reset here.
    iterate_list(pmi->state_list, write_states, &ih);
 
    printf("\n");
@@ -307,12 +327,15 @@ static bool write_events(pLIST_ELEMENT pelem, void *data)
 		   );
 
 	printf(" %-11u"
-		   , ped->handling_state_count
+		   , ped->phandling_states->count
 		  );
 
 	printf(" %-11u"
 		   , ped->state_density_pct
 		  );
+
+	pih->first = true;
+	iterate_list(ped->pactions_list, print_pid_name, pih);
 
 	printf("\n");
 
@@ -337,11 +360,10 @@ static bool write_states(pLIST_ELEMENT pelem, void *data)
 	pID_INFO         pstate = (pID_INFO)         pelem->mbr;
 	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
 	pSTATE_DATA      psd    = &pstate->type_data.state_data;
-	bool             first  = true;
 
 	printf("%-20.20s %-14u %-11u %-2u/ %-2u"
 		   , pstate->name
-		   , psd->events_handled
+		   , psd->pevents_handled->count
 		   , psd->event_density_pct
 		   , psd->pinbound_transitions->count
 		   , psd->poutbound_transitions->count
@@ -355,9 +377,12 @@ static bool write_states(pLIST_ELEMENT pelem, void *data)
 		printf(": ");
 	}
 
+	unsigned str_len = 0;
+	pih->counter0    = &str_len;
+	pih->first       = true;
 	if (psd->pinbound_transitions->count)
 	{
-		iterate_list(psd->pinbound_transitions, print_state_name, &first);
+		iterate_list(psd->pinbound_transitions, print_pid_name, pih);
 	}
 	else
 	{
@@ -365,30 +390,52 @@ static bool write_states(pLIST_ELEMENT pelem, void *data)
 	}
 
 
-	first = true;
+	pih->first = true;
 	if (psd->poutbound_transitions->count)
 	{
 		printf(" / ");
-		iterate_list(psd->poutbound_transitions, print_state_name, &first);
+		iterate_list(psd->poutbound_transitions, print_pid_name, pih);
 	}
 
+
+	pih->first = true;
+	if (psd->pactions_list->count)
+	{
+		iterate_list(psd->pactions_list, print_pid_name, pih);
+	}
 
 	printf("\n");
 
 	return false;
 }
 
-static bool print_state_name(pLIST_ELEMENT pelem, void *data)
+static bool print_pid_name(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO         pstate = (pID_INFO) pelem->mbr;
-	bool             *first = (bool*)    data;
+	pID_INFO         pstate = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
 
 	printf("%s%s"
-		   , *first ? "" : ", "
+		   , name_separator(pih)
 		   , pstate->name
 		   );
 
-	*first = false;
+	pih->first = false;
+
+	return false;
+}
+
+static bool compute_pid_name_len(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+
+	if (pih->counter0)
+	{
+		(*pih->counter0) += strlen(name_separator(pih));
+		(*pih->counter0) += strlen(pstate->name);
+	}
+
+	pih->first = false;
 
 	return false;
 }

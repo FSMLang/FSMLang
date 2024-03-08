@@ -113,6 +113,8 @@ typedef struct _iterator_helper_         ITERATOR_HELPER,         *pITERATOR_HEL
 
 typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
 typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
+/* The following must not be confused with ACTION_INFO */
+typedef struct _action_data_             ACTION_DATA,             *pACTION_DATA;
 typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
 typedef union  _data_type_union_         DATA_TYPE_UNION,         *pDATA_TYPE_UNION;
 typedef struct _data_type_struct_        DATA_TYPE_STRUCT,        *pDATA_TYPE_STRUCT;
@@ -134,10 +136,11 @@ struct _state_data_
    STATE_FLAGS state_flags;
    pID_INFO    entry_fn;
    pID_INFO    exit_fn;
-   unsigned    events_handled;
    unsigned    event_density_pct;
+   pLIST       pevents_handled;
    pLIST       pinbound_transitions;
    pLIST       poutbound_transitions;
+   pLIST       pactions_list;
 };
 
 struct _event_data_
@@ -149,14 +152,22 @@ struct _event_data_
    pACTION_INFO     psingle_pai;
    bool             single_pai_for_all_states;
    pUSER_EVENT_DATA puser_event_data;
-   unsigned         handling_state_count;
+   pLIST            phandling_states;
+   pLIST            pactions_list;
    unsigned         state_density_pct;
+};
+
+struct _action_data_
+{
+	pACTION_INFO    actionInfo;
+	pLIST           action_returns_decl;
 };
 
 union _pid_type_data_
 {
    EVENT_DATA    event_data;
    STATE_DATA    state_data;
+   ACTION_DATA   action_data;
 };
 
 typedef enum
@@ -244,11 +255,9 @@ struct _id_info_ {
   char           *docCmnt;
   PID_TYPE_DATA   type_data;
   pMACHINE_INFO   powningMachine;
-  pACTION_INFO    actionInfo;
-  pLIST           action_returns_decl;
-  pLIST           transition_fn_returns_decl;
   pID_INFO        pfield_type;
   pDATA_FIELD     pdata_field;
+  pLIST           transition_fn_returns_decl;
 };
 
 struct _action_se_info_ {

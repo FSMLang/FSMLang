@@ -772,8 +772,8 @@ transition_matrix_start: matrix TRANSITION_KEY
 						$$->action     = pid_info;
  					$$->docCmnt    = $2;
 
-						$$->nextAction = pid_info->actionInfo;
-						pid_info->actionInfo = $$;
+						$$->nextAction = pid_info->type_data.action_data.actionInfo;
+						pid_info->type_data.action_data.actionInfo = $$;
 
         }
     | TRANSITION_KEY matrix
@@ -794,8 +794,8 @@ transition_matrix_start: matrix TRANSITION_KEY
 						$$->action     = pid_info;
  					$$->docCmnt    = $1;
 
-						$$->nextAction = pid_info->actionInfo;
-						pid_info->actionInfo = $$;
+						$$->nextAction = pid_info->type_data.action_data.actionInfo;
+						pid_info->type_data.action_data.actionInfo = $$;
 
         }
     ;
@@ -1018,8 +1018,8 @@ action_matrix: ID matrix
 						$$->matrix     = $2;
 						$$->transition = NULL;
 
-						$$->nextAction = $1->actionInfo;
-						$1->actionInfo = $$;
+						$$->nextAction = $1->type_data.action_data.actionInfo;
+						$1->type_data.action_data.actionInfo = $$;
 
 					}
    | ACTION matrix
@@ -1040,8 +1040,8 @@ action_matrix: ID matrix
 						$$->matrix     = $2;
 						$$->transition = NULL;
 
-						$$->nextAction = $1->actionInfo;
-						$1->actionInfo = $$;
+						$$->nextAction = $1->type_data.action_data.actionInfo;
+						$1->type_data.action_data.actionInfo = $$;
 
 					}
 	;
@@ -1278,6 +1278,16 @@ state: ID
 					    yyerror("out of memory");
 					 }
 
+					 if (NULL == ($$->type_data.state_data.pevents_handled = init_list()))
+					 {
+					    yyerror("out of memory");
+					 }
+
+					 if (NULL == ($$->type_data.state_data.pactions_list = init_list()))
+					 {
+					    yyerror("out of memory");
+					 }
+
          }
  	| state INHIBITS SUBMACHINES
 					{
@@ -1474,6 +1484,12 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            $2->type_data.event_data.puser_event_data    = $4;
            $2->powningMachine                           = pmachineInfo;
 
+ 					if (NULL == ($2->type_data.event_data.phandling_states = init_list()))
+ 						yyerror("Out of memory");
+
+ 					if (NULL == ($2->type_data.event_data.pactions_list = init_list()))
+ 						yyerror("Out of memory");
+
  					if (NULL == (add_to_list($$,$2)))
  						yyerror("Out of memory");
 
@@ -1498,6 +1514,12 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            pid->type_data.event_data.shared_with_parent = true;
            pid->powningMachine                          = pmachineInfo;
  					pid->docCmnt                                 = $2;
+
+ 					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
+ 						yyerror("Out of memory");
+
+ 					if (NULL == (pid->type_data.event_data.pactions_list = init_list()))
+ 						yyerror("Out of memory");
 
  					if (NULL == (add_to_list($$,pid)))
  						yyerror("Out of memory");
@@ -1527,6 +1549,12 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            $3->type_data.event_data.puser_event_data    = $5;
            $3->powningMachine                           = pmachineInfo;
 
+ 					if (NULL == ($3->type_data.event_data.phandling_states = init_list()))
+ 						yyerror("Out of memory");
+
+ 					if (NULL == ($3->type_data.event_data.pactions_list = init_list()))
+ 						yyerror("Out of memory");
+
  					if (NULL == (add_to_list($$,$3)))
  						yyerror("Out of memory");
 
@@ -1549,7 +1577,13 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            pid->type_data.event_data.puser_event_data    = $5;
            pid->type_data.event_data.shared_with_parent  = true;
            pid->powningMachine                           = pmachineInfo;
- 					pid->docCmnt                                  = $3;
+ 					 pid->docCmnt                                  = $3;
+
+ 					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
+ 						yyerror("Out of memory");
+
+ 					if (NULL == (pid->type_data.event_data.pactions_list = init_list()))
+ 						yyerror("Out of memory");
 
  					if (NULL == (add_to_list($$,pid)))
  						yyerror("Out of memory");
@@ -1944,16 +1978,16 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
 			if (add_to_list($3,$4) == NULL)
 				 yyerror("out of memory");
 
-			move_list_unique($1->action_returns_decl, $3);
+			move_list_unique($1->type_data.action_data.action_returns_decl, $3);
  		free_list($3);
 
   }
@@ -1963,16 +1997,16 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
 			if (add_to_list($3,$4) == NULL)
 				 yyerror("out of memory");
 
-			move_list_unique($1->action_returns_decl, $3);
+			move_list_unique($1->type_data.action_data.action_returns_decl, $3);
  		free_list($3);
 
   }
@@ -1982,13 +2016,13 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-		 if (add_unique_to_list($1->action_returns_decl,$3) == NULL)
+		 if (add_unique_to_list($1->type_data.action_data.action_returns_decl,$3) == NULL)
 				yyerror("out of memory");
 
   }
@@ -1998,13 +2032,13 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-		 if (add_unique_to_list($1->action_returns_decl,$3) == NULL)
+		 if (add_unique_to_list($1->type_data.action_data.action_returns_decl,$3) == NULL)
 				yyerror("out of memory");
 
   }
@@ -2017,13 +2051,13 @@ action_return_decl:
 			if (add_to_list($3, $4) == NULL)
 				yyerror("out of memory");
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			move_list_unique($1->action_returns_decl, $3);
+			move_list_unique($1->type_data.action_data.action_returns_decl, $3);
  		free_list($3);
 
   }
@@ -2033,16 +2067,16 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
-		 if (add_to_list($1->action_returns_decl,$3) == NULL)
+		 if (add_to_list($1->type_data.action_data.action_returns_decl,$3) == NULL)
 				yyerror("out of memory");
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			add_unique_to_list($1->action_returns_decl, $3);
+			add_unique_to_list($1->type_data.action_data.action_returns_decl, $3);
 
   }
   ;
