@@ -45,6 +45,8 @@
 #include <unistd.h>
 #endif
 
+#include "y.tab.h"
+
 /*
 	Our interface to the outside world
 */
@@ -85,7 +87,781 @@ static FSMHTMLOutputGenerator HTMLMachineWriter = {
 bool  css_content_internal = false;
 char *css_content_filename = "fsmlang.css";
 
-/* list iteration callbacks */
+
+static void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good);
+static void closeHTMLFileNameWriter(pFSMOutputGenerator pfsmog, int good);
+static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi);
+static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi);
+static int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName);
+static int initHTMLFileNameWriter (pFSMOutputGenerator pfsmog, char *baseFileName);
+static bool print_sub_machine_row(pLIST_ELEMENT,void*);
+static bool print_action_table_row(pLIST_ELEMENT,void*);
+static bool print_id_info_as_html_list_element(pLIST_ELEMENT,void*);
+static bool print_machine_name_as_list_element(pLIST_ELEMENT,void*);
+static bool print_state_table_state_row(pLIST_ELEMENT,void*);
+static bool print_event_table_event_row(pLIST_ELEMENT,void*);
+static bool print_state_chart_event_header_row(pLIST_ELEMENT,void*);
+static bool print_state_chart_state_row(pLIST_ELEMENT,void*);
+static bool print_state_chart_state_row_event(pLIST_ELEMENT,void*);
+static bool print_transition_fn_table_transition_fn_row(pLIST_ELEMENT,void*);
+static bool print_id_info_as_vector(pLIST_ELEMENT,void*);
+static void print_event_table(pFSMHTMLOutputGenerator);
+static void print_state_table(pFSMHTMLOutputGenerator);
+static void print_action_table(pFSMHTMLOutputGenerator);
+static void print_transition_fn_table(pFSMHTMLOutputGenerator);
+static void print_machine_table(pFSMHTMLOutputGenerator);
+static void print_state_chart(pFSMHTMLOutputGenerator);
+static void print_vector(pLIST,pITERATOR_HELPER);
+static void print_transition(pID_INFO,pITERATOR_HELPER);
+
+static void print_transition(pID_INFO pid, pITERATOR_HELPER pih)
+{
+	fprintf(pih->fout
+			, " transitions %s %s"
+			, pid->type == STATE ? "to state" : "via function"
+			, pid->name
+			);
+}
+
+static bool print_id_info_as_vector(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pid = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+	fprintf(pih->fout
+			, "%s%s"
+			, pih->first ? (pih->first = false, "") : ", "
+			, pid->name
+			);
+
+	return false;
+}
+
+static void print_vector(pLIST plist, pITERATOR_HELPER pih)
+{
+	if (plist->count > 1)
+	{
+		fprintf(pih->fout, "(");
+	}
+
+	pih->first = true;
+	iterate_list(plist, print_id_info_as_vector, pih);
+
+	if (plist->count > 1)
+	{
+		fprintf(pih->fout, ")");
+	}
+
+}
+
+static void print_state_chart(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	ITERATOR_HELPER ih = {
+		.fout = pfsmhtmlog->pmd->htmlFile
+		, .pmi = pfsmhtmlog->pmd->pmi
+	};
+
+	fprintf(pfsmhtmlog->pmd->htmlFile, "<div class=\"scrollable\">\n<table class=\"machine\">\n");
+
+	/* first row */
+	fprintf(pfsmhtmlog->pmd->htmlFile, "\t<thead>\n\t\t<tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile, "\t\t\t<th class=\"blankCorner\">&nbsp;</th>\n");
+
+	/* event names */
+	iterate_list(pfsmhtmlog->pmd->pmi->event_list
+				 , print_state_chart_event_header_row
+				 , &ih
+				 );
+
+	fprintf(pfsmhtmlog->pmd->htmlFile, "\t\t</tr>\n\t</thead>\n");
+
+	/* State Label column */
+	fprintf(pfsmhtmlog->pmd->htmlFile, "\t<tbody>\n");
+
+	iterate_list(pfsmhtmlog->pmd->pmi->state_list
+				 , print_state_chart_state_row
+				 , &ih
+				);
+
+	fprintf(pfsmhtmlog->pmd->htmlFile, "\t</tbody>\n</table>\n</div>\n");
+
+}
+
+static void print_event_table(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	ITERATOR_HELPER ih = {
+		.fout = pfsmhtmlog->pmd->htmlFile
+		, .pmi = pfsmhtmlog->pmd->pmi
+	};
+	
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<thead><tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan='2' align='left'>Events</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n</thead>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<tbody>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile, "<tr>\n\t<td colspan='2' align='left'>\n");
+
+	fprintf(pfsmhtmlog->pmd->htmlFile, "<table class='summary'>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>Total number of events:</th><td>%u</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->event_list->count
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>Events with no handlers:</th><td>%u</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->events_with_zero_handlers
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>Events with one handler:</th><td>%u</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->events_with_one_handler
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>Average event state density:</th><td>%u%%</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->average_event_state_density_pct
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile, "\t</td>\n</tr>\n");
+
+	iterate_list(pfsmhtmlog->pmd->pmi->event_list, print_event_table_event_row, &ih);
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tbody>\n</table>\n");
+
+}
+
+static void print_state_table(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	ITERATOR_HELPER ih = {
+		.fout = pfsmhtmlog->pmd->htmlFile
+		, .pmi = pfsmhtmlog->pmd->pmi
+	};
+	
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<thead><tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>States</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n</thead>\n<tbody>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile, "<tr><td colspan='2' align='left'>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile, "<table class='summary'>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>Total number of states:</th><td>%u</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->state_list->count
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>States with no events:</th><td>%u</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->states_with_zero_events
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>States with one event:</th><td>%u</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->states_with_one_event
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>States with no way in:</th><td>%u</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->states_with_no_way_in
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>States with no way out:</th><td>%u</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->states_with_no_way_out
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>Average state event density:</th><td>%u%%</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->average_state_event_density_pct
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile, "\t</td>\n</tr>\n");
+
+	iterate_list(pfsmhtmlog->pmd->pmi->state_list, print_state_table_state_row, &ih);
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tbody>\n</table>\n");
+
+}
+
+static void print_action_table(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	ITERATOR_HELPER ih = {
+		.fout = pfsmhtmlog->pmd->htmlFile
+		, .pmi = pfsmhtmlog->pmd->pmi
+	};
+	
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<thead><tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Actions</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n</thead>\n<tbody>\n");
+	
+	iterate_list(pfsmhtmlog->pmd->pmi->action_list
+				 , print_action_table_row
+				 , &ih);
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tbody>\n</table>\n");
+
+}
+
+static void print_transition_fn_table(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	RETURN_IF_NULL(pfsmhtmlog->pmd->pmi->transition_fn_list);
+
+	ITERATOR_HELPER ih = {
+		.fout = pfsmhtmlog->pmd->htmlFile
+		, .pmi = pfsmhtmlog->pmd->pmi
+	};
+	
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<thead><tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Transition Functions</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n</thead>\n<tbody>\n");
+	
+	iterate_list(pfsmhtmlog->pmd->pmi->transition_fn_list, print_transition_fn_table_transition_fn_row, &ih);
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tbody>\n</table>\n");
+
+}
+
+static void print_machine_table(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	RETURN_IF_NULL(pfsmhtmlog->pmd->pmi->transition_fn_list)
+
+	ITERATOR_HELPER ih = {
+		.fout = pfsmhtmlog->pmd->htmlFile
+		, .pmi = pfsmhtmlog->pmd->pmi
+	};
+	
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<thead><tr>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Sub Machines</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n</thead>\n<tbody>\n");
+	
+	iterate_list(pfsmhtmlog->pmd->pmi->machine_list, print_sub_machine_row, &ih);
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tbody>\n</table>\n");
+
+}
+
+static bool print_state_chart_state_row(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate   = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih      = (pITERATOR_HELPER) data;
+
+	fprintf(pih->fout
+			, "\t<tr>\n\t\t<th class=stateName>%s</th>\n"
+			, pstate->name
+			);
+
+	pih->state = pelem->ordinal;
+	iterate_list(pih->pmi->event_list
+				 , print_state_chart_state_row_event
+				 , pih
+				 );
+
+	fprintf(pih->fout,"\t</tr>\n");
+
+	return false;
+
+}
+
+static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+	pEVENT_DATA      ped    = &pevent->type_data.event_data;
+	pMACHINE_INFO    pmi    = pih->pmi;
+	pACTION_INFO     pai    = pmi->actionArray[pelem->ordinal][pih->state];
+
+
+	fprintf(pih->fout
+			,"\t\t<td class="
+			);
+		   if (pmi->modFlags & mfActionsReturnStates) {
+
+			   fprintf(pih->fout
+			 ,"%s>%s"
+			 ,	pai ?
+								(strlen(pai->action->name) 
+				   ? "action" : "noAction") 
+				   : "nullAction"
+			 ,	pai 
+				   ? (strlen(pai->action->name) 
+					  ? pai->action->name 
+					  : "transition") 
+				   : "Not Defined"
+			 );
+
+	 if (
+		 pai
+		&& pai->action->type_data.action_data.action_returns_decl
+		 )
+	 {
+		fprintf(pih->fout
+				,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+				);
+		iterate_list(pai->action->type_data.action_data.action_returns_decl
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+		fprintf(pih->fout
+				, "\t</ul>\n"
+				);
+	 }
+
+	 if (
+		 pai
+		&& pai->transition
+		 )
+	 {
+		fprintf(pih->fout
+				, "<br/>%s"
+				, pai->transition->name
+				);
+
+		if (pai->transition->transition_fn_returns_decl)
+		{
+		   fprintf(pih->fout
+				   ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+				   );
+		   iterate_list(pai->transition->transition_fn_returns_decl
+						, print_id_info_as_html_list_element
+						, pih
+						);
+		   fprintf(pih->fout
+				   , "\t</ul>\n"
+				   );
+		}
+	 }
+
+		   }
+		   else {
+
+			   fprintf(pih->fout
+			 ,"%s>%s"
+			 ,	pai 
+				? (strlen(pai->action->name) 
+				   ? "action" 
+				   : "noAction") 
+				: "nullAction"
+			 ,	pai 
+				? (strlen(pai->action->name) 
+				   ? pai->action->name 
+				   : "noAction") 
+				: ""
+			 );
+
+	 if (
+		 pai
+		 )
+	 {
+		/* if this action is associated with a shared event, it will have exactly one event */
+		pID_INFO paction = pai->action;
+		pID_INFO pevent = (pID_INFO)find_nth_list_member(paction->type_data.action_data.actionInfo->matrix->event_list,0);
+
+		/* and, that event will have a list of sharing machines */
+		if (pevent->type_data.event_data.psharing_sub_machines)
+		{
+		   fprintf(pih->fout
+				   ,"<br/>shares event with:\n\t<ul class=\"return_decl\">\n"
+				   );
+		   iterate_list(pevent->type_data.event_data.psharing_sub_machines
+						, print_machine_name_as_list_element
+						, pih->fout
+						);
+		   fprintf(pih->fout,"</ul>\n"
+				   );
+		}
+		else
+		{
+		   if (paction->type_data.action_data.action_returns_decl)
+		   {
+			  fprintf(pih->fout
+					  ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+					  );
+			  iterate_list(pai->action->type_data.action_data.action_returns_decl
+						   , print_id_info_as_html_list_element
+						   , pih
+						   );
+			  fprintf(pih->fout
+					  , "\t</ul>\n"
+					  );
+		   }
+		}
+	 }
+
+	 fprintf(pih->fout
+			 , "<br/><b>transition</b> : %s"
+			 , pai ? 
+			   (pai->transition ? 
+				 pai->transition->name : "none")
+			   : "none"
+			 );
+
+	 if (
+		 pai
+		 && pai->transition 
+		&& pai->transition->transition_fn_returns_decl
+		 )
+	 {
+		fprintf(pih->fout
+				,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+				);
+		iterate_list(pai->transition->transition_fn_returns_decl
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+		fprintf(pih->fout
+				, "\t</ul>\n"
+				);
+	 }
+
+		   }
+
+   if (
+	   pai
+	   && pai->docCmnt
+	   )
+   {
+	  fprintf(pih->fout
+			  ,"<p class=\"transition_comment\">%s</p>"
+			  , pai->docCmnt
+			  );
+   }
+
+   fprintf(pih->fout
+		   , "</td>\n"
+		   );
+
+	return false;
+
+}
+
+static bool print_state_chart_event_header_row(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent   = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih      = (pITERATOR_HELPER) data;
+	pEVENT_DATA      ped      = &pevent->type_data.event_data;
+	static char      *prefix  = "\t\t\t<th class='eventName'>";
+	static char      *postfix = "</th>\n";
+
+	fprintf(pih->fout
+			, ped->shared_with_parent
+				? "%s(%s::) %s%s"
+				: "%s%s%s%s"
+			, prefix
+			, ped->shared_with_parent ? pih->pmi->parent->name->name : ""
+			, pevent->name
+			, postfix
+			);
+
+	return false;
+}
+	
+static bool print_event_table_event_row(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+	pEVENT_DATA      ped    = &pevent->type_data.event_data;
+	
+	fprintf(pih->fout, "<tr>\n");
+	fprintf(pih->fout
+			, ped->shared_with_parent
+			? "<td class=\"label\">(%s::) %s</td>\n"
+			: "<td class=\"label\">%s%s</td>\n"
+			, ped->shared_with_parent
+			? pih->pmi->parent->name->name
+			: ""
+			, pevent->name
+		   );
+	fprintf(pih->fout, "<td>%s\n"
+			, pevent->docCmnt ? pevent->docCmnt : ""
+			);
+
+	if (ped->psharing_sub_machines)
+	{
+		fprintf(pih->fout
+				, "<p>This event is shared with:</p><ul class=\"return_decl\">\n"
+			   );
+		iterate_list(ped->psharing_sub_machines
+					 , print_machine_name_as_list_element
+					 , pih->fout
+					);
+		fprintf(pih->fout, "</ul>\n"
+			   );
+	}
+
+	if (ped->puser_event_data)
+	{
+		if (ped->puser_event_data->translator)
+		{
+			fprintf(pih->fout, "<p>\n");
+			fprintf(pih->fout
+					, "Data translator: %s\n"
+					, ped->puser_event_data->translator->name
+				   );
+			fprintf(pih->fout, "</p>\n");
+		}
+
+		if (ped->puser_event_data->data_fields)
+		{
+			ITERATOR_HELPER ih = {
+				.fout = pih->fout
+				, .tab_level = 0
+			};
+
+			fprintf(pih->fout, "<p>\n");
+			fprintf(pih->fout
+					, "Event data:"
+				   );
+			fprintf(pih->fout, "</p>\n");
+
+			fprintf(pih->fout, "<code>\n");
+			iterate_list(ped->puser_event_data->data_fields
+						 , print_data_field
+						 , &ih
+						);
+			fprintf(pih->fout, "</code>\n");
+		}
+	}
+
+	if (ped->phandling_states->count)
+	{
+		fprintf(pih->fout
+				, "<p>Handled In %u of %u (%u %%) States:</p>\n\t<ul>\n"
+				, ped->phandling_states->count
+				, pih->pmi->state_list->count
+				, ped->state_density_pct
+				);
+
+		iterate_list(ped->phandling_states
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+
+		fprintf(pih->fout, "\t</ul>\n");
+	}
+
+	if (ped->pactions_list->count)
+	{
+		fprintf(pih->fout
+				, "<p>Causes these actions to be taken:</p>\n\t<ul>\n"
+				);
+
+		iterate_list(ped->pactions_list
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+
+		fprintf(pih->fout, "\t</ul>\n");
+	}
+
+	fprintf(pih->fout, "</td>\n");
+	fprintf(pih->fout, "</tr>\n");
+
+	return false;
+}
+
+static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER)data;
+	pSTATE_DATA      psd    = &pstate->type_data.state_data;
+
+	bool something_printed  = false;
+
+	fprintf(pih->fout, "<tr>\n");
+
+	fprintf(pih->fout
+			,"<td class='label%s%s%s'>%s</td>\n<td>\n"
+			, psd->pevents_handled->count == 0       ? " lazyState"        : ""
+			, psd->pinbound_transitions->count == 0  ? " stateWithNoEntry" : ""
+			, psd->poutbound_transitions->count == 0 ? " deadEndState"     : ""
+			, pstate->name
+			);
+
+	if (psd->pevents_handled->count == 0)
+	{
+		fprintf(pih->fout
+				, "<p class='lazyState'>This state handles no events.</p>\n"
+				);
+		something_printed = true;
+	}
+
+	if (
+		(psd->pinbound_transitions->count == 0)
+		&& (pelem->ordinal != 0)
+	   )
+	{
+		fprintf(pih->fout
+				, "<p class='stateWithNoEntry'>This state has no entry points.</p>\n"
+				);
+		something_printed = true;
+	}
+
+	if (psd->poutbound_transitions->count == 0)
+	{
+		fprintf(pih->fout
+				, "<p class='deadEndState'>This state has no way out.</p>\n"
+				);
+		something_printed = true;
+	}
+
+	if (pstate->docCmnt)
+	{
+		fprintf(pih->fout
+				, "<p>%s</p>\n"
+				, pstate->docCmnt
+			   );
+		something_printed = true;
+	}
+
+	if (psd->state_flags & sfHasEntryFn)
+	{
+		fprintf(pih->fout
+				, "<p>On Entry: %s%s</p>\n"
+				, psd->entry_fn
+				? psd->entry_fn->name
+				: "onEntryTo_"
+				, psd->entry_fn
+				? ""
+				: pstate->name
+			   );
+		something_printed = true;
+	}
+
+	if (psd->state_flags & sfHasExitFn)
+	{
+		fprintf(pih->fout
+				, "<p>On Exit: %s%s</p>\n"
+				, psd->exit_fn
+				? psd->exit_fn->name
+				: "onExitTo_"
+				, psd->exit_fn
+				? ""
+				: pstate->name
+			   );
+		something_printed = true;
+	}
+
+	if (psd->state_flags & sfInibitSubMachines)
+	{
+		fprintf(pih->fout
+				, "<p>Inhibits sub-machines.</p>\n"
+			   );
+		something_printed = true;
+	}
+
+	if (psd->pinbound_transitions->count)
+	{
+		fprintf(pih->fout
+				, "<p>Inbound Transitions:</p>\n\t<ul>\n"
+				);
+		iterate_list(psd->pinbound_transitions
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+		fprintf(pih->fout
+				, "</ul>\n"
+				);
+		something_printed = true;
+	}
+
+	if (psd->poutbound_transitions->count)
+	{
+		fprintf(pih->fout
+				, "<p>Outbound Transitions:</p>\n\t<ul>\n"
+				);
+		iterate_list(psd->poutbound_transitions
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+		fprintf(pih->fout
+				, "</ul>\n"
+				);
+		something_printed = true;
+	}
+
+	if (psd->pevents_handled->count)
+	{
+		fprintf(pih->fout
+				, "<p>Events Handled (%u of %u for %u%%):</p>\n\t<ul>\n"
+				, psd->pevents_handled->count
+				, pih->pmi->event_list->count
+				, psd->event_density_pct
+				);
+
+		iterate_list(psd->pevents_handled
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+
+		fprintf(pih->fout
+				, "\t</ul>\n"
+				);
+		something_printed = true;
+	}
+
+	if (psd->pactions_list->count)
+	{
+		fprintf(pih->fout
+				, "<p>Actions Taken:\n</p>\n\t<ul>\n"
+				);
+
+		iterate_list(psd->pactions_list
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+
+		fprintf(pih->fout
+				, "\t</ul>\n"
+				);
+		something_printed = true;
+	}
+
+	if (!something_printed)
+	{
+		fprintf(pih->fout, "&nbsp;");
+	}
+
+	fprintf(pih->fout, "</td></tr>\n");
+
+	return false;
+
+}
+
+static bool print_transition_fn_table_transition_fn_row(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         ptransition_fn = (pID_INFO)         pelem->mbr;
+	pITERATOR_HELPER pih            = (pITERATOR_HELPER) data;
+
+	fprintf(pih->fout
+			,"\t<tr><td class='label'>%s</td><td>"
+			, ptransition_fn->name
+			);
+
+	if (ptransition_fn->docCmnt)
+	{
+		fprintf(pih->fout
+				, "%s"
+				, ptransition_fn->docCmnt
+				);
+
+	}
+
+	if (ptransition_fn->transition_fn_returns_decl)
+	{
+		fprintf(pih->fout
+				, "<p>Returns:\n\t<ul>\n"
+			   );
+
+		iterate_list(ptransition_fn->transition_fn_returns_decl
+					 , print_id_info_as_html_list_element
+					 , pih
+					);
+
+		fprintf(pih->fout, "\t</ul>\n</p>\n");
+	}
+
+	fprintf(pih->fout, "</td>\n");
+
+	return false;
+}
+
 static bool print_machine_name_as_list_element(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO pmi  = (pMACHINE_INFO) pelem->mbr;
@@ -101,14 +877,14 @@ static bool print_machine_name_as_list_element(pLIST_ELEMENT pelem, void *data)
 
 static bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
 {
-   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
-   pID_INFO                pid        = (pID_INFO) pelem->mbr;
+   pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+   pID_INFO         pid = (pID_INFO) pelem->mbr;
 
-   fprintf(pfsmhtmlog->pmd->htmlFile
-           , (pid->powningMachine && (pid->powningMachine != pfsmhtmlog->pmd->pmi))
+   fprintf(pih->fout
+           , (pid->powningMachine && (pid->powningMachine != pih->pmi))
                ? "\t\t<li>%s::%s</li>\n"
                : "\t\t<li>%s%s</li>\n"
-           , (pid->powningMachine && (pid->powningMachine != pfsmhtmlog->pmd->pmi))
+           , (pid->powningMachine && (pid->powningMachine != pih->pmi))
                ? pid->powningMachine->name->name
                : ""
            , pid->name
@@ -119,55 +895,80 @@ static bool print_id_info_as_html_list_element(pLIST_ELEMENT pelem, void *data)
 
 static bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
 {
-   pID_INFO pid = ((pID_INFO)pelem->mbr);
-   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
+   pID_INFO         paction = (pID_INFO)pelem->mbr;
+   pITERATOR_HELPER pih     = (pITERATOR_HELPER) data;
+   pACTION_DATA     pad     = &paction->type_data.action_data;
 
-   fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
-   fprintf(pfsmhtmlog->pmd->htmlFile,"<td class=\"label\">%s</td>\n"
-     , strlen(pid->name) ? pid->name : "transition");
-   fprintf(pfsmhtmlog->pmd->htmlFile,"<td>\n");
-   fprintf(pfsmhtmlog->pmd->htmlFile,"%s"
-           , pid->docCmnt ? pid->docCmnt : "&nbsp;"
-           );
+   fprintf(pih->fout,"<tr>\n");
+   fprintf(pih->fout,"<td class=\"label\">%s</td>\n"
+     , strlen(paction->name) ? paction->name : "transition");
+   fprintf(pih->fout,"<td>\n");
+   if (paction->docCmnt)
+   {
+	   fprintf(pih->fout, "%s"
+			   , paction->docCmnt
+			  );
+   }
 
-   if (pid->actionInfo)
+   if (pad->actionInfo)
    {
       /* if this action is associated with a shared event, it will have exactly one event */
-      pID_INFO pevent = (pID_INFO)find_nth_list_member(pid->actionInfo->matrix->event_list,0);
+      pID_INFO pevent = (pID_INFO)find_nth_list_member(pad->actionInfo->matrix->event_list,0);
 
       /* and, that event will have a list of sharing machines */
       if (pevent->type_data.event_data.psharing_sub_machines)
       {
-         fprintf(pfsmhtmlog->pmd->htmlFile,"\n<br/><br/>Shares event to:<ul class=\"return_decl\">");
+         fprintf(pih->fout,"\n<br/><br/>Shares event to:<ul class=\"return_decl\">");
          iterate_list(pevent->type_data.event_data.psharing_sub_machines
                       , print_machine_name_as_list_element
-                      , pfsmhtmlog->pmd->htmlFile
+                      , pih->fout
                       );
-         fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
+         fprintf(pih->fout,"</ul>\n"
                  );
       }
       else
       {
          if (pevent->type_data.event_data.shared_with_parent)
          {
-            fprintf(pfsmhtmlog->pmd->htmlFile
+            fprintf(pih->fout
                     ,"\n<p>Handles an event shared from %s</p>\n"
                     , pevent->powningMachine->parent->name->name
                     );
          }
-         else
+
+         if (pad->action_returns_decl)
          {
-            if (pid->action_returns_decl)
-            {
-               fprintf(pfsmhtmlog->pmd->htmlFile,"\n<br/><br/>Returns:<ul class=\"return_decl\">");
-               iterate_list(pid->action_returns_decl,print_id_info_as_html_list_element,pfsmhtmlog);
-               fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
-                       );
-            }
+            fprintf(pih->fout,"\n<br/><br/>Returns:<ul class=\"return_decl\">");
+            iterate_list(pad->action_returns_decl
+ 						, print_id_info_as_html_list_element
+ 						, pih
+ 						);
+            fprintf(pih->fout,"</ul>\n"
+                    );
          }
       }
 
-      fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n</tr>\n");
+	  /* List the matrices. */
+	  fprintf(pih->fout
+			  , "<p>Matrices:</p>\n\t<ul>\n"
+			  );
+
+	  for (pACTION_INFO pai = pad->actionInfo; pai; pai = pai->nextAction)
+	  {
+		  fprintf(pih->fout, "\t\t<li>");
+		  print_vector(pai->matrix->event_list, pih);
+		  fprintf(pih->fout, ", ");
+		  print_vector(pai->matrix->state_list, pih);
+
+		  if (pai->transition)
+		  {
+			  print_transition(pai->transition, pih);
+		  }
+		  fprintf(pih->fout, "\t\t</li>");
+	  }
+	  fprintf(pih->fout, "\t</ul>\n");
+
+      fprintf(pih->fout, "</td>\n</tr>\n");
 
    }
 
@@ -192,10 +993,13 @@ static bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
    fprintf(pfsmhtmlog->pmd->htmlFile
            ,"<td>\n"
            );
-   fprintf(pfsmhtmlog->pmd->htmlFile
-           ,"%s"
-           , pmi->name->docCmnt ? pmi->name->docCmnt : "&nbsp;"
-           );
+   if (pmi->name->docCmnt)
+   {
+	   fprintf(pfsmhtmlog->pmd->htmlFile
+			   , "%s"
+			   , pmi->name->docCmnt
+			  );
+   }
 
    fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n</tr>\n");
 
@@ -261,9 +1065,14 @@ static int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
          if (css_content_internal)
          {
             fprintf(pfsmhtmlog->pmd->htmlFile, "<style>\n");
-            if (copyFileContents(pfsmhtmlog->pmd->htmlFile, css_content_filename))
+			int ret;
+            if (0 != (ret = copyFileContents(pfsmhtmlog->pmd->htmlFile, css_content_filename)))
             {
                 fprintf(stderr,"%s: Could not copy css file contents\n",me);
+				fprintf(pfsmhtmlog->pmd->htmlFile
+						,"<!-- ret: %d -->\n"
+						, ret
+						);
                 return (1);
             }
             fprintf(pfsmhtmlog->pmd->htmlFile, "</style>\n");
@@ -303,412 +1112,48 @@ static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
-	pID_INFO			  pid;
-	unsigned				e,s;
+	RETURN_IF_NULL(pmi);
 
 	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator)pfsmog;
 
-	if (!pmi)
+	ITERATOR_HELPER ih = {
+		.fout = pfsmhtmlog->pmd->htmlFile
+		, .pmi = pmi
+	};
 
-		return;
+	pfsmhtmlog->pmd->pmi = pmi;
 
-  pfsmhtmlog->pmd->pmi = pmi;
-
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<h2>");
+	fprintf(pfsmhtmlog->pmd->htmlFile, "<h2>");
 	printAncestry(pmi, pfsmhtmlog->pmd->htmlFile, "::", alc_lower, ai_include_self);
 	fprintf(pfsmhtmlog->pmd->htmlFile, "</h2>\n");
 
-	if (pmi->name->docCmnt)
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<p>%s</p>\n",pmi->name->docCmnt);
+	if (pmi->name->docCmnt) fprintf(pfsmhtmlog->pmd->htmlFile, "<p>%s</p>\n", pmi->name->docCmnt);
 
-  if (include_svg_img)
-  {
-     fprintf(pfsmhtmlog->pmd->htmlFile
-             , "<img src=\"%s.svg\" alt=\"PlantUML diagram separately generated.\"/>\n"
-             , pfsmhtmlog->pmd->baseName
-             );
-  }
-
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<div class=\"scrollable\">\n<table class=\"machine\">\n");
-
-	/* first row */
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<thead>\n\t\t<tr>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t\t<th class=\"blankCorner\">&nbsp;</th>\n");
-
-	/* event names */
-	for (e = 0;e < pmi->event_list->count;e++)
-  {
-    pid = eventPidByIndex(pmi,e);
+	if (include_svg_img)
+	{
 		fprintf(pfsmhtmlog->pmd->htmlFile
-            , pid->type_data.event_data.shared_with_parent
-               ? "\t\t\t<th class=eventName>(%s::) %s</th>\n"
-               : "\t\t\t<th class=eventName>%s%s</th>\n"
-            , pid->type_data.event_data.shared_with_parent
-               ? pmi->parent->name->name
-               : ""
-            , pid->name
-			      );
-  }
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t</tr>\n\t</thead>\n");
-
-	/* State Label column */
-	fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tbody>\n\t\t<tr>\n");
-
-	/* now, it gets a bit tricky with the row breaks */
-	for (s = 0; s < pmi->state_list->count; s++) {
-
-		if (s)
-
-			fprintf(pfsmhtmlog->pmd->htmlFile,"\t<tr>\n");
-
-		fprintf(pfsmhtmlog->pmd->htmlFile,"\t\t<th class=stateName>%s</th>\n"
-			,	stateNameByIndex(pmi,s)
-			);
-
-			for (e = 0; e < pmi->event_list->count; e++) {
-
-         fprintf(pfsmhtmlog->pmd->htmlFile
-                 ,"\t\t<td class="
-                 );
-				if (pmi->modFlags & mfActionsReturnStates) {
-
-					fprintf(pfsmhtmlog->pmd->htmlFile
-                  ,"%s>%s"
-                  ,	pmi->actionArray[e][s] ?
-								     (strlen(pmi->actionArray[e][s]->action->name) 
-                        ? "action" : "noAction") 
-                        : "nullAction"
-                  ,	pmi->actionArray[e][s] 
-                        ? (strlen(pmi->actionArray[e][s]->action->name) 
-                           ? pmi->actionArray[e][s]->action->name 
-                           : "transition") 
-                        : "Not Defined"
-                  );
-
-          if (
-              pmi->actionArray[e][s]
-             && pmi->actionArray[e][s]->action->action_returns_decl
-              )
-          {
-             fprintf(pfsmhtmlog->pmd->htmlFile
-                     ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
-                     );
-             iterate_list(pmi->actionArray[e][s]->action->action_returns_decl,print_id_info_as_html_list_element,pfsmhtmlog);
-             fprintf(pfsmhtmlog->pmd->htmlFile
-                     , "\t</ul>\n"
-                     );
-          }
-
-          if (
-              pmi->actionArray[e][s]
-             && pmi->actionArray[e][s]->transition
-              )
-          {
-             fprintf(pfsmhtmlog->pmd->htmlFile
-                     , "<br/>%s"
-                     , pmi->actionArray[e][s]->transition->name
-                     );
-
-             if (pmi->actionArray[e][s]->transition->transition_fn_returns_decl)
-             {
-                fprintf(pfsmhtmlog->pmd->htmlFile
-                        ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
-                        );
-                iterate_list(pmi->actionArray[e][s]->transition->transition_fn_returns_decl, print_id_info_as_html_list_element, pfsmhtmlog);
-                fprintf(pfsmhtmlog->pmd->htmlFile
-                        , "\t</ul>\n"
-                        );
-             }
-          }
-
-				}
-				else {
-
-					fprintf(pfsmhtmlog->pmd->htmlFile
-                  ,"%s>%s"
-                  ,	pmi->actionArray[e][s] 
-                     ? (strlen(pmi->actionArray[e][s]->action->name) 
-                        ? "action" 
-                        : "noAction") 
-                     : "nullAction"
-                  ,	pmi->actionArray[e][s] 
-                     ? (strlen(pmi->actionArray[e][s]->action->name) 
-                        ? pmi->actionArray[e][s]->action->name 
-                        : "noAction") 
-                     : "&nbsp;"
-                  );
-
-          if (
-              pmi->actionArray[e][s]
-              )
-          {
-             /* if this action is associated with a shared event, it will have exactly one event */
-             pID_INFO paction = pmi->actionArray[e][s]->action;
-             pID_INFO pevent = (pID_INFO)find_nth_list_member(paction->actionInfo->matrix->event_list,0);
-
-             /* and, that event will have a list of sharing machines */
-             if (pevent->type_data.event_data.psharing_sub_machines)
-             {
-                fprintf(pfsmhtmlog->pmd->htmlFile
-                        ,"<br/>shares event with:\n\t<ul class=\"return_decl\">\n"
-                        );
-                iterate_list(pevent->type_data.event_data.psharing_sub_machines
-                             , print_machine_name_as_list_element
-                             , pfsmhtmlog->pmd->htmlFile
-                             );
-                fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
-                        );
-             }
-             else
-             {
-                if (paction->action_returns_decl)
-                {
-                   fprintf(pfsmhtmlog->pmd->htmlFile
-                           ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
-                           );
-                   iterate_list(pmi->actionArray[e][s]->action->action_returns_decl, print_id_info_as_html_list_element, pfsmhtmlog);
-                   fprintf(pfsmhtmlog->pmd->htmlFile
-                           , "\t</ul>\n"
-                           );
-                }
-             }
-          }
-          
-          fprintf(pfsmhtmlog->pmd->htmlFile
-                  , "<br/><b>transition</b> : %s"
-                  , pmi->actionArray[e][s] ? 
-                    (pmi->actionArray[e][s]->transition ? 
-                      pmi->actionArray[e][s]->transition->name : "none")
-                    : "none"
-                  );
-
-          if (
-              pmi->actionArray[e][s]
-              && pmi->actionArray[e][s]->transition 
-             && pmi->actionArray[e][s]->transition->transition_fn_returns_decl
-              )
-          {
-             fprintf(pfsmhtmlog->pmd->htmlFile
-                     ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
-                     );
-             iterate_list(pmi->actionArray[e][s]->transition->transition_fn_returns_decl, print_id_info_as_html_list_element, pfsmhtmlog);
-             fprintf(pfsmhtmlog->pmd->htmlFile
-                     , "\t</ul>\n"
-                     );
-          }
-
-				}
-
-        if (
-            pmi->actionArray[e][s]
-            && pmi->actionArray[e][s]->docCmnt
-            )
-        {
-           fprintf(pfsmhtmlog->pmd->htmlFile
-                   ,"<p class=\"transition_comment\">%s</p>"
-                   , pmi->actionArray[e][s]->docCmnt
-                   );
-        }
-
-        fprintf(pfsmhtmlog->pmd->htmlFile
-                , "</td>\n"
-                );
-
-			}
-
-			fprintf(pfsmhtmlog->pmd->htmlFile,"\t</tr>\n");
-
-	}
-	
-  fprintf(pfsmhtmlog->pmd->htmlFile, "\t</tbody>\n</table>\n</div>\n");
-
-	/*
-    Now, list the events, states, actions, and any transition functions
-    with their Document Comments
-	*/
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
-
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Events</th>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
-	
-	for (e = 0; e < pmi->event_list->count; e++) {
-
-		pid = eventPidByIndex(pmi,e);
-	
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
-		fprintf(pfsmhtmlog->pmd->htmlFile
-            , pid->type_data.event_data.shared_with_parent
-              ? "<td class=\"label\">(%s::) %s</td>\n"
-              : "<td class=\"label\">%s%s</td>\n"
-            , pid->type_data.event_data.shared_with_parent
-              ? pmi->parent->name->name
-              : ""
-            , pid->name
-            );
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<td>%s\n"
-			, pid->docCmnt ? pid->docCmnt : "&nbsp;");
-    if (pid->type_data.event_data.psharing_sub_machines)
-    {
-       fprintf(pfsmhtmlog->pmd->htmlFile
-               ,"<p>This event is shared with:</p><ul class=\"return_decl\">\n"
-               );
-       iterate_list(pid->type_data.event_data.psharing_sub_machines
-                    , print_machine_name_as_list_element
-                    , pfsmhtmlog->pmd->htmlFile
-                    );
-       fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n"
-               );
-    }
-
-    if (pid->type_data.event_data.puser_event_data)
-    {
-       if (pid->type_data.event_data.puser_event_data->translator)
-       {
-          fprintf(pfsmhtmlog->pmd->htmlFile, "<p>\n");
-          fprintf(pfsmhtmlog->pmd->htmlFile
-                  , "Data translator: %s\n"
-                  , pid->type_data.event_data.puser_event_data->translator->name
-                  );
-          fprintf(pfsmhtmlog->pmd->htmlFile, "</p>\n");
-       }
-
-       if (pid->type_data.event_data.puser_event_data->data_fields)
-       {
-          ITERATOR_HELPER ih = {
-             .fout = pfsmhtmlog->pmd->htmlFile
-             , .tab_level = 0
-          };
-
-          fprintf(pfsmhtmlog->pmd->htmlFile, "<p>\n");
-          fprintf(pfsmhtmlog->pmd->htmlFile
-                  , "Event data:"
-                  );
-          fprintf(pfsmhtmlog->pmd->htmlFile, "</p>\n");
-
-          fprintf(pfsmhtmlog->pmd->htmlFile, "<code>\n");
-          iterate_list(pid->type_data.event_data.puser_event_data->data_fields
-                       , print_data_field
-                       , &ih
-                       );
-          fprintf(pfsmhtmlog->pmd->htmlFile, "</code>\n");
-       }
-    }
-
-		fprintf(pfsmhtmlog->pmd->htmlFile,"</td>\n");
-		fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
-
+				, "<img src=\"%s.svg\" alt=\"PlantUML diagram separately generated.\"/>\n"
+				, pfsmhtmlog->pmd->baseName
+			   );
 	}
 
-  fprintf(pfsmhtmlog->pmd->htmlFile,"</table>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
 
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>States</th>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
-	
-	for (s = 0; s < pmi->state_list->count; s++) {
+	print_state_chart(pfsmhtmlog);
+	print_event_table(pfsmhtmlog);
+	print_state_table(pfsmhtmlog);
+	print_action_table(pfsmhtmlog);
 
-     bool something_printed = false;
-	
-		pid = statePidByIndex(pmi,s);
-
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
-		fprintf(pfsmhtmlog->pmd->htmlFile,"<td class=\"label\">%s</td>\n<td>\n"
-			, pid->name);
-
-    if (pid->docCmnt)
-    {
-       fprintf(pfsmhtmlog->pmd->htmlFile
-               , "<p>%s</p>\n"
-               , pid->docCmnt
-               );
-       something_printed = true;
-    }
-
-    if (pid->type_data.state_data.state_flags & sfHasEntryFn)
-    {
-       fprintf(pfsmhtmlog->pmd->htmlFile
-               , "<p>On Entry: %s%s</p>\n"
-               , pid->type_data.state_data.entry_fn
-                 ? pid->type_data.state_data.entry_fn->name
-                 : "onEntryTo_"
-               , pid->type_data.state_data.entry_fn
-                 ? ""
-                 : pid->name
-               );
-       something_printed = true;
-    }
-
-    if (pid->type_data.state_data.state_flags & sfHasExitFn)
-    {
-       fprintf(pfsmhtmlog->pmd->htmlFile
-               , "<p>On Exit: %s%s</p>\n"
-               , pid->type_data.state_data.exit_fn
-                 ? pid->type_data.state_data.exit_fn->name
-                 : "onExitTo_"
-               , pid->type_data.state_data.exit_fn
-                 ? ""
-                 : pid->name
-               );
-       something_printed = true;
-    }
-
-    if (pid->type_data.state_data.state_flags & sfInibitSubMachines)
-    {
-       fprintf(pfsmhtmlog->pmd->htmlFile
-               , "<p>Inhibits Sub-machines</p>\n"
-               );
-       something_printed = true;
-    }
-
-    if (!something_printed)
-    {
-       fprintf(pfsmhtmlog->pmd->htmlFile,"&nbsp;");
-    }
-
-    fprintf(pfsmhtmlog->pmd->htmlFile, "</td></tr>\n");
-
+	if (pmi->transition_fn_list->count)
+	{
+		print_transition_fn_table(pfsmhtmlog);
 	}
 
-  fprintf(pfsmhtmlog->pmd->htmlFile,"</table>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
 
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<tr>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Actions</th>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
-	
-  iterate_list(pmi->action_list,print_action_table_row,pfsmhtmlog);
-
-  fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
-
-  if (pmi->transition_fn_list->count)
-  {
-     fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
-     fprintf(pfsmhtmlog->pmd->htmlFile, "<tr>\n");
-     fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Transition Functions</th>\n");
-     fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
-
-     iterate_list(pmi->transition_fn_list,print_action_table_row,pfsmhtmlog);
-
-     fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
-     
-  }
-
-
-  if (pmi->machine_list)
-  {
-     fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
-     fprintf(pfsmhtmlog->pmd->htmlFile, "<tr>\n");
-     fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Sub Machines</th>\n");
-     fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n");
-
-     iterate_list(pmi->machine_list, print_sub_machine_row, pfsmhtmlog);
-
-     fprintf(pfsmhtmlog->pmd->htmlFile, "</table>\n");
-
-	 write_machines(pmi->machine_list, generateHTMLMachineWriter, pfsmog);
-  }
+	if (pmi->machine_list)
+	{
+		print_machine_table(pfsmhtmlog);
+		write_machines(pmi->machine_list, generateHTMLMachineWriter, pfsmog);
+	}
 }
 
 static void closeHTMLFileNameWriter(pFSMOutputGenerator pfsmog, int good)

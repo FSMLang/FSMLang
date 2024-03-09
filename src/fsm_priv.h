@@ -44,6 +44,13 @@
 #define FSMLANG_DEVELOP_PRINTF(...)
 #endif
 
+#define RETURN_IF_NULL(A) \
+if (!(A))                 \
+{                         \
+	return;               \
+}                         \
+
+
 /**
 	These flags track the modifiers
 		of "machine" and also the action return specifiers.
@@ -205,6 +212,7 @@ struct _iterator_helper_
    bool          error;
    bool          first;
    int           event;
+   int           state;
    unsigned      *counter0;
    unsigned      *counter1;
    unsigned      tab_level;
@@ -270,13 +278,15 @@ struct _matrix_info_ {
   pLIST	event_list;
 };
 
-struct _action_info_ {
-	pID_INFO				action;
-  pMATRIX_INFO    matrix;
-  pID_INFO  			transition;
-	pACTION_INFO		nextAction;
-   char             *docCmnt;
-};
+struct _action_info_
+{
+	pID_INFO     action;
+	pMATRIX_INFO matrix;
+	pID_INFO     transition;
+	pACTION_INFO nextAction;
+	char         *docCmnt;
+}; 
+
 
 struct _native_info_ {
    char *prologue;

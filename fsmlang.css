@@ -45,8 +45,12 @@
 	color: green;
 }
 
-.nullAction {
+.nullAction, .deadEndState, .lazyState {
 	color: orange;
+}
+
+.stateWithNoEntry {
+	color: red;
 }
 
 .noAction {
@@ -75,6 +79,13 @@
 	border-width: .5px;
 	border-color: black;
 	padding: 3px;
+}
+
+.elements .summary tr, th, td {
+	border-style:     none;
+	border-width:     0px;
+	padding:          3px;
+	background-color: white;
 }
 
 .label {

@@ -59,6 +59,7 @@ struct _action_array_population_helper_
    pMACHINE_INFO pmi;
    pACTION_INFO  pai;
    pID_INFO      pevent;
+   pID_INFO      pstate;
    bool          error;
 };
 
@@ -83,6 +84,7 @@ static bool iterate_matrix_states(pLIST_ELEMENT,void*);
 static bool add_to_action_array(pLIST_ELEMENT,void*);
 static bool find_id_by_name(pLIST_ELEMENT,void*);
 static bool compute_state_density_pct_and_average(pLIST_ELEMENT,void*);
+static bool compute_event_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool add_inbound_state_wrapper(pLIST_ELEMENT,void*);
 #ifdef PARSER_DEBUG
 static bool print_state_id_info(pLIST_ELEMENT,void*);
@@ -457,6 +459,7 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
    fprintf(paaph->fout, "\titerate_matrix_states: event: %s\n", paaph->pevent->name);
    #endif
 
+   paaph->error = false;
    iterate_list(paaph->pai->matrix->state_list,add_to_action_array,paaph);
 
    if (ped->single_pai_state_count == paaph->pmi->state_list->count)
@@ -464,15 +467,6 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
       ped->single_pai_for_all_states    = true;
       paaph->pmi->has_single_pai_events = true;
    }
-
-   /* Integral math. */
-   ped->state_density_pct = 100 * ped->phandling_states->count;
-
-   /* Accumulate into machine record; will be divided by state count later. */
-   paaph->pmi->average_event_state_density_pct += ped->state_density_pct;
-
-   /* Now fix this event's pct. */
-   ped->state_density_pct /= paaph->pmi->state_list->count;
 
    return paaph->error;
 }
@@ -1187,7 +1181,7 @@ int copyFileContents(const FILE *fDest, const char *src)
 {
     FILE *fSrc;
     char buf[256];
-    int numBytes;
+    int numBytes, retVal;
 
     if (NULL == (fSrc = openFile((char*)src,"r")))
     {
@@ -1202,9 +1196,12 @@ int copyFileContents(const FILE *fDest, const char *src)
         }
     }
 
+    retVal = ferror(fSrc) + ferror((FILE*)fDest);
+
     fclose(fSrc);
 
-    return ferror(fSrc) + ferror((FILE*)fDest);
+	return retVal;
+
 }
 
 void streamStrCaseAware(FILE *fout, char *str, ANCESTRY_LETTER_CASE alc)
@@ -1373,8 +1370,8 @@ void increase_sub_machine_depth(pMACHINE_INFO pmi)
 
 void compute_event_and_state_density_pct(pMACHINE_INFO pmi)
 {
-	/* The event density was computed during actionArray population. */
 	iterate_list(pmi->state_list, compute_state_density_pct_and_average, pmi);
+	iterate_list(pmi->event_list, compute_event_density_pct_and_average, pmi);
 
 	pmi->average_state_event_density_pct /= pmi->state_list->count;
 	pmi->average_event_state_density_pct /= pmi->event_list->count;
@@ -1382,18 +1379,36 @@ void compute_event_and_state_density_pct(pMACHINE_INFO pmi)
 
 static bool compute_state_density_pct_and_average(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO pstate   = (pID_INFO)pelem->mbr;
-	pMACHINE_INFO pmi = (pMACHINE_INFO) data;
-	pSTATE_DATA psd   = &pstate->type_data.state_data;
+	pID_INFO      pstate = (pID_INFO)pelem->mbr;
+	pMACHINE_INFO pmi    = (pMACHINE_INFO) data;
+	pSTATE_DATA   psd    = &pstate->type_data.state_data;
 
 	/* Integral math. */
 	psd->event_density_pct = 100 * psd->pevents_handled->count;
 	
-	/* Accumulate into machine record; will be divided by state count later. */
-	pmi->average_state_event_density_pct += psd->event_density_pct;
-
 	/* Now, do the division for this state. */
 	psd->event_density_pct /= pmi->event_list->count;
+
+	/* Accumulate into machine record. */
+	pmi->average_state_event_density_pct += psd->event_density_pct;
+
+	return false;
+}
+
+static bool compute_event_density_pct_and_average(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO      pevent = (pID_INFO)pelem->mbr;
+	pMACHINE_INFO pmi    = (pMACHINE_INFO) data;
+	pEVENT_DATA   ped    = &pevent->type_data.event_data;
+
+	/* Integral math. */
+	ped->state_density_pct = 100 * ped->phandling_states->count;
+	
+	/* Now, do the division for this event. */
+	ped->state_density_pct /= pmi->event_list->count;
+
+	/* Accumulate into machine record. */
+	pmi->average_event_state_density_pct += ped->state_density_pct;
 
 	return false;
 }
