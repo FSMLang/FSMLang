@@ -31,4 +31,15 @@ if(UNIX AND NOT APPLE)
     target_compile_definitions(fsm PUBLIC LINUX FSM_DEBUG _XOPEN_SOURCE=700 YY_NO_UNPUT YY_NO_INPUT)
 endif()
 
+execute_process(
+  COMMAND git describe --match=NeVeRmAtCh --always --abbrev=20 --dirty
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_COMMIT_HASH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+target_compile_definitions(fsm PUBLIC "-DGIT_COMMIT_HASH=\"${GIT_COMMIT_HASH}\"")
+
 target_compile_options(fsm PRIVATE -Wall -Wextra -pedantic -Werror)
+
+
