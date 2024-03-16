@@ -30,6 +30,7 @@
 #include "fsm_html.h"
 #include "fsm_plantuml.h"
 #include "fsm_statistics.h"
+#include "fsm_logger.h"
 
 #include "list.h"
 
@@ -2222,6 +2223,7 @@ const struct option longopts[] =
 int main(int argc, char **argv)
 {
 
+	FSM_TUI("FSMLang %s, %s", rev_string, GIT_COMMIT_HASH);
 	char	*cp1;
 	char    *outFileBase = 0;
 
@@ -2423,7 +2425,7 @@ int main(int argc, char **argv)
 
      case 'v':
 
-        fprintf(stdout,"version %s\n",rev_string);
+        FSM_TUI("version %s", rev_string);
         return (0);
 
      case 'M':
@@ -2459,7 +2461,7 @@ int main(int argc, char **argv)
 
 	if (optind >= argc)
 	{
-		fprintf(stdout,"need a file name to work with.\n");
+		FSM_TUI("Need a file name to work with.");
 		return (!good);
 	}
 
@@ -2553,68 +2555,68 @@ void yyerror(char *s)
 void usage(void)
 {
 
-	fprintf(stdout,"Usage : %s [-tc|s|h|p] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
-	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
-	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
-	fprintf(stdout,"\t and 'h' gets you html output\n");
-	fprintf(stdout,"\t and 'p' gets you PlantUML output\n");
-	fprintf(stdout,"\t-i0 inhibits the creation of a machine instance\n");
-	fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n");
-	fprintf(stdout,"\t\tthis is the default\n");
-	fprintf(stdout,"\t-c will create a more compact event/state table when -tc is used\n");
-	fprintf(stdout,"\t\twith machines having actions which return states\n");
-	fprintf(stdout,"\t-s prints some useful statistics and exits\n");
-	fprintf(stdout,"\t-o  <outfile> will use <outfile> as the filename for the top-level machine output.\n");
-	fprintf(stdout,"\t\tAny sub-machines will be put into files based on the sub-machine names.\n");
-	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
-	fprintf(stdout,"\t--short-user-fn-names=true causes user functions (such as action functions to use only the machine name when the sub-machine depth is 1.\n");
-	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of actions which pass events\n");
- fprintf(stdout,"\t\twhen weak function generation is disabled..\n");
- fprintf(stdout,"\t\tThe generated functions are not weak.\n");
-	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
- fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");
-	fprintf(stdout,"\t\tno RUN_STATE_MACHINE macro is provided.\n");
-	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
-	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
-	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
-	fprintf(stdout,"\t\tfor the content copy.\n");
- fprintf(stdout,"\t--add-plantuml-title=<*true|false> adds the machine name as a title to the plantuml.\n");
- fprintf(stdout,"\t--add-plantuml-legend=<*center|left|right|top|*bottm> adds a legend to the plantuml.\n");
- fprintf(stdout,"\t\tCenter, bottom are the defaults.  Horizontal and vertial parameters can be added in a quoted string.\n");
- fprintf(stdout,"\t\tCenter is a horizontal parameter.\n");
- fprintf(stdout,"\t\tBy default, event, state, and action lists are included in the legend, and event descriptions are removed\n");
- fprintf(stdout,"\t\tfrom the body of the diagram.\n");
- fprintf(stdout,"\t--exclude-states-from-plantuml-legend=<*true|false> excludes state information from the plantuml legend.\n");
- fprintf(stdout,"\t\tWhen excluded from legend, state comments are included in the diagram body.\n");
- fprintf(stdout,"\t--exclude-events-from-plantuml-legend=<*true|false> excludes event information from the plantuml legend.\n");
- fprintf(stdout,"\t--exclude-actions-from-plantuml-legend=<*true|false> excludes action information from the plantuml legend.\n");
- fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
- fprintf(stdout,"\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block\n");
- fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
- fprintf(stdout,"\t\tto specifying \"true\"\n");
- fprintf(stdout,"\t--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
- fprintf(stdout,"\t\tany generated output.  This option can be specified multiple times; all text will be\n");
- fprintf(stdout,"\t\tadded in the order given\n");
- fprintf(stdout,"\t\tfor the content copy.\n");
- fprintf(stdout,"\t--add-plantuml-prefix-file=<text> will add the text in the specified file\n");
- fprintf(stdout,"\t\tto the plantuml output before any generated output.\n");
-	fprintf(stdout,"\t\tThis option can be specified multiple times; all text will be\n");
- fprintf(stdout,"\t\tadded in the order given\n");
- fprintf(stdout,"\t\tfor the content copy.\n");
- fprintf(stdout,"\t-M prints the file name(s) of the source files that would have been created to stdout.\n");
- fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
- fprintf(stdout,"\t\tthat will be generated \n");
- fprintf(stdout,"\t\t(e.g. GENERATED_SRC=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
- fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
- fprintf(stdout,"\t-Mh prints the file name(s) of the headers that would have been created to stdout.\n");
- fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
- fprintf(stdout,"\t\tthat will be generated \n");
- fprintf(stdout,"\t\t(e.g. GENERATED_HDRS=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
- fprintf(stdout,"\t\tThis option must preceed the -t option.  And, only tc or ts are applicable.\n");
- fprintf(stdout,"\t-Md print a lines suitable for inclusion in a Makefile giving the recipe for\n");
- fprintf(stdout,"\t\tcreating dependent files.\n");
- fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
- fprintf(stdout,"\t-v prints the version and exits\n");
+	FSM_TUI("Usage : %s [-tc|s|h|p] [-o outfile] [-s] filename, where filename ends with '.fsm' ", me);
+	FSM_TUI("\t and where 'c' gets you c code output based on an event/state table,");
+	FSM_TUI("\t 's' gets you c code output with individual state functions using switch constructions,");
+	FSM_TUI("\t and 'h' gets you html output");
+	FSM_TUI("\t and 'p' gets you PlantUML output");
+	FSM_TUI("\t-i0 inhibits the creation of a machine instance");
+	FSM_TUI("\t\tany other argument to 'i' allows the creation of an instance;");
+	FSM_TUI("\t\tthis is the default");
+	FSM_TUI("\t-c will create a more compact event/state table when -tc is used");
+	FSM_TUI("\t\twith machines having actions which return states");
+	FSM_TUI("\t-s prints some useful statistics and exits");
+	FSM_TUI("\t-o  <outfile> will use <outfile> as the filename for the top-level machine output.");
+	FSM_TUI("\t\tAny sub-machines will be put into files based on the sub-machine names.");
+	FSM_TUI("\t--generate-weak-fns=false suppresses the generation of weak function stubs.");
+	FSM_TUI("\t--short-user-fn-names=true causes user functions (such as action functions to use only the machine name when the sub-machine depth is 1.");
+	FSM_TUI("\t--force-generation-of-event-passing-actions forces the generation of actions which pass events");
+    FSM_TUI("\t\twhen weak function generation is disabled..");
+    FSM_TUI("\t\tThe generated functions are not weak.");
+	FSM_TUI("\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.");
+    FSM_TUI("\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;");
+	FSM_TUI("\t\tno RUN_STATE_MACHINE macro is provided.");
+	FSM_TUI("\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.");
+	FSM_TUI("\t--css-content-internal=true puts the CSS directly into the html.");
+	FSM_TUI("\t--css-content-filename=<filename> uses the named file for the css citation, or");
+	FSM_TUI("\t\tfor the content copy.");
+    FSM_TUI("\t--add-plantuml-title=<*true|false> adds the machine name as a title to the plantuml.");
+    FSM_TUI("\t--add-plantuml-legend=<*center|left|right|top|*bottm> adds a legend to the plantuml.");
+    FSM_TUI("\t\tCenter, bottom are the defaults.  Horizontal and vertial parameters can be added in a quoted string.");
+    FSM_TUI("\t\tCenter is a horizontal parameter.");
+    FSM_TUI("\t\tBy default, event, state, and action lists are included in the legend, and event descriptions are removed");
+    FSM_TUI("\t\tfrom the body of the diagram.");
+    FSM_TUI("\t--exclude-states-from-plantuml-legend=<*true|false> excludes state information from the plantuml legend.");
+    FSM_TUI("\t\tWhen excluded from legend, state comments are included in the diagram body.");
+    FSM_TUI("\t--exclude-events-from-plantuml-legend=<*true|false> excludes event information from the plantuml legend.");
+    FSM_TUI("\t--exclude-actions-from-plantuml-legend=<*true|false> excludes action information from the plantuml legend.");
+    FSM_TUI("\t--add-machine-name adds the machine name when using the --short-debug-names option");
+    FSM_TUI("\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block");
+    FSM_TUI("\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent");
+    FSM_TUI("\t\tto specifying \"true\"");
+    FSM_TUI("\t--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before");
+    FSM_TUI("\t\tany generated output.  This option can be specified multiple times; all text will be");
+    FSM_TUI("\t\tadded in the order given");
+    FSM_TUI("\t\tfor the content copy.");
+    FSM_TUI("\t--add-plantuml-prefix-file=<text> will add the text in the specified file");
+    FSM_TUI("\t\tto the plantuml output before any generated output.");
+	FSM_TUI("\t\tThis option can be specified multiple times; all text will be");
+    FSM_TUI("\t\tadded in the order given");
+    FSM_TUI("\t\tfor the content copy.");
+    FSM_TUI("\t-M prints the file name(s) of the source files that would have been created to stdout.");
+    FSM_TUI("\t\tThis is useful in Makefiles for getting the list of files");
+    FSM_TUI("\t\tthat will be generated ");
+    FSM_TUI("\t\t(e.g. GENERATED_SRC=$(shell $(FSM) -M -tc $(FSM_SRC))).");
+    FSM_TUI("\t\tThis option must preceed the -t option.");
+    FSM_TUI("\t-Mh prints the file name(s) of the headers that would have been created to stdout.");
+    FSM_TUI("\t\tThis is useful in Makefiles for getting the list of files");
+    FSM_TUI("\t\tthat will be generated ");
+    FSM_TUI("\t\t(e.g. GENERATED_HDRS=$(shell $(FSM) -M -tc $(FSM_SRC))).");
+    FSM_TUI("\t\tThis option must preceed the -t option.  And, only tc or ts are applicable.");
+    FSM_TUI("\t-Md print a lines suitable for inclusion in a Makefile giving the recipe for");
+    FSM_TUI("\t\tcreating dependent files.");
+    FSM_TUI("\t\tThis option must preceed the -t option.");
+    FSM_TUI("\t-v prints the version and exits");
 	
 }
 
