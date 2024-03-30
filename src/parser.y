@@ -2218,7 +2218,7 @@ const struct option longopts[] =
 				, .val     = lo_short_user_fn_names
     }
     , {
-        .name      = "convenienc-macros-in-public-header"
+        .name      = "convenience-macros-in-public-header"
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_convenience_macro_in_public_header
