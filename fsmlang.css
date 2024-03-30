@@ -12,6 +12,15 @@
 	padding     : 10px;
 }
 
+.machine_stats {
+	padding: 10px;
+	margin : 20px;
+}
+
+.machine_stats th {
+	text-align: left;
+}
+
 .eventLabel, .stateLabel, .blankCorner {
 	background-color: rgb(96,182,255);
 	padding         : 20px;
@@ -38,6 +47,10 @@
 
 .action {
 	color: green;
+}
+
+.eventWithNoHandler {
+	color: red;
 }
 
 
@@ -90,7 +103,7 @@
 
 .label {
 	font-weight: bold;
-	padding: 3px;
+	padding    : 20px;
 }
 
 .action .return_decl {

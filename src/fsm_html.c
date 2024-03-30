@@ -111,8 +111,97 @@ static void print_action_table(pFSMHTMLOutputGenerator);
 static void print_transition_fn_table(pFSMHTMLOutputGenerator);
 static void print_machine_table(pFSMHTMLOutputGenerator);
 static void print_state_chart(pFSMHTMLOutputGenerator);
+static void print_machine_statistics(pFSMHTMLOutputGenerator);
 static void print_vector(pLIST,pITERATOR_HELPER);
 static void print_transition(pID_INFO,pITERATOR_HELPER);
+
+static void print_machine_statistics(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	FILE         *fout = pfsmhtmlog->pmd->htmlFile;
+	pMACHINE_INFO pmi  = pfsmhtmlog->pmd->pmi;
+
+	fprintf(fout
+			, "<table class='machine_stats'>\n"
+			);
+
+	fprintf(fout
+			, "\t<tbody>\n"
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "Number of events"
+			, pmi->event_list->count
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "Events not handled"
+			, pmi->events_with_zero_handlers
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "Events handled in one state"
+			, pmi->events_with_one_handler
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%s</td></tr>\n"
+			, "At least one event handled the same in all states?"
+			, pmi->has_single_pai_events ? "yes" : "no"
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "Number of states"
+			, pmi->state_list->count
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "Number of states with entry functions"
+			, pmi->states_with_entry_fns_count
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "Number of states with exit functions"
+			, pmi->states_with_exit_fns_count
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "States handling no events"
+			, pmi->states_with_zero_events
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "States handling exactly one event"
+			, pmi->states_with_one_event
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "States with no way in"
+			, pmi->states_with_no_way_in
+			);
+
+	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "States with no way out"
+			, pmi->states_with_no_way_out
+			);
+
+	fprintf(fout
+			, "\t</tbody>\n"
+			);
+
+	fprintf(fout
+			, "</table>\n"
+			);
+}
 
 static void print_transition(pID_INFO pid, pITERATOR_HELPER pih)
 {
@@ -554,11 +643,14 @@ static bool print_event_table_event_row(pLIST_ELEMENT pelem, void *data)
 	fprintf(pih->fout, "<tr>\n");
 	fprintf(pih->fout
 			, ped->shared_with_parent
-			? "<td class=\"label\">(%s::) %s</td>\n"
-			: "<td class=\"label\">%s%s</td>\n"
+			  ? "<td class=\"label%s\">(%s::) %s</td>\n"
+			  : "<td class=\"label%s\">%s%s</td>\n"
+			, ped->phandling_states->count == 0
+			  ? " eventWithNoHandler"
+			  : ""
 			, ped->shared_with_parent
-			? pih->pmi->parent->name->name
-			: ""
+			  ? pih->pmi->parent->name->name
+			  : ""
 			, pevent->name
 		   );
 	fprintf(pih->fout, "<td>%s\n"
@@ -1116,6 +1208,8 @@ static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	fprintf(pfsmhtmlog->pmd->htmlFile, "</h2>\n");
 
 	if (pmi->name->docCmnt) fprintf(pfsmhtmlog->pmd->htmlFile, "<p>%s</p>\n", pmi->name->docCmnt);
+
+	print_machine_statistics(pfsmhtmlog);
 
 	if (include_svg_img)
 	{
