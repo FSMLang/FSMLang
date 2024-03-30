@@ -63,7 +63,7 @@
 bool generate_weak_fns           = true;
 bool core_logging_only           = false;
 bool include_svg_img             = false;
-bool this_macro_in_public_header = true;
+bool convenience_macros_in_public_header = true;
 
 
 static char  *eventXRefFormat0Str = "\t%5u  ";
@@ -440,14 +440,30 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
       fprintf(pcmd->hFile, "#ifndef NON_CORE_DEBUG_PRINTF\n#define NON_CORE_DEBUG_PRINTF(...) \n#endif\n\n");
    }
 
-   fprintf(pcmd->hFile
+   fprintf(convenience_macros_in_public_header
+		     ? pcmd->pubHFile
+		     : pcmd->hFile
+		   , "#ifndef NO_CONVENIENCE_MACROS\n"
+		   );
+
+   fprintf(convenience_macros_in_public_header
+		     ? pcmd->pubHFile
+		     : pcmd->hFile
 		   , "#undef UFMN\n#define UFMN(A) %s_##A\n"
 		   , ufMachineName(pcmd)
 		   );
 
-   fprintf(this_macro_in_public_header ? pcmd->pubHFile : pcmd->hFile
+   fprintf(convenience_macros_in_public_header
+		     ? pcmd->pubHFile
+		     : pcmd->hFile
 		   , "#undef THIS\n#define THIS(A) %s_##A\n"
 		   , machineName(pcmd)
+		   );
+
+   fprintf(convenience_macros_in_public_header
+		     ? pcmd->pubHFile
+		     : pcmd->hFile
+		   , "#endif\n"
 		   );
 
    if (pmi->machine_list)
@@ -2157,7 +2173,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
            );
 
    fprintf(pcmd->hFile
-           , "#ifndef NO_EVENT_CONVENIENCE_MACROS\n"
+           , "#ifndef NO_CONVENIENCE_MACROS\n"
            );
 
    fprintf(pcmd->hFile
