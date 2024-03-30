@@ -356,9 +356,7 @@ static bool print_state_chart_state_row(pLIST_ELEMENT pelem, void *data)
 
 static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO         pevent = (pID_INFO)         pelem->mbr;
 	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
-	pEVENT_DATA      ped    = &pevent->type_data.event_data;
 	pMACHINE_INFO    pmi    = pih->pmi;
 	pACTION_INFO     pai    = pmi->actionArray[pelem->ordinal][pih->state];
 
@@ -1110,11 +1108,6 @@ static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	RETURN_IF_NULL(pmi);
 
 	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator)pfsmog;
-
-	ITERATOR_HELPER ih = {
-		.fout = pfsmhtmlog->pmd->htmlFile
-		, .pmi = pmi
-	};
 
 	pfsmhtmlog->pmd->pmi = pmi;
 

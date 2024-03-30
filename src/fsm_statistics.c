@@ -258,7 +258,7 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
    iterate_list(pmi->event_list, compute_pid_name_len, &ih);
 
    char *actions_triggered = "Actions Triggered";
-   int  min_str_len = strlen(actions_triggered) + 1;
+   unsigned min_str_len = strlen(actions_triggered) + 1;
 
    printf("Action Array:\n");
    printf("%-20.20s%-*.*s%-14.14s %-11.11s %-11.11s %-*.*s\n"
@@ -348,7 +348,6 @@ static bool write_events(pLIST_ELEMENT pelem, void *data)
 
 static bool write_action_array_pointers(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO         pstate = (pID_INFO)         pelem->mbr;
 	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
 
 	printf("%s%-14p"
