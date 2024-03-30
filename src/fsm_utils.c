@@ -1405,7 +1405,7 @@ static bool compute_event_density_pct_and_average(pLIST_ELEMENT pelem, void *dat
 	ped->state_density_pct = 100 * ped->phandling_states->count;
 	
 	/* Now, do the division for this event. */
-	ped->state_density_pct /= pmi->event_list->count;
+	ped->state_density_pct /= pmi->state_list->count;
 
 	/* Accumulate into machine record. */
 	pmi->average_event_state_density_pct += ped->state_density_pct;

@@ -257,6 +257,9 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 
    iterate_list(pmi->event_list, compute_pid_name_len, &ih);
 
+   char *actions_triggered = "Actions Triggered";
+   int  min_str_len = strlen(actions_triggered) + 1;
+
    printf("Action Array:\n");
    printf("%-20.20s%-*.*s%-14.14s %-11.11s %-11.11s %-*.*s\n"
 		  , "Event Name"
@@ -266,9 +269,9 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 		  , "PAI Count"
 		  , "State Count"
 		  , "Avg Use (%)"
-		  , str_len
-		  , str_len
-		  , "Actions Triggered"
+		  , str_len > min_str_len ? str_len : min_str_len
+		  , str_len > min_str_len ? str_len : min_str_len
+		  , actions_triggered
 		  );
 
    //ih.first does not need to be reset here.
@@ -277,6 +280,7 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
    printf("\n");
 
    ih.first = true;
+   str_len  = 0;
    iterate_list(pmi->state_list, compute_pid_name_len, &ih);
 
    printf("%-20.20s %-14.14s %-11.11s %-20.20s %-*.*s\n"
@@ -284,9 +288,9 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 		  , "Events Handled"
 		  , "Avg Use (%)"
 		  , "Transitions (In/Out)"
-		  , str_len
-		  , str_len
-		  , "Actions Invoked"
+		  , str_len > min_str_len ? str_len : min_str_len
+		  , str_len > min_str_len ? str_len : min_str_len
+		  , actions_triggered
 		  );
 
    //ih.first does not need to be reset here.
@@ -401,6 +405,7 @@ static bool write_states(pLIST_ELEMENT pelem, void *data)
 	pih->first = true;
 	if (psd->pactions_list->count)
 	{
+		printf(" ");
 		iterate_list(psd->pactions_list, print_pid_name, pih);
 	}
 

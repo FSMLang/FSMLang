@@ -320,18 +320,13 @@ static void print_machine_table(pFSMHTMLOutputGenerator pfsmhtmlog)
 {
 	RETURN_IF_NULL(pfsmhtmlog->pmd->pmi->transition_fn_list)
 
-	ITERATOR_HELPER ih = {
-		.fout = pfsmhtmlog->pmd->htmlFile
-		, .pmi = pfsmhtmlog->pmd->pmi
-	};
-	
 	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
 
 	fprintf(pfsmhtmlog->pmd->htmlFile,"<thead><tr>\n");
 	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Sub Machines</th>\n");
 	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n</thead>\n<tbody>\n");
 	
-	iterate_list(pfsmhtmlog->pmd->pmi->machine_list, print_sub_machine_row, &ih);
+	iterate_list(pfsmhtmlog->pmd->pmi->machine_list, print_sub_machine_row, pfsmhtmlog);
 
 	fprintf(pfsmhtmlog->pmd->htmlFile,"</tbody>\n</table>\n");
 

@@ -15,11 +15,11 @@ number of states with no way in: 0
 number of states with no way out: 0
 number of actions: 2
 Action Array:
-Event Name          PAI Count      State Count Avg Use (%)
-goodMessage         multiple       2           100        
-badMessage          single         2           100        
+Event Name          PAI Count      State Count Avg Use (%) Actions Triggered      
+goodMessage         multiple       2           100        processMessage
+badMessage          single         2           100        sendErrorIndication
 
-State Name           Events Handled Avg Use (%) Transitions (In/Out)
-initial              2              100         1 / 1 : working / working
-working              2              100         1 / 1 : initial / initial
+State Name           Events Handled Avg Use (%) Transitions (In/Out) Actions Triggered 
+initial              2              100         1 / 1 : working / working processMessage, sendErrorIndication
+working              2              100         1 / 1 : initial / initial processMessage, sendErrorIndication
 

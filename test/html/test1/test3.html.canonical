@@ -270,14 +270,14 @@ code {
 <tr><th>Total number of events:</th><td>3</td></tr>
 <tr><th>Events with no handlers:</th><td>0</td></tr>
 <tr><th>Events with one handler:</th><td>2</td></tr>
-<tr><th>Average event state density:</th><td>44%</td></tr>
+<tr><th>Average event state density:</th><td>33%</td></tr>
 </table>
 	</td>
 </tr>
 <tr>
 <td class="label">e1</td>
 <td> A normal event. 
-<p>Handled In 2 of 4 (66 %) States:</p>
+<p>Handled In 2 of 4 (50 %) States:</p>
 	<ul>
 		<li>s1</li>
 		<li>s2</li>
@@ -292,7 +292,7 @@ code {
 <tr>
 <td class="label">e2</td>
 <td> A cool event. 
-<p>Handled In 1 of 4 (33 %) States:</p>
+<p>Handled In 1 of 4 (25 %) States:</p>
 	<ul>
 		<li>s2</li>
 	</ul>
@@ -305,7 +305,7 @@ code {
 <tr>
 <td class="label">e3</td>
 <td> A really cool event. 
-<p>Handled In 1 of 4 (33 %) States:</p>
+<p>Handled In 1 of 4 (25 %) States:</p>
 	<ul>
 		<li>s3</li>
 	</ul>

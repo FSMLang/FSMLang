@@ -18,66 +18,139 @@
 	<thead>
 		<tr>
 			<th class="blankCorner">&nbsp;</th>
-			<th class=eventName>y1</th>
-			<th class=eventName>y2</th>
+			<th class='eventName'>y1</th>
+			<th class='eventName'>y2</th>
 		</tr>
 	</thead>
 	<tbody>
-		<tr>
+	<tr>
 		<th class=stateName>z1</th>
 		<td class=action>x1<br/><b>transition</b> : none</td>
 		<td class=action>x2<br/><b>transition</b> : z2</td>
 	</tr>
 	<tr>
 		<th class=stateName>z2</th>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	</tbody>
 </table>
 </div>
 <table class="elements">
+<thead><tr>
+<th colspan='2' align='left'>Events</th>
+</tr>
+</thead>
+<tbody>
 <tr>
-<th colspan=2 align=left>Events</th>
+	<td colspan='2' align='left'>
+<table class='summary'>
+<tr><th>Total number of events:</th><td>2</td></tr>
+<tr><th>Events with no handlers:</th><td>0</td></tr>
+<tr><th>Events with one handler:</th><td>2</td></tr>
+<tr><th>Average event state density:</th><td>50%</td></tr>
+</table>
+	</td>
 </tr>
 <tr>
 <td class="label">y1</td>
-<td>&nbsp;
+<td>
+<p>Handled In 1 of 2 (50 %) States:</p>
+	<ul>
+		<li>z1</li>
+	</ul>
+<p>Causes these actions to be taken:</p>
+	<ul>
+		<li>x1</li>
+	</ul>
 </td>
 </tr>
 <tr>
 <td class="label">y2</td>
-<td>&nbsp;
+<td>
+<p>Handled In 1 of 2 (50 %) States:</p>
+	<ul>
+		<li>z1</li>
+	</ul>
+<p>Causes these actions to be taken:</p>
+	<ul>
+		<li>x2</li>
+	</ul>
 </td>
 </tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>States</th>
 </tr>
+</thead>
+<tbody>
+<tr><td colspan='2' align='left'>
+<table class='summary'>
+<tr><th>Total number of states:</th><td>2</td></tr>
+<tr><th>States with no events:</th><td>1</td></tr>
+<tr><th>States with one event:</th><td>0</td></tr>
+<tr><th>States with no way in:</th><td>0</td></tr>
+<tr><th>States with no way out:</th><td>1</td></tr>
+<tr><th>Average state event density:</th><td>50%</td></tr>
+</table>
+	</td>
+</tr>
 <tr>
-<td class="label">z1</td>
+<td class='label stateWithNoEntry'>z1</td>
 <td>
-&nbsp;</td></tr>
+<p>Outbound Transitions:</p>
+	<ul>
+		<li>z2</li>
+</ul>
+<p>Events Handled (2 of 2 for 100%):</p>
+	<ul>
+		<li>y1</li>
+		<li>y2</li>
+	</ul>
+<p>Actions Taken:
+</p>
+	<ul>
+		<li>x1</li>
+		<li>x2</li>
+	</ul>
+</td></tr>
 <tr>
-<td class="label">z2</td>
+<td class='label lazyState deadEndState'>z2</td>
 <td>
-&nbsp;</td></tr>
+<p class='lazyState'>This state handles no events.</p>
+<p class='deadEndState'>This state has no way out.</p>
+<p>Inbound Transitions:</p>
+	<ul>
+		<li>z1</li>
+</ul>
+</td></tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>Actions</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td class="label">x1</td>
 <td>
-&nbsp;</td>
+<p>Matrices:</p>
+	<ul>
+		<li>y1, z1		</li>	</ul>
+</td>
 </tr>
 <tr>
 <td class="label">x2</td>
 <td>
-&nbsp;</td>
+<p>Matrices:</p>
+	<ul>
+		<li>y2, z1 transitions to state z2		</li>	</ul>
+</td>
 </tr>
+</tbody>
 </table>
 </body>
 </html>
