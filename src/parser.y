@@ -2310,7 +2310,8 @@ int main(int argc, char **argv)
            break;
          case lo_event_cross_ref_format:
            if (!check_requested_xref_format(optarg))
-            yyerror("invalid event cross reference format");
+             yyerror("invalid event cross reference format");
+					 fpfsmogf = generateCEventXRefWriter;
            break;
  			   case lo_add_plantuml_title:
  					 if (!optarg || !strcmp(optarg,"true"))
@@ -2612,9 +2613,14 @@ void usage(void)
  fprintf(stdout,"\t--exclude-events-from-plantuml-legend=<*true|false> excludes event information from the plantuml legend.\n");
  fprintf(stdout,"\t--exclude-actions-from-plantuml-legend=<*true|false> excludes action information from the plantuml legend.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
- fprintf(stdout,"\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block\n");
+ fprintf(stdout,"\t--add-event-cross-reference<=*true|false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
  fprintf(stdout,"\t\tto specifying \"true\"\n");
+ fprintf(stdout,"\t--event-cross-ref-only<=*true|false> creates a cross-reference list as a separate file.\n");
+ fprintf(stdout,"\t\tWhen the format is not specified by --event-cross-ref-format, json is provided.\n");
+ fprintf(stdout,"\t\tThe file created is <filename>.[json|csv|tab|xml]\n");
+ fprintf(stdout,"\t--event-cross-ref-format=[json|csv|tab|xml] specifies the output format for --event-cross-ref-only.\n");
+ fprintf(stdout,"\t\tSpecifying this option obviates --event-cross-ref-only.\n");
  fprintf(stdout,"\t--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
  fprintf(stdout,"\t\tany generated output.  This option can be specified multiple times; all text will be\n");
  fprintf(stdout,"\t\tadded in the order given\n");

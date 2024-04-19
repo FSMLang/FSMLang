@@ -9,10 +9,10 @@ test_mh_c: FSM_FLAGS=-Mh -tc
 test_mh_s: FSM_FLAGS=-Mh -ts
 test_m_p: FSM_FLAGS=-M -tp
 test_m_h: FSM_FLAGS=-M -th
-test.json: FSM_FLAGS=--event-cross-ref-only=true --event-cross-ref-format=json
-test.xml: FSM_FLAGS=--event-cross-ref-only=true --event-cross-ref-format=xml
-test.tab: FSM_FLAGS=--event-cross-ref-only=true --event-cross-ref-format=tab
-test.csv: FSM_FLAGS=--event-cross-ref-only=true --event-cross-ref-format=csv
+test.json: FSM_FLAGS=--event-cross-ref-only=true
+test.xml: FSM_FLAGS=--event-cross-ref-format=xml
+test.tab: FSM_FLAGS=--event-cross-ref-format=tab
+test.csv: FSM_FLAGS=--event-cross-ref-format=csv
 
 FSM=$(OUTPUT_DIR)/fsm
 
