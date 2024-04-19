@@ -68,6 +68,7 @@ static void writeCEventXRefCSV(pMACHINE_INFO);
 static void writeCEventXRefTab(pMACHINE_INFO);
 static void writeCEventXRefXML(pMACHINE_INFO);
 
+static void complete_top_level(pITERATOR_HELPER);
 static void process_any_sub_machines(pITERATOR_HELPER);
 
 static bool iterate_sub_machines(pLIST_ELEMENT,void*);
@@ -200,6 +201,7 @@ static void writeCEventXRefJSON(pMACHINE_INFO pmi)
 				 , &ih
 				 );
 
+	complete_top_level(&ih);
 	process_any_sub_machines(&ih);
 
 	fprintf(fout, "]\n");
@@ -219,6 +221,7 @@ static void writeCEventXRefCSV(pMACHINE_INFO pmi)
 				 , &ih
 				 );
 
+	complete_top_level(&ih);
 	process_any_sub_machines(&ih);
 
 	fprintf(fout, "\n");
@@ -239,6 +242,7 @@ static void writeCEventXRefTab(pMACHINE_INFO pmi)
 				 , &ih
 				 );
 
+	complete_top_level(&ih);
 	process_any_sub_machines(&ih);
 
 	fprintf(fout, "\n");
@@ -265,6 +269,7 @@ static void writeCEventXRefXML(pMACHINE_INFO pmi)
 				 );
 
 
+	complete_top_level(&ih);
 	process_any_sub_machines(&ih);
 
 	fprintf(fout, "</event_xrefs>\n");
@@ -388,7 +393,7 @@ static void print_xref_entry_xml(char *name, pITERATOR_HELPER pih)
 	fprintf(fout, "'/>\n");
 }
 
-static void process_any_sub_machines(pITERATOR_HELPER pih)
+static void complete_top_level(pITERATOR_HELPER pih)
 {
 	if (
 		!(pih->pmi->modFlags & mfActionsReturnStates)
@@ -399,6 +404,11 @@ static void process_any_sub_machines(pITERATOR_HELPER pih)
 	}
 
 	(*pxref_writer)->entry_writer("numEvents", pih);
+
+}
+
+static void process_any_sub_machines(pITERATOR_HELPER pih)
+{
 
 	if (pih->pmi->machine_list)
 	{
