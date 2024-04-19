@@ -30,6 +30,7 @@
 #include "fsm_html.h"
 #include "fsm_plantuml.h"
 #include "fsm_statistics.h"
+#include "fsm_c_event_xref.h"
 
 #include "list.h"
 
@@ -2090,6 +2091,8 @@ typedef enum {
  , lo_add_plantuml_prefix_string
  , lo_add_plantuml_prefix_file
  , lo_short_user_fn_names
+ , lo_event_cross_ref_only
+ , lo_event_cross_ref_format
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2216,6 +2219,18 @@ const struct option longopts[] =
         , .flag    = &longval
 				, .val     = lo_short_user_fn_names
     }
+    , {
+        .name      = "event-cross-ref-only"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_event_cross_ref_only
+    }
+    , {
+        .name      = "event-cross-ref-format"
+        , .has_arg = required_argument
+        , .flag    = &longval
+				, .val     = lo_event_cross_ref_format
+    }
     , {0}
 };
       
@@ -2289,6 +2304,14 @@ int main(int argc, char **argv)
  					 if (!optarg || !strcmp(optarg,"true"))
  						add_event_cross_reference = true;
  					 break;
+         case lo_event_cross_ref_only:
+ 					 if (!optarg || !strcmp(optarg,"true"))
+						fpfsmogf = generateCEventXRefWriter;
+           break;
+         case lo_event_cross_ref_format:
+           if (!check_requested_xref_format(optarg))
+            yyerror("invalid event cross reference format");
+           break;
  			   case lo_add_plantuml_title:
  					 if (!optarg || !strcmp(optarg,"true"))
  						add_plantuml_title = true;
@@ -2383,7 +2406,7 @@ int main(int argc, char **argv)
 				switch (optarg[0]) {
 
 					case 'c':
-                        fpfsmogf = generateCMachineWriter;
+            fpfsmogf = generateCMachineWriter;
 						break;
 
 					case 'h':

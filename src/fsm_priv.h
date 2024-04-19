@@ -192,6 +192,7 @@ struct _iterator_helper_
    unsigned      *counter1;
    unsigned      tab_level;
    bool          found;
+   LIST_ITERATOR_FN pfn_sub_iterator;
 };
 
 
