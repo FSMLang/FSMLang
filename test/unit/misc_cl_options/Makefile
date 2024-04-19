@@ -37,3 +37,8 @@ test.json test.xml test.tab test.csv: $(FSM) Makefile
 clean::
 	@rm -f *.out 2> /dev/null
 	@rm -f *.result 2> /dev/null
+	-@rm -f test.json 2> /dev/null
+	-@rm -f test.csv 2> /dev/null
+	-@rm -f test.tab 2> /dev/null
+	-@rm -f test.xml 2> /dev/null
+
