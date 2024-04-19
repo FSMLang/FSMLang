@@ -151,6 +151,8 @@ bool check_requested_xref_format(char *fmt)
 
 static int  initCEventXRefWriter(pFSMOutputGenerator pfsmog, char *name)
 {
+	(void) pfsmog;
+
 	fname = createFileName(name, (char *)*psf);
 
 	if ((fout = openFile(fname, "w")) == NULL)
@@ -163,6 +165,8 @@ static int  initCEventXRefWriter(pFSMOutputGenerator pfsmog, char *name)
 
 static void writeCEventXRef(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
+	(void) pfsmog;
+
 	(*pxref_writer)->writer(pmi);
 }
 
