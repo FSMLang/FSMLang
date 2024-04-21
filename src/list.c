@@ -37,6 +37,8 @@
 #include "fsm_unused.h"
 
 typedef struct _counter_str_ COUNTER_STR, *pCOUNTER_STR;
+typedef struct _unique_exception_str_ UNIQUE_EXCEPTION_STR, *pUNIQUE_EXCEPTION_STR;
+
 struct _counter_str_
 {
 	union
@@ -44,6 +46,12 @@ struct _counter_str_
 		unsigned target;
 		unsigned start;
 	} ct;
+};
+
+struct _unique_exception_str_
+{
+	pLIST dest;
+	void  *exception;
 };
 
 static bool nth_record(pLIST_ELEMENT pmbr, void *data)
@@ -228,6 +236,27 @@ static bool list_copier(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static bool list_copier_unique(pLIST_ELEMENT pelem, void *data)
+{
+   pLIST pdest = (pLIST) data;
+
+   add_unique_to_list(pdest, pelem->mbr);
+
+   return false;
+}
+
+static bool list_copier_unique_with_exception(pLIST_ELEMENT pelem, void *data)
+{
+   pUNIQUE_EXCEPTION_STR pues = (pUNIQUE_EXCEPTION_STR) data;
+
+   if (pelem->mbr != pues->exception)
+   {
+	   add_unique_to_list(pues->dest, pelem->mbr);
+   }
+
+   return false;
+}
+
 /**********************************************************************************************************************/
 /**
  * @brief copy one list to the end of another
@@ -235,7 +264,7 @@ static bool list_copier(pLIST_ELEMENT pelem, void *data)
  * @author Steven Stanton (3/25/2023)
  * 
  * @param dest the destination list
- * @param src the sourc list
+ * @param src the source list
  * 
  *
  * @ref_global none
@@ -247,15 +276,64 @@ static bool list_copier(pLIST_ELEMENT pelem, void *data)
  * @return pLIST the destination list
  *
  * If destination is null, no copy is done, and src is returned.
+ * If source is null, no copy is done.
  ***********************************************************************************************************************/
 pLIST copy_list(pLIST dest, pLIST src)
 {
-   if (dest)
+   if (dest && src)
    {
       iterate_list(src,list_copier,dest);
    }
-   return dest;
+   return dest ? dest : src;
 }
+
+
+/**********************************************************************************************************************/
+/**
+ * @brief copy one list to the end of another, omitting items already in the destination.
+ * 
+ * @author Steven Stanton (3/25/2023)
+ * 
+ * @param dest the destination list
+ * @param src the source list
+ * 
+ *
+ * @ref_global none
+ *
+ * @mod_global none
+ *
+ * @thread_safe yes
+ * 
+ * @return pLIST the destination list
+ *
+ * If destination is null, no copy is done, and src is returned.
+ * If source is null, no copy is done.
+ ***********************************************************************************************************************/
+pLIST copy_list_unique(pLIST dest, pLIST src)
+{
+   if (dest && src)
+   {
+      iterate_list(src,list_copier_unique,dest);
+   }
+
+   return dest ? dest : src;
+}
+
+pLIST copy_list_unique_with_exception(pLIST dest, pLIST src, void *exception)
+{
+	UNIQUE_EXCEPTION_STR ues;
+
+	ues.dest      = dest;
+	ues.exception = exception;
+
+	if (dest && src)
+	{
+		iterate_list(src, list_copier_unique_with_exception, &ues);
+	}
+
+	return dest ? dest : src;
+}
+
 
 /**********************************************************************************************************************/
 /**
@@ -354,6 +432,19 @@ void *find_nth_list_member(pLIST list, unsigned target)
    return pelem ? pelem->mbr : NULL;
 }
 
+/**
+ * Add an element to a list, if it does not already exist in the
+ * list.
+ * 
+ * @author Steven Stanton (2/28/2024)
+ * 
+ * @param plist  Pointer to the list to which the element might
+ *  			 be added.
+ * @param pmbr   Pointer to the element to add.
+ * 
+ * @return pLIST_ELEMENT A pointer to the element found in or
+ *  	   added to the list.
+ */
 pLIST_ELEMENT add_unique_to_list(pLIST plist, void *pmbr)
 {
    pLIST_ELEMENT pelem;

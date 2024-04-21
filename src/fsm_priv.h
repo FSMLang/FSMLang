@@ -44,6 +44,13 @@
 #define FSMLANG_DEVELOP_PRINTF(...)
 #endif
 
+#define RETURN_IF_NULL(A) \
+if (!(A))                 \
+{                         \
+	return;               \
+}                         \
+
+
 /**
 	These flags track the modifiers
 		of "machine" and also the action return specifiers.
@@ -113,6 +120,8 @@ typedef struct _iterator_helper_         ITERATOR_HELPER,         *pITERATOR_HEL
 
 typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
 typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
+/* The following must not be confused with ACTION_INFO */
+typedef struct _action_data_             ACTION_DATA,             *pACTION_DATA;
 typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
 typedef union  _data_type_union_         DATA_TYPE_UNION,         *pDATA_TYPE_UNION;
 typedef struct _data_type_struct_        DATA_TYPE_STRUCT,        *pDATA_TYPE_STRUCT;
@@ -134,6 +143,11 @@ struct _state_data_
    STATE_FLAGS state_flags;
    pID_INFO    entry_fn;
    pID_INFO    exit_fn;
+   unsigned    event_density_pct;
+   pLIST       pevents_handled;
+   pLIST       pinbound_transitions;
+   pLIST       poutbound_transitions;
+   pLIST       pactions_list;
 };
 
 struct _event_data_
@@ -145,12 +159,22 @@ struct _event_data_
    pACTION_INFO     psingle_pai;
    bool             single_pai_for_all_states;
    pUSER_EVENT_DATA puser_event_data;
+   pLIST            phandling_states;
+   pLIST            pactions_list;
+   unsigned         state_density_pct;
+};
+
+struct _action_data_
+{
+	pACTION_INFO    actionInfo;
+	pLIST           action_returns_decl;
 };
 
 union _pid_type_data_
 {
    EVENT_DATA    event_data;
    STATE_DATA    state_data;
+   ACTION_DATA   action_data;
 };
 
 typedef enum
@@ -188,6 +212,7 @@ struct _iterator_helper_
    bool          error;
    bool          first;
    int           event;
+   int           state;
    unsigned      *counter0;
    unsigned      *counter1;
    unsigned      tab_level;
@@ -238,11 +263,9 @@ struct _id_info_ {
   char           *docCmnt;
   PID_TYPE_DATA   type_data;
   pMACHINE_INFO   powningMachine;
-  pACTION_INFO    actionInfo;
-  pLIST           action_returns_decl;
-  pLIST           transition_fn_returns_decl;
   pID_INFO        pfield_type;
   pDATA_FIELD     pdata_field;
+  pLIST           transition_fn_returns_decl;
 };
 
 struct _action_se_info_ {
@@ -255,13 +278,15 @@ struct _matrix_info_ {
   pLIST	event_list;
 };
 
-struct _action_info_ {
-	pID_INFO				action;
-  pMATRIX_INFO    matrix;
-  pID_INFO  			transition;
-	pACTION_INFO		nextAction;
-   char             *docCmnt;
-};
+struct _action_info_
+{
+	pID_INFO     action;
+	pMATRIX_INFO matrix;
+	pID_INFO     transition;
+	pACTION_INFO nextAction;
+	char         *docCmnt;
+}; 
+
 
 struct _native_info_ {
    char *prologue;
@@ -305,6 +330,14 @@ struct _machine_info_ {
   unsigned      states_with_entry_fns_count;
   unsigned      states_with_exit_fns_count;
   unsigned      sub_machine_depth;
+  unsigned      events_with_zero_handlers;
+  unsigned      events_with_one_handler;
+  unsigned      states_with_zero_events;
+  unsigned      states_with_one_event;
+  unsigned      states_with_no_way_in;
+  unsigned      states_with_no_way_out;
+  unsigned      average_state_event_density_pct;
+  unsigned      average_event_state_density_pct;
 };
 
 /* lexer id list handlers */
@@ -337,6 +370,13 @@ void count_parent_event_referenced(pLIST,unsigned*);
 void count_shared_events(pLIST,unsigned*);
 void count_event_user_data_attributes(pLIST,unsigned*,unsigned*);
 void count_states_with_entry_exit_fns(pLIST,unsigned*,unsigned*);
+void count_states_with_zero_events(pLIST,unsigned*);
+void count_states_with_one_event(pLIST,unsigned*);
+void count_states_with_no_way_in(pLIST,unsigned*);
+void count_states_with_no_way_out(pLIST,unsigned*);
+void count_events_with_zero_handlers(pLIST,unsigned*);
+void count_events_with_one_handler(pLIST,unsigned*);
+void compute_event_and_state_density_pct(pMACHINE_INFO);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO, FILE*);
@@ -385,6 +425,7 @@ extern bool                 output_generated_file_names_only;
 extern bool                 output_header_files;
 extern bool                 output_make_recipe;
 extern bool                 short_user_fn_names;
+extern bool                 print_action_array;
 extern bool                 convenience_macros_in_public_header;
 
 #define LOOKUP	0	/* default - not defined in the parser */

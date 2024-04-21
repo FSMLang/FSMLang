@@ -13,97 +13,189 @@
 </head><body>
 <h2>foo</h2>
 <p> machines are easy to comment </p>
+<table class='machine_stats'>
+	<tbody>
+		<tr><th>Number of events</th><td>3</td></tr>
+		<tr><th>Events not handled</th><td>2</td></tr>
+		<tr><th>Events handled in one state</th><td>0</td></tr>
+		<tr><th>At least one event handled the same in all states?</th><td>no</td></tr>
+		<tr><th>Number of states</th><td>2</td></tr>
+		<tr><th>Number of states with entry functions</th><td>0</td></tr>
+		<tr><th>Number of states with exit functions</th><td>0</td></tr>
+		<tr><th>States handling no events</th><td>0</td></tr>
+		<tr><th>States handling exactly one event</th><td>2</td></tr>
+		<tr><th>States with no way in</th><td>0</td></tr>
+		<tr><th>States with no way out</th><td>0</td></tr>
+	</tbody>
+</table>
 <div class="scrollable">
 <table class="machine">
 	<thead>
 		<tr>
 			<th class="blankCorner">&nbsp;</th>
-			<th class=eventName>event1</th>
-			<th class=eventName>event2</th>
-			<th class=eventName>event3</th>
+			<th class='eventName'>event1</th>
+			<th class='eventName'>event2</th>
+			<th class='eventName'>event3</th>
 		</tr>
 	</thead>
 	<tbody>
-		<tr>
+	<tr>
 		<th class=stateName>state1</th>
 		<td class=action>action1<br/>returns:
 	<ul class="return_decl">
 		<li>noEvent</li>
 	</ul>
 <br/><b>transition</b> : state2<p class="transition_comment"> what id gets this comment? </p></td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	<tr>
 		<th class=stateName>state2</th>
 		<td class=noAction>noAction<br/><b>transition</b> : state1<p class="transition_comment"> what id gets this other comment? </p></td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	</tbody>
 </table>
 </div>
 <table class="elements">
+<thead><tr>
+<th colspan='2' align='left'>Events</th>
+</tr>
+</thead>
+<tbody>
 <tr>
-<th colspan=2 align=left>Events</th>
+	<td colspan='2' align='left'>
+<table class='summary'>
+<tr><th>Total number of events:</th><td>3</td></tr>
+<tr><th>Events with no handlers:</th><td>2</td></tr>
+<tr><th>Events with one handler:</th><td>0</td></tr>
+<tr><th>Average event state density:</th><td>33%</td></tr>
+</table>
+	</td>
 </tr>
 <tr>
 <td class="label">event1</td>
-<td>&nbsp;
+<td>
+<p>Handled In 2 of 2 (100 %) States:</p>
+	<ul>
+		<li>state1</li>
+		<li>state2</li>
+	</ul>
+<p>Causes these actions to be taken:</p>
+	<ul>
+		<li>action1</li>
+	</ul>
 </td>
 </tr>
 <tr>
-<td class="label">event2</td>
+<td class="label eventWithNoHandler">event2</td>
 <td> the first event in the list gets this comment. 
 </td>
 </tr>
 <tr>
-<td class="label">event3</td>
+<td class="label eventWithNoHandler">event3</td>
 <td> and, the next event can have its own comment 
 </td>
 </tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>States</th>
 </tr>
+</thead>
+<tbody>
+<tr><td colspan='2' align='left'>
+<table class='summary'>
+<tr><th>Total number of states:</th><td>2</td></tr>
+<tr><th>States with no events:</th><td>0</td></tr>
+<tr><th>States with one event:</th><td>2</td></tr>
+<tr><th>States with no way in:</th><td>0</td></tr>
+<tr><th>States with no way out:</th><td>0</td></tr>
+<tr><th>Average state event density:</th><td>33%</td></tr>
+</table>
+	</td>
+</tr>
 <tr>
-<td class="label">state1</td>
+<td class='label'>state1</td>
 <td>
 <p> states are easy to comment </p>
+<p>Inbound Transitions:</p>
+	<ul>
+		<li>state2</li>
+</ul>
+<p>Outbound Transitions:</p>
+	<ul>
+		<li>state2</li>
+</ul>
+<p>Events Handled (1 of 3 for 33%):</p>
+	<ul>
+		<li>event1</li>
+	</ul>
+<p>Actions Taken:
+</p>
+	<ul>
+		<li>action1</li>
+	</ul>
 </td></tr>
 <tr>
-<td class="label">state2</td>
+<td class='label'>state2</td>
 <td>
-&nbsp;</td></tr>
+<p>Inbound Transitions:</p>
+	<ul>
+		<li>state1</li>
+</ul>
+<p>Outbound Transitions:</p>
+	<ul>
+		<li>state1</li>
+</ul>
+<p>Events Handled (1 of 3 for 33%):</p>
+	<ul>
+		<li>event1</li>
+	</ul>
+</td></tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>Actions</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td class="label">action1</td>
 <td>
  last comment 
 <br/><br/>Returns:<ul class="return_decl">		<li>noEvent</li>
 </ul>
+<p>Matrices:</p>
+	<ul>
+		<li>event1, state1 transitions to state state2		</li>	</ul>
 </td>
 </tr>
 <tr>
 <td class="label">transition</td>
 <td>
-&nbsp;</td>
+<p>Matrices:</p>
+	<ul>
+		<li>event1, state2 transitions to state state1		</li>	</ul>
+</td>
 </tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>Sub Machines</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td class="label"><a href="sub1.html" target="FSMLang-sub1">sub1</a></td>
 <td>
  sub machines are also easy </td>
 </tr>
+</tbody>
 </table>
 </body>
 </html>

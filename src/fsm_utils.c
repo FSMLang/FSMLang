@@ -59,6 +59,7 @@ struct _action_array_population_helper_
    pMACHINE_INFO pmi;
    pACTION_INFO  pai;
    pID_INFO      pevent;
+   pID_INFO      pstate;
    bool          error;
 };
 
@@ -71,11 +72,20 @@ static bool count_shared_evts(pLIST_ELEMENT,void*);
 static bool count_parent_event_refs(pLIST_ELEMENT,void*);
 static bool count_inhibitors(pLIST_ELEMENT,void*);
 static bool count_external(pLIST_ELEMENT,void*);
+static bool count_zero_event_states(pLIST_ELEMENT,void*);
+static bool count_one_event_states(pLIST_ELEMENT,void*);
+static bool count_zero_event_handlers(pLIST_ELEMENT,void*);
+static bool count_one_event_handlers(pLIST_ELEMENT,void*);
+static bool count_no_way_in_states(pLIST_ELEMENT,void*);
+static bool count_no_way_out_states(pLIST_ELEMENT,void*);
 static bool enumerate_pid(pLIST_ELEMENT,void*);
 static bool process_action_info(pLIST_ELEMENT,void*);
 static bool iterate_matrix_states(pLIST_ELEMENT,void*);
 static bool add_to_action_array(pLIST_ELEMENT,void*);
 static bool find_id_by_name(pLIST_ELEMENT,void*);
+static bool compute_state_density_pct_and_average(pLIST_ELEMENT,void*);
+static bool compute_event_density_pct_and_average(pLIST_ELEMENT,void*);
+static bool add_inbound_state_wrapper(pLIST_ELEMENT,void*);
 #ifdef PARSER_DEBUG
 static bool print_state_id_info(pLIST_ELEMENT,void*);
 static bool print_transition_info(pLIST_ELEMENT,void*);
@@ -341,8 +351,13 @@ int allocateActionArray(pMACHINE_INFO pmi)
 
 static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
 {
-   pACTION_ARRAY_POPULATION_HELPER paaph  = (pACTION_ARRAY_POPULATION_HELPER) data;
-   pID_INFO                        pstate = (pID_INFO)      pelem->mbr;
+   pACTION_ARRAY_POPULATION_HELPER paaph      = (pACTION_ARRAY_POPULATION_HELPER) data;
+   pID_INFO                        pstate     = (pID_INFO)      pelem->mbr;
+   pSTATE_DATA                     psd        = &pstate->type_data.state_data;
+   pEVENT_DATA                     ped        = &paaph->pevent->type_data.event_data;
+   pID_INFO                        action     = paaph->pai->action;
+   pID_INFO                        transition = paaph->pai->transition;
+
 
    #ifdef PARSER_DEBUG
    fprintf(paaph->fout, "\t\tadd_to_action_array: state: %s\n"
@@ -355,10 +370,12 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
       fprintf(stderr
               ,"Machine %s: Won't insert action %s into slot: event %s, state %s because it is already occupied by %s\n"
               , paaph->pmi->name->name
-              , paaph->pai->action->name
+              , action->name ? action->name : "transition"
               , paaph->pevent->name
               , pstate->name
               , paaph->pmi->actionArray[paaph->pevent->order][pstate->order]->action->name
+			    ? paaph->pmi->actionArray[paaph->pevent->order][pstate->order]->action->name 
+				: "transition"
               );
 
       paaph->error = true;
@@ -366,10 +383,59 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
    else
    {
       paaph->pmi->actionArray[paaph->pevent->order][pstate->order] = paaph->pai;
-      if (paaph->pevent->type_data.event_data.psingle_pai == paaph->pai)
+
+	  if (action && strlen(action->name))
+	  {
+		  add_unique_to_list(psd->pactions_list, action);
+		  add_unique_to_list(ped->pactions_list, action);
+	  }
+
+	  if (ped->psingle_pai == paaph->pai)
       {
-         paaph->pevent->type_data.event_data.single_pai_state_count++;
+         ped->single_pai_state_count++;
       }
+
+	  if (paaph->pai)
+	  {
+		  add_unique_to_list(psd->pevents_handled, paaph->pevent);
+		  add_unique_to_list(ped->phandling_states
+							 , pstate
+							 );
+	  }
+
+
+	  if (transition)
+	  {  
+		  if (transition->type == STATE)
+		  {
+			  if (transition != pstate)
+			  {
+				  add_unique_to_list(transition->type_data.state_data.pinbound_transitions
+									 , pstate
+									 );
+
+				  add_unique_to_list(psd->poutbound_transitions
+									 , transition
+									 );
+			  }
+		  }
+		  else
+		  {
+			  copy_list_unique_with_exception(psd->poutbound_transitions
+											  , transition->transition_fn_returns_decl
+											  , pstate
+											  );
+
+			  if (transition->transition_fn_returns_decl)
+			  {
+				  iterate_list(transition->transition_fn_returns_decl
+							   , add_inbound_state_wrapper
+							   , pstate
+							   );
+			  }
+		  }
+	  }
+
    }
 
    return paaph->error;
@@ -380,6 +446,7 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
    pACTION_ARRAY_POPULATION_HELPER paaph = (pACTION_ARRAY_POPULATION_HELPER) data;
    
    paaph->pevent = (pID_INFO) pelem->mbr;
+   pEVENT_DATA ped = &paaph->pevent->type_data.event_data;
 
    /* look for events which are handled identically in all states */
    paaph->pevent->type_data.event_data.single_pai_state_count = 0;
@@ -392,13 +459,13 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
    fprintf(paaph->fout, "\titerate_matrix_states: event: %s\n", paaph->pevent->name);
    #endif
 
+   paaph->error = false;
    iterate_list(paaph->pai->matrix->state_list,add_to_action_array,paaph);
 
-   if (paaph->pevent->type_data.event_data.single_pai_state_count == 
-   paaph->pmi->state_list->count)
+   if (ped->single_pai_state_count == paaph->pmi->state_list->count)
    {
-      paaph->pevent->type_data.event_data.single_pai_for_all_states = true;
-      paaph->pmi->has_single_pai_events                             = true;
+      ped->single_pai_for_all_states    = true;
+      paaph->pmi->has_single_pai_events = true;
    }
 
    return paaph->error;
@@ -732,6 +799,118 @@ static bool count_entry_and_exit_handlers(pLIST_ELEMENT pelem, void *data)
 
 }
 
+static bool count_zero_event_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pstate->type_data.state_data.pevents_handled->count == 0)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_states_with_zero_events(pLIST plist, unsigned *count)
+{
+	iterate_list(plist, count_zero_event_states, count);
+}
+
+static bool count_one_event_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pstate->type_data.state_data.pevents_handled->count == 1)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_states_with_one_event(pLIST plist, unsigned *count)
+{
+	iterate_list(plist, count_one_event_states, count);
+}
+
+static bool count_zero_event_handlers(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pevent->type_data.event_data.phandling_states->count == 0)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_events_with_zero_handlers(pLIST plist, unsigned *count)
+{
+	iterate_list(plist, count_zero_event_handlers, count);
+}
+
+static bool count_one_event_handlers(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pevent->type_data.event_data.phandling_states->count == 1)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_events_with_one_handler(pLIST plist, unsigned *count)
+{
+	iterate_list(plist, count_one_event_handlers, count);
+}
+
+static bool count_no_way_in_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	/* the first state has a way in, by default */
+	if (pelem->ordinal)
+	{
+		if (pstate->type_data.state_data.pinbound_transitions->count == 0)
+		{
+			(*count)++;
+		}
+	}
+
+	return false;
+}
+
+void count_states_with_no_way_in(pLIST plist, unsigned *data)
+{
+	iterate_list(plist, count_no_way_in_states, data);
+}
+
+static bool count_no_way_out_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+	if (pstate->type_data.state_data.poutbound_transitions->count == 0)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
+void count_states_with_no_way_out(pLIST plist, unsigned *data)
+{
+	iterate_list(plist, count_no_way_out_states, data);
+}
+
 void count_external_declarations(pLIST plist, unsigned *counter)
 {
    iterate_list(plist, count_external, counter);
@@ -1002,7 +1181,7 @@ int copyFileContents(const FILE *fDest, const char *src)
 {
     FILE *fSrc;
     char buf[256];
-    int numBytes;
+    int numBytes, retVal;
 
     if (NULL == (fSrc = openFile((char*)src,"r")))
     {
@@ -1017,9 +1196,12 @@ int copyFileContents(const FILE *fDest, const char *src)
         }
     }
 
+    retVal = ferror(fSrc) + ferror((FILE*)fDest);
+
     fclose(fSrc);
 
-    return ferror(fSrc) + ferror((FILE*)fDest);
+	return retVal;
+
 }
 
 void streamStrCaseAware(FILE *fout, char *str, ANCESTRY_LETTER_CASE alc)
@@ -1186,6 +1368,66 @@ void increase_sub_machine_depth(pMACHINE_INFO pmi)
 	}
 }
 
+void compute_event_and_state_density_pct(pMACHINE_INFO pmi)
+{
+	iterate_list(pmi->state_list, compute_state_density_pct_and_average, pmi);
+	iterate_list(pmi->event_list, compute_event_density_pct_and_average, pmi);
+
+	pmi->average_state_event_density_pct /= pmi->state_list->count;
+	pmi->average_event_state_density_pct /= pmi->event_list->count;
+}
+
+static bool compute_state_density_pct_and_average(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO      pstate = (pID_INFO)pelem->mbr;
+	pMACHINE_INFO pmi    = (pMACHINE_INFO) data;
+	pSTATE_DATA   psd    = &pstate->type_data.state_data;
+
+	/* Integral math. */
+	psd->event_density_pct = 100 * psd->pevents_handled->count;
+	
+	/* Now, do the division for this state. */
+	psd->event_density_pct /= pmi->event_list->count;
+
+	/* Accumulate into machine record. */
+	pmi->average_state_event_density_pct += psd->event_density_pct;
+
+	return false;
+}
+
+static bool compute_event_density_pct_and_average(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO      pevent = (pID_INFO)pelem->mbr;
+	pMACHINE_INFO pmi    = (pMACHINE_INFO) data;
+	pEVENT_DATA   ped    = &pevent->type_data.event_data;
+
+	/* Integral math. */
+	ped->state_density_pct = 100 * ped->phandling_states->count;
+	
+	/* Now, do the division for this event. */
+	ped->state_density_pct /= pmi->state_list->count;
+
+	/* Accumulate into machine record. */
+	pmi->average_event_state_density_pct += ped->state_density_pct;
+
+	return false;
+}
+
+static bool add_inbound_state_wrapper(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO ptransition_state = (pID_INFO) pelem->mbr;
+	pID_INFO state_to_add      = (pID_INFO) data;
+
+	if (state_to_add != ptransition_state)
+	{
+		add_unique_to_list(ptransition_state->type_data.state_data.pinbound_transitions
+						   , state_to_add
+						  );
+	}
+
+	return false;
+}
+
 #ifdef PARSER_DEBUG
 
 typedef struct _debug_list_helper_ DEBUG_LIST_HELPER, *pDEBUG_LIST_HELPER;
@@ -1214,7 +1456,7 @@ static bool print_state_id_info(pLIST_ELEMENT pelem, void *data)
        ,pid->docCmnt ? pid->docCmnt : ""
        );
 
-   return false;  //do not quit
+   return false;
 }
 
 static bool print_sharing_sub_machine(pLIST_ELEMENT pelem, void *data)
@@ -1265,7 +1507,7 @@ static bool print_event_id_info(pLIST_ELEMENT pelem, void *data)
        ,pid->docCmnt ? pid->docCmnt : ""
        );
 
-   return false;  //do not quit
+   return false;
 }
 
 void parser_debug_print_event_list(pLIST plist, FILE *file)
@@ -1358,12 +1600,12 @@ static bool print_full_action_info(pLIST_ELEMENT pelem, void *data)
        );
 
    phelper->indenture = "\t\t\t";
-   for (pai = pid->actionInfo;
+   for (pai = pid->type_data.action_data.actionInfo;
          pai;
          pai = pai->nextAction) {
 
      fprintf(phelper->fout,"\t\t%swhich occurs in these events\n"
-             , pai == pid->actionInfo ? "" : "and "
+             , pai == pid->type_data.action_data.actionInfo ? "" : "and "
              );
      phelper->nullName = "noEvent";
      iterate_list(pai->matrix->event_list, print_pid_name, phelper);
@@ -1389,11 +1631,11 @@ static bool print_full_action_info(pLIST_ELEMENT pelem, void *data)
 
    }
 
-   if (pid->action_returns_decl)
+   if (pid->type_data.action_data.action_returns_decl)
   {
     fprintf(phelper->fout,"\t\tand which returns\n");
     phelper->indenture = "\t\t\t";
-    iterate_list(pid->action_returns_decl, print_pid_name, phelper);
+    iterate_list(pid->type_data.action_data.action_returns_decl, print_pid_name, phelper);
   }
 
    if (pid->docCmnt)

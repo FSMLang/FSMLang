@@ -2600,7 +2600,7 @@ bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
        {
 
           /* if this action is associated with a shared event, it will have exactly one event */
-          pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->actionInfo->matrix->event_list,0);
+          pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->type_data.action_data.actionInfo->matrix->event_list,0);
 
           /* and, that event will have a list of sharing machines */
           if (pevent->type_data.event_data.psharing_sub_machines)
@@ -2644,7 +2644,7 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
    if (pid_info->name && strlen(pid_info->name))
    {
       /* if this action is associated with a shared event, it will have exactly one event */
-      pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->actionInfo->matrix->event_list,0);
+      pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->type_data.action_data.actionInfo->matrix->event_list,0);
 
       /* and, that event will have a list of sharing machines */
       if (pevent->type_data.event_data.psharing_sub_machines)
