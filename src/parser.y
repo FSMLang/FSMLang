@@ -2161,6 +2161,7 @@ typedef enum {
  , lo_add_plantuml_prefix_string
  , lo_add_plantuml_prefix_file
  , lo_short_user_fn_names
+ , lo_convenience_macro_in_public_header
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2286,6 +2287,12 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_short_user_fn_names
+    }
+    , {
+        .name      = "convenience-macros-in-public-header"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_convenience_macro_in_public_header
     }
     , {0}
 };
@@ -2434,6 +2441,12 @@ int main(int argc, char **argv)
 		            if (!optarg || !strcmp(optarg, "true"))
 			            short_user_fn_names=true;
 		            break;
+						case lo_convenience_macro_in_public_header:
+						   if (optarg && !strcmp(optarg, "false"))
+							 {
+								 convenience_macros_in_public_header = false;
+							 }
+							 break;
             default:
                 usage();
                 return(0);
@@ -2645,7 +2658,8 @@ void usage(void)
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");
 	fprintf(stdout,"\t\tno RUN_STATE_MACHINE macro is provided.\n");
-	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
+	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at\n");
+  fprintf(stdout,"\t\tthe top of the web page.\n");
 	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
 	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
 	fprintf(stdout,"\t\tfor the content copy.\n");
@@ -2653,14 +2667,18 @@ void usage(void)
  fprintf(stdout,"\t--add-plantuml-legend=<*center|left|right|top|*bottm> adds a legend to the plantuml.\n");
  fprintf(stdout,"\t\tCenter, bottom are the defaults.  Horizontal and vertial parameters can be added in a quoted string.\n");
  fprintf(stdout,"\t\tCenter is a horizontal parameter.\n");
- fprintf(stdout,"\t\tBy default, event, state, and action lists are included in the legend, and event descriptions are removed\n");
+ fprintf(stdout,"\t\tBy default, event, state, and action lists are\n");
+ fprintf(stdout,"\t\tincluded in the legend, and event descriptions are removed\n");
  fprintf(stdout,"\t\tfrom the body of the diagram.\n");
  fprintf(stdout,"\t--exclude-states-from-plantuml-legend=<*true|false> excludes state information from the plantuml legend.\n");
  fprintf(stdout,"\t\tWhen excluded from legend, state comments are included in the diagram body.\n");
  fprintf(stdout,"\t--exclude-events-from-plantuml-legend=<*true|false> excludes event information from the plantuml legend.\n");
  fprintf(stdout,"\t--exclude-actions-from-plantuml-legend=<*true|false> excludes action information from the plantuml legend.\n");
+ fprintf(stdout,"\t--convenience-macros-in-public-header[=<*true|false>] includes convenience macros\n");
+ fprintf(stdout,"\t\t(THIS, UFMN, e.g.) in the public header of the top-level machine;\n");
+ fprintf(stdout,"\t\totherwise, they are placed in the private header.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
- fprintf(stdout,"\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block\n");
+ fprintf(stdout,"\t--add-event-cross-reference<=true|*false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
  fprintf(stdout,"\t\tto specifying \"true\"\n");
  fprintf(stdout,"\t--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
