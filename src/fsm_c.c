@@ -1068,8 +1068,14 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 				, "\n\t\telse\n\t\t{\n"
 			   );
 
+		if (pmi->submachine_inhibitor_count)
+		{
+			fprintf(pcmd->cFile
+					, "\t\t\tif (doNotInhibitSubMachines(pfsm->state))\n\t"
+				   );
+		}
 		fprintf(pcmd->cFile
-				, "\t\t\tnew_e = ((* (*pfsm->subMachineArray)[pfsm->active_sub_machine]->subFSM)(e));\n\n\t\t}\n\n\t}"
+				, "\t\t\te = findAndRunSubMachine(pfsm, e);\n\t\t}\n\n\t}"
 			   );
 	}
 

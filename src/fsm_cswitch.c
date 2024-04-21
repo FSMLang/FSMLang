@@ -396,6 +396,12 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    defineCSwitchSubMachineFSM(pcmd, pmi);
 
+   /* write our sub-machine lookup, if needed */
+   if (pmi->machine_list)
+   {
+      defineSubMachineFinder(pcmd, pmi);
+   }
+
    if (pmi->has_single_pai_events)
    {
       defineAllStateHandler(pcmd, pmi);
@@ -606,6 +612,11 @@ static void defineCSwitchMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 static void defineCSwitchSubMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   if (pmi->machine_list)
+   {
+      declareSubMachineManagers(pcmd, pmi);
+   }
 
    if (pmi->has_single_pai_events)
    {
@@ -1231,20 +1242,26 @@ static void writeOriginalSwitchSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
-      fprintf(pcmd->cFile
-              , "\twhile (\n\t\t(e != THIS(noEvent))\n\t\t&& (e >= THIS(%s))\n\t)\n\t{\n\n"
-              , eventNameByIndex(pmi, 0)
+      fprintf(pcmd->cFile, "\twhile ((e != THIS(noEvent))\n\t       && (e >= THIS(firstEvent))\n"
               );
+
+      if (pmi->machine_list)
+      {
+         fprintf(pcmd->cFile, "\n       && (e < THIS(lastEvent))");
+      }
+
+      fprintf(pcmd->cFile, "\t      )\n\t{\n\n");
+
    }
 
    printFSMSubMachineDebugBlock(pcmd, pmi);
 
    fprintf(pcmd->cFile
-           , "\t/* This is read-only data to facilitate error reporting in action functions */\n"
+           , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
            );
 
    fprintf(pcmd->cFile
-           , "\tpfsm->event = %s;\n\n"
+           , "\t\tpfsm->event = %s;\n\n"
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            );
 
@@ -1268,25 +1285,54 @@ static void writeOriginalSwitchSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
       local_tabstr = "\t\t";
    }
 
+   fprintf(pcmd->cFile
+           , "\t\tif ((e >= THIS(firstEvent))\n\t\t    && (e < THIS(noEvent))\n\t\t\t)\n\t\t{\n"
+           );
+
    if (pmi->modFlags & mfActionsReturnVoid)
    {
       fprintf(pcmd->cFile
-              , "%s((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n\n"
+              , "%s\t\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n"
               , local_tabstr
               );
    }
    else
    {
       fprintf(pcmd->cFile
-              , "%s\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n\n"
+              , "%s\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
               , local_tabstr
               );
    }
 
+   fprintf(pcmd->cFile
+           , "\t\t}\n"
+           );
+
+   if (pmi->machine_list)
+   {
+       fprintf(pcmd->cFile
+               , "\n\t\tif ((e > THIS(noEvent))\n\t\t\t&& (e < THIS(lastEvent))\n"
+              );
+
+       if (pmi->submachine_inhibitor_count)
+       {
+          fprintf(pcmd->cFile
+                  , "\t\t\t&& doNotInhibitSubMachines(pfsm->state)\n"
+                  );
+       }
+       fprintf(pcmd->cFile
+               , "\t\t\t)\n\t\t{\n"
+               );
+       fprintf(pcmd->cFile
+               , "\t\t\te = findAndRunSubMachine(pfsm, e);\n\t\t}\n"
+               );
+   }
+
+
+   fprintf(pcmd->cFile, "\n\t}\n");
+
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
-
-      fprintf(pcmd->cFile, "\t}\n");
 
       fprintf(pcmd->cFile
               , "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"

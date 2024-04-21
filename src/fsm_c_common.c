@@ -2441,13 +2441,12 @@ void defineSubMachineIF (pCMachineData pcmd)
 		  );
 
   fprintf(pcmd->cFile
-		  , "\t, .first_event = THIS(%s)\n"
-          , eventNameByIndex(pcmd->pmi, 0)
+		  , "\t, .first_event = THIS(firstEvent)\n"
 		  );
 
   fprintf(pcmd->cFile
 		  , "\t, .last_event = THIS(%s)\n"
-          , eventNameByIndex(pcmd->pmi, pcmd->pmi->event_list->count - 1)
+		  , pcmd->pmi->machine_list ? "lastEvent" : "noEvent"
 		  );
 
   fprintf(pcmd->cFile
@@ -2759,7 +2758,7 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
            );
 
    fprintf(pcmd->cFile
-           , "\t\t\t   && ((*pfsm->subMachineArray)[machineIterator]->last_event >= e)\n\t\t\t    )\n"
+           , "\t\t\t   && ((*pfsm->subMachineArray)[machineIterator]->last_event > e)\n\t\t\t    )\n"
            );
 
    fprintf(pcmd->cFile
@@ -3218,7 +3217,12 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, fsmType(pcmd)
 			);
 	fprintf(pcmd->cFile
-			, "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
+			, "if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n"
+			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			);
+	fprintf(pcmd->cFile
+			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(noEvent))\n   )\n{\n"
+			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
 			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
 			);
 
@@ -3234,10 +3238,9 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 
     fprintf(pcmd->cFile, "event: %%s; state: %%s\"\n,");
     fprintf(pcmd->cFile
-			, "%s_EVENT_NAMES[%s - THIS(%s)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n#endif\n\n"
+			, "%s_EVENT_NAMES[%s - THIS(firstEvent)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n#endif\n\n"
 			, ucMachineName(pcmd)
 			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-			, eventNameByIndex(pmi,0)
 			, ucMachineName(pcmd)
 			);
 

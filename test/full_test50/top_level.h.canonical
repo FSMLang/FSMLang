@@ -60,11 +60,13 @@ typedef enum NEW_MACHINE_EVENT_ENUM {
 	, newMachine_eShared
 	, newMachine_noEvent
 	, newMachine_numEvents
-	, newMachine_subMachine1_eShared
+	, newMachine_subMachine1_firstEvent
+	, newMachine_subMachine1_eShared = newMachine_subMachine1_firstEvent
 	, newMachine_subMachine1_ee2
 	, newMachine_subMachine1_ee3
 	, newMachine_subMachine1_noEvent
-	, newMachine_subMachine2_eee1
+	, newMachine_subMachine2_firstEvent
+	, newMachine_subMachine2_eee1 = newMachine_subMachine2_firstEvent
 	, newMachine_subMachine2_eee2
 	, newMachine_subMachine2_eee3
 	, newMachine_subMachine2_noEvent
