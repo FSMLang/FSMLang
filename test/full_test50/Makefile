@@ -17,13 +17,13 @@ FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
 GENERATED_SRC = subMachine1.c   \
                 subMachine2.c   
 
-TARGET = check_top_level_h
+TARGET = check_top_level_events_h
 
 include ../test.mk
 include ../../fsmrules.mk
 
-check_top_level_h: top_level.h
-	$(DIFF) top_level.h top_level.h.canonical > test.result
+check_top_level_events_h: top_level_events.h
+	$(DIFF) top_level_events.h top_level_events.h.canonical > test.result
 	-@rm -f test.result fsmout
 	-@rm -f $(FSM_SRC:.fsm=.c)
 	-@rm -f $(FSM_SRC:.fsm=.h)
