@@ -2231,6 +2231,8 @@ const struct option longopts[] =
         , .has_arg = required_argument
         , .flag    = &longval
 				, .val     = lo_event_cross_ref_format
+		}
+		, {
         .name      = "convenience-macros-in-public-header"
         , .has_arg = optional_argument
         , .flag    = &longval
