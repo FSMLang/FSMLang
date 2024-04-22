@@ -3,7 +3,7 @@
 #
 #
  
-SUITES = lexer parser unit
+SUITES = lexer parser unit statistics html
 SUITES += $(shell find . -maxdepth 1 -type d -name "full_test*" -printf "%P ")
 
 CLEAN_SUITES=$(addsuffix .clean, $(SUITES))

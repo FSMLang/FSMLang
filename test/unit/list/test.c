@@ -27,6 +27,11 @@ bool finder_test_3   (void);
 bool finder_test_4   (void);
 bool finder_test_5   (void);
 bool copy_test_1     (void);
+bool copy_test_2     (void);
+bool copy_test_3     (void);
+bool copy_test_4     (void);
+bool copy_test_5     (void);
+bool copy_test_6     (void);
 
 TEST_FN tests[] = {
 	add_to_list_test
@@ -37,7 +42,12 @@ TEST_FN tests[] = {
 	, finder_test_3
 	, finder_test_4
 	, finder_test_5
-  , copy_test_1
+	, copy_test_1
+	, copy_test_2
+	, copy_test_3
+	, copy_test_4
+	, copy_test_5
+	, copy_test_6
 	, NULL
 };
 
@@ -97,7 +107,7 @@ bool add_to_list_test()
 {
 	unsigned id_info_counter;
 
-	printf("\nadd_to_list\n");
+	printf("\n%s\n", __func__);
  
 	/* initialize the first list */
 	pLIST pthe_list = init_list();
@@ -121,7 +131,7 @@ bool join_lists()
 	unsigned id_info_counter_0;
 	unsigned id_info_counter_1;
  
-	printf("\njoin_lists\n");
+	printf("\n%s\n", __func__);
 
 	/* initialize the first list */
 	pLIST pthe_first_list = init_list();
@@ -179,7 +189,7 @@ bool finder_test_0()
 	unsigned id_info_counter;
 	unsigned record_to_find = 1;
 
-	printf("\nfinder_test_0\n");
+	printf("\n%s\n", __func__);
 
 	/* initialize the first list */
 	pLIST pthe_list = init_list();
@@ -213,7 +223,7 @@ bool finder_test_1()
 	unsigned id_info_counter_1;
 	unsigned record_to_find = 4;
  
-	printf("\nfinder_test_1\n");
+	printf("\n%s\n", __func__);
 
 	/* initialize the first list */
 	pLIST pthe_first_list = init_list();
@@ -288,7 +298,7 @@ bool finder_test_2()
 	unsigned id_info_counter_1;
 	unsigned record_to_find = 3;
  
-	printf("\nfinder_test_2\n");
+	printf("\n%s\n", __func__);
 
 	/* initialize the first list */
 	pLIST pthe_first_list = init_list();
@@ -362,7 +372,7 @@ bool finder_test_3()
 	unsigned id_info_counter_1;
 	unsigned record_to_find = 0;
  
-	printf("\nfinder_test_3\n");
+	printf("\n%s\n", __func__);
 
 	/* initialize the first list */
 	pLIST pthe_first_list = init_list();
@@ -436,7 +446,7 @@ bool finder_test_4()
 	unsigned id_info_counter_1;
 	unsigned record_to_find = 2;
  
-	printf("\nfinder_test_4\n");
+	printf("\n%s\n", __func__);
 
 	/* initialize the first list */
 	pLIST pthe_first_list = init_list();
@@ -511,7 +521,7 @@ bool finder_test_5()
 	unsigned id_info_counter_1;
 	unsigned record_to_find = 8;
  
-	printf("\nfinder_test_5\n");
+	printf("\n%s\n", __func__);
 
 	/* initialize the first list */
 	pLIST pthe_first_list = init_list();
@@ -565,7 +575,7 @@ bool copy_test_1(void)
    pLIST ptst;
    COMPARITOR_HELPER ch;
 
-   printf("\ncopy_test_1\n");
+   printf("\n%s\n", __func__);
 
    /* load up the list */
    for (unsigned id_info_counter_0 = 0;
@@ -602,25 +612,235 @@ bool copy_test_1(void)
    
 }
 
-int main(int argc, char **argv)
+bool copy_test_2(void)
 {
-	(void) argc;
+   pLIST pdest = init_list();
+   pLIST psrc = init_list();
+   pLIST ptst;
+   COMPARITOR_HELPER ch;
 
-	int result = 0;
+   printf("\n%s\n", __func__);
 
-	printf("%s: hello, world\n",argv[0]);
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(psrc, &id_infos_0[id_info_counter_0]);
+   }
 
-	for (TEST_FN *test_fn = tests; *test_fn; test_fn++)
-	{
-		if (!(*test_fn)())
-		{
-			result = 1;
-			break;
-		}
-	}
+   printf("the source list:\n");
+   printf("id info list count %u\n", psrc->count);
 
-	printf("%s\n", result ? "Test failed" : "All tests pass");
+   iterate_list(psrc,print_id_info_name,NULL);
 
-	return result;
+   ptst = copy_list_unique(pdest, psrc);
+
+   printf("the dest list:\n");
+   printf("id info list count %u\n", pdest->count);
+   iterate_list(pdest,print_id_info_name,NULL);
+
+   ch.id_infos     = id_infos_0;
+   ch.num_id_infos = id_info_count_0;
+   ch.which        = 0;
+   ch.identical    = false;
+
+   iterate_list(pdest, comparitor, &ch);
+
+   return (ptst == pdest)
+          && ch.identical
+          && (pdest->count == psrc->count)
+          && (pdest->count == id_info_count_0)
+          ;
+   
+}
+
+bool copy_test_3(void)
+{
+   pLIST pdest = init_list();
+   pLIST psrc = init_list();
+   pLIST ptst;
+   COMPARITOR_HELPER ch;
+
+   printf("\n%s\n", __func__);
+
+   /* load up the source list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(psrc, &id_infos_0[id_info_counter_0]);
+   }
+
+   /* load up the destination list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(pdest, &id_infos_0[id_info_counter_0]);
+   }
+
+   printf("the source list:\n");
+   printf("id info list count %u\n", psrc->count);
+
+   iterate_list(psrc,print_id_info_name,NULL);
+
+   ptst = copy_list_unique(pdest, psrc);
+
+   printf("the dest list:\n");
+   printf("id info list count %u\n", pdest->count);
+   iterate_list(pdest,print_id_info_name,NULL);
+
+   ch.id_infos     = id_infos_0;
+   ch.num_id_infos = id_info_count_0;
+   ch.which        = 0;
+   ch.identical    = false;
+
+   iterate_list(pdest, comparitor, &ch);
+
+   return (ptst == pdest)
+          && ch.identical
+          && (pdest->count == psrc->count)
+          && (pdest->count == id_info_count_0)
+          ;
+   
+}
+
+bool copy_test_4(void)
+{
+   pLIST pdest = init_list();
+   pLIST psrc = init_list();
+   pLIST ptst;
+
+   printf("\n%s\n", __func__);
+
+   /* load up the source list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(psrc, &id_infos_0[id_info_counter_0]);
+   }
+
+   /* load up the destination list */
+   for (unsigned id_info_counter_1 = 0;
+         id_info_counter_1 < id_info_count_1;
+         id_info_counter_1++
+       )
+   {
+     add_to_list(pdest, &id_infos_1[id_info_counter_1]);
+   }
+
+   printf("the source list:\n");
+   printf("id info list count %u\n", psrc->count);
+
+   iterate_list(psrc,print_id_info_name,NULL);
+
+   ptst = copy_list_unique(pdest, psrc);
+
+   printf("the dest list:\n");
+   printf("id info list count %u\n", pdest->count);
+   iterate_list(pdest,print_id_info_name,NULL);
+
+   return (ptst == pdest)
+          && (pdest->count == (id_info_count_0 + id_info_count_1))
+          ;
+   
+}
+
+bool copy_test_5(void)
+{
+   pLIST pdest = NULL;
+   pLIST psrc = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the source list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(psrc, &id_infos_0[id_info_counter_0]);
+   }
+
+   printf("the source list:\n");
+   printf("id info list count %u\n", psrc->count);
+
+   iterate_list(psrc,print_id_info_name,NULL);
+
+   pdest = copy_list_unique(pdest, psrc);
+
+   printf("the dest list:\n");
+   printf("id info list count %u\n", pdest->count);
+   iterate_list(pdest,print_id_info_name,NULL);
+
+   return (pdest == psrc)
+          ;
+   
+}
+
+bool copy_test_6(void)
+{
+   pLIST pdest = init_list();
+   pLIST psrc  = init_list();
+   pLIST ptst;
+
+   printf("\n%s\n", __func__);
+
+   /* load up the source list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(psrc, &id_infos_0[id_info_counter_0]);
+   }
+
+   printf("the source list:\n");
+   printf("id info list count %u\n", psrc->count);
+
+   iterate_list(psrc,print_id_info_name,NULL);
+
+   /* load up the destination list */
+   for (unsigned id_info_counter_1 = 0;
+         id_info_counter_1 < id_info_count_1;
+         id_info_counter_1++
+       )
+   {
+     add_to_list(pdest, &id_infos_1[id_info_counter_1]);
+   }
+
+   printf("the destination list:\n");
+   printf("id info list count %u\n", pdest->count);
+
+   iterate_list(pdest,print_id_info_name,NULL);
+
+   ptst = copy_list_unique_with_exception(pdest, psrc, &id_infos_0[0]);
+
+   printf("the dest list:\n");
+   printf("id info list count %u\n", pdest->count);
+   iterate_list(pdest,print_id_info_name,NULL);
+
+   return (ptst == pdest)
+          && (pdest->count == (id_info_count_0 + id_info_count_1 - 1))
+          ;
+   
+}
+
+int main(void)
+{
+	TEST_FN *test_fn;
+
+	for (test_fn = tests; *test_fn && (*test_fn)(); test_fn++)
+		;
+
+	printf("%s\n", *test_fn ? "Test failed" : "All tests pass");
+
+	return *test_fn ? 1 : 0;
 }
 

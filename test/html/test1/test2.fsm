@@ -1,0 +1,38 @@
+/**
+	This is a test machine.
+
+	<p>It really does nothing at all.
+	</p>
+*/
+machine testFSM
+{
+	      /** A normal event. */
+	event e1
+			  /** A cool event. */
+			, e2
+			  /** A really cool event. */
+			, e3
+			;
+
+         /** A state to begin with. */
+	state s1
+           /** We've seen the first event. */
+			, s2
+           /** We've seen the second event. */
+			, s3
+           /** We've seen the third event. */
+			, s4
+			;
+
+	action a1[e1,s1]	transition s2;
+	action a4[e1,s2];
+	action a2[e2,s2]	transition s3;
+	action a3[e3,s3]	transition s4;
+
+	a1 returns noEvent;
+	a2 returns noEvent;
+	a3 returns noEvent;
+	a4 returns noEvent;
+
+}
+

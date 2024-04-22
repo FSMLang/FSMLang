@@ -255,13 +255,18 @@ machine:	machine_prefix ID machine_qualifier
 
  					/* sanity checks */
  					if ($$->parent && $$->data_block_count && !output_generated_file_names_only)
-						{
+					{
  					   yyerror("event user data not allowed in sub-machines");
-						}
+					}
 
 
-						count_external_declarations     ($$->state_list,&($$->external_state_designation_count));
- 					count_states_with_entry_exit_fns($$->state_list,&($$->states_with_entry_fns_count),&($$->states_with_exit_fns_count));
+					count_external_declarations($$->state_list
+																				,&($$->external_state_designation_count)
+																				);
+ 					count_states_with_entry_exit_fns($$->state_list
+																					 ,&($$->states_with_entry_fns_count)
+																					 ,&($$->states_with_exit_fns_count)
+																					 );
 
  					if ($$->machine_list)
 						{
@@ -276,6 +281,27 @@ machine:	machine_prefix ID machine_qualifier
 
 						if (populate_action_array($$, yyout))
  						yyerror("Action array population failed");
+
+					 count_states_with_zero_events($$->state_list
+																				 , &($$->states_with_zero_events)
+																				 );
+					 count_states_with_one_event($$->state_list
+																			 , &($$->states_with_one_event)
+																			 );
+					 count_states_with_no_way_in($$->state_list
+																			 , &($$->states_with_no_way_in)
+																			 );
+					 count_states_with_no_way_out($$->state_list
+																			 , &($$->states_with_no_way_out)
+																			 );
+					 count_events_with_zero_handlers($$->event_list
+																					 , &($$->events_with_zero_handlers)
+																					 );
+					 count_events_with_one_handler($$->event_list
+																				 , &($$->events_with_one_handler)
+																				 );
+
+					 compute_event_and_state_density_pct($$);
 
            free($1);
 
@@ -746,8 +772,8 @@ transition_matrix_start: matrix TRANSITION_KEY
 						$$->action     = pid_info;
  					$$->docCmnt    = $2;
 
-						$$->nextAction = pid_info->actionInfo;
-						pid_info->actionInfo = $$;
+						$$->nextAction = pid_info->type_data.action_data.actionInfo;
+						pid_info->type_data.action_data.actionInfo = $$;
 
         }
     | TRANSITION_KEY matrix
@@ -768,8 +794,8 @@ transition_matrix_start: matrix TRANSITION_KEY
 						$$->action     = pid_info;
  					$$->docCmnt    = $1;
 
-						$$->nextAction = pid_info->actionInfo;
-						pid_info->actionInfo = $$;
+						$$->nextAction = pid_info->type_data.action_data.actionInfo;
+						pid_info->type_data.action_data.actionInfo = $$;
 
         }
     ;
@@ -992,8 +1018,8 @@ action_matrix: ID matrix
 						$$->matrix     = $2;
 						$$->transition = NULL;
 
-						$$->nextAction = $1->actionInfo;
-						$1->actionInfo = $$;
+						$$->nextAction = $1->type_data.action_data.actionInfo;
+						$1->type_data.action_data.actionInfo = $$;
 
 					}
    | ACTION matrix
@@ -1014,8 +1040,8 @@ action_matrix: ID matrix
 						$$->matrix     = $2;
 						$$->transition = NULL;
 
-						$$->nextAction = $1->actionInfo;
-						$1->actionInfo = $$;
+						$$->nextAction = $1->type_data.action_data.actionInfo;
+						$1->type_data.action_data.actionInfo = $$;
 
 					}
 	;
@@ -1241,6 +1267,27 @@ state: ID
  				  $$ = $1;
            set_id_type($$,STATE);
            $$->powningMachine = pmachineInfo;
+
+					 if (NULL == ($$->type_data.state_data.pinbound_transitions = init_list()))
+					 {
+					    yyerror("out of memory");
+					 }
+
+					 if (NULL == ($$->type_data.state_data.poutbound_transitions = init_list()))
+					 {
+					    yyerror("out of memory");
+					 }
+
+					 if (NULL == ($$->type_data.state_data.pevents_handled = init_list()))
+					 {
+					    yyerror("out of memory");
+					 }
+
+					 if (NULL == ($$->type_data.state_data.pactions_list = init_list()))
+					 {
+					    yyerror("out of memory");
+					 }
+
          }
  	| state INHIBITS SUBMACHINES
 					{
@@ -1437,6 +1484,12 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            $2->type_data.event_data.puser_event_data    = $4;
            $2->powningMachine                           = pmachineInfo;
 
+ 					if (NULL == ($2->type_data.event_data.phandling_states = init_list()))
+ 						yyerror("Out of memory");
+
+ 					if (NULL == ($2->type_data.event_data.pactions_list = init_list()))
+ 						yyerror("Out of memory");
+
  					if (NULL == (add_to_list($$,$2)))
  						yyerror("Out of memory");
 
@@ -1461,6 +1514,12 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            pid->type_data.event_data.shared_with_parent = true;
            pid->powningMachine                          = pmachineInfo;
  					pid->docCmnt                                 = $2;
+
+ 					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
+ 						yyerror("Out of memory");
+
+ 					if (NULL == (pid->type_data.event_data.pactions_list = init_list()))
+ 						yyerror("Out of memory");
 
  					if (NULL == (add_to_list($$,pid)))
  						yyerror("Out of memory");
@@ -1490,6 +1549,12 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            $3->type_data.event_data.puser_event_data    = $5;
            $3->powningMachine                           = pmachineInfo;
 
+ 					if (NULL == ($3->type_data.event_data.phandling_states = init_list()))
+ 						yyerror("Out of memory");
+
+ 					if (NULL == ($3->type_data.event_data.pactions_list = init_list()))
+ 						yyerror("Out of memory");
+
  					if (NULL == (add_to_list($$,$3)))
  						yyerror("Out of memory");
 
@@ -1512,7 +1577,13 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            pid->type_data.event_data.puser_event_data    = $5;
            pid->type_data.event_data.shared_with_parent  = true;
            pid->powningMachine                           = pmachineInfo;
- 					pid->docCmnt                                  = $3;
+ 					 pid->docCmnt                                  = $3;
+
+ 					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
+ 						yyerror("Out of memory");
+
+ 					if (NULL == (pid->type_data.event_data.pactions_list = init_list()))
+ 						yyerror("Out of memory");
 
  					if (NULL == (add_to_list($$,pid)))
  						yyerror("Out of memory");
@@ -1907,16 +1978,16 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
 			if (add_to_list($3,$4) == NULL)
 				 yyerror("out of memory");
 
-			move_list_unique($1->action_returns_decl, $3);
+			move_list_unique($1->type_data.action_data.action_returns_decl, $3);
  		free_list($3);
 
   }
@@ -1926,16 +1997,16 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
 			if (add_to_list($3,$4) == NULL)
 				 yyerror("out of memory");
 
-			move_list_unique($1->action_returns_decl, $3);
+			move_list_unique($1->type_data.action_data.action_returns_decl, $3);
  		free_list($3);
 
   }
@@ -1945,13 +2016,13 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-		 if (add_unique_to_list($1->action_returns_decl,$3) == NULL)
+		 if (add_unique_to_list($1->type_data.action_data.action_returns_decl,$3) == NULL)
 				yyerror("out of memory");
 
   }
@@ -1961,13 +2032,13 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-		 if (add_unique_to_list($1->action_returns_decl,$3) == NULL)
+		 if (add_unique_to_list($1->type_data.action_data.action_returns_decl,$3) == NULL)
 				yyerror("out of memory");
 
   }
@@ -1980,13 +2051,13 @@ action_return_decl:
 			if (add_to_list($3, $4) == NULL)
 				yyerror("out of memory");
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			move_list_unique($1->action_returns_decl, $3);
+			move_list_unique($1->type_data.action_data.action_returns_decl, $3);
  		free_list($3);
 
   }
@@ -1996,16 +2067,16 @@ action_return_decl:
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
-		 if (add_to_list($1->action_returns_decl,$3) == NULL)
+		 if (add_to_list($1->type_data.action_data.action_returns_decl,$3) == NULL)
 				yyerror("out of memory");
 
- 	 if (!$1->action_returns_decl)
+ 	 if (!$1->type_data.action_data.action_returns_decl)
 		 {
-		    if (($1->action_returns_decl = init_list()) == NULL) 
+		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			add_unique_to_list($1->action_returns_decl, $3);
+			add_unique_to_list($1->type_data.action_data.action_returns_decl, $3);
 
   }
   ;
@@ -2090,6 +2161,7 @@ typedef enum {
  , lo_add_plantuml_prefix_string
  , lo_add_plantuml_prefix_file
  , lo_short_user_fn_names
+ , lo_convenience_macro_in_public_header
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2215,6 +2287,12 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_short_user_fn_names
+    }
+    , {
+        .name      = "convenience-macros-in-public-header"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_convenience_macro_in_public_header
     }
     , {0}
 };
@@ -2363,6 +2441,12 @@ int main(int argc, char **argv)
 		            if (!optarg || !strcmp(optarg, "true"))
 			            short_user_fn_names=true;
 		            break;
+						case lo_convenience_macro_in_public_header:
+						   if (optarg && !strcmp(optarg, "false"))
+							 {
+								 convenience_macros_in_public_header = false;
+							 }
+							 break;
             default:
                 usage();
                 return(0);
@@ -2574,7 +2658,8 @@ void usage(void)
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");
 	fprintf(stdout,"\t\tno RUN_STATE_MACHINE macro is provided.\n");
-	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at the top of the web page.\n");
+	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at\n");
+  fprintf(stdout,"\t\tthe top of the web page.\n");
 	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
 	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
 	fprintf(stdout,"\t\tfor the content copy.\n");
@@ -2582,14 +2667,18 @@ void usage(void)
  fprintf(stdout,"\t--add-plantuml-legend=<*center|left|right|top|*bottm> adds a legend to the plantuml.\n");
  fprintf(stdout,"\t\tCenter, bottom are the defaults.  Horizontal and vertial parameters can be added in a quoted string.\n");
  fprintf(stdout,"\t\tCenter is a horizontal parameter.\n");
- fprintf(stdout,"\t\tBy default, event, state, and action lists are included in the legend, and event descriptions are removed\n");
+ fprintf(stdout,"\t\tBy default, event, state, and action lists are\n");
+ fprintf(stdout,"\t\tincluded in the legend, and event descriptions are removed\n");
  fprintf(stdout,"\t\tfrom the body of the diagram.\n");
  fprintf(stdout,"\t--exclude-states-from-plantuml-legend=<*true|false> excludes state information from the plantuml legend.\n");
  fprintf(stdout,"\t\tWhen excluded from legend, state comments are included in the diagram body.\n");
  fprintf(stdout,"\t--exclude-events-from-plantuml-legend=<*true|false> excludes event information from the plantuml legend.\n");
  fprintf(stdout,"\t--exclude-actions-from-plantuml-legend=<*true|false> excludes action information from the plantuml legend.\n");
+ fprintf(stdout,"\t--convenience-macros-in-public-header[=<*true|false>] includes convenience macros\n");
+ fprintf(stdout,"\t\t(THIS, UFMN, e.g.) in the public header of the top-level machine;\n");
+ fprintf(stdout,"\t\totherwise, they are placed in the private header.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
- fprintf(stdout,"\t--add-event-cross-reference<=true|false> adds a cross-reference list as a comment block\n");
+ fprintf(stdout,"\t--add-event-cross-reference<=true|*false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
  fprintf(stdout,"\t\tto specifying \"true\"\n");
  fprintf(stdout,"\t--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");

@@ -12,19 +12,34 @@
 <link REL=stylesheet type="text/css" href="../../fsmlang.css">
 </head><body>
 <h2>newMachine</h2>
+<table class='machine_stats'>
+	<tbody>
+		<tr><th>Number of events</th><td>4</td></tr>
+		<tr><th>Events not handled</th><td>1</td></tr>
+		<tr><th>Events handled in one state</th><td>0</td></tr>
+		<tr><th>At least one event handled the same in all states?</th><td>yes</td></tr>
+		<tr><th>Number of states</th><td>3</td></tr>
+		<tr><th>Number of states with entry functions</th><td>0</td></tr>
+		<tr><th>Number of states with exit functions</th><td>0</td></tr>
+		<tr><th>States handling no events</th><td>0</td></tr>
+		<tr><th>States handling exactly one event</th><td>0</td></tr>
+		<tr><th>States with no way in</th><td>0</td></tr>
+		<tr><th>States with no way out</th><td>0</td></tr>
+	</tbody>
+</table>
 <div class="scrollable">
 <table class="machine">
 	<thead>
 		<tr>
 			<th class="blankCorner">&nbsp;</th>
-			<th class=eventName>e1</th>
-			<th class=eventName>e2</th>
-			<th class=eventName>e3</th>
-			<th class=eventName>e4</th>
+			<th class='eventName'>e1</th>
+			<th class='eventName'>e2</th>
+			<th class='eventName'>e3</th>
+			<th class='eventName'>e4</th>
 		</tr>
 	</thead>
 	<tbody>
-		<tr>
+	<tr>
 		<th class=stateName>s1</th>
 		<td class=action>a1<br/><b>transition</b> : s1</td>
 		<td class=noAction>noAction<br/><b>transition</b> : transitionFn1<br/>returns:
@@ -39,7 +54,7 @@
 		<li>s3</li>
 	</ul>
 </td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	<tr>
 		<th class=stateName>s2</th>
@@ -63,7 +78,7 @@
 		<li>s3</li>
 	</ul>
 </td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	<tr>
 		<th class=stateName>s3</th>
@@ -87,88 +102,226 @@
 		<li>s3</li>
 	</ul>
 </td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	</tbody>
 </table>
 </div>
 <table class="elements">
+<thead><tr>
+<th colspan='2' align='left'>Events</th>
+</tr>
+</thead>
+<tbody>
 <tr>
-<th colspan=2 align=left>Events</th>
+	<td colspan='2' align='left'>
+<table class='summary'>
+<tr><th>Total number of events:</th><td>4</td></tr>
+<tr><th>Events with no handlers:</th><td>1</td></tr>
+<tr><th>Events with one handler:</th><td>0</td></tr>
+<tr><th>Average event state density:</th><td>75%</td></tr>
+</table>
+	</td>
 </tr>
 <tr>
 <td class="label">e1</td>
-<td>&nbsp;
+<td>
+<p>Handled In 3 of 3 (100 %) States:</p>
+	<ul>
+		<li>s1</li>
+		<li>s2</li>
+		<li>s3</li>
+	</ul>
+<p>Causes these actions to be taken:</p>
+	<ul>
+		<li>a1</li>
+		<li>a2</li>
+	</ul>
 </td>
 </tr>
 <tr>
 <td class="label">e2</td>
-<td>&nbsp;
+<td>
+<p>Handled In 3 of 3 (100 %) States:</p>
+	<ul>
+		<li>s1</li>
+		<li>s2</li>
+		<li>s3</li>
+	</ul>
 </td>
 </tr>
 <tr>
 <td class="label">e3</td>
-<td>&nbsp;
+<td>
+<p>Handled In 3 of 3 (100 %) States:</p>
+	<ul>
+		<li>s1</li>
+		<li>s2</li>
+		<li>s3</li>
+	</ul>
 </td>
 </tr>
 <tr>
-<td class="label">e4</td>
-<td>&nbsp;
+<td class="label eventWithNoHandler">e4</td>
+<td>
 </td>
 </tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>States</th>
 </tr>
+</thead>
+<tbody>
+<tr><td colspan='2' align='left'>
+<table class='summary'>
+<tr><th>Total number of states:</th><td>3</td></tr>
+<tr><th>States with no events:</th><td>0</td></tr>
+<tr><th>States with one event:</th><td>0</td></tr>
+<tr><th>States with no way in:</th><td>0</td></tr>
+<tr><th>States with no way out:</th><td>0</td></tr>
+<tr><th>Average state event density:</th><td>75%</td></tr>
+</table>
+	</td>
+</tr>
 <tr>
-<td class="label">s1</td>
+<td class='label'>s1</td>
 <td>
-&nbsp;</td></tr>
+<p>Inbound Transitions:</p>
+	<ul>
+		<li>s2</li>
+		<li>s3</li>
+</ul>
+<p>Outbound Transitions:</p>
+	<ul>
+		<li>s2</li>
+		<li>s3</li>
+</ul>
+<p>Events Handled (3 of 4 for 75%):</p>
+	<ul>
+		<li>e1</li>
+		<li>e2</li>
+		<li>e3</li>
+	</ul>
+<p>Actions Taken:
+</p>
+	<ul>
+		<li>a1</li>
+	</ul>
+</td></tr>
 <tr>
-<td class="label">s2</td>
+<td class='label'>s2</td>
 <td>
-&nbsp;</td></tr>
+<p>Inbound Transitions:</p>
+	<ul>
+		<li>s3</li>
+		<li>s1</li>
+</ul>
+<p>Outbound Transitions:</p>
+	<ul>
+		<li>s1</li>
+		<li>s3</li>
+</ul>
+<p>Events Handled (3 of 4 for 75%):</p>
+	<ul>
+		<li>e1</li>
+		<li>e2</li>
+		<li>e3</li>
+	</ul>
+<p>Actions Taken:
+</p>
+	<ul>
+		<li>a2</li>
+	</ul>
+</td></tr>
 <tr>
-<td class="label">s3</td>
+<td class='label'>s3</td>
 <td>
-&nbsp;</td></tr>
+<p>Inbound Transitions:</p>
+	<ul>
+		<li>s1</li>
+		<li>s2</li>
+</ul>
+<p>Outbound Transitions:</p>
+	<ul>
+		<li>s1</li>
+		<li>s2</li>
+</ul>
+<p>Events Handled (3 of 4 for 75%):</p>
+	<ul>
+		<li>e1</li>
+		<li>e2</li>
+		<li>e3</li>
+	</ul>
+<p>Actions Taken:
+</p>
+	<ul>
+		<li>a2</li>
+	</ul>
+</td></tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>Actions</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td class="label">a1</td>
 <td>
-&nbsp;</td>
+<p>Matrices:</p>
+	<ul>
+		<li>e1, s1 transitions to state s1		</li>	</ul>
+</td>
 </tr>
 <tr>
 <td class="label">a2</td>
 <td>
-&nbsp;</td>
+<p>Matrices:</p>
+	<ul>
+		<li>e1, (s2, s3) transitions via function transitionFn		</li>	</ul>
+</td>
 </tr>
 <tr>
 <td class="label">transition</td>
 <td>
-&nbsp;</td>
+<p>Matrices:</p>
+	<ul>
+		<li>(e2, e3), (s1, s2, s3) transitions via function transitionFn1		</li>	</ul>
+</td>
 </tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>Transition Functions</th>
 </tr>
-<tr>
-<td class="label">transitionFn</td>
-<td>
-&nbsp;<tr>
-<td class="label">transitionFn1</td>
-<td>
-&nbsp;</table>
+</thead>
+<tbody>
+	<tr><td class='label'>transitionFn</td><td><p>Returns:
+	<ul>
+		<li>s1</li>
+		<li>s2</li>
+	</ul>
+</p>
+</td>
+	<tr><td class='label'>transitionFn1</td><td><p>Returns:
+	<ul>
+		<li>s2</li>
+		<li>s3</li>
+	</ul>
+</p>
+</td>
+</tbody>
+</table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>Sub Machines</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td class="label"><a href="subMachine1.html" target="FSMLang-subMachine1">subMachine1</a></td>
 <td>
@@ -179,6 +332,7 @@
 <td>
  a second sub machine </td>
 </tr>
+</tbody>
 </table>
 </body>
 </html>

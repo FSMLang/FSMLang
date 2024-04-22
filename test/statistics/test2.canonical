@@ -1,0 +1,28 @@
+machine name: testFSM
+reentrance protection:  no
+machine transition: none
+actions return: events
+number of events: 3
+number of events handled in zero states: 0
+number of events handled in one state: 2
+machine has events with single pai: no
+number of states: 4
+number of states with entry fns: 0
+number of states with exit fns: 0
+number of states handling zero events: 1
+number of states handling one event: 2
+number of states with no way in: 0
+number of states with no way out: 1
+number of actions: 4
+Action Array:
+Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
+e1                  multiple       2           50         a1, a4
+e2                  multiple       1           25         a2
+e3                  multiple       1           25         a3
+
+State Name           Events Handled Avg Use (%) Transitions (In/Out) Actions Triggered 
+s1                   1              33          0 / 1 : none / s2 a1
+s2                   2              66          1 / 1 : s1 / s3 a4, a2
+s3                   1              33          1 / 1 : s2 / s4 a3
+s4                   0              0           1 / 0 : s3
+

@@ -12,7 +12,7 @@ ifdef OUTPUT_DIR
 include $(OUTPUT_DIR)/system.mk
 endif
 
-include ../../depends.mk
+include $(OUTPUT_DIR)/../depends.mk
 
 POSSIBLE_OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o) $(GENERATED_SRC:.c=.o)
 OBJS = $(sort $(POSSIBLE_OBJS))

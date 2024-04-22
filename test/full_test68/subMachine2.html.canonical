@@ -13,89 +13,184 @@
 </head><body>
 <h2>newMachine::subMachine2</h2>
 <p> a second sub machine </p>
+<table class='machine_stats'>
+	<tbody>
+		<tr><th>Number of events</th><td>3</td></tr>
+		<tr><th>Events not handled</th><td>1</td></tr>
+		<tr><th>Events handled in one state</th><td>2</td></tr>
+		<tr><th>At least one event handled the same in all states?</th><td>no</td></tr>
+		<tr><th>Number of states</th><td>3</td></tr>
+		<tr><th>Number of states with entry functions</th><td>0</td></tr>
+		<tr><th>Number of states with exit functions</th><td>0</td></tr>
+		<tr><th>States handling no events</th><td>2</td></tr>
+		<tr><th>States handling exactly one event</th><td>0</td></tr>
+		<tr><th>States with no way in</th><td>0</td></tr>
+		<tr><th>States with no way out</th><td>2</td></tr>
+	</tbody>
+</table>
 <div class="scrollable">
 <table class="machine">
 	<thead>
 		<tr>
 			<th class="blankCorner">&nbsp;</th>
-			<th class=eventName>eee1</th>
-			<th class=eventName>eee2</th>
-			<th class=eventName>eee3</th>
+			<th class='eventName'>eee1</th>
+			<th class='eventName'>eee2</th>
+			<th class='eventName'>eee3</th>
 		</tr>
 	</thead>
 	<tbody>
-		<tr>
+	<tr>
 		<th class=stateName>sss1</th>
 		<td class=action>aaa1<br/><b>transition</b> : sss2</td>
 		<td class=action>aaa2<br/><b>transition</b> : sss3</td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	<tr>
 		<th class=stateName>sss2</th>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	<tr>
 		<th class=stateName>sss3</th>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
-		<td class=nullAction>&nbsp;<br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	</tbody>
 </table>
 </div>
 <table class="elements">
+<thead><tr>
+<th colspan='2' align='left'>Events</th>
+</tr>
+</thead>
+<tbody>
 <tr>
-<th colspan=2 align=left>Events</th>
+	<td colspan='2' align='left'>
+<table class='summary'>
+<tr><th>Total number of events:</th><td>3</td></tr>
+<tr><th>Events with no handlers:</th><td>1</td></tr>
+<tr><th>Events with one handler:</th><td>2</td></tr>
+<tr><th>Average event state density:</th><td>22%</td></tr>
+</table>
+	</td>
 </tr>
 <tr>
 <td class="label">eee1</td>
-<td>&nbsp;
+<td>
+<p>Handled In 1 of 3 (33 %) States:</p>
+	<ul>
+		<li>sss1</li>
+	</ul>
+<p>Causes these actions to be taken:</p>
+	<ul>
+		<li>aaa1</li>
+	</ul>
 </td>
 </tr>
 <tr>
 <td class="label">eee2</td>
-<td>&nbsp;
+<td>
+<p>Handled In 1 of 3 (33 %) States:</p>
+	<ul>
+		<li>sss1</li>
+	</ul>
+<p>Causes these actions to be taken:</p>
+	<ul>
+		<li>aaa2</li>
+	</ul>
 </td>
 </tr>
 <tr>
-<td class="label">eee3</td>
-<td>&nbsp;
+<td class="label eventWithNoHandler">eee3</td>
+<td>
 </td>
 </tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>States</th>
 </tr>
+</thead>
+<tbody>
+<tr><td colspan='2' align='left'>
+<table class='summary'>
+<tr><th>Total number of states:</th><td>3</td></tr>
+<tr><th>States with no events:</th><td>2</td></tr>
+<tr><th>States with one event:</th><td>0</td></tr>
+<tr><th>States with no way in:</th><td>0</td></tr>
+<tr><th>States with no way out:</th><td>2</td></tr>
+<tr><th>Average state event density:</th><td>22%</td></tr>
+</table>
+	</td>
+</tr>
 <tr>
-<td class="label">sss1</td>
+<td class='label stateWithNoEntry'>sss1</td>
 <td>
-&nbsp;</td></tr>
+<p>Outbound Transitions:</p>
+	<ul>
+		<li>sss2</li>
+		<li>sss3</li>
+</ul>
+<p>Events Handled (2 of 3 for 66%):</p>
+	<ul>
+		<li>eee1</li>
+		<li>eee2</li>
+	</ul>
+<p>Actions Taken:
+</p>
+	<ul>
+		<li>aaa1</li>
+		<li>aaa2</li>
+	</ul>
+</td></tr>
 <tr>
-<td class="label">sss2</td>
+<td class='label lazyState deadEndState'>sss2</td>
 <td>
-&nbsp;</td></tr>
+<p class='lazyState'>This state handles no events.</p>
+<p class='deadEndState'>This state has no way out.</p>
+<p>Inbound Transitions:</p>
+	<ul>
+		<li>sss1</li>
+</ul>
+</td></tr>
 <tr>
-<td class="label">sss3</td>
+<td class='label lazyState deadEndState'>sss3</td>
 <td>
-&nbsp;</td></tr>
+<p class='lazyState'>This state handles no events.</p>
+<p class='deadEndState'>This state has no way out.</p>
+<p>Inbound Transitions:</p>
+	<ul>
+		<li>sss1</li>
+</ul>
+</td></tr>
+</tbody>
 </table>
 <table class="elements">
-<tr>
+<thead><tr>
 <th colspan=2 align=left>Actions</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td class="label">aaa1</td>
 <td>
-&nbsp;</td>
+<p>Matrices:</p>
+	<ul>
+		<li>eee1, sss1 transitions to state sss2		</li>	</ul>
+</td>
 </tr>
 <tr>
 <td class="label">aaa2</td>
 <td>
-&nbsp;</td>
+<p>Matrices:</p>
+	<ul>
+		<li>eee2, sss1 transitions to state sss3		</li>	</ul>
+</td>
 </tr>
+</tbody>
 </table>
 </body>
 </html>

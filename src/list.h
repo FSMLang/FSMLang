@@ -76,6 +76,8 @@ pLIST_ELEMENT iterate_list(pLIST, LIST_ITERATOR_FN, void *);
 
 void free_list(pLIST);
 pLIST copy_list(pLIST, pLIST);
+pLIST copy_list_unique(pLIST, pLIST);
+pLIST copy_list_unique_with_exception(pLIST, pLIST, void*);
 
 pLIST move_list(pLIST, pLIST);
 pLIST move_list_unique(pLIST, pLIST);

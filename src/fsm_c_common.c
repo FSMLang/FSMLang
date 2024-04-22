@@ -60,9 +60,10 @@
 
 #include "revision.h"
 
-bool generate_weak_fns = true;
-bool core_logging_only = false;
-bool include_svg_img   = false;
+bool generate_weak_fns           = true;
+bool core_logging_only           = false;
+bool include_svg_img             = false;
+bool convenience_macros_in_public_header = true;
 
 
 static char  *eventXRefFormat0Str = "\t%5u  ";
@@ -124,6 +125,12 @@ int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 	   fprintf(pfsmcog->pcmd->subMachineHFile
 			   , "#include \"%s\"\n"
 			   , pfsmcog->pcmd->pubHName
+			   );
+
+	   /* include our event header in our public header */
+	   fprintf(pfsmcog->pcmd->pubHFile
+			   , "#include \"%s\"\n"
+			   , pfsmcog->pcmd->eventsHName
 			   );
 
       return 0;
@@ -358,7 +365,7 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_CAL
       }
    }
 
-   fprintf(pcmd->pubHFile
+   fprintf(pich->ih.fout
            , "/*\n\tEvent Cross Reference:\n\n"
           );
 
@@ -387,7 +394,7 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_CAL
    }
 
 
-   fprintf(pcmd->pubHFile
+   fprintf(pcmd->eventsHFile
            , "\n*/\n"
           );
 
@@ -433,14 +440,30 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
       fprintf(pcmd->hFile, "#ifndef NON_CORE_DEBUG_PRINTF\n#define NON_CORE_DEBUG_PRINTF(...) \n#endif\n\n");
    }
 
-   fprintf(pcmd->hFile
+   fprintf(convenience_macros_in_public_header
+		     ? pcmd->pubHFile
+		     : pcmd->hFile
+		   , "#ifndef NO_CONVENIENCE_MACROS\n"
+		   );
+
+   fprintf(convenience_macros_in_public_header
+		     ? pcmd->pubHFile
+		     : pcmd->hFile
 		   , "#undef UFMN\n#define UFMN(A) %s_##A\n"
 		   , ufMachineName(pcmd)
 		   );
 
-   fprintf(pcmd->pubHFile
+   fprintf(convenience_macros_in_public_header
+		     ? pcmd->pubHFile
+		     : pcmd->hFile
 		   , "#undef THIS\n#define THIS(A) %s_##A\n"
 		   , machineName(pcmd)
+		   );
+
+   fprintf(convenience_macros_in_public_header
+		     ? pcmd->pubHFile
+		     : pcmd->hFile
+		   , "#endif\n"
 		   );
 
    if (pmi->machine_list)
@@ -460,13 +483,13 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 
    if (add_event_cross_reference)
    {
-	   ich.ih.fout = pcmd->pubHFile;
+	   ich.ih.fout = pcmd->eventsHFile;
 	   addEventCrossReference(pcmd, pmi, &ich);
 	   ich.ih.fout = pcmd->hFile;
    }
 
    /* put the event enum into the header file */
-   fprintf(pcmd->pubHFile
+   fprintf(pcmd->eventsHFile
 		   , "typedef enum %s {\n"
 		   , eventType(pcmd)
 		   );
@@ -481,7 +504,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 
 
    ich.ih.first = true;
-   ich.ih.fout = pcmd->pubHFile;
+   ich.ih.fout = pcmd->eventsHFile;
    iterate_list(pmi->event_list, print_event_enum_member, &ich);
    ich.ih.fout = pcmd->hFile;
 
@@ -490,43 +513,43 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
        && !(pmi->modFlags & mfActionsReturnVoid)
       )
    {
-      fprintf(pcmd->pubHFile
+      fprintf(pcmd->eventsHFile
 			  , "\t, %s_noEvent\n"
 			  , machineName(pcmd)
 			  );
    }
 
-   fprintf(pcmd->pubHFile
+   fprintf(pcmd->eventsHFile
 		   , "\t, %s_numEvents"
 		   , machineName(pcmd)
 		   );
    if (assignExternalEventValues(pmi))
    {
-      fprintf(pcmd->pubHFile
+      fprintf(pcmd->eventsHFile
 			  , " = %u"
               , pmi->event_list->count
               );
    }
-   fprintf(pcmd->pubHFile, "\n");
+   fprintf(pcmd->eventsHFile, "\n");
 
    if (pmi->machine_list)
    {
-	   ich.ih.fout = pcmd->pubHFile;
+	   ich.ih.fout = pcmd->eventsHFile;
       iterate_list(pmi->machine_list,print_sub_machine_events,&ich);
 	  ich.ih.fout = pcmd->hFile;
    }
 
-   fprintf(pcmd->pubHFile
+   fprintf(pcmd->eventsHFile
 		   , "\t, %s_numAllEvents"
 		   , machineName(pcmd)
 		   );
 
-   fprintf(pcmd->pubHFile
+   fprintf(pcmd->eventsHFile
 		   , pmi->machine_list ? "%s\n" : " = %s_numEvents\n" 
 		   , pmi->machine_list ? ""     : machineName(pcmd)
 		   );
 
-   fprintf(pcmd->pubHFile
+   fprintf(pcmd->eventsHFile
            , "}%s %s;\n\n"
            , compact_action_array ? "__attribute__((__packed__)) " : " "
 		   , eventType(pcmd)
@@ -1287,6 +1310,7 @@ pCMachineData	newCMachineData(char *baseFileName)
          pcmd->pubHName         = createFileName(baseFileName, ".h");
          pcmd->hName            = createFileName(baseFileName, "_priv.h");
          pcmd->subMachineHName  = createFileName(baseFileName, "_submach.h");
+         pcmd->eventsHName      = createFileName(baseFileName, "_events.h");
 
       }
 
@@ -1306,6 +1330,7 @@ void destroyCMachineData(pCMachineData pcmd, int good)
       /* close the #ifndef on the header file(s) */
       fprintf(pcmd->hFile, "\n#endif\n");
       fprintf(pcmd->subMachineHFile, "\n#endif\n");
+      fprintf(pcmd->eventsHFile, "\n#endif\n");
 
 	  if (pcmd->pubHFile && (pcmd->pubHFile != pcmd->hFile))
 	  {
@@ -2068,6 +2093,7 @@ static void print_native_prologue(pCMachineData pcmd, pMACHINE_INFO pmi)
 		pcmd->hFile
 		, pcmd->subMachineHFile
 		, pcmd->pubHFile
+		, pcmd->eventsHFile
 	};
 
 	for (unsigned long f_iterator = 0; f_iterator < sizeof(f_array)/sizeof(f_array[0]); f_iterator++)
@@ -2087,6 +2113,7 @@ void print_native_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi)
 		pcmd->hFile
 		, pcmd->subMachineHFile
 		, pcmd->pubHFile
+		, pcmd->eventsHFile
 	};
 
 	for (unsigned long f_iterator = 0; f_iterator < sizeof(f_array)/sizeof(f_array[0]); f_iterator++)
@@ -2146,7 +2173,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
            );
 
    fprintf(pcmd->hFile
-           , "#ifndef NO_EVENT_CONVENIENCE_MACROS\n"
+           , "#ifndef NO_CONVENIENCE_MACROS\n"
            );
 
    fprintf(pcmd->hFile
@@ -2572,7 +2599,7 @@ bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
        {
 
           /* if this action is associated with a shared event, it will have exactly one event */
-          pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->actionInfo->matrix->event_list,0);
+          pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->type_data.action_data.actionInfo->matrix->event_list,0);
 
           /* and, that event will have a list of sharing machines */
           if (pevent->type_data.event_data.psharing_sub_machines)
@@ -2616,7 +2643,7 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
    if (pid_info->name && strlen(pid_info->name))
    {
       /* if this action is associated with a shared event, it will have exactly one event */
-      pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->actionInfo->matrix->event_list,0);
+      pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->type_data.action_data.actionInfo->matrix->event_list,0);
 
       /* and, that event will have a list of sharing machines */
       if (pevent->type_data.event_data.psharing_sub_machines)
