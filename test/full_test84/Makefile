@@ -3,27 +3,33 @@
 # makefile for individual test
 #
 #
+.PHONEY: check_output
 
-override CFLAGS += -DFSM_DEBUG \
-         -DSUB_MACHINE1_DEBUG \
-         -DSUB_MACHINE2_DEBUG \
-         -DNEW_MACHINE_DEBUG \
-         -I../ \
-	 -Wall \
-	 -ggdb
+override CFLAGS += -DANOTHER_NEW_MACHINE_DEBUG                                               \
+                   -DANOTHER_NEW_MACHINE_ANOTHER_SUB_MACHINE1_DEBUG                          \
+                   -DANOTHER_NEW_MACHINE_ANOTHER_SUB_MACHINE1_ANOTHER_SUB_SUB_MACHINE1_DEBUG \
+                   -DNEW_MACHINE_DEBUG                                                       \
+                   -DNEW_MACHINE_SUB_MACHINE1_DEBUG                                          \
+                   -DNEW_MACHINE_SUB_MACHINE1_SUB_SUB_MACHINE1_DEBUG 
 
-override FSM_FLAGS += --convenience-macros-in-public-header=false --generate-run-function=true -ts
+FSM_FLAGS = -ts --add-event-cross-reference
 
 FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
-
-TARGET=clean_fail_test_c
+SRC = $(shell find . -name "*actions.c" -printf "%P ")
+SRC += test.c
 
 include ../../fsmrules.mk
 
+# add the submach headers for our "clean" target to work properly.
+
+
+#TARGET     = check_objects
+
 include ../test.mk
 
-clean_fail_test_c: fail_test_c clean
-
-fail_test_c: top_level.h
-	@$(CC) -o $(CFLAGS) test.c $(CALL_FAILURE_A_SUCCESS)
+check_objects:
+	@echo $(OBJS)
+	@echo $(SRC)
+	@echo $(FSM_SRC)
+	@echo $(GENERATED_SRC)
 

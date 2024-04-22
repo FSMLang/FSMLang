@@ -477,7 +477,7 @@ extern void yyerror(char*);
 
 void write_machines(pLIST,fpFSMOutputGeneratorFactory, pFSMOutputGenerator);
 bool print_machine_component(pLIST_ELEMENT,void*);
-bool print_sub_machine_component(pLIST_ELEMENT,void*);
+bool print_sub_machine_event(pLIST_ELEMENT,void*);
 bool print_sub_machine_component_name(pLIST_ELEMENT,void*);
 bool print_sub_machine_events(pLIST_ELEMENT,void*);
 bool print_sub_machine_event_names(pLIST_ELEMENT,void*);

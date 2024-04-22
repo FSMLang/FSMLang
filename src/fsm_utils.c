@@ -1066,20 +1066,51 @@ bool print_machine_component(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-bool print_sub_machine_component(pLIST_ELEMENT pelem, void *data)
+bool print_sub_machine_event(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO pid         = (pID_INFO) pelem->mbr;
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
-   fprintf(pih->fout
-           , "\t%s"
-           , pih->first ? "" : ", "
-		   );
-   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
-   fprintf(pih->fout
-		   , "_%s\n"
-           , pid->name
-           );
+   fprintf(pih->fout, "\t, ");
+
+   if (pelem->ordinal == 0)
+   {
+       printNameWithAncestry("firstEvent"
+                             , pih->pmi
+                             , pih->fout
+                             , "_"
+                             , alc_lower
+                             , ai_include_self
+                             );
+       fprintf(pih->fout, "\n\t, ");
+       printNameWithAncestry(pid->name
+                             ,pih->pmi
+                             , pih->fout
+                             , "_"
+                             , alc_lower
+                             , ai_include_self
+                             );
+       fprintf(pih->fout, " = ");
+       printNameWithAncestry("firstEvent"
+                             , pih->pmi
+                             , pih->fout
+                             , "_"
+                             , alc_lower
+                             , ai_include_self
+                             );
+   }
+   else
+   {
+       printNameWithAncestry(pid->name
+                             ,pih->pmi
+                             , pih->fout
+                             , "_"
+                             , alc_lower
+                             , ai_include_self
+                             );
+   }
+
+   fprintf(pih->fout, "\n");
 
    return false;
 }
@@ -1127,17 +1158,45 @@ bool print_sub_machine_events(pLIST_ELEMENT pelem, void *data)
    pih->pmi   = (pMACHINE_INFO) pelem->mbr;
    pih->first = false;
 
-   iterate_list(pih->pmi->event_list,print_sub_machine_component,pih);
+   iterate_list(pih->pmi->event_list,print_sub_machine_event,pih);
 
-   fprintf(pih->fout , "\t, ");
-   printAncestry(pih->pmi, pih->fout, "_", alc_lower, ai_include_self);
-   fprintf(pih->fout
-		   , "_noEvent\n"
-           );
+   fprintf(pih->fout, "\t, ");
+   printNameWithAncestry("noEvent"
+                         , pih->pmi
+                         , pih->fout
+                         , "_"
+                         , alc_lower
+                         , ai_include_self
+                         );
+
+   fprintf(pih->fout, "\n");
 
    if (pih->pmi->machine_list)
    {
-	   iterate_list(pih->pmi->machine_list, print_sub_machine_events, pih);
+	   iterate_list(pih->pmi->machine_list
+                    , print_sub_machine_events
+                    , pih
+                    );
+
+       pih->pmi   = (pMACHINE_INFO) pelem->mbr;
+       fprintf(pih->fout , "\t, ");
+       printNameWithAncestry("lastEvent"
+                             , pih->pmi
+                             , pih->fout
+                             , "_"
+                             , alc_lower
+                             , ai_include_self
+                             );
+       fprintf(pih->fout," = ");
+       printNameWithAncestry("noEvent"
+                             , (pMACHINE_INFO)LAST_LIST_MEMBER(pih->pmi->machine_list)
+                             , pih->fout
+                             , "_"
+                             , alc_lower
+                             , ai_include_self
+                             );
+       fprintf(pih->fout, "\n");
+
    }
 
    return false;

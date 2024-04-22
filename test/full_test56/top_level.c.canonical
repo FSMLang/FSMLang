@@ -98,7 +98,7 @@ static TOP_LEVEL_EVENT findAndRunSubMachine(pTOP_LEVEL pfsm, TOP_LEVEL_EVENT e)
 	{
 			if (
 			   ((*pfsm->subMachineArray)[machineIterator]->first_event <= e)
-			   && ((*pfsm->subMachineArray)[machineIterator]->last_event >= e)
+			   && ((*pfsm->subMachineArray)[machineIterator]->last_event > e)
 			    )
 			{
 				return ((*(*pfsm->subMachineArray)[machineIterator]->subFSM)(e));

@@ -86,6 +86,9 @@ pLIST_ELEMENT add_to_list(pLIST,void*);
 pLIST_ELEMENT add_unique_to_list(pLIST,void*);
 void *find_nth_list_member(pLIST, unsigned);
 
+#define FIRST_LIST_MEMBER(A) ((A)->head->mbr)
+#define LAST_LIST_MEMBER(A) ((A)->tail->mbr)
+
 #endif
 
 
