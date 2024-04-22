@@ -27,6 +27,7 @@
 
 #include "fsm_c.h"
 #include "fsm_cswitch.h"
+#include "fsm_c_event_table.h"
 #include "fsm_html.h"
 #include "fsm_plantuml.h"
 #include "fsm_statistics.h"
@@ -2506,6 +2507,10 @@ int main(int argc, char **argv)
 						fpfsmogf = generatePlantUMLMachineWriter;
 						break;
 
+					case 'e':
+						fpfsmogf = generateCEventTableMachineWriter;
+						break;
+
 					default:
 						usage();
 						return (1);
@@ -2661,9 +2666,10 @@ void yyerror(char *s)
 void usage(void)
 {
 
-	fprintf(stdout,"Usage : %s [-tc|s|h|p] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
+	fprintf(stdout,"Usage : %s [-tc|s|e|h|p] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
+	fprintf(stdout,"\t 'e' gets you c code output with a table of functions for each event using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
 	fprintf(stdout,"\t and 'p' gets you PlantUML output\n");
 	fprintf(stdout,"\t-i0 inhibits the creation of a machine instance\n");
@@ -2677,7 +2683,7 @@ void usage(void)
 	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
 	fprintf(stdout,"\t--short-user-fn-names=true causes user functions (such as action functions to use only the machine name when the sub-machine depth is 1.\n");
 	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of actions which pass events\n");
- fprintf(stdout,"\t\twhen weak function generation is disabled..\n");
+ fprintf(stdout,"\t\twhen weak function generation is disabled.\n");
  fprintf(stdout,"\t\tThe generated functions are not weak.\n");
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");

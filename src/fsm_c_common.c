@@ -401,7 +401,7 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_CAL
 
 }
 
-void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
+void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, bool add_numStates)
 {
 	//TODO: remove from signature
 	(void) arrayName;
@@ -465,6 +465,11 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 		     ? pcmd->pubHFile
 		     : pcmd->hFile
 		   , "#endif\n"
+		   );
+
+   fprintf(pcmd->pubHFile
+		   , "#undef STATE\n#define STATE(A) %s_##A\n"
+		   , machineName(pcmd)
 		   );
 
    if (pmi->machine_list)
@@ -638,10 +643,13 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
              );
    }
 
-   fprintf(pcmd->hFile
-           , "\t, %s_numStates\n"
-		   , machineName(pcmd)
-           );
+   if (add_numStates)
+   {
+	   fprintf(pcmd->hFile
+			   , "\t, %s_numStates\n"
+			   , machineName(pcmd)
+			   );
+   }
 
    fprintf(pcmd->hFile
            , "}%s %s;\n\n"
@@ -2197,6 +2205,11 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
            );
 
    fprintf(pcmd->hFile
+		   , "#undef STATE\n#define STATE(A) %s_##A\n"
+		   , machineName(pcmd)
+		   );
+
+   fprintf(pcmd->hFile
 		   , "\n#ifdef %s_DEBUG\n"
 		   , ucMachineName(pcmd)
 		   );
@@ -3272,5 +3285,35 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, ucMachineName(pcmd)
 			);
 
+}
+
+void print_transition_for_assignment_to_state_var(pMACHINE_INFO pmi, pID_INFO ptransition, char *event, FILE *fout)
+{
+	char *format_str;
+	char *event_str = "";
+
+	if (ptransition->type == STATE)
+	{
+		if (pmi->modFlags & mfActionsReturnStates)
+		{
+			format_str = "transitionTo%s(pfsm,THIS(%s))";
+			event_str  = event;
+		}
+		else
+		{
+			format_str = "STATE(%s%s)";
+		}
+	}
+	else
+	{
+		format_str = "UFMN(%s)(pfsm,THIS(%s))";
+		event_str  = event;
+	}
+
+	fprintf(fout
+			, format_str
+			, ptransition->name
+			, event_str
+			);
 }
 

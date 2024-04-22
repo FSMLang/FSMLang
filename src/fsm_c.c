@@ -65,11 +65,12 @@ static void writeCMachineFN(pFSMOutputGenerator, pMACHINE_INFO);
 
 FSMCOutputGenerator CMachineWriter = {
 	{
-		initCMachine,
-		writeCMachine,
-		closeCMachine
-	},
-	NULL
+		initCMachine
+		, writeCMachine
+		, closeCMachine
+		, generateCMachineWriter
+	}
+	, NULL
 };
 
 /* list iteration callbacks */
@@ -252,6 +253,12 @@ static int writeCSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	defineCSubMachineFSM(pcmd, pmi);
 
+	/* write our sub-machine lookup, if needed */
+	if (pmi->machine_list)
+	{
+		defineSubMachineFinder(pcmd, pmi);
+	}
+
 	defineStateEntryAndExitManagers(pcmd, pmi);
 
 	if (generate_weak_fns)
@@ -296,7 +303,7 @@ static int writeCMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 	/* do this now, since some header stuff puts content into the source file.*/
 	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-	commonHeaderStart(pcmd, pmi, "action");
+	commonHeaderStart(pcmd, pmi, "action", true);
 
 	declareCMachineActionArray(pcmd, pmi);
 
@@ -1588,6 +1595,11 @@ static void defineCMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 static void defineCSubMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
+
+	if (pmi->machine_list)
+	{
+		declareSubMachineManagers(pcmd, pmi);
+	}
 
 	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
 	{

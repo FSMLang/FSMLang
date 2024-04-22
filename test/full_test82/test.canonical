@@ -1,0 +1,11 @@
+hello, world
+event: messenger_goodMessage; state: messenger_initial
+processing good message
+event: messenger_badMessage; state: messenger_working
+sending error indication
+event: messenger_goodMessage; state: messenger_initial
+processing good message
+event: messenger_goodMessage; state: messenger_working
+processing good message
+event: messenger_badMessage; state: messenger_working
+sending error indication

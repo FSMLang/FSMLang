@@ -462,9 +462,10 @@ typedef pFSMOutputGenerator (*fpFSMOutputGeneratorFactory)(pFSMOutputGenerator);
 
 struct _fsm_output_generator_
 {
-	fpInitOutput	initOutput;
-	fpWriteMachine	writeMachine;
-	fpCloseOutput	closeOutput;
+	fpInitOutput	            initOutput;
+	fpWriteMachine	            writeMachine;
+	fpCloseOutput	            closeOutput;
+	fpFSMOutputGeneratorFactory fsmogFactory;
 };
 
 struct _fsm_output_generator_factory_
