@@ -1174,7 +1174,6 @@ static void writeOriginalSwitchFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO 
 static void writeOriginalSwitchSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, char *tabstr)
 {
    (void) tabstr;
-   char *local_tabstr = "\t";
 
    if (pmi->has_single_pai_events)
    {
