@@ -30,6 +30,7 @@
 #include "fsm_html.h"
 #include "fsm_plantuml.h"
 #include "fsm_statistics.h"
+#include "fsm_c_event_xref.h"
 
 #include "list.h"
 
@@ -2161,6 +2162,8 @@ typedef enum {
  , lo_add_plantuml_prefix_string
  , lo_add_plantuml_prefix_file
  , lo_short_user_fn_names
+ , lo_event_cross_ref_only
+ , lo_event_cross_ref_format
  , lo_convenience_macro_in_public_header
 } LONG_OPTIONS;
 
@@ -2289,6 +2292,18 @@ const struct option longopts[] =
 				, .val     = lo_short_user_fn_names
     }
     , {
+        .name      = "event-cross-ref-only"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_event_cross_ref_only
+    }
+    , {
+        .name      = "event-cross-ref-format"
+        , .has_arg = required_argument
+        , .flag    = &longval
+				, .val     = lo_event_cross_ref_format
+		}
+		, {
         .name      = "convenience-macros-in-public-header"
         , .has_arg = optional_argument
         , .flag    = &longval
@@ -2367,6 +2382,15 @@ int main(int argc, char **argv)
  					 if (!optarg || !strcmp(optarg,"true"))
  						add_event_cross_reference = true;
  					 break;
+         case lo_event_cross_ref_only:
+ 					 if (!optarg || !strcmp(optarg,"true"))
+						fpfsmogf = generateCEventXRefWriter;
+           break;
+         case lo_event_cross_ref_format:
+           if (!check_requested_xref_format(optarg))
+             yyerror("invalid event cross reference format");
+					 fpfsmogf = generateCEventXRefWriter;
+           break;
  			   case lo_add_plantuml_title:
  					 if (!optarg || !strcmp(optarg,"true"))
  						add_plantuml_title = true;
@@ -2467,7 +2491,7 @@ int main(int argc, char **argv)
 				switch (optarg[0]) {
 
 					case 'c':
-                        fpfsmogf = generateCMachineWriter;
+            fpfsmogf = generateCMachineWriter;
 						break;
 
 					case 'h':
@@ -2678,9 +2702,15 @@ void usage(void)
  fprintf(stdout,"\t\t(THIS, UFMN, e.g.) in the public header of the top-level machine;\n");
  fprintf(stdout,"\t\totherwise, they are placed in the private header.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
+ fprintf(stdout,"\t--add-event-cross-reference<=*true|false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t--add-event-cross-reference<=true|*false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
  fprintf(stdout,"\t\tto specifying \"true\"\n");
+ fprintf(stdout,"\t--event-cross-ref-only<=*true|false> creates a cross-reference list as a separate file.\n");
+ fprintf(stdout,"\t\tWhen the format is not specified by --event-cross-ref-format, json is provided.\n");
+ fprintf(stdout,"\t\tThe file created is <filename>.[json|csv|tab|xml]\n");
+ fprintf(stdout,"\t--event-cross-ref-format=[json|csv|tab|xml] specifies the output format for --event-cross-ref-only.\n");
+ fprintf(stdout,"\t\tSpecifying this option obviates --event-cross-ref-only.\n");
  fprintf(stdout,"\t--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
  fprintf(stdout,"\t\tany generated output.  This option can be specified multiple times; all text will be\n");
  fprintf(stdout,"\t\tadded in the order given\n");

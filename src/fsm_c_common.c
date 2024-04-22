@@ -369,9 +369,10 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_CAL
            , "/*\n\tEvent Cross Reference:\n\n"
           );
 
-   pich->ih.first     = true;
-   pich->ih.tab_level  = 0;
-   pich->ih.pmi       = pmi;
+   unsigned event_count = 0;
+   pich->ih.first       = true;
+   pich->ih.counter0    = &event_count;
+   pich->ih.pmi         = pmi;
 
    iterate_list(pmi->event_list, print_event_cross_reference, pich);
 
@@ -1464,10 +1465,10 @@ static bool print_sub_machine_event_cross_reference(pLIST_ELEMENT pelem, void *d
 
 static void print_event_cross_reference_entry(char *event_name, pITERATOR_CALLBACK_HELPER pich)
 {
-	/* use the tab_level field to count the events */
+	/* use the counter0 field to count the events */
 	fprintf(pich->ih.fout
 			, eventXRefFormat0Str
-			, pich->ih.tab_level++
+			, (*pich->ih.counter0)++
 			);
 	printAncestry(pich->ih.pmi, pich->ih.fout, "_", alc_lower, ai_include_self);
 	fprintf(pich->ih.fout
