@@ -220,6 +220,7 @@ void            print_transition_fn_declaration_for_when_actions_return_states(p
 void            print_weak_action_function_body_omitting_return_statement(pCMachineData, char *);
 void            print_native_epilogue(pCMachineData,pMACHINE_INFO);
 void            print_transition_for_assignment_to_state_var(pMACHINE_INFO,pID_INFO,char*,FILE*);
+void writeNoTransition(pCMachineData, pMACHINE_INFO);
 
 #endif
 

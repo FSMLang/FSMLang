@@ -1006,9 +1006,9 @@ static void print_transition_function_signature(FILE *fout, pCMachineData pcmd, 
 			, name_prefix ? name_prefix : ""
 			, name
 			, define ? " pfsm" : ""
-			, pcmd->pmi->modFlags & mfActionsReturnStates ? "" : ", "
-			, pcmd->pmi->modFlags & mfActionsReturnStates ? "" : eventType(pcmd)
-			, define && pcmd->pmi->modFlags & mfActionsReturnStates ? "" : " e"
+			, ","
+			, eventType(pcmd)
+			, define ? " e" : ""
 			, define ? "\n{" : ";"
 			);
 }
@@ -1017,10 +1017,7 @@ static void print_transition_function_body(FILE *fout, pCMachineData pcmd, char 
 {
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-	if (!(pcmd->pmi->modFlags & mfActionsReturnStates))
-	{
-		fprintf(fout, "\t(void) e;\n");
-	}
+	fprintf(fout, "\t(void) e;\n");
 
 	fprintf(fout
 			, "\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n\treturn %s_%s;\n}\n"
@@ -1073,6 +1070,8 @@ static bool define_transition_list_functions(pLIST_ELEMENT pelem, void *data)
 	pITERATOR_CALLBACK_HELPER pich        = (pITERATOR_CALLBACK_HELPER) data;
 	pID_INFO                  ptransition = (pID_INFO) pelem->mbr;
 
+	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	if (ptransition->type == STATE)
 	{
 		print_transition_function_signature(pich->pcmd->cFile, pich->pcmd, "transitionTo", ptransition->name, true);
@@ -1098,6 +1097,7 @@ void writeStateTransitions(pCMachineData pcmd, pMACHINE_INFO pmi)
 				   , define_action_array_transition_functions
 				   , &ich
 				   );
+
    }
    else
    {
@@ -1812,6 +1812,8 @@ bool declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT pelem, v
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    print_transition_fn_declaration_for_when_actions_return_states(pich->pcmd, pich->pcmd->hFile, pid_info->name);
 
    return false;
@@ -1821,6 +1823,8 @@ bool declare_state_only_transition_functions_for_when_actions_return_states(pLIS
 {
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    print_state_only_transition_fn_declaration_for_when_actions_return_states(pich->pcmd, pich->pcmd->hFile, pid_info->name);
 
@@ -2361,11 +2365,12 @@ void print_transition_fn_declaration_for_when_actions_return_states(pCMachineDat
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s %s_%s(p%s);\n"
+			, "%s %s_%s(p%s,%s);\n"
 			, stateType(pcmd)
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
+			, eventType(pcmd)
 			);
 }
 
@@ -2374,11 +2379,12 @@ static void print_state_only_transition_fn_declaration_for_when_actions_return_s
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s %s_transitionTo%s(p%s);\n"
+			, "%s %s_transitionTo%s(p%s,%s);\n"
 			, stateType(pcmd)
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
+			, eventType(pcmd)
 			);
 }
 
@@ -3296,7 +3302,7 @@ void print_transition_for_assignment_to_state_var(pMACHINE_INFO pmi, pID_INFO pt
 	{
 		if (pmi->modFlags & mfActionsReturnStates)
 		{
-			format_str = "transitionTo%s(pfsm,THIS(%s))";
+			format_str = "UFMN(transitionTo%s)(pfsm,THIS(%s))";
 			event_str  = event;
 		}
 		else
@@ -3315,5 +3321,42 @@ void print_transition_for_assignment_to_state_var(pMACHINE_INFO pmi, pID_INFO pt
 			, ptransition->name
 			, event_str
 			);
+}
+
+void writeNoTransition(pCMachineData pcmd, pMACHINE_INFO pmi)
+{
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
+
+	fprintf(pcmd->cFile
+			, "\n%s UFMN(noTransitionFn)(p%s pfsm"
+			, stateType(pcmd)
+			, fsmType(pcmd)
+			);
+	if (pmi->modFlags & mfActionsReturnStates)
+	{
+		fprintf(pcmd->cFile, ")\n{\n");
+
+		fprintf(pcmd->cFile
+				, "\t%s(\"%%s\\n\", __func__);\n"
+				, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+				);
+		fprintf(pcmd->cFile
+				, "\t(void) pfsm;\n\treturn THIS(noTransition)"
+				);
+	}
+	else
+	{
+		fprintf(pcmd->cFile
+				, ", %s e)\n{\n"
+				, eventType(pcmd)
+				);
+		fprintf(pcmd->cFile, "\t(void) e;\n");
+		fprintf(pcmd->cFile
+				, "\t%s(\"%%s\\n\", __func__);\n"
+				, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+				);
+		fprintf(pcmd->cFile, "\treturn pfsm->state");
+	}
+	fprintf(pcmd->cFile, ";\n}\n\n");
 }
 

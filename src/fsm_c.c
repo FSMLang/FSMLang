@@ -194,7 +194,6 @@ static void writeOriginalFSMLoop(pCMachineData, pMACHINE_INFO);
 static void writeOriginalSubFSMLoop(pCMachineData, pMACHINE_INFO);
 static void writeOriginalFSMLoopInnards(pCMachineData, pMACHINE_INFO, char *);
 static void writeOriginalSubFSMLoopInnards(pCMachineData, pMACHINE_INFO, char *);
-static void writeNoTransition(pCMachineData, pMACHINE_INFO);
 static void writeReentrantFSM(pCMachineData, pMACHINE_INFO);
 static void writeActionsReturnStateFSM(pCMachineData, pMACHINE_INFO);
 static void declareCMachineActionArray(pCMachineData, pMACHINE_INFO);
@@ -662,43 +661,6 @@ static void writeActionsReturnStateFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	fprintf(pcmd->cFile, "}\n");
 
-}
-
-static void writeNoTransition(pCMachineData pcmd, pMACHINE_INFO pmi)
-{
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
-
-	fprintf(pcmd->cFile
-			, "\n%s UFMN(noTransitionFn)(p%s pfsm"
-			, stateType(pcmd)
-			, fsmType(pcmd)
-			);
-	if (pmi->modFlags & mfActionsReturnStates)
-	{
-		fprintf(pcmd->cFile, ")\n{\n");
-
-		fprintf(pcmd->cFile
-				, "\t%s(\"%%s\\n\", __func__);\n"
-				, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-				);
-		fprintf(pcmd->cFile
-				, "\t(void) pfsm;\n\treturn THIS(noTransition)"
-				);
-	}
-	else
-	{
-		fprintf(pcmd->cFile
-				, ", %s e)\n{\n"
-				, eventType(pcmd)
-				);
-		fprintf(pcmd->cFile, "\t(void) e;\n");
-		fprintf(pcmd->cFile
-				, "\t%s(\"%%s\\n\", __func__);\n"
-				, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-				);
-		fprintf(pcmd->cFile, "\treturn pfsm->state");
-	}
-	fprintf(pcmd->cFile, ";\n}\n\n");
 }
 
 static void writeOriginalFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, char *tabstr)

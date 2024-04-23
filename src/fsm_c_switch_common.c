@@ -154,6 +154,11 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
                       , &ich
                       );
 
+         iterate_list(pmi->transition_list
+                      , declare_state_only_transition_functions_for_when_actions_return_states 
+                      , &ich
+                      );
+
       }
 
       fprintf(pcmd->hFile, "\n");
