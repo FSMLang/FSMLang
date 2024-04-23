@@ -224,6 +224,13 @@ static int writeCEventTableSubMachineInternal(pCMachineData pcmd)
       defineEventPassingActions(pcmd, pmi);
    }
 
+   /* write our transition functions, if needed */
+   if (pmi->transition_fn_list->count)
+   {
+	   writeStateTransitions(pcmd, pmi);
+	   writeNoTransition(pcmd, pmi);
+   }
+
    writeDebugInfo(pcmd, pmi);
 
 	addNativeImplementationEpilogIfThereIsAny(pmi, pcmd->cFile);
@@ -364,6 +371,13 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 	else if (force_generation_of_event_passing_actions)
 	{
 	   defineEventPassingActions(pcmd, pmi);
+	}
+
+	/* write our transition functions, if needed */
+	if (pmi->transition_fn_list->count)
+	{
+		writeStateTransitions(pcmd, pmi);
+		writeNoTransition(pcmd, pmi);
 	}
 
 	writeDebugInfo(pcmd, pmi);
@@ -784,24 +798,33 @@ static void print_event_table_handler_body_for_multiple_state_events_arv(FILE *f
 
 static void print_event_table_handler_body_for_multiple_state_events_ars(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
 {
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	pCMachineData pcmd = pich->pcmd;
 
-	fprintf(fout
-			, "\tACTION_RETURN_TYPE state;\n"
-			);
+	if (ped->phandling_states->count)
+	{
+		fprintf(fout
+				, "\tACTION_RETURN_TYPE state;\n"
+			   );
 
-	fprintf(fout
-			, "\tswitch (pfsm->state)\n\t{\n"
-			);
+		fprintf(fout
+				, "\tswitch (pfsm->state)\n\t{\n"
+			   );
 
-	iterate_list(ped->phandling_states
-				 , print_event_table_handler_state_case
-				 , pich
-				 );
+		iterate_list(ped->phandling_states
+					 , print_event_table_handler_state_case
+					 , pich
+					);
 
-	fprintf(fout, "\t\tdefault:\n\t\t\tbreak;\n\t}\n\n");
+		fprintf(fout, "\t\tdefault:\n\t\t\tbreak;\n\t}\n\n");
 
-	fprintf(fout, "\treturn state;\n");
+		fprintf(fout, "\treturn state;\n");
+	}
+	else
+	{
+		fprintf(fout, "\treturn pfsm->state;\n");
+	}
 
 }
 
@@ -858,7 +881,7 @@ static bool print_event_table_handler_state_case_arv(pLIST_ELEMENT pelem, void *
 			, pstate->name
 			);
 
-	if (pai->action->name)
+	if (pai->action->name && strlen(pai->action->name))
 	{
 		fprintf(fout
 				, "UFMN(%s)(pfsm);\n"
@@ -897,7 +920,7 @@ static bool print_event_table_handler_state_case_ars(pLIST_ELEMENT pelem, void *
 			, pstate->name
 			);
 
-	if (pai->action->name)
+	if (pai->action->name && strlen(pai->action->name))
 	{
 		fprintf(fout
 				, "\t\t\tstate = UFMN(%s)(pfsm);\n"
