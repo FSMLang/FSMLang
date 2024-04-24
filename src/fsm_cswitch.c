@@ -315,13 +315,6 @@ static int writeCSwitchMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
       defineEventPassingActions(pcmd, pmi);
    }
 
-	/* write our transition functions, if needed */
-	if (pmi->transition_fn_list->count)
-	{
-		writeStateTransitions(pcmd, pmi);
-		writeNoTransition(pcmd, pmi);
-	}
-
    writeDebugInfo(pcmd, pmi);
 
 	addNativeImplementationEpilogIfThereIsAny(pmi, pcmd->cFile);
@@ -432,13 +425,6 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
    {
       defineEventPassingActions(pcmd, pmi);
    }
-
-	/* write our transition functions, if needed */
-	if (pmi->transition_fn_list->count)
-	{
-		writeStateTransitions(pcmd, pmi);
-		writeNoTransition(pcmd, pmi);
-	}
 
    writeDebugInfo(pcmd, pmi);
 

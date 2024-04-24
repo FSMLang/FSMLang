@@ -1006,9 +1006,9 @@ static void print_transition_function_signature(FILE *fout, pCMachineData pcmd, 
 			, name_prefix ? name_prefix : ""
 			, name
 			, define ? " pfsm" : ""
-			, ","
-			, eventType(pcmd)
-			, define ? " e" : ""
+			, (pcmd->pmi->modFlags & mfActionsReturnStates) ? "" : ","
+			, (pcmd->pmi->modFlags & mfActionsReturnStates) ? "" : eventType(pcmd)
+			, (pcmd->pmi->modFlags & mfActionsReturnStates) ? "" : " e"
 			, define ? "\n{" : ";"
 			);
 }
@@ -1017,10 +1017,9 @@ static void print_transition_function_body(FILE *fout, pCMachineData pcmd, char 
 {
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-	fprintf(fout, "\t(void) e;\n");
-
 	fprintf(fout
-			, "\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n\treturn %s_%s;\n}\n"
+			, "%s\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n\treturn %s_%s;\n}\n"
+			, !(pcmd->pmi->modFlags & mfActionsReturnStates) ? "\t(void) e;\n" : ""
 			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
 			, machineName(pcmd)
 			, name
@@ -2365,12 +2364,11 @@ void print_transition_fn_declaration_for_when_actions_return_states(pCMachineDat
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s %s_%s(p%s,%s);\n"
+			, "%s %s_%s(p%s);\n"
 			, stateType(pcmd)
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
-			, eventType(pcmd)
 			);
 }
 
@@ -2379,12 +2377,11 @@ static void print_state_only_transition_fn_declaration_for_when_actions_return_s
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s %s_transitionTo%s(p%s,%s);\n"
+			, "%s %s_transitionTo%s(p%s);\n"
 			, stateType(pcmd)
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
-			, eventType(pcmd)
 			);
 }
 
@@ -3302,8 +3299,7 @@ void print_transition_for_assignment_to_state_var(pMACHINE_INFO pmi, pID_INFO pt
 	{
 		if (pmi->modFlags & mfActionsReturnStates)
 		{
-			format_str = "UFMN(transitionTo%s)(pfsm,THIS(%s))";
-			event_str  = event;
+			format_str = "UFMN(transitionTo%s)(pfsm)";
 		}
 		else
 		{
