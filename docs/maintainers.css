@@ -1,0 +1,51 @@
+.typical {
+	border: 1px solid;
+	border-collapse: collapse;
+	margin: 30px;
+}
+
+table.typical th, table.typical td {
+	border: 1px solid;
+	padding: 10px;
+}
+
+th.lhs {
+	text-align: left;
+}
+
+.selection {
+	text-align: center;
+}
+
+/* 
+  The .scrollable styles enable scrolling of the
+   event-state table
+*/
+.scrollable {
+  max-height: 600px;
+  overflow: scroll;
+}
+
+
+.scrollable thead th {
+  background-color: lightgrey;
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  top: 0;
+}
+
+.scrollable tbody th {
+  background-color: lightgrey;
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  left: 0;
+}
+
+
+/* To have the header in the first column stick to the left: */
+
+.scrollable thead th:first-child {
+  left: 0;
+  z-index: 1;
+}
+
