@@ -360,5 +360,12 @@
 
 	CL options to support interaction with gnu make are provided.
 */
-const char rev_string[] = "1.42";
+
+/*
+	Revision 1.43
+
+	C language event enumeration cross reference can now be written to an external file in json,
+        text, or, XML formats.  See --event-cross-ref-only and --event-cross-ref-format.
+*/
+const char rev_string[] = "1.43";
 
