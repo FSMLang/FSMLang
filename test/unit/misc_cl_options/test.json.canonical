@@ -1,3 +1,4 @@
+{
 "event_xrefs":[
   { "index": "0", "name": "top_e1" }
 , { "index": "1", "name": "top_noEvent" }
@@ -7,3 +8,4 @@
 , { "index": "5", "name": "top_sub2_sub2Sub1_e1" }
 , { "index": "6", "name": "top_numAllEvents" }
 ]
+}
