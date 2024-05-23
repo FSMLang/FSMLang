@@ -2702,7 +2702,6 @@ void usage(void)
  fprintf(stdout,"\t\t(THIS, UFMN, e.g.) in the public header of the top-level machine;\n");
  fprintf(stdout,"\t\totherwise, they are placed in the private header.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
- fprintf(stdout,"\t--add-event-cross-reference<=*true|false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t--add-event-cross-reference<=true|*false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
  fprintf(stdout,"\t\tto specifying \"true\"\n");
