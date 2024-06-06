@@ -1,0 +1,17 @@
+native
+{
+#include "test.h"
+}
+
+reentrant machine messenger
+	actions return states;
+{
+	event	goodMessage, badMessage;
+	state	initial, working;
+
+	action	processMessage[goodMessage,initial];
+	action	processMessage[goodMessage,working];
+	action	sendErrorIndication[badMessage,(initial,working)];
+
+}
+

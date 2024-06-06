@@ -70,3 +70,6 @@ clean::
 	-@rm -f y.output                       2> /dev/null
 	-@rm -f lexer.c                        2> /dev/null
 
+stats.txt: $(FSM_SRC)
+	$(FSM) -s $< > $@
+
