@@ -351,6 +351,54 @@ char *hungarianToUnderbarCaps(char *str)
 }
 
 /**
+ *  streamHungarianToUnderbarCaps
+ *
+ *  Behaves similarly to hungarianToUnderbarCaps, but writes
+ *  the ouput to the given stream.
+*/
+void streamHungarianToUnderbarCaps(FILE *fout, char *str)
+{
+
+	int 	consecutive = 0;
+	char	*cp;
+
+	for (cp = str; *cp; cp++)
+	{
+
+		//deal with the escapes first
+		if (*cp == '\\')
+		{
+			fputc('_', fout);
+			continue;
+		}
+
+		if (
+			!(*cp & 0x20)
+			&& (*cp != '_')
+			&& (cp != str)
+		   )
+		{
+
+			if (!consecutive)
+			{
+				fputc('_', fout);
+				consecutive = 1;
+			}
+
+		}
+		else
+		{
+			consecutive =  *cp & 0x20 ? 0 : 1;
+		}
+
+		fputc((isalpha(*cp) ? toupper(*cp) : *cp), fout);
+
+	}
+
+
+}
+
+/**
 	function : allocateActionArray
 
 	Memory is allocated for the ActionArray, which must be freed
@@ -1028,23 +1076,86 @@ int copyFileContents(const FILE *fDest, const char *src)
     return ferror(fSrc) + ferror((FILE*)fDest);
 }
 
-void printAncestry(pMACHINE_INFO pmi, FILE *fout)
+void streamStrCaseAware(FILE *fout, char *str, ANCESTRY_LETTER_CASE alc)
 {
-   if (!pmi->parent)
+	if (alc == alc_upper)
+	{
+		streamHungarianToUnderbarCaps(fout, str);
+	}
+	else
+	{
+		fputs(str, fout);
+	}
+}
+
+static bool recursePrintAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUSION ai)
+{
+   bool something_was_printed = false;
+
+   if (pmi->parent
+	   && !(ai & ai_stop_at_parent)
+	   )
    {
-      fprintf(fout
-              , "%s"
-              , pmi->name->name
-              );
+	   if ((something_was_printed = recursePrintAncestry(pmi->parent, fout
+              , separator, alc, ai))) 
+		   fputs(separator, fout);
+	   streamStrCaseAware(fout, pmi->name->name, alc);
    }
    else
    {
-      printAncestry(pmi->parent, fout);
-      fprintf(fout
-              , "::%s"
-              , pmi->name->name
-              );
+	   if (!(ai & ai_omit_ultimate))
+	   {
+		   streamStrCaseAware(fout, pmi->name->name, alc);
+		   something_was_printed = true;
+	   }
    }
+
+   return something_was_printed;
+
+}
+
+bool printAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUSION ai)
+{
+	bool something_was_printed = false;
+
+	if (pmi->parent)
+	{
+		something_was_printed = recursePrintAncestry(pmi->parent, fout,separator,alc, ai);
+	}
+
+	if (ai & ai_include_self)
+	{
+		if (something_was_printed)
+		{
+			fputs(separator, fout);
+		}
+
+		streamStrCaseAware(fout, pmi->name->name, alc);
+		something_was_printed = true;
+	}
+
+	return something_was_printed;
+}
+
+void printNameWithAncestry(char *name, pMACHINE_INFO pmi, FILE *fout, char *separator, ANCESTRY_LETTER_CASE alc, ANCESTRY_INCLUSION ai)
+{
+	printAncestry(pmi, fout, separator, alc, ai);
+
+	fputs(separator, fout);
+
+	if (alc == alc_upper)
+	{
+		streamHungarianToUnderbarCaps(fout, name);
+	}
+	else
+	{
+		fputs(name, fout);
+	}
+}
+
+pMACHINE_INFO ultimateAncestor(pMACHINE_INFO pmi)
+{
+	return !pmi->parent ? pmi : ultimateAncestor(pmi->parent);
 }
 
 bool print_data_field(pLIST_ELEMENT pelem, void *data)

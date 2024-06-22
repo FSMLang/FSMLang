@@ -71,6 +71,25 @@ typedef enum VERTICAL_PLACEMENT {
    , vp_bottom
 } VERTICAL_PLACEMENT;
 
+/**
+ * Set the letter case for outputting
+ * ancestry.
+ * 
+ * @author sstan (10/20/2023)
+ */
+typedef enum ANCESTRY_LETTER_CASE {
+	alc_upper
+	, alc_lower
+} ANCESTRY_LETTER_CASE;
+
+typedef enum ANCESTRY_INCLUSION
+{
+	ai_omit_self        = 1
+	, ai_include_self   = 2
+	, ai_omit_ultimate  = 4
+	, ai_stop_at_parent = 8
+} ANCESTRY_INCLUSION;
+
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
 
 typedef struct _id_info_				         ID_INFO,                 *pID_INFO;
@@ -170,6 +189,7 @@ struct _iterator_helper_
    unsigned      *counter1;
    unsigned      tab_level;
    bool          found;
+   LIST_ITERATOR_FN pfn_sub_iterator;
 };
 
 
@@ -301,6 +321,7 @@ void freeMachineInfo(pMACHINE_INFO);
 FILE *openFile(char *, char *);
 char *createFileName(char *,char *);
 char *hungarianToUnderbarCaps(char *);
+void  streamHungarianToUnderbarCaps(FILE*,char *);
 char *eventNameByIndex(pMACHINE_INFO,int);
 pID_INFO eventPidByIndex(pMACHINE_INFO,int);
 char *stateNameByIndex(pMACHINE_INFO,int);
@@ -319,8 +340,11 @@ bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO, FILE*);
 void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO, FILE*);
-void printAncestry(pMACHINE_INFO,FILE*);
+bool printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
+void printNameWithAncestry(char*,pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
+pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);
 void print_tab_levels(FILE*,unsigned);
+void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);

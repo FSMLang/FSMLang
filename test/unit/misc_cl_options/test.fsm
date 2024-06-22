@@ -1,0 +1,35 @@
+machine top
+{
+	event e1;
+	state s1;
+
+	machine sub1
+	{
+		event e1;
+		state s1;
+
+		action a1 [e1, s1];
+
+	}
+
+	machine sub2
+	{
+		event e1;
+		state s1;
+
+		machine sub2Sub1
+		{
+			event e1;
+			state s1;
+
+			action a1 [e1, s1];
+
+		}
+
+		action a1 [e1, s1];
+
+	}
+
+	action a1 [e1, s1];
+
+}
