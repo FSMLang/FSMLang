@@ -2316,7 +2316,7 @@ int main(int argc, char **argv)
 {
 
 	char	*cp1;
-	char    *outFileBase = 0;
+	char    *outFileBase = NULL;
 
  #ifndef PARSER_DEBUG
  int   c;
@@ -2629,7 +2629,9 @@ int main(int argc, char **argv)
 
 		#ifndef PARSER_DEBUG
 			(*pfsmog->closeOutput)(pfsmog,good);
-			CHECK_AND_FREE(outFileBase);
+
+      //prepare for next input file, if any
+      outFileBase = NULL;
 
 		}
 		#endif
