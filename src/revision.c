@@ -367,5 +367,14 @@
 	C language event enumeration cross reference can now be written to an external file in json,
         text, or, XML formats.  See --event-cross-ref-only and --event-cross-ref-format.
 */
-const char rev_string[] = "1.43";
+
+/*
+	Revision 1.43.1
+
+	Output of event cross reference only variants now correctly includes the "...noEvent" entry for each submachine.
+
+	The main loop does not improperly free unallocated memory relating to the outFileBase.
+
+*/
+const char rev_string[] = "1.43.1";
 
