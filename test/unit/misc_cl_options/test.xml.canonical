@@ -3,7 +3,10 @@
 <event_xref index='1' name='top_noEvent'/>
 <event_xref index='2' name='top_numEvents'/>
 <event_xref index='3' name='top_sub1_e1'/>
-<event_xref index='4' name='top_sub2_e1'/>
-<event_xref index='5' name='top_sub2_sub2Sub1_e1'/>
-<event_xref index='6' name='top_numAllEvents'/>
+<event_xref index='4' name='top_sub1_noEvent'/>
+<event_xref index='5' name='top_sub2_e1'/>
+<event_xref index='6' name='top_sub2_noEvent'/>
+<event_xref index='7' name='top_sub2_sub2Sub1_e1'/>
+<event_xref index='8' name='top_sub2_sub2Sub1_noEvent'/>
+<event_xref index='9' name='top_numAllEvents'/>
 </event_xrefs>

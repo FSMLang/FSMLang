@@ -294,6 +294,9 @@ static bool iterate_sub_machines(pLIST_ELEMENT pelem, void *data)
 				 , pih
 				 );
 
+	// Cap this machine's events before processing submachines
+	(*pxref_writer)->entry_writer("noEvent", pih);
+
 	if (pmi->machine_list)
 	{
 		iterate_list(pmi->machine_list
