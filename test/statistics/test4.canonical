@@ -14,6 +14,7 @@ number of states handling one event: 2
 number of states with no way in: 1
 number of states with no way out: 2
 number of actions: 4
+number of sub-machines: 0
 Action Array:
 Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
 e1                  multiple       2           40         a1, a4

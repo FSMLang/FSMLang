@@ -35,6 +35,7 @@
 
 #include "fsm_cswitch.h"
 #include "fsm_c_common.h"
+#include "fsm_c_switch_common.h"
 #include "fsm_unused.h"
 #include "ancestry.h"
 
@@ -57,7 +58,6 @@
 
 static void            writeCSwitchMachine(pFSMOutputGenerator,pMACHINE_INFO);
 static void            writeCSwitchSubMachine(pFSMOutputGenerator,pMACHINE_INFO);
-static void            writeCSwitchMachineFN(pFSMOutputGenerator,pMACHINE_INFO);
 
 static void            defineAllStateHandler(pCMachineData,pMACHINE_INFO);
 static void            defineCSwitchMachineFSM(pCMachineData,pMACHINE_INFO);
@@ -70,14 +70,10 @@ static void            writeOriginalSwitchFSM(pCMachineData,pMACHINE_INFO);
 static void            writeOriginalSwitchSubFSM(pCMachineData,pMACHINE_INFO);
 static int             writeCSwitchMachineInternal(pCMachineData, pMACHINE_INFO);
 static int             writeCSwitchSubMachineInternal(pCMachineData, pMACHINE_INFO);
-static void            writeOriginalSwitchFSMLoop(pCMachineData,pMACHINE_INFO);
 static void            writeOriginalSwitchFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*);
-static void            writeOriginalSwitchSubFSMLoop(pCMachineData,pMACHINE_INFO);
+static void            writeOriginalSwitchSubFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*);
 static void            defineCSwitchMachineStateFns(pCMachineData,pMACHINE_INFO);
 static void            defineStateFnArray(pCMachineData,pMACHINE_INFO);
-static void            cswitchMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
-static void            cswitchSubMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
-static bool            cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
 static bool            print_state_fn_signature(pLIST_ELEMENT,void*);
 static bool            print_state_fn_name(pLIST_ELEMENT,void*);
 static void            declareOrDefineSinglePAIEventHandler(pCMachineData,pMACHINE_INFO,DECLARE_OR_DEFINE);
@@ -91,13 +87,14 @@ static bool            print_void_returning_state_fn_case(pLIST_ELEMENT,void*);
 static bool            print_state_returning_state_fn_case(pLIST_ELEMENT,void*);
 
 
-FSMCOutputGenerator CSwitchMachineWriter = {
+static FSMCOutputGenerator CSwitchMachineWriter = {
    {
-      initCMachine,
-      writeCSwitchMachine,
-      closeCMachine
-   },
-   NULL
+      initCMachine
+      , writeCSwitchMachine
+      , closeCMachine
+	  , generateCSwitchMachineWriter
+   }
+   , NULL
 };
 
 /**
@@ -181,7 +178,7 @@ static void writeActionsReturnStateSwitchFSM(pCMachineData pcmd, pMACHINE_INFO p
 
       fprintf(pcmd->cFile
               , "\t\t}\n"
-              );
+			  );
 
    }
 
@@ -201,7 +198,8 @@ static void writeCSwitchMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
    pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   pfsmcog->pcmd->pmi = pmi;
+   pfsmcog->pcmd->pmi     = pmi;
+   pfsmcog->pcmd->cfsmliw = writeOriginalSwitchFSMLoopInnards;
 
    writeCSwitchMachineInternal(pfsmcog->pcmd, pmi);
 
@@ -217,6 +215,7 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    pFSMCSubMachineOutputGenerator pfsmcsmog = (pFSMCSubMachineOutputGenerator) pfsmog;
 
    pfsmcsmog->pcmd->pmi = pmi;
+   pfsmcsmog->pcmd->cfsmliw = writeOriginalSwitchSubFSMLoopInnards;
    pfsmcsmog->pcmd->action_return_type = pfsmcsmog->parent_fsmcog->pcmd->action_return_type;
 
    writeCSwitchSubMachineInternal(pfsmcsmog->pcmd, pmi);
@@ -241,7 +240,7 @@ static int writeCSwitchMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
    /* do this now, since some header stuff puts content into the source file.*/
    addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-   commonHeaderStart(pcmd, pmi, "state_fn");
+   commonHeaderStart(pcmd, pmi, "state_fn", true);
 
    declareCSwitchMachineStateFnArray(pcmd);
 
@@ -1172,117 +1171,25 @@ static void writeOriginalSwitchFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO 
    }
 }
 
-static void writeOriginalSwitchFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void writeOriginalSwitchSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, char *tabstr)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
-
-   char *tabstr = "\t";
-
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
-
-   if (!(pmi->modFlags & mfActionsReturnVoid))
-   {
-      fprintf(pcmd->cFile, "\twhile (e != %s_noEvent) {\n\n",
-              pmi->name->name);
-   }
-   
-   printFSMMachineDebugBlock(pcmd, pmi);
-
-   fprintf(pcmd->cFile
-           , "\t/* This is read-only data to facilitate error reporting in action functions */\n"
-           );
-
-   fprintf(pcmd->cFile
-           , "\tpfsm->event = %s;\n\n"
-           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-           );
-
-   if (pmi->machine_list)
-   {
-      fprintf(pcmd->cFile
-              , "\t\tif (e < %s_noEvent)\n\t\t{\n"
-              , pmi->name->name
-              );
-      tabstr = "\t\t";
-   }
-
-   writeOriginalSwitchFSMLoopInnards(pcmd,pmi,tabstr);
-
-   if (pmi->machine_list)
-   {
-      fprintf(pcmd->cFile
-              , "\t\telse\n\t\t{\n"
-              );
-
-      if (pmi->submachine_inhibitor_count)
-      {
-         fprintf(pcmd->cFile
-                 , "\t\t\tif (doNotInhibitSubMachines(pfsm->state))\n\t"
-                 );
-      }
-      fprintf(pcmd->cFile
-              , "\t\t\te = findAndRunSubMachine(pfsm, e);"
-              );
-
-      fprintf(pcmd->cFile
-              , "\n\t\t}\n\n\t}"
-              );
-   }
-
-}
-
-static void writeOriginalSwitchSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
-{
-   char *local_tabstr = "\t";
-
-   if (!(pmi->modFlags & mfActionsReturnVoid))
-   {
-      fprintf(pcmd->cFile, "\twhile ((e != THIS(noEvent))\n\t       && (e >= THIS(firstEvent))\n"
-              );
-
-      if (pmi->machine_list)
-      {
-         fprintf(pcmd->cFile, "\n       && (e < THIS(lastEvent))");
-      }
-
-      fprintf(pcmd->cFile, "\t      )\n\t{\n\n");
-
-   }
-
-   printFSMSubMachineDebugBlock(pcmd, pmi);
-
-   fprintf(pcmd->cFile
-           , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
-           );
-
-   fprintf(pcmd->cFile
-           , "\t\tpfsm->event = %s;\n\n"
-           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-           );
+   (void) tabstr;
 
    if (pmi->has_single_pai_events)
    {
       if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
       {
          fprintf(pcmd->cFile
-                 , "%s\tif (eventIsNotHandledInAllStates(pfsm,%s))\n"
-                 , local_tabstr
+                 , "\tif (eventIsNotHandledInAllStates(pfsm,%s))\n"
                  , pmi->modFlags & mfActionsReturnVoid ? "event" : "e"
                  );
       }
       else
       {
          fprintf(pcmd->cFile
-                 , "%s\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n"
-                 , local_tabstr
+                 , "\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n"
                  );
       }
-      local_tabstr = "\t\t";
    }
 
    fprintf(pcmd->cFile
@@ -1292,52 +1199,19 @@ static void writeOriginalSwitchSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
    if (pmi->modFlags & mfActionsReturnVoid)
    {
       fprintf(pcmd->cFile
-              , "%s\t\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n"
-              , local_tabstr
+              , "\t\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n"
               );
    }
    else
    {
       fprintf(pcmd->cFile
-              , "%s\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
-              , local_tabstr
+              , "\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
               );
    }
 
    fprintf(pcmd->cFile
            , "\t\t}\n"
            );
-
-   if (pmi->machine_list)
-   {
-       fprintf(pcmd->cFile
-               , "\n\t\tif ((e > THIS(noEvent))\n\t\t\t&& (e < THIS(lastEvent))\n"
-              );
-
-       if (pmi->submachine_inhibitor_count)
-       {
-          fprintf(pcmd->cFile
-                  , "\t\t\t&& doNotInhibitSubMachines(pfsm->state)\n"
-                  );
-       }
-       fprintf(pcmd->cFile
-               , "\t\t\t)\n\t\t{\n"
-               );
-       fprintf(pcmd->cFile
-               , "\t\t\te = findAndRunSubMachine(pfsm, e);\n\t\t}\n"
-               );
-   }
-
-
-   fprintf(pcmd->cFile, "\n\t}\n");
-
-   if (!(pmi->modFlags & mfActionsReturnVoid))
-   {
-
-      fprintf(pcmd->cFile
-              , "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"
-              );
-   }
 
 }
 
@@ -1400,181 +1274,6 @@ static void defineStateFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
    iterate_list(pmi->state_list, print_state_fn_name, &ich);
 
    fprintf(pcmd->cFile, "};\n\n");
-}
-
-void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
-{
-   ITERATOR_CALLBACK_HELPER ich = { 0 };
-
-   ich.pcmd      = pcmd;
-   ich.ih.pmi       = pmi;
-   ich.needNoOp  = needNoOp;
-
-   /* declare the action functions themselves */
-   iterate_list(pmi->action_list, declare_action_function, &ich);
-
-   /* declare the dummy, or no op action */
-   if (needNoOp)
-   {
-      print_action_function_declaration(pcmd, "noAction");
-   }
-
-   fprintf(pcmd->hFile, "\n");
-
-   /* declare any machine transition function */
-   if (pmi->machineTransition)
-   {
-      fprintf(pcmd->hFile
-              , "void UFMN(%s)(p%s,%s);\n\n"
-              , pmi->machineTransition->name
-              , fsmType(pcmd)
-              , stateType(pcmd)
-              );
-   }
-
-   /* declare any transition functions */
-   if (pmi->modFlags & mfActionsReturnStates)
-   {
-      if (pmi->transition_fn_list->count)
-      {
-         fprintf(pcmd->hFile
-                 , "%s %s_noTransitionFn(p%s);\n"
-                 , stateType(pcmd)
-                 , machineName(pcmd)
-                 , fsmType(pcmd)
-                );
-
-         iterate_list(pmi->transition_fn_list
-                      , declare_transition_fn_for_when_actions_return_states
-                      , &ich
-                      );
-
-      }
-
-      fprintf(pcmd->hFile, "\n");
-
-   }
-   else
-   {
-
-      if (pmi->transition_fn_list->count)
-      {
-         iterate_list(pmi->transition_fn_list
-                      , declare_transition_fn_for_when_actions_return_events
-                      , &ich
-                      );
-
-      }
-
-      fprintf(pcmd->hFile, "\n");
-
-   }
-
-   /* declare any entry or exit functions */
-   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-   {
-      iterate_list(pmi->state_list, declare_state_entry_and_exit_functions, &ich);
-      fprintf(pcmd->hFile, "\n");
-   }
-
-   /* declare needed data translators */
-   if (pmi->data_block_count)
-   {
-      iterate_list(pmi->event_list, declare_data_translator_functions, &ich);
-      fprintf(pcmd->hFile, "\n");
-   }
-
-	if (pmi->native_epilogue) print_native_epilogue(pcmd, pmi);
-
-}
-
-void cswitchSubMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
-{
-   ITERATOR_CALLBACK_HELPER ich = { 0 };
-
-   ich.pcmd      = pcmd;
-   ich.ih.pmi       = pmi;
-   ich.needNoOp  = needNoOp;
-
-   /* declare the action functions themselves */
-   iterate_list(pmi->action_list, declare_action_function, &ich);
-
-   /* declare the dummy, or no op action */
-   if (needNoOp)
-   {
-      print_action_function_declaration(pcmd, "noAction");
-   }
-
-   fprintf(pcmd->hFile
-           , "\n"
-          );
-
-   /* declare any machine transition function */
-   if (pmi->machineTransition)
-   {
-      fprintf(pcmd->hFile
-              , "void UFMN(%s)(p%s,%s);\n\n"
-              , pmi->machineTransition->name
-              , fsmType(pcmd)
-              , stateType(pcmd)
-              );
-   }
-
-   /* declare any transition functions */
-   if (pmi->modFlags & mfActionsReturnStates)
-   {
-      if (pmi->transition_fn_list->count)
-      {
-         print_transition_fn_declaration_for_when_actions_return_states(pcmd, pcmd->hFile, "noTransition");
-         iterate_list(pmi->transition_fn_list
-                      , declare_transition_fn_for_when_actions_return_states
-                      , &ich
-                      );
-      }
-   }
-   else
-   {
-      if (pmi->transition_fn_list->count)
-      {
-         iterate_list(pmi->transition_fn_list
-                      , cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events
-                      , &ich
-                      );
-      }
-   }
-
-   fprintf(pcmd->cFile, "\n");
-
-   iterate_list(pmi->event_list
-				, sub_machine_declare_data_translator_functions
-				, &ich
-				);
-
-   /* declare any entry or exit functions */
-   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-   {
-      iterate_list(pmi->state_list, declare_state_entry_and_exit_functions, &ich);
-      fprintf(pcmd->hFile, "\n");
-   }
-
-	if (pmi->native_epilogue) print_native_epilogue(pcmd, pmi);
-
-}
-
-bool cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT pelem, void *data)
-{
-   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
-   pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
-
-   fprintf(pich->pcmd->hFile
-		   , "%s UFMN(%s)(p%s,%s);\n"
-		   , stateType(pich->pcmd)
-		   , pid_info->name
-		   , fsmType(pich->pcmd)
-		   , eventType(pich->pcmd)
-		   );
-
-   return false;
 }
 
 static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pelem, void *data)
@@ -1797,62 +1496,6 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 }
 
-static void writeCSwitchMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
-{
-   pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
-
-	if (output_make_recipe)
-	{
-		for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
-		{
-			if (pfsmcog->pcmd->file_name_array[cf])
-			{
-				printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
-			}
-		}
-	}
-	else
-	{
-       if (output_header_files)
-       {
-          for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
-          {
-              //sub machines do not have public headers
-              if (pfsmcog->pcmd->parent_pcmd)
-              {
-                 if (cf == cf_pubH)
-                 {
-                    continue;
-                 }
-              }
-              if (cf != cf_c && pfsmcog->pcmd->file_name_array[cf])
-              {
-                 printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
-              }
-          }
-       }
-       else
-       {
-          printf("%s ", pfsmcog->pcmd->cName);
-       }
-	}
-
-   if (pmi->machine_list)
-   {
-      write_machines(pmi->machine_list, generateCSwitchMachineWriter, pfsmog);
-   }
-
-	if (output_make_recipe && !pfsmcog->pcmd->parent_pcmd)
-	{
-		printf(": %s.fsm\n"
-			   , inputFileName
-			   );
-
-		printf("\t$(FSM) $(FSM_FLAGS) $<\n\n");
-	}
-
-}
-
 pFSMOutputGenerator generateCSwitchMachineWriter(pFSMOutputGenerator parent)
 {
 	pFSMOutputGenerator pfsmog;
@@ -1864,6 +1507,7 @@ pFSMOutputGenerator generateCSwitchMachineWriter(pFSMOutputGenerator parent)
 		pfsmcswitchog->fsmog.writeMachine = writeCSwitchSubMachine;
 		pfsmcswitchog->fsmog.initOutput   = initCSubMachine;
 		pfsmcswitchog->fsmog.closeOutput  = closeCMachine;
+		pfsmcswitchog->fsmog.fsmogFactory = generateCSwitchMachineWriter;
 
 		pfsmcswitchog->top_level_fsmcog = &CSwitchMachineWriter;
 		pfsmcswitchog->parent_fsmcog    = (pFSMCOutputGenerator) parent;

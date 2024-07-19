@@ -55,6 +55,13 @@ typedef struct _fsm_c_sub_machine_output_generator_ FSMCSubMachineOutputGenerato
 typedef struct _c_machine_data_                     CMachineData,        *pCMachineData;
 typedef struct _iterator_callback_helper_ ITERATOR_CALLBACK_HELPER, *pITERATOR_CALLBACK_HELPER;
 
+typedef void (*CFSMLoopInnardsWriter)(pCMachineData,pMACHINE_INFO,char*);
+typedef void (*COutputFn)            (pCMachineData);
+typedef void (*COutputFn$fp$pid$pai$pmi)  (FILE*,pID_INFO,pACTION_INFO,pMACHINE_INFO);
+typedef void (*COutputFn$fp$ped$pich)(FILE *, pEVENT_DATA, pITERATOR_CALLBACK_HELPER);
+typedef bool (*COutputFn$ple$pv)(pLIST_ELEMENT,void*);
+
+
 struct _iterator_callback_helper_
 {
 	ITERATOR_HELPER ih;
@@ -62,7 +69,7 @@ struct _iterator_callback_helper_
 	bool          needNoOp;
 	bool          define;     //as opposed to "declare"
 	unsigned      counter;    //generic name intentional
-	pLIST_ELEMENT pOtherElem; //generic name intentional - allows to iterate within iterations
+	pLIST_ELEMENT pOtherElem; //generic name intentional - allows to iterate within iterations to traverse action matrix
 	pCMachineData pcmd;
 
 };
@@ -113,6 +120,7 @@ struct _c_machine_data_
 	   , *data_translation_fn_type
 	   , *shared_event_str_type
 	   , *state_fn_type
+	   , *event_fn_type
 	   , *fq_machine_name              //!< fully qualified name
 	   , *nf_machine_name              //!< "nuclear family" - parent and child.
 	   , *uc_nf_machine_name           
@@ -137,6 +145,11 @@ struct _c_machine_data_
 
    bool a_sub_machine_was_encountered;
 
+   CFSMLoopInnardsWriter    cfsmliw;
+   COutputFn                wfsm;
+   COutputFn$fp$pid$pai$pmi pethbsspe;
+   COutputFn$fp$ped$pich    pethbmse;
+   COutputFn$ple$pv         pethsc;
 };
 
 struct _fsm_c_output_generator_
@@ -160,13 +173,12 @@ int  initCSubMachineFN(pFSMOutputGenerator,char*);
 void closeCMachine(pFSMOutputGenerator,int);
 void closeCMachineFN(pFSMOutputGenerator,int);
 
-void            commonHeaderStart(pCMachineData,pMACHINE_INFO,char*);
+void            commonHeaderStart(pCMachineData,pMACHINE_INFO,char*,bool);
 void            addEventCrossReference(pCMachineData,pMACHINE_INFO,pITERATOR_CALLBACK_HELPER);
 void            commonHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
 void            generateInstance(pCMachineData,pMACHINE_INFO,char*);
 void            generateRunFunction(pCMachineData,pMACHINE_INFO);
-void            defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO);
-void            defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO);
+void            defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO); void            defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO);
 void            defineWeakStateEntryAndExitFunctionStubs(pCMachineData,pMACHINE_INFO);
 void            writeStateTransitions(pCMachineData,pMACHINE_INFO);
 void            writeDebugInfo(pCMachineData,pMACHINE_INFO);
@@ -207,6 +219,7 @@ void            print_action_function_declaration(pCMachineData,char*);
 void            print_transition_fn_declaration_for_when_actions_return_states(pCMachineData,FILE*,char*);
 void            print_weak_action_function_body_omitting_return_statement(pCMachineData, char *);
 void            print_native_epilogue(pCMachineData,pMACHINE_INFO);
+void            print_transition_for_assignment_to_state_var(pMACHINE_INFO,pID_INFO,char*,FILE*);
 
 #endif
 
