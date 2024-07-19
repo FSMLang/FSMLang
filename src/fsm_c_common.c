@@ -894,6 +894,13 @@ void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 {
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
+   if (pmi->data)
+   {
+	   fprintf(pcmd->cFile
+			   , "#ifndef INIT_FSM_DATA\n#error INIT_FSM_DATA must be defined\n#endif\n\n"
+			   );
+   }
+
    /* instantiate the machine and the pointer to it */
    /* the (empty) data struct and the state */
    fprintf(pcmd->cFile
