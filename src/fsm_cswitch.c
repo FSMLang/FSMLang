@@ -98,6 +98,9 @@ static FSMCSwitchOutputGenerator CSwitchMachineWriter = {
 	   , NULL
 	   , NULL
 	   , NULL
+	   , NULL
+	   , NULL
+	   , NULL
 	}
 	, NULL
 	, NULL

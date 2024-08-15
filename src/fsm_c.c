@@ -73,6 +73,9 @@ FSMCOutputGenerator CMachineWriter = {
 	, NULL
 	, NULL
 	, NULL
+	, NULL
+	, NULL
+	, NULL
 };
 
 /* list iteration callbacks */

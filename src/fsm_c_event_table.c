@@ -106,6 +106,9 @@ static FSMCSwitchOutputGenerator CEventTableMachineWriter = {
 	   , NULL
 	   , NULL
 	   , NULL
+	   , NULL
+	   , NULL
+	   , NULL
 	}
 	, NULL
 	, NULL
@@ -606,7 +609,6 @@ static bool define_event_table_handler(pLIST_ELEMENT pelem, void *data)
 	pEVENT_DATA               ped     = &pevent->type_data.event_data;
 	pMACHINE_INFO             pmi     = pich->ih.pmi;
 	FILE                     *fout    = pich->pcmd->cFile;
-	pCMachineData             pcmd    = pich->pcmd;
 	pFSMCOutputGenerator      pfsmcog = pich->pfsmcog;
 
 	pACTION_INFO              pai;
@@ -755,7 +757,6 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_ars(FI
 
 static void print_event_table_handler_body_for_multiple_state_events_are(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
 {
-	pCMachineData        pcmd    = pich->pcmd;
 	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
 
 	if (ped->phandling_states->count > 0)
@@ -792,7 +793,6 @@ static void print_event_table_handler_body_for_multiple_state_events_are(FILE *f
 
 static void print_event_table_handler_body_for_multiple_state_events_arv(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
 {
-	pCMachineData        pcmd    = pich->pcmd;
 	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
 
 	fprintf(fout
@@ -819,7 +819,6 @@ static void print_event_table_handler_body_for_multiple_state_events_ars(FILE *f
 {
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-	pCMachineData        pcmd    = pich->pcmd;
 	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
 
 	if (ped->phandling_states->count)
