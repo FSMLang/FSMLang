@@ -50,28 +50,32 @@
 #include "fsm_c_switch_common.h"
 #include "ancestry.h"
 
+typedef struct _cevent_table_machine_data_     CEventTableMachineData
+                                               , *pCEventTableMachineData
+                                               ;
+
 static void writeCEventTableMachine(pFSMOutputGenerator,pMACHINE_INFO); 
 static void writeCEventTableSubMachine(pFSMOutputGenerator,pMACHINE_INFO); 
 static void writeCEventTableMachineInternal(pFSMCOutputGenerator);
 static void declareCEventTableMachineEventTableSize(pCMachineData);
 static void defineCEventTableMachineStruct(pCMachineData);
 static void defineEventFnArray(pCMachineData);
-static void defineCEventTableHandlers(pCMachineData);
-static void defineCEventTableMachineFSM(pCMachineData);
-static void defineCEventTableSubMachineFSM(pCMachineData);
-static void writeOriginalEventTableFSM(pCMachineData);
-static void writeOriginalEventTableSubFSM(pCMachineData);
-static void writeActionsReturnStateEventTableFSM(pCMachineData);
-static void writeEventTableFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*);
-static void writeEventTableSubFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*);
-static int  writeCEventTableSubMachineInternal(pCMachineData);
+static void defineCEventTableHandlers(pFSMCOutputGenerator);
+static void defineCEventTableMachineFSM(pFSMCOutputGenerator);
+static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator);
+static void writeOriginalEventTableFSM(pFSMCOutputGenerator);
+static void writeOriginalEventTableSubFSM(pFSMCOutputGenerator);
+static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator);
+static void writeEventTableFSMLoopInnards(pFSMCOutputGenerator,char*);
+static void writeEventTableSubFSMLoopInnards(pFSMCOutputGenerator,char*);
+static int  writeCEventTableSubMachineInternal(pFSMCOutputGenerator);
 static void print_event_table_handler_body_for_single_state_or_pai_events_are(FILE*,pID_INFO,pACTION_INFO,pMACHINE_INFO);
 static void print_event_table_handler_body_for_single_state_or_pai_events_arv(FILE*,pID_INFO,pACTION_INFO,pMACHINE_INFO);
 static void print_event_table_handler_body_for_single_state_or_pai_events_ars(FILE*,pID_INFO,pACTION_INFO,pMACHINE_INFO);
 static void print_event_table_handler_body_for_multiple_state_events_are(FILE*,pEVENT_DATA,pITERATOR_CALLBACK_HELPER);
 static void print_event_table_handler_body_for_multiple_state_events_arv(FILE*,pEVENT_DATA,pITERATOR_CALLBACK_HELPER);
 static void print_event_table_handler_body_for_multiple_state_events_ars(FILE*,pEVENT_DATA,pITERATOR_CALLBACK_HELPER);
-static void chooseWorkerFunctions(pCMachineData);
+static void chooseWorkerFunctions(pFSMCSwitchOutputGenerator);
 
 static bool event_handler_cannot_be_its_action(pID_INFO,pMACHINE_INFO,pACTION_INFO*);
 static bool print_event_fn_signature(pLIST_ELEMENT,void*);
@@ -81,50 +85,57 @@ static bool print_event_table_handler_state_case_are(pLIST_ELEMENT,void*);
 static bool print_event_table_handler_state_case_arv(pLIST_ELEMENT,void*);
 static bool print_event_table_handler_state_case_ars(pLIST_ELEMENT,void*);
 
-#define writeFSMLoop(A) pcmd->wfsm((A))
+#define writeFSMLoop(A) pfsmcog->wfsm((A))
 
 #define print_event_table_handler_body_for_single_state_or_pai_events(A,B,C,D) \
-pcmd->pethbsspe((A),(B),(C),(D))
+((pFSMCSwitchOutputGenerator)pfsmcog)->pethbsspe((A),(B),(C),(D))
 
 #define print_event_table_handler_body_for_multiple_state_events(A,B,C) \
-pcmd->pethbmse((A),(B),(C))
+((pFSMCSwitchOutputGenerator)pfsmcog)->pethbmse((A),(B),(C))
 
-#define print_event_table_handler_state_case pcmd->pethsc
+#define print_event_table_handler_state_case ((pFSMCSwitchOutputGenerator)pfsmcog)->pethsc
 
-static FSMCOutputGenerator CEventTableMachineWriter = {
-   {
-      initCMachine
-      , writeCEventTableMachine
-      , closeCMachine
-	  , generateCEventTableMachineWriter
-   }
-   , NULL
+static FSMCSwitchOutputGenerator CEventTableMachineWriter = {
+	{
+	   {
+	      initCMachine
+	      , writeCEventTableMachine
+	      , closeCMachine
+		  , generateCEventTableMachineWriter
+	   }
+	   , NULL
+	   , NULL
+	   , NULL
+	}
+	, NULL
+	, NULL
+	, NULL
 };
 
-static void chooseWorkerFunctions(pCMachineData pcmd)
+static void chooseWorkerFunctions(pFSMCSwitchOutputGenerator pfsmcswog)
 {
-	switch ((pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS))
+	switch ((pfsmcswog->fsmcog.pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS))
 	{
 	case 0: //this is "actions return events"
-		pcmd->wfsm      = pcmd->pmi->parent
+		pfsmcswog->fsmcog.wfsm = pfsmcswog->fsmcog.pcmd->pmi->parent
 			                 ? writeOriginalEventTableSubFSM
 			                 : writeOriginalEventTableFSM
 			                 ;
-		pcmd->pethbsspe = print_event_table_handler_body_for_single_state_or_pai_events_are;
-		pcmd->pethbmse  = print_event_table_handler_body_for_multiple_state_events_are; 
-		pcmd->pethsc    = print_event_table_handler_state_case_are;
+		pfsmcswog->pethbsspe = print_event_table_handler_body_for_single_state_or_pai_events_are;
+		pfsmcswog->pethbmse  = print_event_table_handler_body_for_multiple_state_events_are; 
+		pfsmcswog->pethsc    = print_event_table_handler_state_case_are;
 		break;
 	case mfActionsReturnVoid:
-		pcmd->wfsm      = writeOriginalEventTableFSM;
-		pcmd->pethbsspe = print_event_table_handler_body_for_single_state_or_pai_events_arv;
-		pcmd->pethbmse  = print_event_table_handler_body_for_multiple_state_events_arv; 
-		pcmd->pethsc    = print_event_table_handler_state_case_arv;
+		pfsmcswog->fsmcog.wfsm      = writeOriginalEventTableFSM;
+		pfsmcswog->pethbsspe = print_event_table_handler_body_for_single_state_or_pai_events_arv;
+		pfsmcswog->pethbmse  = print_event_table_handler_body_for_multiple_state_events_arv; 
+		pfsmcswog->pethsc    = print_event_table_handler_state_case_arv;
 		break;
 	case mfActionsReturnStates:
-		pcmd->wfsm      = writeActionsReturnStateEventTableFSM;
-		pcmd->pethbsspe = print_event_table_handler_body_for_single_state_or_pai_events_ars;
-		pcmd->pethbmse  = print_event_table_handler_body_for_multiple_state_events_ars; 
-		pcmd->pethsc    = print_event_table_handler_state_case_ars;
+		pfsmcswog->fsmcog.wfsm      = writeActionsReturnStateEventTableFSM;
+		pfsmcswog->pethbsspe = print_event_table_handler_body_for_single_state_or_pai_events_ars;
+		pfsmcswog->pethbmse  = print_event_table_handler_body_for_multiple_state_events_ars; 
+		pfsmcswog->pethsc    = print_event_table_handler_state_case_ars;
 		break;
 	default:
 		yyerror("invalid actions return statement");
@@ -133,13 +144,13 @@ static void chooseWorkerFunctions(pCMachineData pcmd)
 }
 static void writeCEventTableMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi) 
 {
-	pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
+	pFSMCSwitchOutputGenerator pfsmcswog = (pFSMCSwitchOutputGenerator) pfsmog;
 
-	pfsmcog->pcmd->pmi     = pmi;
-	pfsmcog->pcmd->cfsmliw = writeEventTableFSMLoopInnards;
-	chooseWorkerFunctions(pfsmcog->pcmd);
+	pfsmcswog->fsmcog.pcmd->pmi = pmi;
+	pfsmcswog->fsmcog.cfsmliw   = writeEventTableFSMLoopInnards;
+	chooseWorkerFunctions(pfsmcswog);
 
-	writeCEventTableMachineInternal(pfsmcog);
+	writeCEventTableMachineInternal(&(pfsmcswog->fsmcog));
 
 	if (pmi->machine_list)
 	{
@@ -147,18 +158,20 @@ static void writeCEventTableMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pm
 	}
 }
 
-static int writeCEventTableSubMachineInternal(pCMachineData pcmd)
+static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 {
-   if (!pcmd)   return 1;
+   if (!pfsmcog)   return 1;
 
-   pMACHINE_INFO pmi = pcmd->pmi;
+   pCMachineData pcmd = pfsmcog->pcmd;
+   pMACHINE_INFO pmi  = pcmd->pmi;
 
    ITERATOR_CALLBACK_HELPER ich = {
 	   . ih = {
 		   .pmi      = pmi
 	   }
-       , .pcmd   = pcmd
-       , .define = false
+	   , .pcmd    = pcmd
+       , .define  = false
+	   , .pfsmcog = pfsmcog
    };
 
    /* do this now, since some header stuff puts content into the source file.*/
@@ -196,7 +209,7 @@ static int writeCEventTableSubMachineInternal(pCMachineData pcmd)
       generateInstance(pcmd, pmi, "event_fn");
    }
 
-   defineCEventTableSubMachineFSM(pcmd);
+   defineCEventTableSubMachineFSM(pfsmcog);
 
    /* write our sub-machine lookup, if needed */
    if (pmi->machine_list)
@@ -206,7 +219,7 @@ static int writeCEventTableSubMachineInternal(pCMachineData pcmd)
 
    defineStateEntryAndExitManagers(pcmd, pmi);
 
-   defineCEventTableHandlers(pcmd);
+   defineCEventTableHandlers(pfsmcog);
 
    if (generate_weak_fns)
    {
@@ -241,14 +254,14 @@ static int writeCEventTableSubMachineInternal(pCMachineData pcmd)
 static void writeCEventTableSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi) 
 {
 
-	pFSMCSubMachineOutputGenerator pfsmcsmog = (pFSMCSubMachineOutputGenerator) pfsmog;
+	pFSMCSwitchOutputGenerator pfsmcswog = (pFSMCSwitchOutputGenerator) pfsmog;
 
-	pfsmcsmog->pcmd->pmi = pmi;
-	pfsmcsmog->pcmd->action_return_type = pfsmcsmog->parent_fsmcog->pcmd->action_return_type;
-	pfsmcsmog->pcmd->cfsmliw = writeEventTableSubFSMLoopInnards;
+	pfsmcswog->fsmcog.pcmd->pmi = pmi;
+	pfsmcswog->fsmcog.pcmd->action_return_type = pfsmcswog->fsmcog.parent_fsmcog->pcmd->action_return_type;
+	pfsmcswog->fsmcog.cfsmliw = writeEventTableSubFSMLoopInnards;
 
-	chooseWorkerFunctions(pfsmcsmog->pcmd);
-	writeCEventTableSubMachineInternal(pfsmcsmog->pcmd);
+	chooseWorkerFunctions(pfsmcswog);
+	writeCEventTableSubMachineInternal(&pfsmcswog->fsmcog);
 
 	if (pmi->machine_list)
 	{
@@ -262,15 +275,15 @@ pFSMOutputGenerator generateCEventTableMachineWriter(pFSMOutputGenerator parent)
 
 	if (parent)
 	{
-		pFSMCSubMachineOutputGenerator pfsmceventtableog = calloc(1, sizeof(FSMCSubMachineOutputGenerator));
+		pFSMCSwitchOutputGenerator pfsmceventtableog = calloc(1, sizeof(FSMCSwitchOutputGenerator));
 
-		pfsmceventtableog->fsmog.writeMachine = writeCEventTableSubMachine;
-		pfsmceventtableog->fsmog.initOutput   = initCSubMachine;
-		pfsmceventtableog->fsmog.closeOutput  = closeCMachine;
-		pfsmceventtableog->fsmog.fsmogFactory = generateCEventTableMachineWriter;
+		pfsmceventtableog->fsmcog.fsmog.writeMachine = writeCEventTableSubMachine;
+		pfsmceventtableog->fsmcog.fsmog.initOutput   = initCSubMachine;
+		pfsmceventtableog->fsmcog.fsmog.closeOutput  = closeCMachine;
+		pfsmceventtableog->fsmcog.fsmog.fsmogFactory = generateCEventTableMachineWriter;
 
-		pfsmceventtableog->top_level_fsmcog = &CEventTableMachineWriter;
-		pfsmceventtableog->parent_fsmcog    = (pFSMCOutputGenerator) parent;
+		pfsmceventtableog->fsmcog.top_level_fsmcog = (pFSMCOutputGenerator)&CEventTableMachineWriter;
+		pfsmceventtableog->fsmcog.parent_fsmcog    = (pFSMCOutputGenerator) parent;
 
 		pfsmog = (pFSMOutputGenerator)pfsmceventtableog;
 	}
@@ -338,7 +351,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 	   generateRunFunction(pcmd, pmi);
 	}
 
-	defineCEventTableMachineFSM(pcmd);
+	defineCEventTableMachineFSM(pfsmcog);
 
 	/* write our sub-machine lookup, if needed */
 	if (pmi->machine_list)
@@ -353,7 +366,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 	   defineEventDataManager(pcmd, pmi);
 	}
 
-	defineCEventTableHandlers(pcmd);
+	defineCEventTableHandlers(pfsmcog);
 
 	if (generate_weak_fns)
 	{
@@ -568,17 +581,18 @@ static bool event_handler_cannot_be_its_action(pID_INFO pevent, pMACHINE_INFO pm
 	return !event_handler_can_be_its_action;
 }
 
-static void defineCEventTableHandlers(pCMachineData pcmd)
+static void defineCEventTableHandlers(pFSMCOutputGenerator pfsmcog)
 {
 	ITERATOR_CALLBACK_HELPER ich = {
 		.ih = {
-			.pmi = pcmd->pmi
+			.pmi = pfsmcog->pcmd->pmi
 		}
-		, .pcmd = pcmd
-		, .define = true
+		, .pcmd    = pfsmcog->pcmd
+		, .pfsmcog = pfsmcog
+		, .define  = true
 	};
 
-	iterate_list(pcmd->pmi->event_list
+	iterate_list(pfsmcog->pcmd->pmi->event_list
 				 , define_event_table_handler
 				 , &ich
 				 );
@@ -586,12 +600,15 @@ static void defineCEventTableHandlers(pCMachineData pcmd)
 
 static bool define_event_table_handler(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO                  pevent = (pID_INFO)                  pelem->mbr;
-	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
-	pEVENT_DATA               ped    = &pevent->type_data.event_data;
-	pMACHINE_INFO             pmi    = pich->ih.pmi;
-	FILE                     *fout   = pich->pcmd->cFile;
-	pCMachineData             pcmd   = pich->pcmd;
+	pID_INFO                  pevent  = (pID_INFO)                  pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich    = (pITERATOR_CALLBACK_HELPER) data;
+
+	pEVENT_DATA               ped     = &pevent->type_data.event_data;
+	pMACHINE_INFO             pmi     = pich->ih.pmi;
+	FILE                     *fout    = pich->pcmd->cFile;
+	pCMachineData             pcmd    = pich->pcmd;
+	pFSMCOutputGenerator      pfsmcog = pich->pfsmcog;
+
 	pACTION_INFO              pai;
 
 	if (event_handler_cannot_be_its_action(pevent, pmi, &pai))
@@ -738,7 +755,8 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_ars(FI
 
 static void print_event_table_handler_body_for_multiple_state_events_are(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
 {
-	pCMachineData pcmd = pich->pcmd;
+	pCMachineData        pcmd    = pich->pcmd;
+	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
 
 	if (ped->phandling_states->count > 0)
 	{
@@ -774,7 +792,8 @@ static void print_event_table_handler_body_for_multiple_state_events_are(FILE *f
 
 static void print_event_table_handler_body_for_multiple_state_events_arv(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
 {
-	pCMachineData pcmd = pich->pcmd;
+	pCMachineData        pcmd    = pich->pcmd;
+	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
 
 	fprintf(fout
 			, "\tswitch (pfsm->state)\n\t{\n"
@@ -800,7 +819,8 @@ static void print_event_table_handler_body_for_multiple_state_events_ars(FILE *f
 {
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-	pCMachineData pcmd = pich->pcmd;
+	pCMachineData        pcmd    = pich->pcmd;
+	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
 
 	if (ped->phandling_states->count)
 	{
@@ -946,9 +966,10 @@ static bool print_event_table_handler_state_case_ars(pLIST_ELEMENT pelem, void *
 }
 
 
-static void defineCEventTableMachineFSM(pCMachineData pcmd)
+static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
-	pMACHINE_INFO pmi = pcmd->pmi;
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
 
    if (pmi->machine_list)
    {
@@ -1001,28 +1022,26 @@ static void defineCEventTableMachineFSM(pCMachineData pcmd)
              );
    }
 
-   writeFSMLoop(pcmd);
+   writeFSMLoop(pfsmcog);
 
    fprintf(pcmd->cFile, "\n}\n\n");
 
 }
 
-static void writeOriginalEventTableFSM(pCMachineData pcmd)
+static void writeOriginalEventTableFSM(pFSMCOutputGenerator pfsmcog)
 {
-	pMACHINE_INFO pmi = pcmd->pmi;
-
-	writeOriginalSwitchFSMLoop(pcmd, pmi);
+	writeOriginalSwitchFSMLoop(pfsmcog);
 }
 
-static void writeOriginalEventTableSubFSM(pCMachineData pcmd)
+static void writeOriginalEventTableSubFSM(pFSMCOutputGenerator pfsmcog)
 {
-	pMACHINE_INFO pmi = pcmd->pmi;
-
-	writeOriginalSwitchSubFSMLoop(pcmd, pmi);
+	writeOriginalSwitchSubFSMLoop(pfsmcog);
 }
 
-static void writeEventTableFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, char *tabstr)
+static void writeEventTableFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
 {
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
 
 	if (pmi->modFlags & mfActionsReturnVoid)
 	{
@@ -1048,9 +1067,11 @@ static void writeEventTableFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi,
 	}
 }
 
-static void writeEventTableSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, char *tabstr)
+static void writeEventTableSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
 {
 	(void) tabstr;
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
 
 	fprintf(pcmd->cFile
 			, "\t\tif ((e >= THIS(firstEvent))\n\t\t    && (e < THIS(noEvent))\n\t\t\t)\n\t\t{\n"
@@ -1075,9 +1096,10 @@ static void writeEventTableSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO p
 
 }
 
-static void writeActionsReturnStateEventTableFSM(pCMachineData pcmd)
+static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
 {
-	pMACHINE_INFO pmi = pcmd->pmi;
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
 
    char *tabstr = "";
 
@@ -1163,11 +1185,12 @@ static void writeActionsReturnStateEventTableFSM(pCMachineData pcmd)
 
 }
 
-static void defineCEventTableSubMachineFSM(pCMachineData pcmd)
+static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-	pMACHINE_INFO pmi = pcmd->pmi;
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
 
 	fprintf(pcmd->cFile, "\n");
 
@@ -1209,7 +1232,7 @@ static void defineCEventTableSubMachineFSM(pCMachineData pcmd)
 			   );
 	}
 
-	writeFSMLoop(pcmd);
+	writeFSMLoop(pfsmcog);
 
 	fprintf(pcmd->cFile, "\n}\n\n");
 

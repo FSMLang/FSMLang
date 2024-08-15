@@ -280,38 +280,38 @@ void writeCFilePreambles(pCMachineData pcmd, bool sub_machine)
 
 int initCSubMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
-   pFSMCSubMachineOutputGenerator pfsmcsmog = (pFSMCSubMachineOutputGenerator) pfsmog;
+   pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   if ((pfsmcsmog->pcmd = newCMachineData(fileName)))
+   if ((pfsmcog->pcmd = newCMachineData(fileName)))
    {
 
 	  /* Only data (not pointers to the writers) are passed around; 
 	  this gives the data block access to the parent.  writeCFilePreables
 	  uses parent_pcmd. */
-	  pfsmcsmog->pcmd->parent_pcmd = pfsmcsmog->parent_fsmcog->pcmd;
+	  pfsmcog->pcmd->parent_pcmd = pfsmcog->parent_fsmcog->pcmd;
 
 	  /* With parent_pcmd assigned, we can call writeCFilePreambles. */
-	  writeCFilePreambles(pfsmcsmog->pcmd, true);
+	  writeCFilePreambles(pfsmcog->pcmd, true);
 
 	  /* The parent has encountered a sub-machine. This affects how
 	  the data block is destroyed.
 	  */
-	  pfsmcsmog->parent_fsmcog->pcmd->a_sub_machine_was_encountered = true;
+	  pfsmcog->parent_fsmcog->pcmd->a_sub_machine_was_encountered = true;
 
 	  /* for sub machines, some output strings are taken from the parent */
-	  pfsmcsmog->pcmd->action_return_type = pfsmcsmog->parent_fsmcog->pcmd->action_return_type;
-	  pfsmcsmog->pcmd->fsm_fn_event_type  = pfsmcsmog->parent_fsmcog->pcmd->action_return_type;
-	  pfsmcsmog->pcmd->event_type         = pfsmcsmog->parent_fsmcog->pcmd->event_type;
+	  pfsmcog->pcmd->action_return_type = pfsmcog->parent_fsmcog->pcmd->action_return_type;
+	  pfsmcog->pcmd->fsm_fn_event_type  = pfsmcog->parent_fsmcog->pcmd->action_return_type;
+	  pfsmcog->pcmd->event_type         = pfsmcog->parent_fsmcog->pcmd->event_type;
 
 	 /* Put the call to the top-level header file into the header. */
-	 fprintf(pfsmcsmog->pcmd->hFile
+	 fprintf(pfsmcog->pcmd->hFile
 			 , "#include \"%s\"\n\n"
-			 , pfsmcsmog->top_level_fsmcog->pcmd->pubHName
+			 , pfsmcog->top_level_fsmcog->pcmd->pubHName
 			 );
 
-	 fprintf(pfsmcsmog->pcmd->subMachineHFile
+	 fprintf(pfsmcog->pcmd->subMachineHFile
 			 , "#include \"%s\"\n\n"
-			 , pfsmcsmog->top_level_fsmcog->pcmd->pubHName
+			 , pfsmcog->top_level_fsmcog->pcmd->pubHName
 			 );
 
       return 0;
@@ -323,11 +323,11 @@ int initCSubMachine(pFSMOutputGenerator pfsmog, char *fileName)
 
 int initCSubMachineFN(pFSMOutputGenerator pfsmog, char *fileName)
 {
-   pFSMCSubMachineOutputGenerator pfsmcsmog = (pFSMCSubMachineOutputGenerator) pfsmog;
+   pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   if ((pfsmcsmog->pcmd = newCMachineData(fileName)))
+   if ((pfsmcog->pcmd = newCMachineData(fileName)))
    {
-	   pfsmcsmog->pcmd->parent_pcmd = pfsmcsmog->parent_fsmcog->pcmd;
+	   pfsmcog->pcmd->parent_pcmd = pfsmcog->parent_fsmcog->pcmd;
 	   return 0;
    }
 
@@ -2249,9 +2249,9 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    print_plain_enum_member("numStates", &ich);
 
    fprintf(pcmd->hFile
-           , "}%s %s_STATE;\n\n"
+           , "}%s %s;\n\n"
            , compact_action_array ? " __attribute__((__packed__))" : " "
-		   , fsmType(pcmd)
+		   , stateType(pcmd)
           );
 
    /* put the data struct typedef into the header file */
@@ -2321,7 +2321,6 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 		   , fsmFnEventType(pcmd)
 		   );
 
-   /* TODO: move this to source file */
    fprintf(pcmd->cFile
            , "static %s %sFSM(FSM_TYPE_PTR,%s);\n\n"
 		   , actionReturnType(pcmd)

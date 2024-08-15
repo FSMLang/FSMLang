@@ -7,279 +7,420 @@
 
 	<body>
 
-		<p>Common language elements generated:</p>
+		<h1>C Language Output Generators</h1>
+
+		<p>C Language Ouput Generators are based on two sub-classes of the FSM Output Generator.
+		One sub-class is used for the top-level machine; the other, for sub-machines.  The sub-machine
+		class is a sub-class of the top-level machine class.
+		</p>
+
+		<p>The top-level machine adds a (pointer to) a data structure and function pointers for use
+		to facilitate the common code generation pattern which must be tailored for each C design
+		output and, further, for the different action function return types.  These pointers are populated
+		appropriately when the classes are instantiated by the factory, or when the base class writeMachine
+		function is called.
+		</p>
+
+		<h2>Common Language Elements Generated</h2>
+
+        <p>Language elements are sensative to three different dimensions: The "level" of the machine, which
+		includes the idea of whether sub-levels exist; the return type of the action functions; and, the requested
+		C Design type.  The later is indicated on the command line and forms the basis for determining the first
+		choices in the C Language Output Generator's sub-class.
+		</p>
+
+		<p>When an item is indicated through the use of the simple 'X' as being present in different levels of
+		machine, it may be that the element has parts that are only present in a given level.  If a machine
+		comprises two levels, it will have the parts required by each level.
+		</p>
+
 		<table class="typical scrollable">
 			<thead>
 				<tr>
-					<th>Element</th>
-					<th>Top Level<br/>Machines</th>
-					<th>Parent Machines</th>
-					<th>Sub Machines</th>
-					<th>Action<br/>Return Type<br/>Aware</th>
-					<th>C Design<br/>Type<br/>Aware</th>
+					<th colspan="2">Element</th>
+					<th class="machine_level">Top Level<br/>Machines</th>
+					<th class="machine_level">Parent Machines</th>
+					<th class="machine_level">Sub Machines</th>
+					<th class="c_design_type_aware">
+						C Design<br/>Type<br/>Aware
+						<table><tr><th>-tc</th><th>-ts</th><th>-te</th></tr></table>
+					</th>
+					<th class="action_return_type">
+						Action<br/>Return Type<br/>Aware
+						<table><tr><th>Event</th><th>State</th><th>Void</th></tr></table>
+					</th>
+                    <th>File</th>
+                    <th>Function(s)</th>
 				</tr>
 			</thead>
 			<tbody>
 				<tr>
-					<th class="lhs">native prolog</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">native prolog</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>fsm_c_common</p></td> 
+					 <!--- Function(s)         ---> <td><p>static print_native_prologue<br/>(commonHeaderStart)<br/>(subMachineHeaderStart)</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">native epilog</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">native epilog</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>fsm_c_common</p></td> 
+					 <!--- Function(s)         ---> <td><p>print_native_epilogue</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">native impl prolog</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">native impl prolog</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>fsm_c_common</p></td> 
+					 <!--- Function(s)         ---> <td><p>addNativeImplementationPrologIfThereIsAny</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">native impl epilog</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">native impl epilog</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>fsm_c_common</p></td> 
+					 <!--- Function(s)         ---> <td><p>addNativeImplementationEpilogIfThereIsAny</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">FSMLang version macro</th> <!--- Element -->
-					<td><p class="selection">X</p></td> <!--- Top Lelel Machines --->
-					<td>&nbsp;</td> <!--- Parent Machines --->
-					<td>&nbsp;</td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">FSMLang version macro</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- Sub Machines        ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>fsm_c_common</p></td> 
+					 <!--- Function(s)         ---> <td><p>commonHeaderStart</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">convenience macros <!--- Element -->
+					 <!--- Element             ---> <th class="lhs" colspan="2">convenience macros<br/>(When directed on CL) 
 						<ul>
 							<li>THIS</li>
 							<li>sub-machine "THIS"s</li>
 							<li>UFM&nbsp;</li>
-							<li>ACTIO&nbsp;_RETURN_TXPE</li>
-							<li>FSM_TXPE_PTR</li>
+							<li>FSM_TYPE_PTR</li>
 						</ul>
 					</th>
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>fsm_c_common</p></td> 
+					 <!--- Function(s)         ---> <td><p>commonHeaderStart<br/>subMachineHeaderStart</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">event enumeration</th> <!--- Element -->
-					<td><p class="selection">X</p></td> <!--- Top Leven Machines --->
-					<td>&nbsp;</td> <!--- Parent Machines --->
-					<td>&nbsp;</td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X<br/>(Only when -c is used with -tc.)</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">convenience macros<br/>(When directed on CL) 
+						<ul>
+							<li>ACTION_RETURN_TYPE</li>
+						</ul>
+					</th>
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><table class="selection"><tr><td>1</td><td>2</td><td>3</td><tr></table></td> 
+					 <!--- File                ---> <td><p>ancestry</p></td> 
+					 <!--- Function(s)         ---> <td><p>actionReturnType</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">state enumeration</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">event enumeration</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- Sub Machines        ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p class="selection">X<br/>(Only when -c is used with -tc.)</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><table class="selection"><tr><td>1</td><td>2</td><td>1</td><tr></table></td> 
+					 <!--- File                ---> <td><p>fsm_c_common</p></td> 
+					 <!--- Function(s)         ---> <td><p>commonHeaderStart<br/>This should be brought into a subroutine.</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">run function</th> <!--- Element -->
-					<td><p class="selection">X</p></td> <!--- Top Level Machines --->
-					<td>&nbsp;</td> <!--- Parent Machines --->
-					<td>&nbsp;</td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">state enumeration</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><table class="selection"><tr><td>1</td><td>2</td><td>1</td><tr></table></td> 
+					 <!--- File                ---> <td><p>fsm_c_common</p></td> 
+					 <!--- Function(s)         ---> <td><p>commonHeaderStart<br/>subMachineHeaderStart<br/>This should
+					                                       be brought into a subroutine.
+														   </p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">pointer to fsm struct type</th> <!--- Element -->
-					<td><p class="selection">X</p></td> <!--- Top Level Machines --->
-					<td>&nbsp;</td> <!--- Parent Machines --->
-					<td>&nbsp;</td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">run function</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- Sub Machines        ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">pointer to instance</th> <!--- Element -->
-					<td><p class="selection">X</p></td> <!--- Top Level Machines --->
-					<td>&nbsp;</td> <!--- Parent Machines --->
-					<td>&nbsp;</td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">pointer to fsm struct type</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- Sub Machines        ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">instance</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">pointer to instance</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- Sub Machines        ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">fsm struct type definition (includes supporting typedefs)</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">instance</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p class="selection">X</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p class="selection">X</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">forward decls (and supporting fn typefs): <!--- Element -->
+					 <!--- Element             ---> <th class="lhs" colspan="2">fsm struct type definition (includes supporting typedefs)</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p class="selection">X</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p class="selection">X</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
+				</tr>
+				<tr>
+					 <!--- Element             ---> <th class="lhs" colspan="2">forward decls (and supporting fn typefs): 
 						<ul>
 							<li>actions</li>
 							<li>user transition fns</li>
 						</ul>
 					</th>
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p class="selection">X</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">forward decls (and supporting fn typefs): <!--- Element -->
+					 <!--- Element             ---> <th class="lhs" colspan="2">forward decls (and supporting fn typefs): 
 						<ul>
 							<li>generated transition fns</li>
 						</ul>
 					</th>
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X<br/>(Only with action arrays.)</p></td> <!--- C Design Type Aware --->
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p class="selection">X<br/>(Only with action arrays.)</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p class="selection">X</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">weak definitions: <!--- Element -->
+					 <!--- Element             ---> <th class="lhs" colspan="2">weak definitions: 
 						<ul>
 							<li>actions</li>
 							<li>user transition fns</li>
 						</ul>
 					</th>
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p class="selection">X</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">weak definitions: <!--- Element -->
+					 <!--- Element             ---> <th class="lhs" colspan="2">weak definitions: 
 						<ul>
 							<li>generated transition fns</li>
 						</ul>
 					</th>
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X<br/>(Only with action arrays.)</p></td> <!--- C Design Type Aware --->
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p class="selection">X<br/>(Only with action arrays.)</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p class="selection">X</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">machine debug info</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">machine debug info</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p class="selection">X</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">shared event elements (when present in FSM)</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">shared event elements (when present in FSM)</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p class="selection">X</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">sub-machine callers (when present in FSM)</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p>&nbsp;</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">sub-machine callers (when present in FSM)</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p>&nbsp;</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p class="selection">X</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">event data elements (when present in FSM)</th> <!--- Element -->
-					<td><p class="selection">X</p></td> <!--- Top Level Machines --->
-					<td><p>&nbsp;</p></td> <!--- Parent Machines --->
-					<td><p>&nbsp;</p></td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">event data elements (when present in FSM)</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p>&nbsp;</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p>&nbsp;</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">machine data elements (when present in FSM)</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">machine data elements (when present in FSM)</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">FSM function</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">FSM function</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><table class="selection"><tr><td>1</td><td>2</td><td>3</td><tr></table></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><table class="selection"><tr><td>1</td><td>2</td><td>3</td><tr></table></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">event sharers (when present in FSM)</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p>&nbsp;</p></td> <!--- Action Return Type --->
-					<td><p>&nbsp;</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">event sharers (when present in FSM)</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level">&nbsp;</td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">action array</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs" colspan="2">state entry/exit managers (when present in FSM)</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware"><p>&nbsp;</p></td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>&nbsp;</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">state table</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X</p></td> <!--- C Design Type Aware --->
+													<th rowspan=5><div class="category">Action Chart</div></th>
+					 <!--- Element             ---> <th class="lhs">action array</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware">
+														<table class="selection"><tr><td><p class="selection">X</p></td><td>&nbsp;</td><td>&nbsp;</td></tr></table>
+													</td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><table class="selection"><tr><td>1</td><td>2</td><td>1</td></tr></table></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">state functions</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs">state table</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware">
+														<table class="selection"><tr><td>&nbsp;</td><td><p class="selection">X</p></td><td>&nbsp;</td></tr></table>
+													</td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>No, because the ACTION_RETURN_TYPE macro is used.</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">event table</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs">state functions</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware">
+														<table class="selection"><tr><td>&nbsp;</td><td><p class="selection">X</p></td><td>&nbsp;</td></tr></table>
+													</td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>No, because the ACTION_RETURN_TYPE macro is used.</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 				<tr>
-					<th class="lhs">event handlers</th> <!--- Element -->
-					<td>&nbsp;</td> <!--- Top Level Machines --->
-					<td><p class="selection">X</p></td> <!--- Parent Machines --->
-					<td><p class="selection">X</p></td> <!--- Sub Machines --->
-					<td><p class="selection">X</p></td> <!--- Action Return Type --->
-					<td><p class="selection">X</p></td> <!--- C Design Type Aware --->
+					 <!--- Element             ---> <th class="lhs">event table</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware">
+														<table class="selection"><tr><td>&nbsp;</td><td>&nbsp;</td><td><p class="selection">X</p></td></tr></table>
+													</td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>No, because the ACTION_RETURN_TYPE macro is used.</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
+				</tr>
+				<tr>
+					 <!--- Element             ---> <th class="lhs">event functions</th> 
+					 <!--- Top Level Machines  ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Parent Machines     ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- Sub Machines        ---> <td class="machine_level"><p class="selection">X</p></td> 
+					 <!--- C Design Type Aware ---> <td class="c_design_type_aware">
+														<table class="selection"><tr><td>&nbsp;</td><td>&nbsp;</td><td><p class="selection">X</p></td></tr></table>
+													</td> 
+					 <!--- Action Return Type  ---> <td class="action_return_type"><p>No, because the ACTION_RETURN_TYPE macro is used.</p></td> 
+					 <!--- File                ---> <td><p>&nbsp;</p></td> 
+					 <!--- Function(s)         ---> <td><p>&nbsp;</p></td> 
 				</tr>
 			<tbody>
 		</table>
+
+		<h1>Destination Files</h1>
+	
+		<p>In keeping with good modularization, interface information is published on an <i>as needed</i> basis.  Code wanting to use the FSM
+		needs only to know the run function and the event definition. This information is published in the &lt;base_file_name&gt;.h file,
+		where &lt;base_file_name&gt; is either the output file name or the machine name. Because experience has shown that the event enumeration
+		(not the event structure, in the case of events with data) is of use separate from any other machine information, that enumeration is
+		published in &lt;base_file_name&gt;_events.h.  This is, of course, included by the public header.
+		</p>
+	
+		<p>Interface information needed by files holding user functions is published in &lt;machine_name&gt;_private.h, where &lt;machine_name&gt;
+		is taken from the relevant machine.
+		</p>
 
 		<table class="typical">
 			<thead>

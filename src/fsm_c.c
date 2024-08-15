@@ -71,6 +71,8 @@ FSMCOutputGenerator CMachineWriter = {
 		, generateCMachineWriter
 	}
 	, NULL
+	, NULL
+	, NULL
 };
 
 /* list iteration callbacks */
@@ -1600,9 +1602,9 @@ pFSMOutputGenerator generateCMachineWriter(pFSMOutputGenerator parent)
 
 	if (parent)
 	{
-		pFSMCSubMachineOutputGenerator pfsmcsmog;
+		pFSMCOutputGenerator pfsmcsmog;
 
-		pfsmcsmog = (pFSMCSubMachineOutputGenerator)calloc(1, sizeof(FSMCSubMachineOutputGenerator));
+		pfsmcsmog = (pFSMCOutputGenerator)calloc(1, sizeof(FSMCOutputGenerator));
 
 		pfsmcsmog->fsmog.writeMachine = writeCSubMachine;
 		pfsmcsmog->fsmog.initOutput   = initCSubMachine;

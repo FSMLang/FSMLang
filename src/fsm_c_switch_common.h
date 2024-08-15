@@ -39,30 +39,27 @@
 #include "fsm_priv.h"
 #include "fsm_c_common.h"
 
-typedef struct _cswitch_machine_data_          CSwitchMachineData
-                                               , *pCSwitchMachineData
-											   ;
-typedef struct _cevent_table_machine_data_     CEventTableMachineData
-                                               , *pCEventTableMachineData
-                                               ;
+typedef struct _fsm_c_switch_output_generator_    FSMCSwitchOutputGenerator
+                                                  , *pFSMCSwitchOutputGenerator
+												  ;
 
-typedef void (*CEventTableFn)(pCSwitchMachineData);
 
-struct _cevent_table_machine_data_
+typedef void (*COutputFn$fp$pid$pai$pmi)  (FILE*,pID_INFO,pACTION_INFO,pMACHINE_INFO);
+typedef void (*COutputFn$fp$ped$pich)     (FILE*,pEVENT_DATA,pITERATOR_CALLBACK_HELPER);
+typedef bool (*COutputFn$ple$pv)          (pLIST_ELEMENT,void*);
+
+struct _fsm_c_switch_output_generator_
 {
-	CEventTableFn writeFSMFn;
-};
-
-struct _cswitch_machine_data_
-{
-	CMachineData           cmd;
-	CEventTableMachineData cetmd;
+	FSMCOutputGenerator      fsmcog;
+	COutputFn$fp$pid$pai$pmi pethbsspe;
+	COutputFn$fp$ped$pich    pethbmse;
+	COutputFn$ple$pv         pethsc;
 };
 
 void writeCSwitchMachineFN(pFSMOutputGenerator,pMACHINE_INFO);
 void cswitchMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
-void writeOriginalSwitchFSMLoop(pCMachineData,pMACHINE_INFO);
-void writeOriginalSwitchSubFSMLoop(pCMachineData,pMACHINE_INFO);
+void writeOriginalSwitchFSMLoop(pFSMCOutputGenerator);
+void writeOriginalSwitchSubFSMLoop(pFSMCOutputGenerator);
 void cswitchSubMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
 
 #endif

@@ -60,18 +60,18 @@ static void            writeCSwitchMachine(pFSMOutputGenerator,pMACHINE_INFO);
 static void            writeCSwitchSubMachine(pFSMOutputGenerator,pMACHINE_INFO);
 
 static void            defineAllStateHandler(pCMachineData,pMACHINE_INFO);
-static void            defineCSwitchMachineFSM(pCMachineData,pMACHINE_INFO);
-static void            defineCSwitchSubMachineFSM(pCMachineData,pMACHINE_INFO);
+static void            defineCSwitchMachineFSM(pFSMCOutputGenerator);
+static void            defineCSwitchSubMachineFSM(pFSMCOutputGenerator);
 static void            defineCSwitchMachineStruct(pCMachineData,pMACHINE_INFO);
 static void            declareCSwitchMachineStateFnArray(pCMachineData);
-static void            writeActionsReturnStateSwitchFSM(pCMachineData, pMACHINE_INFO);
-static void            writeReentrantSwitchFSM(pCMachineData,pMACHINE_INFO);
-static void            writeOriginalSwitchFSM(pCMachineData,pMACHINE_INFO);
-static void            writeOriginalSwitchSubFSM(pCMachineData,pMACHINE_INFO);
-static int             writeCSwitchMachineInternal(pCMachineData, pMACHINE_INFO);
-static int             writeCSwitchSubMachineInternal(pCMachineData, pMACHINE_INFO);
-static void            writeOriginalSwitchFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*);
-static void            writeOriginalSwitchSubFSMLoopInnards(pCMachineData,pMACHINE_INFO,char*);
+static void            writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator);
+static void            writeReentrantSwitchFSM(pFSMCOutputGenerator);
+static void            writeOriginalSwitchFSM(pFSMCOutputGenerator);
+static void            writeOriginalSwitchSubFSM(pFSMCOutputGenerator);
+static int             writeCSwitchMachineInternal(pFSMCOutputGenerator);
+static int             writeCSwitchSubMachineInternal(pFSMCOutputGenerator);
+static void            writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator, char*);
+static void            writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator,char*);
 static void            defineCSwitchMachineStateFns(pCMachineData,pMACHINE_INFO);
 static void            defineStateFnArray(pCMachineData,pMACHINE_INFO);
 static bool            print_state_fn_signature(pLIST_ELEMENT,void*);
@@ -87,22 +87,32 @@ static bool            print_void_returning_state_fn_case(pLIST_ELEMENT,void*);
 static bool            print_state_returning_state_fn_case(pLIST_ELEMENT,void*);
 
 
-static FSMCOutputGenerator CSwitchMachineWriter = {
-   {
-      initCMachine
-      , writeCSwitchMachine
-      , closeCMachine
-	  , generateCSwitchMachineWriter
-   }
-   , NULL
+static FSMCSwitchOutputGenerator CSwitchMachineWriter = {
+	{
+	   {
+	      initCMachine
+	      , writeCSwitchMachine
+	      , closeCMachine
+		  , generateCSwitchMachineWriter
+	   }
+	   , NULL
+	   , NULL
+	   , NULL
+	}
+	, NULL
+	, NULL
+	, NULL
 };
 
 /**
   This function writes the ActionsReturnState Switch FSM
 */
-static void writeActionsReturnStateSwitchFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
 {
    char *tabstr = "";
+
+   pCMachineData pcmd = pfsmcog->pcmd;
+   pMACHINE_INFO pmi  = pcmd->pmi;
 
    fprintf(pcmd->cFile
            , "\t%s s%s;\n"
@@ -198,10 +208,10 @@ static void writeCSwitchMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
    pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   pfsmcog->pcmd->pmi     = pmi;
-   pfsmcog->pcmd->cfsmliw = writeOriginalSwitchFSMLoopInnards;
+   pfsmcog->pcmd->pmi = pmi;
+   pfsmcog->cfsmliw   = writeOriginalSwitchFSMLoopInnards;
 
-   writeCSwitchMachineInternal(pfsmcog->pcmd, pmi);
+   writeCSwitchMachineInternal(pfsmcog);
 
    if (pmi->machine_list)
    {
@@ -212,13 +222,14 @@ static void writeCSwitchMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
-   pFSMCSubMachineOutputGenerator pfsmcsmog = (pFSMCSubMachineOutputGenerator) pfsmog;
+   pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   pfsmcsmog->pcmd->pmi = pmi;
-   pfsmcsmog->pcmd->cfsmliw = writeOriginalSwitchSubFSMLoopInnards;
-   pfsmcsmog->pcmd->action_return_type = pfsmcsmog->parent_fsmcog->pcmd->action_return_type;
+   pfsmcog->cfsmliw   = writeOriginalSwitchSubFSMLoopInnards;
 
-   writeCSwitchSubMachineInternal(pfsmcsmog->pcmd, pmi);
+   pfsmcog->pcmd->pmi                = pmi;
+   pfsmcog->pcmd->action_return_type = pfsmcog->parent_fsmcog->pcmd->action_return_type;
+
+   writeCSwitchSubMachineInternal(pfsmcog);
 
    if (pmi->machine_list)
    {
@@ -226,15 +237,17 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    }
 }
 
-static int writeCSwitchMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
+static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
 {
-   if (!pmi || !pcmd) return 1;
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 
    ITERATOR_CALLBACK_HELPER ich = {
 	   .ih = {
 		   .pmi    = pmi
 	   }
-       , .pcmd = pcmd
+       , .pcmd = pfsmcog->pcmd
+		, .pfsmcog = pfsmcog
    };
 
    /* do this now, since some header stuff puts content into the source file.*/
@@ -275,7 +288,7 @@ static int writeCSwitchMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
       generateRunFunction(pcmd, pmi);
    }
 
-   defineCSwitchMachineFSM(pcmd, pmi);
+   defineCSwitchMachineFSM(pfsmcog);
 
    /* write our sub-machine lookup, if needed */
    if (pmi->machine_list)
@@ -345,9 +358,10 @@ static bool print_state_fn_signature(pLIST_ELEMENT pelem, void *data)
     return false;
 }
 
-static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
+static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 {
-   if (!pmi || !pcmd) return 1;
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
 
    ITERATOR_CALLBACK_HELPER ich = {
 	   . ih = {
@@ -355,6 +369,7 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
 	   }
        , .pcmd   = pcmd
        , .define = false
+		, .pfsmcog = pfsmcog
    };
 
    /* do this now, since some header stuff puts content into the source file.*/
@@ -393,7 +408,7 @@ static int writeCSwitchSubMachineInternal(pCMachineData pcmd, pMACHINE_INFO pmi)
       generateInstance(pcmd, pmi, "state_fn");
    }
 
-   defineCSwitchSubMachineFSM(pcmd, pmi);
+   defineCSwitchSubMachineFSM(pfsmcog);
 
    /* write our sub-machine lookup, if needed */
    if (pmi->machine_list)
@@ -542,8 +557,11 @@ static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_IN
 
 }
 
-static void defineCSwitchMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
+
    if (pmi->machine_list)
    {
       declareSubMachineManagers(pcmd, pmi);
@@ -600,17 +618,19 @@ static void defineCSwitchMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
              );
    }
 
-   if      (pmi->modFlags & mfReentrant)           writeReentrantSwitchFSM(pcmd, pmi);
-   else if (pmi->modFlags & mfActionsReturnStates) writeActionsReturnStateSwitchFSM(pcmd, pmi);
-   else                                            writeOriginalSwitchFSM(pcmd, pmi);
+   if      (pmi->modFlags & mfReentrant)           writeReentrantSwitchFSM(pfsmcog);
+   else if (pmi->modFlags & mfActionsReturnStates) writeActionsReturnStateSwitchFSM(pfsmcog);
+   else                                            writeOriginalSwitchFSM(pfsmcog);
 
    fprintf(pcmd->cFile, "\n}\n\n");
 
 }
 
-static void defineCSwitchSubMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
 
    if (pmi->machine_list)
    {
@@ -657,9 +677,9 @@ static void defineCSwitchSubMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 			  );
    }
 
-   if      (pmi->modFlags & mfReentrant)           writeReentrantSwitchFSM(pcmd, pmi);
-   else if (pmi->modFlags & mfActionsReturnStates) writeActionsReturnStateSwitchFSM(pcmd, pmi);
-   else                                            writeOriginalSwitchSubFSM(pcmd, pmi);
+   if      (pmi->modFlags & mfReentrant)           writeReentrantSwitchFSM(pfsmcog);
+   else if (pmi->modFlags & mfActionsReturnStates) writeActionsReturnStateSwitchFSM(pfsmcog);
+   else                                            writeOriginalSwitchSubFSM(pfsmcog);
 
    fprintf(pcmd->cFile
            , "\n}\n\n"
@@ -1120,10 +1140,13 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
     return false;
 }
 
-static void writeOriginalSwitchFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, char *tabstr)
+static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char *tabstr)
 {
 
    char *local_tabstr = "";
+
+   pCMachineData pcmd = pfsmcog->pcmd;
+   pMACHINE_INFO pmi  = pcmd->pmi;
 
    if (pmi->has_single_pai_events)
    {
@@ -1171,9 +1194,12 @@ static void writeOriginalSwitchFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO 
    }
 }
 
-static void writeOriginalSwitchSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, char *tabstr)
+static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
 {
    (void) tabstr;
+
+   pCMachineData pcmd = pfsmcog->pcmd;
+   pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 
    if (pmi->has_single_pai_events)
    {
@@ -1215,27 +1241,29 @@ static void writeOriginalSwitchSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_IN
 
 }
 
-static void writeOriginalSwitchFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void writeOriginalSwitchFSM(pFSMCOutputGenerator pfsmcog)
 {
-   writeOriginalSwitchFSMLoop(pcmd, pmi);
+   writeOriginalSwitchFSMLoop(pfsmcog);
 }
 
-static void writeOriginalSwitchSubFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void writeOriginalSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
 {
-   writeOriginalSwitchSubFSMLoop(pcmd, pmi);
+   writeOriginalSwitchSubFSMLoop(pfsmcog);
 }
 
-static void writeReentrantSwitchFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void writeReentrantSwitchFSM(pFSMCOutputGenerator pfsmcog)
 {
-   fprintf(pcmd->cFile, "#ifdef FSM_START_CRITICAL\n");
-   fprintf(pcmd->cFile, "\tFSM_START_CRITICAL;\n");
-   fprintf(pcmd->cFile, "#endif\n\n");
+	pCMachineData pcmd = pfsmcog->pcmd;
 
-   writeOriginalSwitchFSMLoop(pcmd, pmi);
+	fprintf(pcmd->cFile, "#ifdef FSM_START_CRITICAL\n");
+	fprintf(pcmd->cFile, "\tFSM_START_CRITICAL;\n");
+	fprintf(pcmd->cFile, "#endif\n\n");
 
-   fprintf(pcmd->cFile, "\n\n#ifdef FSM_END_CRITICAL\n");
-   fprintf(pcmd->cFile, "\tFSM_END_CRITICAL;\n");
-   fprintf(pcmd->cFile, "#endif\n\n");
+	writeOriginalSwitchFSMLoop(pfsmcog);
+
+	fprintf(pcmd->cFile, "\n\n#ifdef FSM_END_CRITICAL\n");
+	fprintf(pcmd->cFile, "\tFSM_END_CRITICAL;\n");
+	fprintf(pcmd->cFile, "#endif\n\n");
 
 }
 
@@ -1502,15 +1530,15 @@ pFSMOutputGenerator generateCSwitchMachineWriter(pFSMOutputGenerator parent)
 
 	if (parent)
 	{
-		pFSMCSubMachineOutputGenerator pfsmcswitchog = calloc(1, sizeof(FSMCSubMachineOutputGenerator));
+		pFSMCSwitchOutputGenerator pfsmcswitchog = calloc(1, sizeof(FSMCSwitchOutputGenerator));
 
-		pfsmcswitchog->fsmog.writeMachine = writeCSwitchSubMachine;
-		pfsmcswitchog->fsmog.initOutput   = initCSubMachine;
-		pfsmcswitchog->fsmog.closeOutput  = closeCMachine;
-		pfsmcswitchog->fsmog.fsmogFactory = generateCSwitchMachineWriter;
+		pfsmcswitchog->fsmcog.fsmog.writeMachine = writeCSwitchSubMachine;
+		pfsmcswitchog->fsmcog.fsmog.initOutput   = initCSubMachine;
+		pfsmcswitchog->fsmcog.fsmog.closeOutput  = closeCMachine;
+		pfsmcswitchog->fsmcog.fsmog.fsmogFactory = generateCSwitchMachineWriter;
 
-		pfsmcswitchog->top_level_fsmcog = &CSwitchMachineWriter;
-		pfsmcswitchog->parent_fsmcog    = (pFSMCOutputGenerator) parent;
+		pfsmcswitchog->fsmcog.top_level_fsmcog = (pFSMCOutputGenerator)&CSwitchMachineWriter;
+		pfsmcswitchog->fsmcog.parent_fsmcog    = (pFSMCOutputGenerator) parent;
 
 		pfsmog = (pFSMOutputGenerator)pfsmcswitchog;
 	}

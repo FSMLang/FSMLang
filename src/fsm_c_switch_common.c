@@ -47,7 +47,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define writeCFSMLoopInnards(A, B, C) pcmd->cfsmliw((A), (B), (C))
+#define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
 
 static bool            cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
 
@@ -198,9 +198,12 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
 
 }
 
-void writeOriginalSwitchFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
+void writeOriginalSwitchFSMLoop(pFSMCOutputGenerator pfsmcog)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
 
    char *tabstr = "\t";
 
@@ -237,7 +240,7 @@ void writeOriginalSwitchFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
       tabstr = "\t\t";
    }
 
-   writeCFSMLoopInnards(pcmd, pmi, tabstr);
+   writeCFSMLoopInnards(tabstr);
 
    if (pmi->machine_list)
    {
@@ -351,8 +354,11 @@ static bool cswitch_sub_machine_declare_transition_fn_for_when_actions_return_ev
    return false;
 }
 
-void writeOriginalSwitchSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
+void writeOriginalSwitchSubFSMLoop(pFSMCOutputGenerator pfsmcog)
 {
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
+
    if (!(pmi->modFlags & mfActionsReturnVoid))
    {
       fprintf(pcmd->cFile, "\twhile ((e != THIS(noEvent))\n\t       && (e >= THIS(firstEvent))\n"
@@ -378,7 +384,7 @@ void writeOriginalSwitchSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
            );
 
-   writeCFSMLoopInnards(pcmd, pmi, "");
+   writeCFSMLoopInnards("");
 
    if (pmi->machine_list)
    {

@@ -380,8 +380,6 @@ void count_events_with_one_handler(pLIST,unsigned*);
 void compute_event_and_state_density_pct(pMACHINE_INFO);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
-void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO, FILE*);
-void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO, FILE*);
 bool printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 void printNameWithAncestry(char*,pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);
