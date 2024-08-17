@@ -1,6 +1,10 @@
 native
 {
 #include "test.h"
+
+#undef FSM_END_CRITICAL
+#define FSM_END_CRITICAL printf("end state: %s\n\n",MESSENGER_STATE_NAMES[pfsm->state]);
+
 }
 
 reentrant machine messenger
