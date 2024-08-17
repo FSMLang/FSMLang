@@ -1,6 +1,7 @@
 native
 {
 #include "test.h"
+#undef FSM_END_CRITICAL
 }
 
 reentrant machine messenger
