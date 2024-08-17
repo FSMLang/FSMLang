@@ -1337,34 +1337,30 @@ static bool print_switch_cases_for_events_handled_in_all_states(pLIST_ELEMENT pe
                        : pich->ih.pmi->modFlags & mfActionsReturnStates ? "(pfsm)" : "(pfsm,e)"
                     );
          }
+
+         if (strlen(event->type_data.event_data.psingle_pai->action->name))
+         {
+            fprintf(pich->pcmd->cFile
+                    , "\t\t\t%sUFMN(%s)(pfsm);\n"
+                    , pich->ih.pmi->modFlags & mfActionsReturnStates 
+                       ? (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
+                         ? "new_s = " : "pfsm->state = " 
+                       : ""
+                    , event->type_data.event_data.psingle_pai->action->name
+                    );
+         }
          else
          {
-
-            if (strlen(event->type_data.event_data.psingle_pai->action->name))
-            {
-               fprintf(pich->pcmd->cFile
-                       , "\t\t\t%sUFMN(%s)(pfsm);\n"
-                       , pich->ih.pmi->modFlags & mfActionsReturnStates 
-                          ? (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
-                            ? "new_s = " : "pfsm->state = " 
-                          : ""
-                       , event->type_data.event_data.psingle_pai->action->name
-                       );
-            }
-            else
-            {
-               fprintf(pich->pcmd->cFile
-                       , (event->type_data.event_data.psingle_pai->transition->type == STATE)
-                         ? "\t\t\t%sUFMN(%s);\n"
-                         : "\t\t\t%sUFMN(%s)(pfsm);\n"
-                       , pich->ih.pmi->modFlags & mfActionsReturnStates 
-                          ? (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
-                            ? "new_s = " : "pfsm->state = "
-                          : ""
-                       , event->type_data.event_data.psingle_pai->transition->name
-                      );
-            }
-
+            fprintf(pich->pcmd->cFile
+                    , (event->type_data.event_data.psingle_pai->transition->type == STATE)
+                      ? "\t\t\t%sUFMN(%s);\n"
+                      : "\t\t\t%sUFMN(%s)(pfsm);\n"
+                    , pich->ih.pmi->modFlags & mfActionsReturnStates 
+                       ? (pich->ih.pmi->machineTransition || pich->ih.pmi->states_with_entry_fns_count || pich->ih.pmi->states_with_exit_fns_count)
+                         ? "new_s = " : "pfsm->state = "
+                       : ""
+                    , event->type_data.event_data.psingle_pai->transition->name
+                   );
          }
          
          fprintf(pich->pcmd->cFile
