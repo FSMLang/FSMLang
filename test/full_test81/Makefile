@@ -17,7 +17,7 @@ c c_run: FSM_FLAGS=-tc
 
 s s_run: FSM_FLAGS=-ts
 
-do_runtest: $(addsuffix _run, $(VARIANTS))
+runtest: $(addsuffix _run, $(VARIANTS))
 	@echo "all tests successful"
 
 test: $(VARIANTS)
