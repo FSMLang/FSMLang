@@ -3355,3 +3355,23 @@ void writeNoTransition(pCMachineData pcmd, pMACHINE_INFO pmi)
 	fprintf(pcmd->cFile, ";\n}\n\n");
 }
 
+void writeReentrantPrologue(pCMachineData pcmd)
+{
+	if (pcmd->pmi->modFlags & mfReentrant)
+	{
+		fprintf(pcmd->cFile, "\n\n#ifdef FSM_START_CRITICAL\n");
+		fprintf(pcmd->cFile, "\tFSM_START_CRITICAL;\n");
+		fprintf(pcmd->cFile, "#endif\n\n");
+	}
+}
+
+void writeReentrantEpilogue(pCMachineData pcmd)
+{
+	if (pcmd->pmi->modFlags & mfReentrant)
+	{
+		fprintf(pcmd->cFile, "\n\n#ifdef FSM_END_CRITICAL\n");
+		fprintf(pcmd->cFile, "\tFSM_END_CRITICAL;\n");
+		fprintf(pcmd->cFile, "#endif\n\n");
+	}
+}
+

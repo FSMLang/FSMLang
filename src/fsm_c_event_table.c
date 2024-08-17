@@ -1011,6 +1011,8 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
    streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
    fprintf(pcmd->cFile, "_EVENT event)\n{\n");
 
+   writeReentrantPrologue(pcmd);
+
    if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
    {
       fprintf(pcmd->cFile
@@ -1022,6 +1024,8 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
    }
 
    writeFSMLoop(pfsmcog);
+
+   writeReentrantEpilogue(pcmd);
 
    fprintf(pcmd->cFile, "\n}\n\n");
 

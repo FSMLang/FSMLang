@@ -546,7 +546,6 @@ static void writeOriginalSubFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"
 		   );
 
-	fprintf(pcmd->cFile, "\n\n}\n\n");
 }
 
 /**
@@ -567,17 +566,11 @@ static void writeReentrantFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, eventType(pcmd)
 		   );
 
-	fprintf(pcmd->cFile, "#ifdef FSM_START_CRITICAL\n");
-	fprintf(pcmd->cFile, "\tFSM_START_CRITICAL;\n");
-	fprintf(pcmd->cFile, "#endif\n\n");
+	writeReentrantPrologue(pcmd);
 
 	writeOriginalFSMLoop(pcmd, pmi);
 
-	fprintf(pcmd->cFile, "\n\n#ifdef FSM_END_CRITICAL\n");
-	fprintf(pcmd->cFile, "\tFSM_END_CRITICAL;\n");
-	fprintf(pcmd->cFile, "#endif\n\n");
-
-	fprintf(pcmd->cFile, "}\n\n");
+	writeReentrantEpilogue(pcmd);
 
 }
 
@@ -663,8 +656,6 @@ static void writeActionsReturnStateFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
 			, ucMachineName(pcmd)
 			);
-
-	fprintf(pcmd->cFile, "}\n");
 
 }
 
@@ -1557,6 +1548,7 @@ static void defineCMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 	else if (pmi->modFlags & mfActionsReturnStates) writeActionsReturnStateFSM(pcmd, pmi);
 	else                                            writeOriginalFSM(pcmd, pmi);
 
+	fprintf(pcmd->cFile, "\n\n}\n\n");
 }
 
 static void defineCSubMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
@@ -1596,6 +1588,8 @@ static void defineCSubMachineFSM(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if      (pmi->modFlags & mfReentrant)           writeReentrantFSM(pcmd, pmi);
 	else if (pmi->modFlags & mfActionsReturnStates) writeActionsReturnStateFSM(pcmd, pmi);
 	else                                            writeOriginalSubFSM(pcmd, pmi);
+
+	fprintf(pcmd->cFile, "\n\n}\n\n");
 
 }
 
