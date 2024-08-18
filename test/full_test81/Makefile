@@ -22,13 +22,13 @@ runtest: $(addsuffix _run, $(VARIANTS))
 
 test: $(VARIANTS)
 	cat *.size >> sizes
+	@$(MAKE) -f ../create_target.mk clean
 
 $(VARIANTS): 
 	@echo $(FSM_FLAGS)
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" test
 	@echo -n "$@ size: " > $@.size
 	@ls -l test | cut -f5 -d' ' >>  $@.size
-	@$(MAKE) -f ../create_target.mk clean
 
 $(addsuffix _run, $(VARIANTS)):
 	@echo $(FSM_FLAGS)
