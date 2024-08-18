@@ -1339,23 +1339,15 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
                        : "(pfsm,e)"
                     );
          }
-
-         if (strlen(event->type_data.event_data.psingle_pai->action->name))
-         {
-            fprintf(pich->pcmd->cFile
-                    , "\t\t\tUFMN(%s)(pfsm);\n"
-                    , event->type_data.event_data.psingle_pai->action->name
-                    );
-         }
          else
          {
-            fprintf(pich->pcmd->cFile
-                    , "\t\t\tUFMN(%s)%s;\n"
-                    , event->type_data.event_data.psingle_pai->transition->name
-                    , (event->type_data.event_data.psingle_pai->transition->type == STATE)
-                        ? ""
-                        : "(pfsm)"
-                   );
+             if (strlen(event->type_data.event_data.psingle_pai->action->name))
+             {
+                fprintf(pich->pcmd->cFile
+                        , "\t\t\tUFMN(%s)(pfsm);\n"
+                        , event->type_data.event_data.psingle_pai->action->name
+                        );
+             }
          }
          
          fprintf(pich->pcmd->cFile
@@ -1532,7 +1524,7 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
       }
 
       fprintf(pcmd->cFile
-              , "\t\tpfsm->state = new_s;\n\n"
+              , "\t\tpfsm->state = new_s;\n"
              );
 
       fprintf(pcmd->cFile
