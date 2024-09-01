@@ -1,12 +1,12 @@
-.PHONY: runtest test clean clean_generated
-
 VARIANTS ?= c s e
 
-e.size e_run: FSM_FLAGS=-te
+.PHONY: runtest test clean clean_generated $(VARIANTS)
 
-c.size c_run: FSM_FLAGS=-tc
+e e.size e_run: FSM_FLAGS=-te
 
-s.size s_run: FSM_FLAGS=-ts
+c c.size c_run: FSM_FLAGS=-tc
+
+s s.size s_run: FSM_FLAGS=-ts
 
 runtest: $(addsuffix _run, $(VARIANTS))
 	@echo "all tests successful"
@@ -30,9 +30,11 @@ $(addsuffix _run, $(VARIANTS)):
 
 clean:
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
-	-@rm $(addsuffix .size, $(VARIANTS))
-	-@rm sizes
+	-@rm -f sizes $(VARIANTS) $(addsuffix .size, $(VARIANTS)) 2> /dev/null
 
 clean_generated:
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
+
+$(VARIANTS):
+	$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" VARIANTS="$(VARIANTS)" $@
 

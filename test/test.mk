@@ -3,7 +3,7 @@
 # Generic rules for creating and running tests.
 #
 #
-.PHONY: do_runtest show_objs
+.PHONY: do_runtest show_objs $(VARIANTS)
 
 override CFLAGS += -Wall -Wpedantic -Wextra -I../
 
@@ -32,7 +32,7 @@ do_runtest: test
 	@cat test.stderr >> test.out
 	@cat fsmout >> test.out
 	@$(DIFF) test.out test.canonical > test.result
-	@-rm -f test test.out test.result test.stderr
+	@-rm -f test test.out test.result test.stderr 2> /dev/null
 	@-rm -f fsmout                         2> /dev/null
 	@-rm -f *.d*                           2> /dev/null
 	@-rm -f *.fsmd*                        2> /dev/null
@@ -73,3 +73,7 @@ clean::
 stats.txt: $(FSM_SRC)
 	$(FSM) -s $< > $@
 
+ifdef VARIANTS
+$(VARIANTS): $(FSM_SRC)
+	@cp fsmout $@
+endif
