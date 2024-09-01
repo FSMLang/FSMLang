@@ -1109,7 +1109,7 @@ static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
    fprintf(pcmd->cFile
            , "\t%s s%s;\n"
            , stateType(pcmd)
-           , (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+		   , pmi->executes_fns_on_state_transitions
              ? " = UFMN(noTransition)" 
              : ""
            );
@@ -1140,7 +1140,7 @@ static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
            , "\tif (s != UFMN(noTransition))\n\t{\n"
            );
 
-   if (pmi->machineTransition || pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   if (pmi->executes_fns_on_state_transitions)
    {
       fprintf(pcmd->cFile
               , "\t\tif (s != pfsm->state)\n\t\t{\n"

@@ -270,6 +270,10 @@ machine:	machine_prefix ID machine_qualifier
 																					 ,&($$->states_with_exit_fns_count)
 																					 );
 
+          $$->executes_fns_on_state_transitions = (
+                                                   (($$->states_with_entry_fns_count + $$->states_with_exit_fns_count) > 0)
+                                                   || ($$->machineTransition != NULL)
+                                                   );
  					if ($$->machine_list)
 						{
 						    count_sub_machine_inhibitors  ($$->state_list,&($$->submachine_inhibitor_count));

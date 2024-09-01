@@ -328,6 +328,7 @@ struct _machine_info_ {
   unsigned      shared_event_count;
   pLIST         id_list;
   bool          has_single_pai_events;
+  bool          executes_fns_on_state_transitions;
   unsigned      states_with_entry_fns_count;
   unsigned      states_with_exit_fns_count;
   unsigned      sub_machine_depth;
