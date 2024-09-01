@@ -1265,7 +1265,6 @@ static void writeOriginalSwitchFSMArv(pFSMCOutputGenerator pfsmcog)
 static void writeOriginalSwitchSubFSMAre(pFSMCOutputGenerator pfsmcog)
 {
     pCMachineData pcmd = pfsmcog->pcmd;
-    pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 
     fprintf(pcmd->cFile
             , "\t%s e = event;\n\n"
