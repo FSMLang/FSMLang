@@ -13,8 +13,6 @@ override CFLAGS += -DFSM_DEBUG \
 	 -Wall \
 	 -ggdb
 
-VARIANTS = s
-
 include ../variants.mk
 
 
