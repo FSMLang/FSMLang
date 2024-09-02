@@ -856,35 +856,32 @@ static bool print_event_table_handler_state_case_are(pLIST_ELEMENT pelem, void *
 	pMACHINE_INFO             pmi    = pich->pcmd->pmi;
 	pACTION_INFO              pai    = pmi->actionArray[pevent->order][pstate->order];
 
-	if (pai)
+	fprintf(fout
+			, "\t\tcase STATE(%s):\n"
+			, pstate->name
+			);
+
+	if (pai->action->name)
 	{
 		fprintf(fout
-				, "\t\tcase STATE(%s):\n"
-				, pstate->name
+				, "\t\t\tevent = UFMN(%s)(pfsm);\n"
+				, pai->action->name
 				);
-
-		if (pai->action->name)
-		{
-			fprintf(fout
-					, "\t\t\tevent = UFMN(%s)(pfsm);\n"
-					, pai->action->name
-					);
-		}
-
-		if (pai->transition)
-		{
-			fprintf(fout
-					, "\t\t\tpfsm->state = "
-					);
-			print_transition_for_assignment_to_state_var(pich->pcmd->pmi
-														 , pai->transition
-														 , pevent->name
-														 , fout);
-			fprintf(fout, ";\n");
-		}
-
-		fprintf(fout, "\t\t\tbreak;\n");
 	}
+
+	if (pai->transition)
+	{
+		fprintf(fout
+				, "\t\t\tpfsm->state = "
+				);
+		print_transition_for_assignment_to_state_var(pich->pcmd->pmi
+													 , pai->transition
+													 , pevent->name
+													 , fout);
+		fprintf(fout, ";\n");
+	}
+
+	fprintf(fout, "\t\t\tbreak;\n");
 
 	return false;
 }
