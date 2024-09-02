@@ -851,37 +851,40 @@ static bool print_event_table_handler_state_case_are(pLIST_ELEMENT pelem, void *
 {
 	pID_INFO                  pstate = (pID_INFO) pelem->mbr;
 	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
+	pID_INFO                  pevent = (pID_INFO) pich->pOtherElem->mbr;
 	FILE                     *fout   = pich->pcmd->cFile;
 	pMACHINE_INFO             pmi    = pich->pcmd->pmi;
-	pACTION_INFO              pai    = pmi->actionArray[pich->pOtherElem->ordinal][pelem->ordinal];
-	pID_INFO                  pevent = (pID_INFO) pich->pOtherElem->mbr;
+	pACTION_INFO              pai    = pmi->actionArray[pevent->order][pstate->order];
 
-	fprintf(fout
-			, "\t\tcase STATE(%s):\n"
-			, pstate->name
-			);
-
-	if (pai->action->name)
+	if (pai)
 	{
 		fprintf(fout
-				, "\t\t\tevent = UFMN(%s)(pfsm);\n"
-				, pai->action->name
+				, "\t\tcase STATE(%s):\n"
+				, pstate->name
 				);
-	}
 
-	if (pai->transition)
-	{
-		fprintf(fout
-				, "\t\t\tpfsm->state = "
-				);
-		print_transition_for_assignment_to_state_var(pich->pcmd->pmi
-													 , pai->transition
-													 , pevent->name
-													 , fout);
-		fprintf(fout, ";\n");
-	}
+		if (pai->action->name)
+		{
+			fprintf(fout
+					, "\t\t\tevent = UFMN(%s)(pfsm);\n"
+					, pai->action->name
+					);
+		}
 
-	fprintf(fout, "\t\t\tbreak;\n");
+		if (pai->transition)
+		{
+			fprintf(fout
+					, "\t\t\tpfsm->state = "
+					);
+			print_transition_for_assignment_to_state_var(pich->pcmd->pmi
+														 , pai->transition
+														 , pevent->name
+														 , fout);
+			fprintf(fout, ";\n");
+		}
+
+		fprintf(fout, "\t\t\tbreak;\n");
+	}
 
 	return false;
 }
