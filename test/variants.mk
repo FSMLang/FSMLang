@@ -38,3 +38,6 @@ clean_generated:
 $(VARIANTS):
 	$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" VARIANTS="$(VARIANTS)" $@
 
+stats.txt:
+	$(MAKE) -f ../create_target.mk $@
+
