@@ -282,17 +282,17 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 		/* write weak state entry and exit functions */
 		defineWeakStateEntryAndExitFunctionStubs(pcmd, pmi);
 
+		/* write our transition functions, if needed */
+		if (pmi->transition_fn_list->count)
+		{
+			writeStateTransitions(pcmd, pmi);
+			writeNoTransition(pcmd, pmi);
+		}
+
 	}
 	else if (force_generation_of_event_passing_actions)
 	{
 		defineEventPassingActions(pcmd, pmi);
-	}
-
-	/* write our transition functions, if needed */
-	if (pmi->transition_fn_list->count)
-	{
-		writeStateTransitions(pcmd, pmi);
-		writeNoTransition(pcmd, pmi);
 	}
 
 	writeDebugInfo(pcmd, pmi);
@@ -370,17 +370,17 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 			defineWeakDataTranslatorStubs(pcmd, pmi);
 		}
 
+		/* write our transition functions, if needed */
+		if (pmi->transition_fn_list->count)
+		{
+			writeStateTransitions(pcmd, pmi);
+			writeNoTransition(pcmd, pmi);
+		}
+
 	}
 	else if (force_generation_of_event_passing_actions)
 	{
 		defineEventPassingActions(pcmd, pmi);
-	}
-
-	/* write our transition functions, if needed */
-	if (pmi->transition_fn_list->count)
-	{
-		writeStateTransitions(pcmd, pmi);
-		writeNoTransition(pcmd, pmi);
 	}
 
 	writeDebugInfo(pcmd, pmi);
@@ -665,7 +665,7 @@ static void writeActionsReturnStateFSM(pFSMCOutputGenerator pfsmcog)
 		if (pmi->states_with_exit_fns_count)
 		{
 			fprintf(pcmd->cFile
-					, "\t\trunAppropriateExitFunction(%spfsm->state);\n"
+					, "\t\t\trunAppropriateExitFunction(%spfsm->state);\n"
 					, pmi->data ? "&pfsm->data, " : ""
 				   );
 		}
@@ -673,7 +673,7 @@ static void writeActionsReturnStateFSM(pFSMCOutputGenerator pfsmcog)
 		if (pmi->states_with_entry_fns_count)
 		{
 			fprintf(pcmd->cFile
-					, "\t\trunAppropriateEntryFunction(%ss);\n"
+					, "\t\t\trunAppropriateEntryFunction(%ss);\n"
 					, pmi->data ? "&pfsm->data, " : ""
 				   );
 		}
