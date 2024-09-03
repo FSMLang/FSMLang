@@ -2,8 +2,12 @@ event: anotherNewMachine_e1; state: anotherNewMachine_s1
 anotherNewMachine_a1
 event: anotherNewMachine_e2; state: anotherNewMachine_s1
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s2 because of anotherNewMachine_e2
 event: anotherNewMachine_e3; state: anotherNewMachine_s2
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s3 because of anotherNewMachine_e3
 event: anotherNewMachine_e4; state: anotherNewMachine_s3
 event: anotherNewMachine_anotherSubMachine1_ee1; state: anotherNewMachine_s3
 anotherNewMachine_anotherSubMachine1_aa1
@@ -28,10 +32,16 @@ event: anotherNewMachine_anotherSubMachine2_noEvent; state: anotherNewMachine_s3
 event: anotherNewMachine_e1; state: anotherNewMachine_s3
 anotherNewMachine_a2
 anotherNewMachine_transitionFn
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s1 because of anotherNewMachine_e1
 event: anotherNewMachine_e2; state: anotherNewMachine_s1
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s2 because of anotherNewMachine_e2
 event: anotherNewMachine_e3; state: anotherNewMachine_s2
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s3 because of anotherNewMachine_e3
 event: anotherNewMachine_e4; state: anotherNewMachine_s3
 event: anotherNewMachine_anotherSubMachine1_ee1; state: anotherNewMachine_s3
 anotherNewMachine_anotherSubMachine1_aa1
@@ -56,10 +66,16 @@ event: anotherNewMachine_anotherSubMachine2_noEvent; state: anotherNewMachine_s3
 event: anotherNewMachine_e1; state: anotherNewMachine_s3
 anotherNewMachine_a2
 anotherNewMachine_transitionFn
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s1 because of anotherNewMachine_e1
 event: anotherNewMachine_e2; state: anotherNewMachine_s1
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s2 because of anotherNewMachine_e2
 event: anotherNewMachine_e3; state: anotherNewMachine_s2
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s3 because of anotherNewMachine_e3
 event: anotherNewMachine_e4; state: anotherNewMachine_s3
 event: anotherNewMachine_anotherSubMachine1_ee1; state: anotherNewMachine_s3
 anotherNewMachine_anotherSubMachine1_aa1
@@ -84,10 +100,16 @@ event: anotherNewMachine_anotherSubMachine2_noEvent; state: anotherNewMachine_s3
 event: anotherNewMachine_e1; state: anotherNewMachine_s3
 anotherNewMachine_a2
 anotherNewMachine_transitionFn
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s1 because of anotherNewMachine_e1
 event: anotherNewMachine_e2; state: anotherNewMachine_s1
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s2 because of anotherNewMachine_e2
 event: anotherNewMachine_e3; state: anotherNewMachine_s2
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s3 because of anotherNewMachine_e3
 event: anotherNewMachine_e4; state: anotherNewMachine_s3
 event: anotherNewMachine_anotherSubMachine1_ee1; state: anotherNewMachine_s3
 anotherNewMachine_anotherSubMachine1_aa1
@@ -112,10 +134,16 @@ event: anotherNewMachine_anotherSubMachine2_noEvent; state: anotherNewMachine_s3
 event: anotherNewMachine_e1; state: anotherNewMachine_s3
 anotherNewMachine_a2
 anotherNewMachine_transitionFn
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s1 because of anotherNewMachine_e1
 event: anotherNewMachine_e2; state: anotherNewMachine_s1
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s2 because of anotherNewMachine_e2
 event: anotherNewMachine_e3; state: anotherNewMachine_s2
 anotherNewMachine_transitionFn1
+anotherNewMachine_baz
+Transitioning to anotherNewMachine_s3 because of anotherNewMachine_e3
 event: anotherNewMachine_e4; state: anotherNewMachine_s3
 event: anotherNewMachine_anotherSubMachine1_ee1; state: anotherNewMachine_s3
 anotherNewMachine_anotherSubMachine1_aa1
