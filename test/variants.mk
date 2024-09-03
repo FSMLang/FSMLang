@@ -4,7 +4,7 @@ VARIANTS ?= c s e
 
 e e.size e_run: FSM_FLAGS=-te
 
-c c.size c_run: FSM_FLAGS=-tc
+c c.size c_run: FSM_FLAGS=-tc --generate-weak-fns=false --force-generation-of-event-passing-actions
 
 s s.size s_run: FSM_FLAGS=-ts
 
