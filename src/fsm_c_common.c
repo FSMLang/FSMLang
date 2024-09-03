@@ -3307,8 +3307,15 @@ void print_transition_for_assignment_to_state_var(pMACHINE_INFO pmi, pID_INFO pt
 	}
 	else
 	{
-		format_str = "UFMN(%s)(pfsm,THIS(%s))";
-		event_str  = event;
+		if (pmi->modFlags & mfActionsReturnStates)
+		{
+			format_str = "UFMN(%s%s)(pfsm)";
+		}
+		else
+		{
+			format_str = "UFMN(%s)(pfsm,THIS(%s))";
+			event_str  = event;
+		}
 	}
 
 	fprintf(fout
