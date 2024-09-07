@@ -539,30 +539,14 @@ static bool event_handler_cannot_be_its_action(pID_INFO pevent, pMACHINE_INFO pm
 	pEVENT_DATA  ped                             = &pevent->type_data.event_data;
 
 	/* An event can be handled by its action function
-	   if there is only one state in which the event is handled
-	   and there is no transition for that event.
-	*/
-	if (ped->phandling_states->count == 1)
-	{
-		pID_INFO pstate = find_nth_list_member(ped->phandling_states, 0);
-		pai = pmi->actionArray[pevent->order][pstate->order];
-
-		event_handler_can_be_its_action = (pai->transition == NULL);
-	}
-	
-	/* Or, an event can be handled by its action function
 	   if there is a single pai for that event in all states
 	   and that pai has no transition.
 	*/
-	if (!event_handler_can_be_its_action)
-	{
-		pai = ped->psingle_pai;
+	pai = ped->psingle_pai;
 
-		event_handler_can_be_its_action =
-			ped->single_pai_for_all_states
-			&& (ped->psingle_pai->transition == NULL);
-
-	}
+	event_handler_can_be_its_action =
+		ped->single_pai_for_all_states
+		&& (ped->psingle_pai->transition == NULL);
 
 	if (ppai)
 	{
@@ -605,10 +589,7 @@ static bool define_event_table_handler(pLIST_ELEMENT pelem, void *data)
 	{
 		(void)print_event_fn_signature(pelem, pich);
 
-		if (
-			(ped->phandling_states->count == 1)
-			|| ped->single_pai_for_all_states
-		   ) {
+		if ( ped->single_pai_for_all_states ) {
 
 			if (
 				pmi->executes_fns_on_state_transitions
@@ -781,13 +762,77 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_ars(FI
 static void print_event_table_handler_body_for_multiple_state_events_are(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
 {
 	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
+	unsigned             states_with_actions = 0;
 
 	if (ped->phandling_states->count > 0)
 	{
+		pich->ih.counter0 = &states_with_actions;
+
 		fprintf(fout
 				, "\tACTION_RETURN_TYPE event = THIS(noEvent);\n\n"
 			   );
 
+		fprintf(fout
+				, "\tswitch (pfsm->state)\n\t{\n"
+			   );
+
+		iterate_list(ped->phandling_states
+					 , print_event_table_handler_state_case
+					 , pich
+					);
+
+		if (ped->phandling_states->count != pich->pcmd->pmi->state_list->count)
+		{
+			fprintf(fout
+					, "\t\tdefault:\n"
+					);
+
+			fprintf(fout
+					, "\t\t\tDBG_PRINTF(\"%s_noAction\");\n"
+					, fqMachineName(pich->pcmd)
+					);
+
+			fprintf(fout
+					, "\t\t\tbreak;\n"
+					);
+		}
+
+		fprintf(fout
+				, "\t}\n"
+			   );
+
+		print_any_transition_handlers(fout, pich->pcmd->pmi);
+
+		if (states_with_actions == 0)
+		{
+			fprintf(fout
+					, "\tDBG_PRINTF(\"%s_noAction\");\n"
+					, fqMachineName(pich->pcmd)
+					);
+		}
+
+		fprintf(fout
+				, "\n\treturn event;\n"
+				);
+	}
+	else
+	{
+		fprintf(fout, "\t(void) pfsm;\n\n");
+		fprintf(fout
+				, "DBG_PRINTF(\"%s_noAction\");\n"
+				, fqMachineName(pich->pcmd)
+				);
+		fprintf(fout, "\treturn THIS(noEvent);\n");
+	}
+
+}
+
+static void print_event_table_handler_body_for_multiple_state_events_arv(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
+{
+	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
+
+	if (ped->phandling_states->count > 0)
+	{
 		fprintf(fout
 				, "\tswitch (pfsm->state)\n\t{\n"
 			   );
@@ -807,42 +852,16 @@ static void print_event_table_handler_body_for_multiple_state_events_are(FILE *f
 			   );
 
 		print_any_transition_handlers(fout, pich->pcmd->pmi);
-
-		fprintf(fout
-				, "\n\treturn event;\n"
-				);
 	}
 	else
 	{
 		fprintf(fout, "\t(void) pfsm;\n\n");
+		fprintf(fout
+				, "DBG_PRINTF(\"%s_noAction\");\n"
+				, fqMachineName(pich->pcmd)
+				);
 		fprintf(fout, "\treturn THIS(noEvent);\n");
 	}
-
-}
-
-static void print_event_table_handler_body_for_multiple_state_events_arv(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
-{
-	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
-
-	fprintf(fout
-			, "\tswitch (pfsm->state)\n\t{\n"
-			);
-
-	iterate_list(ped->phandling_states
-				 , print_event_table_handler_state_case
-				 , pich
-				 );
-
-	if (ped->phandling_states->count != pich->pcmd->pmi->state_list->count)
-	{
-		fprintf(fout, "\t\tdefault:\n\t\t\tbreak;\n");
-	}
-
-	fprintf(fout
-			, "\t}\n"
-			);
-
-	print_any_transition_handlers(fout, pich->pcmd->pmi);
 
 }
 
@@ -873,6 +892,10 @@ static void print_event_table_handler_body_for_multiple_state_events_ars(FILE *f
 	}
 	else
 	{
+		fprintf(fout
+				, "DBG_PRINTF(\"%s_noAction\");\n"
+				, fqMachineName(pich->pcmd)
+				);
 		fprintf(fout, "\treturn pfsm->state;\n");
 	}
 
@@ -892,18 +915,21 @@ static bool print_event_table_handler_state_case_are(pLIST_ELEMENT pelem, void *
 			, pstate->name
 			);
 
-	if (pai->action->name)
+	if (pai->action->name && strlen(pai->action->name))
 	{
 		fprintf(fout
 				, "\t\t\tevent = UFMN(%s)(pfsm);\n"
 				, pai->action->name
 				);
+
+		//our caller wants to know whether action functions were called
+		(*pich->ih.counter0)++;
 	}
 
 	if (pai->transition)
 	{
 		fprintf(fout
-				, "\n\t%s = "
+				, "\t\t\t%s = "
 				, pmi->executes_fns_on_state_transitions
 				  ? "s"
 				  : "pfsm->state"
@@ -940,6 +966,9 @@ static bool print_event_table_handler_state_case_arv(pLIST_ELEMENT pelem, void *
 				, "UFMN(%s)(pfsm);\n"
 				, pai->action->name
 				);
+
+		//our caller wants to know whether action functions were called
+		(*pich->ih.counter0)++;
 	}
 
 	if (pai->transition)
@@ -982,6 +1011,9 @@ static bool print_event_table_handler_state_case_ars(pLIST_ELEMENT pelem, void *
 				, "\t\t\tstate = UFMN(%s)(pfsm);\n"
 				, pai->action->name
 				);
+
+		//our caller wants to know whether action functions were called
+		(*pich->ih.counter0)++;
 	}
 
 	if (pai->transition)
