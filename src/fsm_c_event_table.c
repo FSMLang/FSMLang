@@ -602,7 +602,7 @@ static bool define_event_table_handler(pLIST_ELEMENT pelem, void *data)
 				)
 			{
 				fprintf(fout
-						, "\t%s s;\n"
+						, "\t%s s = pfsm->state;\n"
 						, stateType(pich->pcmd)
 					   );
 			}
@@ -621,7 +621,7 @@ static bool define_event_table_handler(pLIST_ELEMENT pelem, void *data)
 				)
 			{
 				fprintf(fout
-						, "\t%s s;\n"
+						, "\t%s s = pfsm->state;\n"
 						, stateType(pich->pcmd)
 					   );
 			}
@@ -937,6 +937,13 @@ static bool print_event_table_handler_state_case_are(pLIST_ELEMENT pelem, void *
 		//our caller wants to know whether action functions were called
 		(*pich->ih.counter0)++;
 	}
+	else
+	{
+		fprintf(fout
+				, "\t\t\tDBG_PRINTF(\"%s_noAction\");\n"
+				, fqMachineName(pich->pcmd)
+				);
+	}
 
 	if (pai->transition)
 	{
@@ -982,6 +989,13 @@ static bool print_event_table_handler_state_case_arv(pLIST_ELEMENT pelem, void *
 		//our caller wants to know whether action functions were called
 		(*pich->ih.counter0)++;
 	}
+	else
+	{
+		fprintf(fout
+				, "\t\t\tDBG_PRINTF(\"%s_noAction\");\n"
+				, fqMachineName(pich->pcmd)
+				);
+	}
 
 	if (pai->transition)
 	{
@@ -1026,6 +1040,13 @@ static bool print_event_table_handler_state_case_ars(pLIST_ELEMENT pelem, void *
 
 		//our caller wants to know whether action functions were called
 		(*pich->ih.counter0)++;
+	}
+	else
+	{
+		fprintf(fout
+				, "\t\t\tDBG_PRINTF(\"%s_noAction\");\n"
+				, fqMachineName(pich->pcmd)
+				);
 	}
 
 	if (pai->transition)
