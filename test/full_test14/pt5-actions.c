@@ -78,6 +78,7 @@ void newMachine_a1(pNEW_MACHINE pfsm)
 void newMachine_noAction(pNEW_MACHINE pfsm)
 {
    (void) pfsm;
+   DBG_PRINTF("newMachine_noAction");
 }
 
 NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)

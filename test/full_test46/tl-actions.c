@@ -49,7 +49,6 @@ NEW_MACHINE_STATE newMachine_transitionTos1(pNEW_MACHINE pfsm, ACTION_RETURN_TYP
 {
 	(void) pfsm;
 	(void) e;
-	DBG_PRINTF("%s\n", __func__);
 	return THIS(s1);
 }
 
@@ -126,5 +125,26 @@ void print_newMachine_data(pNEW_MACHINE_DATA pnmd)
          );
 
 	printf("\n\n");
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos4(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT_ENUM e)
+{
+	(void) e;
+	(void) pfsm;
+
+	return newMachine_s4;
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) UFMN(noTransitionFn)(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT_ENUM e)
+{
+	(void) e;
+	return pfsm->state;
+}
+
+NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(noAction)(FSM_TYPE_PTR pfsm)
+{
+	(void) pfsm;
+	DBG_PRINTF("%s", __func__);
+	return THIS(noEvent);
 }
 

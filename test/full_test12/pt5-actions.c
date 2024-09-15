@@ -83,6 +83,8 @@ NEW_MACHINE_EVENT newMachine_noAction(pNEW_MACHINE pfsm)
 {
    (void) pfsm;
 
+   DBG_PRINTF("%s",__func__);
+
    return newMachine_noEvent;
 }
 

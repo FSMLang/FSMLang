@@ -27,9 +27,3 @@ include ../../fsmrules.mk
 
 include ../test.mk
 
-check_objects:
-	@echo $(OBJS)
-	@echo $(SRC)
-	@echo $(FSM_SRC)
-	@echo $(GENERATED_SRC)
-

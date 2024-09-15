@@ -6,7 +6,7 @@
 .PHONEY: check_output
 
 override CFLAGS += -DANOTHER_NEW_MACHINE_DEBUG                                               \
-                   -DANOTHER_NEW_MACHINE_ANOTHER_SUB_MACHINE1_DEBUG                          \
+                   -DANOTHER_NEW_MACHINE_SUB_MACHINE1_DEBUG                                  \
                    -DANOTHER_NEW_MACHINE_ANOTHER_SUB_MACHINE1_ANOTHER_SUB_SUB_MACHINE1_DEBUG \
                    -DNEW_MACHINE_DEBUG                                                       \
                    -DNEW_MACHINE_SUB_MACHINE1_DEBUG                                          \

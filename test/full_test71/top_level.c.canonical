@@ -73,8 +73,8 @@ if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 }
 #endif
 
-	/* This is read-only data to facilitate error reporting in action functions */
-	pfsm->event = e;
+		/* This is read-only data to facilitate error reporting in action functions */
+		pfsm->event = e;
 
 		if (e < top_level_noEvent)
 		{
@@ -82,7 +82,7 @@ if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 		}
 		else
 		{
-			e = findAndRunSubMachine(pfsm, e);
+				e = findAndRunSubMachine(pfsm, e);
 		}
 
 	}

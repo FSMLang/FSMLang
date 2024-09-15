@@ -58,7 +58,7 @@ TOP_LEVEL_EVENT sub_machine2FSM(pSUB_MACHINE2 pfsm, TOP_LEVEL_EVENT event)
 	      )
 	{
 
-#ifdef SUB_MACHINE2_DEBUG
+#ifdef TOP_LEVEL_SUB_MACHINE2_DEBUG
 if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
     && (e >= THIS(firstEvent))
     && (e < THIS(noEvent))
@@ -78,7 +78,7 @@ if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 		    && (e < THIS(noEvent))
 			)
 		{
-			e = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));
+		e = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));
 		}
 
 	}
@@ -97,7 +97,7 @@ static TOP_LEVEL_EVENT s1_stateFn(pSUB_MACHINE2 pfsm,TOP_LEVEL_EVENT e)
 		pfsm->state = sub_machine2_s2;
 		break;
 	default:
-		DBG_PRINTF("top_level_sub_machine2_noAction");
+		DBG_PRINTF("sub_machine2_noAction");
 		break;
 	}
 
@@ -115,7 +115,7 @@ static TOP_LEVEL_EVENT s2_stateFn(pSUB_MACHINE2 pfsm,TOP_LEVEL_EVENT e)
 		pfsm->state = sub_machine2_s3;
 		break;
 	default:
-		DBG_PRINTF("top_level_sub_machine2_noAction");
+		DBG_PRINTF("sub_machine2_noAction");
 		break;
 	}
 
@@ -133,7 +133,7 @@ static TOP_LEVEL_EVENT s3_stateFn(pSUB_MACHINE2 pfsm,TOP_LEVEL_EVENT e)
 		pfsm->state = sub_machine2_s1;
 		break;
 	default:
-		DBG_PRINTF("top_level_sub_machine2_noAction");
+		DBG_PRINTF("sub_machine2_noAction");
 		break;
 	}
 
@@ -163,7 +163,7 @@ TOP_LEVEL_EVENT __attribute__((weak)) UFMN(a3)(FSM_TYPE_PTR pfsm)
 }
 
 
-#ifdef SUB_MACHINE2_DEBUG
+#ifdef TOP_LEVEL_SUB_MACHINE2_DEBUG
 char *SUB_MACHINE2_EVENT_NAMES[] = {
 	 "sub_machine2_e1"
 	,"sub_machine2_e2"

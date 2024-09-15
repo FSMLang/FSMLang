@@ -18,13 +18,11 @@ newMachine.data.u.foo.a[0]: 0
 newMachine.data.u.e3_int: 0
 
 
-newMachine_noTransitionFn
-
 
 marker 2
 newMachine_translate_e2_data
 event: newMachine_e2; state: newMachine_s1
-weak: newMachine_noAction
+newMachine_noAction
 newMachine_transitionFn1
 newMachine_baz: Event newMachine_e2 caused transition from newMachine_s1 to newMachine_s3
 
@@ -46,26 +44,25 @@ newMachine_baz: Event newMachine_e1 caused transition from newMachine_s3 to newM
 marker 4
 newMachine_translate_e2_data
 event: newMachine_e2; state: newMachine_s1
-weak: newMachine_noAction
+newMachine_noAction
 newMachine_transitionFn1
 newMachine_baz: Event newMachine_e2 caused transition from newMachine_s1 to newMachine_s3
 
 marker 5
 newMachine_translate_e2_data
 event: newMachine_e2; state: newMachine_s3
-weak: newMachine_noAction
+newMachine_noAction
 newMachine_transitionFn1
 
 marker 6
 newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s3
-weak: newMachine_noAction
+newMachine_noAction
 newMachine_transitionFn1
 
 marker 7
 event: newMachine_e4; state: newMachine_s3
-weak: newMachine_noAction
-weak: newMachine_transitionTos4
+newMachine_noAction
 newMachine_baz: Event newMachine_e4 caused transition from newMachine_s3 to newMachine_s4
 
 marker 8
@@ -80,10 +77,7 @@ newMachine.data.u.foo.a[0]: 5
 newMachine.data.u.e3_int: 5
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine1_ee2; state: newMachine_s4
-event: newMachine_subMachine1_ee2; state: newMachine_subMachine1_ss1
 newMachine_subMachine1_aa2
 newMachine_subMachine1_bar
 sub_machine1.data.cp: (null)
@@ -101,12 +95,8 @@ newMachine.data.u.foo.a[0]: 5
 newMachine.data.u.e3_int: 5
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine1_ee2; state: newMachine_s4
-event: newMachine_subMachine1_ee2; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: (null)
 
 marker 10
 newMachine_translate_e3_data
@@ -120,12 +110,8 @@ newMachine.data.u.foo.a[1]: 6
 newMachine.data.u.e3_int: 6
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine1_ee3; state: newMachine_s4
-event: newMachine_subMachine1_ee3; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: (null)
 
 marker 11
 event: newMachine_e4; state: newMachine_s4
@@ -138,12 +124,8 @@ newMachine.data.u.foo.a[1]: 6
 newMachine.data.u.e3_int: 6
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine1_ee3; state: newMachine_s4
-event: newMachine_subMachine1_ee3; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: (null)
 
 marker 12
 event: newMachine_eShared; state: newMachine_s4
@@ -151,12 +133,7 @@ weak: newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
-newMachine_noTransitionFn
-
 
 marker 13
 newMachine_translate_e3_data
@@ -170,10 +147,7 @@ newMachine.data.u.foo.a[0]: 7
 newMachine.data.u.e3_int: 7
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine2_eee1; state: newMachine_s4
-event: newMachine_subMachine2_eee1; state: newMachine_subMachine2_sss1
 weak: newMachine_subMachine2_aaa1
 
 marker 14
@@ -182,12 +156,7 @@ weak: newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
-newMachine_noTransitionFn
-
 
 event: newMachine_e4; state: newMachine_s4
 newMachine_doNothing
@@ -199,11 +168,8 @@ newMachine.data.u.foo.a[0]: 7
 newMachine.data.u.e3_int: 7
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine2_eee1; state: newMachine_s4
-event: newMachine_subMachine2_eee1; state: newMachine_subMachine2_sss2
-weak: newMachine_subMachine2_noAction
+newMachine_subMachine2_noAction
 
 marker 15
 event: newMachine_eShared; state: newMachine_s4
@@ -211,12 +177,7 @@ weak: newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
-newMachine_noTransitionFn
-
 
 marker 16
 newMachine_translate_e3_data
@@ -230,11 +191,8 @@ newMachine.data.u.foo.a[1]: 8
 newMachine.data.u.e3_int: 8
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine2_eee2; state: newMachine_s4
-event: newMachine_subMachine2_eee2; state: newMachine_subMachine2_sss2
-weak: newMachine_subMachine2_noAction
+newMachine_subMachine2_noAction
 
 marker 17
 event: newMachine_eShared; state: newMachine_s4
@@ -242,12 +200,7 @@ weak: newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
-newMachine_noTransitionFn
-
 
 marker 18
 event: newMachine_e4; state: newMachine_s4
@@ -260,11 +213,8 @@ newMachine.data.u.foo.a[1]: 8
 newMachine.data.u.e3_int: 8
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine2_eee2; state: newMachine_s4
-event: newMachine_subMachine2_eee2; state: newMachine_subMachine2_sss2
-weak: newMachine_subMachine2_noAction
+newMachine_subMachine2_noAction
 
 marker 19
 event: newMachine_eShared; state: newMachine_s4
@@ -272,12 +222,7 @@ weak: newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
-newMachine_noTransitionFn
-
 
 marker 20
 newMachine_translate_e3_data
@@ -291,11 +236,8 @@ newMachine.data.u.foo.a[0]: 9
 newMachine.data.u.e3_int: 9
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine2_eee3; state: newMachine_s4
-event: newMachine_subMachine2_eee3; state: newMachine_subMachine2_sss2
-weak: newMachine_subMachine2_noAction
+newMachine_subMachine2_noAction
 
 marker 21
 event: newMachine_eShared; state: newMachine_s4
@@ -303,12 +245,7 @@ weak: newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
-newMachine_noTransitionFn
-
 
 marker 22
 event: newMachine_e4; state: newMachine_s4
@@ -321,11 +258,8 @@ newMachine.data.u.foo.a[0]: 9
 newMachine.data.u.e3_int: 9
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine2_eee3; state: newMachine_s4
-event: newMachine_subMachine2_eee3; state: newMachine_subMachine2_sss2
-weak: newMachine_subMachine2_noAction
+newMachine_subMachine2_noAction
 
 marker 23
 newMachine_translate_e3_data
@@ -339,13 +273,8 @@ newMachine.data.u.foo.a[1]: 10
 newMachine.data.u.e3_int: 10
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine1_ee2; state: newMachine_s4
-event: newMachine_subMachine1_ee2; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
 
 marker 24
 event: newMachine_eShared; state: newMachine_s4
@@ -353,12 +282,7 @@ weak: newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
-newMachine_noTransitionFn
-
 
 marker 25
 event: newMachine_e4; state: newMachine_s4
@@ -371,13 +295,8 @@ newMachine.data.u.foo.a[1]: 10
 newMachine.data.u.e3_int: 10
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine1_ee2; state: newMachine_s4
-event: newMachine_subMachine1_ee2; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
 
 marker 26
 event: newMachine_eShared; state: newMachine_s4
@@ -385,12 +304,7 @@ weak: newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
-newMachine_noTransitionFn
-
 
 marker 27
 newMachine_translate_e3_data
@@ -404,13 +318,8 @@ newMachine.data.u.foo.a[0]: 11
 newMachine.data.u.e3_int: 11
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine1_ee3; state: newMachine_s4
-event: newMachine_subMachine1_ee3; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
 
 marker 28
 event: newMachine_e4; state: newMachine_s4
@@ -423,13 +332,8 @@ newMachine.data.u.foo.a[0]: 11
 newMachine.data.u.e3_int: 11
 
 
-newMachine_noTransitionFn
-
 event: newMachine_subMachine1_ee3; state: newMachine_s4
-event: newMachine_subMachine1_ee3; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
 
 marker 29
 event: newMachine_eShared; state: newMachine_s4
@@ -437,10 +341,5 @@ weak: newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
-event: newMachine_subMachine1_eShared; state: newMachine_subMachine1_ss3
 newMachine_subMachine1_noAction
-sub_machine1.data.cp: Good-bye, world.
-
-newMachine_noTransitionFn
-
 
