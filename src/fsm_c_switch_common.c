@@ -141,7 +141,6 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
                  , machineName(pcmd)
                  , fsmType(pcmd)
                 );
-      }
 
          iterate_list(pmi->transition_fn_list
                       , declare_transition_fn_for_when_actions_return_states
