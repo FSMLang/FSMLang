@@ -44,22 +44,24 @@ typedef struct _fsm_c_switch_output_generator_    FSMCSwitchOutputGenerator
 												  ;
 
 
-typedef void (*COutputFn$fp$pid$pai$pmi)  (FILE*,pID_INFO,pACTION_INFO,pMACHINE_INFO);
+typedef void (*COutputFn$fp$pid$pai$pcmd) (FILE*,pID_INFO,pACTION_INFO,pCMachineData);
 typedef void (*COutputFn$fp$ped$pich)     (FILE*,pEVENT_DATA,pITERATOR_CALLBACK_HELPER);
 typedef bool (*COutputFn$ple$pv)          (pLIST_ELEMENT,void*);
 
 struct _fsm_c_switch_output_generator_
 {
-	FSMCOutputGenerator      fsmcog;
-	COutputFn$fp$pid$pai$pmi pethbsspe;
-	COutputFn$fp$ped$pich    pethbmse;
-	COutputFn$ple$pv         pethsc;
+	FSMCOutputGenerator       fsmcog;
+	COutputFn$fp$pid$pai$pcmd pethbsspe;
+	COutputFn$fp$ped$pich     pethbmse;
+	COutputFn$ple$pv          pethsc;
 };
 
 void writeCSwitchMachineFN(pFSMOutputGenerator,pMACHINE_INFO);
 void cswitchMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
-void writeOriginalSwitchFSMLoop(pFSMCOutputGenerator);
-void writeOriginalSwitchSubFSMLoop(pFSMCOutputGenerator);
+void writeOriginalSwitchFSMLoopAre(pFSMCOutputGenerator);
+void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator);
+void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator);
+void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator);
 void cswitchSubMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
 
 #endif
