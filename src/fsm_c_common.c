@@ -607,7 +607,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 
    fprintf(pcmd->hFile
 		   , "\n#ifdef %s_DEBUG\n"
-		   , fsmType(pcmd)
+		   , ucfqMachineName(pcmd)
 		   );
    fprintf(pcmd->hFile
 		   , "extern char *%s_EVENT_NAMES[];\n"
@@ -1173,7 +1173,7 @@ void writeDebugInfoShort(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    fprintf(pcmd->cFile
 		   , "char *%s_STATE_NAMES[] = {\n"
-		   , fsmType(pcmd)
+		   , ucMachineName(pcmd)
 		   );
 
    ich.ih.first = true;
@@ -1203,7 +1203,7 @@ void writeDebugInfoLong(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    fprintf(pcmd->cFile
 		   , "\n#ifdef %s_DEBUG\nchar *%s_EVENT_NAMES[] = {\n"
-		   , ucMachineName(pcmd)
+		   , ucfqMachineName(pcmd)
 		   , ucMachineName(pcmd)
 		   );
 
@@ -1243,7 +1243,7 @@ void writeDebugInfoLong(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    fprintf(pcmd->cFile
 		   , "char *%s_STATE_NAMES[] = {\n"
-		   , fsmType(pcmd)
+		   , ucMachineName(pcmd)
 		   );
 
    ich.ih.first = true;
@@ -2214,7 +2214,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 
    fprintf(pcmd->hFile
 		   , "\n#ifdef %s_DEBUG\n"
-		   , ucMachineName(pcmd)
+		   , ucfqMachineName(pcmd)
 		   );
    fprintf(pcmd->hFile
 		   , "extern char *%s_EVENT_NAMES[];\n"
@@ -3257,7 +3257,7 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	fprintf(pcmd->cFile
 			, "#ifdef %s_DEBUG\n"
-			, fsmType(pcmd)
+			, ucfqMachineName(pcmd)
 			);
 	fprintf(pcmd->cFile
 			, "if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n"
@@ -3330,7 +3330,7 @@ void writeNoTransition(pCMachineData pcmd, pMACHINE_INFO pmi)
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
 	fprintf(pcmd->cFile
-			, "\n%s UFMN(noTransitionFn)(p%s pfsm"
+			, "\n%s __attribute__((weak)) UFMN(noTransitionFn)(p%s pfsm"
 			, stateType(pcmd)
 			, fsmType(pcmd)
 			);
