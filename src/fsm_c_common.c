@@ -1381,8 +1381,40 @@ void destroyCMachineData(pCMachineData pcmd, int good)
 	   CHECK_AND_FREE(pcmd->file_name_array[cf]);
    }
 
-   free(pcmd);
-
+    if (pcmd)
+    {
+         CHECK_AND_FREE(pcmd->action_trans_type);
+         CHECK_AND_FREE(pcmd->fsm_fn_type);
+         CHECK_AND_FREE(pcmd->ucfq_machine_name);
+         CHECK_AND_FREE(pcmd->event_type);
+         CHECK_AND_FREE(pcmd->state_type);
+         CHECK_AND_FREE(pcmd->fsm_fn_event_type);
+         CHECK_AND_FREE(pcmd->fsm_type);
+         CHECK_AND_FREE(pcmd->uc_machine_name);
+         CHECK_AND_FREE(pcmd->fsm_type)
+         CHECK_AND_FREE(pcmd->fsm_data_type)
+         CHECK_AND_FREE(pcmd->fsm_fn_type)
+         CHECK_AND_FREE(pcmd->event_type)
+         CHECK_AND_FREE(pcmd->fsm_fn_event_type)
+         CHECK_AND_FREE(pcmd->state_type)
+         CHECK_AND_FREE(pcmd->sub_fsm_if_type)
+         CHECK_AND_FREE(pcmd->sub_machine_fn_type)
+         CHECK_AND_FREE(pcmd->sub_fsm_data_handler_if_stem)
+         CHECK_AND_FREE(pcmd->data_translation_fn_type)
+         CHECK_AND_FREE(pcmd->shared_event_str_type)
+         CHECK_AND_FREE(pcmd->state_fn_type)
+         CHECK_AND_FREE(pcmd->fq_machine_name)
+         CHECK_AND_FREE(pcmd->nf_machine_name)
+         CHECK_AND_FREE(pcmd->uc_nf_machine_name)
+         CHECK_AND_FREE(pcmd->action_fn_type)
+         CHECK_AND_FREE(pcmd->action_trans_type)
+         CHECK_AND_FREE(pcmd->transition_fn_type)
+         CHECK_AND_FREE(pcmd->uc_machine_name)
+         CHECK_AND_FREE(pcmd->ucfq_machine_name)
+         CHECK_AND_FREE(pcmd->uf_machine_name)
+         CHECK_AND_FREE(pcmd->action_return_type)
+        CHECK_AND_FREE(pcmd);
+    }
 }
 
 bool assignExternalEventValues(pMACHINE_INFO pmi)
