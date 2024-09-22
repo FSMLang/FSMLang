@@ -177,11 +177,11 @@ static TOP_LEVEL_EVENT s3_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 
 	switch(e)
 	{
-	case THIS(e4):
-		retVal = UFMN(activate_sub_machine3)(pfsm);
-		break;
 	case THIS(e5):
 		retVal = UFMN(activate_sub_machine2)(pfsm);
+		break;
+	case THIS(e4):
+		retVal = UFMN(activate_sub_machine3)(pfsm);
 		break;
 	default:
 		DBG_PRINTF("top_level_noAction");

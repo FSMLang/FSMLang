@@ -726,7 +726,10 @@ static bool define_void_returning_state_fn(pLIST_ELEMENT pelem, void *data)
     fprintf(pich->pcmd->cFile, "\n\tswitch(e)\n\t{\n");
 
     pich->counter = 0;
-    iterate_list(pich->ih.pmi->event_list, print_void_returning_state_fn_case, pich);
+    iterate_list(pstate->type_data.state_data.pevents_handled
+                 , print_void_returning_state_fn_case
+                 , pich
+                 );
 
     if (pich->counter < pich->ih.pmi->event_list->count + 1)
     {
@@ -845,7 +848,10 @@ static bool define_event_returning_state_fn(pLIST_ELEMENT pelem, void *data)
     fprintf(pich->pcmd->cFile, "\n\tswitch(e)\n\t{\n");
 
     pich->counter = 0;
-    iterate_list(pich->ih.pmi->event_list, print_event_returning_state_fn_case, pich);
+    iterate_list(pstate->type_data.state_data.pevents_handled
+                 , print_event_returning_state_fn_case
+                 , pich
+                 );
 
     if (pich->counter < pich->ih.pmi->event_list->count + 1)
     {
@@ -904,7 +910,10 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
     
     pich->counter    = 0;
     pich->pOtherElem = pelem;
-    iterate_list(pich->ih.pmi->event_list, print_state_returning_state_fn_case, pich);
+    iterate_list(pstate->type_data.state_data.pevents_handled
+                 , print_state_returning_state_fn_case
+                 , pich
+                 );
 
     if (pich->counter < pich->ih.pmi->event_list->count + 1)
     {
@@ -969,9 +978,17 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
     /* now, locate the relevant action info element */
-    pLIST_ELEMENT             peventElem = pelem;
+    pLIST_ELEMENT             pnextElem  = pelem->next;
+    pID_INFO                  pnextEvent = (pID_INFO) (pnextElem ? pnextElem->mbr : NULL);
     pLIST_ELEMENT             pstateElem = pich->pOtherElem;
-    pACTION_INFO              pai        = pich->ih.pmi->actionArray[peventElem->ordinal][pstateElem->ordinal];
+    pACTION_INFO              pai        = pich->ih.pmi->actionArray[pevent->order]
+                                                                    [pstateElem->ordinal]
+                                                                    ;
+    pACTION_INFO              paiNext    = pnextEvent 
+                                           ? pich->ih.pmi->actionArray[pnextEvent->order]
+                                                                      [pstateElem->ordinal]
+                                           : NULL
+                                           ;
 
     if (!pevent->type_data.event_data.single_pai_for_all_states)
     {
@@ -983,50 +1000,54 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 					, pevent->name
 					);
 
-            if (strlen(pai->action->name))
+            if (pai != paiNext)
             {
-                fprintf(pich->pcmd->cFile
-                        , "\t\tretVal = UFMN(%s)(pfsm);\n"
-                        , pai->action->name
-                        );
-            }
-            else
-            {
-                fprintf(pich->pcmd->cFile
-                        , "#ifdef %s\n\t\t%s(\"%s_noAction\");\n#endif\n"
-                        , ucfqMachineName(pich->pcmd)
-                        , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-                        , ufMachineName(pich->pcmd)
-                        );
+                if (strlen(pai->action->name))
+                {
+                    fprintf(pich->pcmd->cFile
+                            , "\t\tretVal = UFMN(%s)(pfsm);\n"
+                            , pai->action->name
+                            );
+                }
+                else
+                {
+                    fprintf(pich->pcmd->cFile
+                            , "#ifdef %s\n\t\t%s(\"%s_noAction\");\n#endif\n"
+                            , ucfqMachineName(pich->pcmd)
+                            , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+                            , ufMachineName(pich->pcmd)
+                            );
+                }
+
+                if (pai->transition)
+                {
+                   fprintf(pich->pcmd->cFile
+                           , "\t\t%s = "
+                           , pich->pcmd->pmi->executes_fns_on_state_transitions
+                             ? "new_s" 
+                             : "pfsm->state"
+                          );
+
+                   if (pai->transition->type == STATE)
+                   {
+                       fprintf(pich->pcmd->cFile
+                               ,"%s_%s;\n"
+                               , machineName(pich->pcmd)
+                               , pai->transition->name
+                               );
+                   }
+                   else
+                   {
+                       fprintf(pich->pcmd->cFile
+                           , "UFMN(%s)(pfsm,e);\n"
+                           , pai->transition->name
+                           );
+                   }
+                }
+
+                fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
             }
 
-            if (pai->transition)
-            {
-               fprintf(pich->pcmd->cFile
-                       , "\t\t%s = "
-                       , pich->pcmd->pmi->executes_fns_on_state_transitions
-                         ? "new_s" 
-                         : "pfsm->state"
-                      );
-
-			   if (pai->transition->type == STATE)
-			   {
-				   fprintf(pich->pcmd->cFile
-						   ,"%s_%s;\n"
-						   , machineName(pich->pcmd)
-						   , pai->transition->name
-						   );
-			   }
-			   else
-			   {
-				   fprintf(pich->pcmd->cFile
-                       , "UFMN(%s)(pfsm,e);\n"
-                       , pai->transition->name
-                       );
-			   }
-            }
-
-            fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
         }
     }
 
@@ -1042,9 +1063,18 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
     /* now, locate the relevant action info element */
-    pLIST_ELEMENT             peventElem = pelem;
+    pLIST_ELEMENT             pnextElem  = pelem->next;
+    pID_INFO                  pnextEvent = (pID_INFO) (pnextElem ? pnextElem->mbr : NULL);
     pLIST_ELEMENT             pstateElem = pich->pOtherElem;
-    pACTION_INFO              pai        = pich->ih.pmi->actionArray[peventElem->ordinal][pstateElem->ordinal];
+    pACTION_INFO              pai        = pich->ih.pmi->actionArray[pevent->order]
+                                                                    [pstateElem->ordinal]
+                                                                    ;
+
+    pACTION_INFO              paiNext    = pnextEvent 
+                                           ? pich->ih.pmi->actionArray[pnextEvent->order]
+                                                                      [pstateElem->ordinal]
+                                           : NULL
+                                           ;
 
     if (!pevent->type_data.event_data.single_pai_for_all_states)
     {
@@ -1056,38 +1086,42 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                     , pevent->name
                     );
 
-            if (strlen(pai->action->name))
+            if (pai != paiNext)
             {
-                fprintf(pich->pcmd->cFile
-                        , "\t\tUFMN(%s)(pfsm);\n"
-                        , pai->action->name
-                        );
-            }
-            else
-            {
-                fprintf(pich->pcmd->cFile
-                        , "#ifdef %s_DEBUG\n\t\t%s(\"%s_noAction\");\n#endif\n"
-                        , ucfqMachineName(pich->pcmd)
-                        , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-                       , ufMachineName(pich->pcmd)
-                        );
-            }
 
-            if (pai->transition)
-            {
-               fprintf(pich->pcmd->cFile
-                       , "\t\t%s = %s_%s%s;\n"
-                       , pich->pcmd->pmi->executes_fns_on_state_transitions
-                         ? "new_s" 
-                         : "pfsm->state"
-                       , fqMachineName(pich->pcmd)
-                       , pai->transition->name
-                       , pai->transition->type == STATE ? "" : "(pfsm,e)"
-                      );
+                if (strlen(pai->action->name))
+                {
+                    fprintf(pich->pcmd->cFile
+                            , "\t\tUFMN(%s)(pfsm);\n"
+                            , pai->action->name
+                            );
+                }
+                else
+                {
+                    fprintf(pich->pcmd->cFile
+                            , "#ifdef %s_DEBUG\n\t\t%s(\"%s_noAction\");\n#endif\n"
+                            , ucfqMachineName(pich->pcmd)
+                            , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+                           , ufMachineName(pich->pcmd)
+                            );
+                }
 
+                if (pai->transition)
+                {
+                   fprintf(pich->pcmd->cFile
+                           , "\t\t%s = %s_%s%s;\n"
+                           , pich->pcmd->pmi->executes_fns_on_state_transitions
+                             ? "new_s" 
+                             : "pfsm->state"
+                           , fqMachineName(pich->pcmd)
+                           , pai->transition->name
+                           , pai->transition->type == STATE ? "" : "(pfsm,e)"
+                          );
+
+                }
+
+                fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
             }
-
-            fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
         }
     }
 
@@ -1103,9 +1137,18 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
     /* now, locate the relevant action info element */
-    pLIST_ELEMENT             peventElem = pelem;
+    pLIST_ELEMENT             pnextElem  = pelem->next;
+    pID_INFO                  pnextEvent = (pID_INFO) (pnextElem ? pnextElem->mbr : NULL);
     pLIST_ELEMENT             pstateElem = pich->pOtherElem;
-    pACTION_INFO              pai        = pich->ih.pmi->actionArray[peventElem->ordinal][pstateElem->ordinal];
+    pACTION_INFO              pai        = pich->ih.pmi->actionArray[pevent->order]
+                                                                    [pstateElem->ordinal]
+                                                                    ;
+    pACTION_INFO              paiNext    = pnextEvent 
+                                           ? pich->ih.pmi->actionArray[pnextEvent->order]
+                                                                      [pstateElem->ordinal]
+                                           : NULL
+                                           ;
+
 
     if (!pevent->type_data.event_data.single_pai_for_all_states)
     {
@@ -1117,24 +1160,27 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                     , pevent->name
                     );
 
-            fprintf(pich->pcmd->cFile, "\t\tretVal = ");
-            if (strlen(pai->action->name))
+            if (pai != paiNext)
             {
-                fprintf(pich->pcmd->cFile
-                        , "UFMN(%s)(pfsm);\n"
-                        , pai->action->name
-                        );
-            }
-            else
-            {
-               fprintf(pich->pcmd->cFile
-                       , "UFMN(%s)%s;\n"
-                       , pai->transition->name
-                       , pai->transition->type == STATE ? "" : "(pfsm,e)"
-                       );
-            }
+                fprintf(pich->pcmd->cFile, "\t\tretVal = ");
+                if (strlen(pai->action->name))
+                {
+                    fprintf(pich->pcmd->cFile
+                            , "UFMN(%s)(pfsm);\n"
+                            , pai->action->name
+                            );
+                }
+                else
+                {
+                   fprintf(pich->pcmd->cFile
+                           , "UFMN(%s)%s;\n"
+                           , pai->transition->name
+                           , pai->transition->type == STATE ? "" : "(pfsm,e)"
+                           );
+                }
 
-            fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
+                fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
+            }
         }
     }
 
