@@ -41,5 +41,5 @@ jobs:
       if: ${{ success() }}
       uses: actions/upload-artifact@v4
       with:
-        name: image
+        name: fsm-linux-image
         path: linux/fsm
