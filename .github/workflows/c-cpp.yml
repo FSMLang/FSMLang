@@ -37,3 +37,9 @@ jobs:
         path: |
               test/**/test.result
               test/**/test.out
+    - name: Archive Image
+      if: ${{ success() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: image
+        path: linux/fsm
