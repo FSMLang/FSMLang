@@ -1375,45 +1375,48 @@ bool print_data_field(pLIST_ELEMENT pelem, void *data)
    pITERATOR_HELPER pih       = (pITERATOR_HELPER) data;
    pDATA_FIELD pdf            = (pDATA_FIELD)      pelem->mbr;
 
+   print_tab_levels(pih->fout, pih->tab_level);
    switch (pdf->pdts->dtt)
    {
    case dtt_simple:
-      print_tab_levels(pih->fout, pih->tab_level);
-      fprintf(pih->fout
-              , "%s %s %s %s%s%s;\n"
-              , pdf->pdts->dtu.name->name
-              , pdf->isPointer ? "*" : ""
-              , pdf->data_field_name->name
-              , pdf->dimension ? "[" : ""
-              , pdf->dimension ? pdf->dimension : ""
-              , pdf->dimension ? "]" : ""
-              );
+      fprintf(pih->fout, "%s", pdf->pdts->dtu.name->name);
       break;
    case dtt_struct:
-      print_tab_levels(pih->fout, pih->tab_level);
       pih->tab_level++;
       fprintf(pih->fout , "struct {\n" );
       iterate_list(pdf->pdts->dtu.members, print_data_field, pih);
       pih->tab_level--;
       print_tab_levels(pih->fout, pih->tab_level);
-      fprintf(pih->fout
-              , "} %s;\n"
-              , pdf->data_field_name->name
-              );
+      fprintf(pih->fout, "}");
       break;
    case dtt_union:
-      print_tab_levels(pih->fout, pih->tab_level);
       pih->tab_level++;
       fprintf(pih->fout , "union {\n" );
       iterate_list(pdf->pdts->dtu.members, print_data_field, pih);
       pih->tab_level--;
       print_tab_levels(pih->fout, pih->tab_level);
-      fprintf(pih->fout
-              , "} %s;\n"
-              , pdf->data_field_name->name
-              );
+      fprintf(pih->fout, "}");
       break;
    }
+
+   for (unsigned level = 0; level < pdf->pdts->indirection_level; level++)
+   {
+       fprintf(pih->fout
+               , "%s*"
+               , level ? "" : " "
+               );
+   }
+   fprintf(pih->fout, " %s", pdf->data_field_name->name);
+
+   if (pdf->pdts->is_array)
+   {
+       fprintf(pih->fout
+               , "[%s]"
+               , pdf->pdts->dimension ? pdf->pdts->dimension : ""
+               );
+   }
+
+   fprintf(pih->fout, ";\n");
 
    return false;
 }
