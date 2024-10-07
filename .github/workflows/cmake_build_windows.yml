@@ -17,3 +17,9 @@ jobs:
       run: cmake -B ./build -G "MinGW Makefiles"
     - name: make
       run: cmake --build build
+    - name: Archive Image
+      if: ${{ success() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: fsm-windows-image
+        path: build/fsm.exe
