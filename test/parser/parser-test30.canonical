@@ -1,14 +1,21 @@
-Native
+Native prologue
 
 Copy this to the header file.
 DEFINE INIT_FSM_DATA {{0,0}, 1}
 
-Native implementation
+Native epilogue
+
+Copy this to the header file at the end.
+
+Native implementation prologue
  copy this to the source file; 
+Native implementation
+ copy this to the source file at the end; 
 found simple data type id
 found data field: TYPE: simple; NAME: a
 Starting data_fields list
 found struct data type
+found pointer data type: TYPE: struct; indirection_level: 1
 found data field: TYPE: struct; NAME: foo
 Starting data_fields list
 found simple data type id
@@ -18,24 +25,28 @@ found struct data type
 found data field: TYPE: struct; NAME: beep
 Continuing data_fields list
 found simple data type name
+found pointer data type: TYPE: simple; indirection_level: 1
+found pointer data type: TYPE: simple; indirection_level: 2
 found data field: TYPE: simple; NAME: bop
 Continuing data_fields list
 found union data type
 found data field: TYPE: union; NAME: u
 Starting data_fields list
+found simple data type name
+found data field: TYPE: simple; NAME: f; dimension: 15
+Continuing data_fields list
+found simple data type id
+found data field: TYPE: simple; NAME: d; dimension: none
+Continuing data_fields list
+found simple data type id
+found data field: TYPE: simple; NAME: l; dimension: NUM_LONGS
+Continuing data_fields list
 Data block done
-added another id to the event declaration list
-added another id to the event declaration list
-The 3 events in this list:
-	0:	e1
-
-	1:	e2
-
-	2:	e3
-
 found the start of a state declaration list
 added another id to the state declaration list
 added another id to the state declaration list
+state s4 inhibits submachines
+state s4 has anonymous entry function
 added another id to the state declaration list
 The 4 states in this list :
 	0:	s1
@@ -45,6 +56,19 @@ The 4 states in this list :
 	2:	s3
 
 	3:	s4
+
+added another id to the event declaration list
+added another id to the event declaration list
+The 3 events in this list:
+	0:	e1
+
+	1:	e2
+
+	2:	e3
+
+External designation = BAR
+The 1 events in this list:
+	0:	e4 = BAR
 
 state ss1 has entry function foo
 state ss1 has exit function bar
@@ -354,9 +378,11 @@ process_action_info: doNothing
 		add_to_action_array: state: s4
 	iterate_matrix_states: event: e3
 		add_to_action_array: state: s4
+	iterate_matrix_states: event: e4
+		add_to_action_array: state: s4
 populate_action_array returning false
 found a machine named newMachine
-	with 3 events and 4 states
+	with 4 events and 4 states
 Actions return events
 on transition: baz
 The states :
@@ -374,6 +400,8 @@ The events :
 	1:	e2
 
 	2:	e3
+
+	3:	e4 = BAR
 
 The actions :
 	a1
@@ -405,6 +433,7 @@ The actions :
 				e1
 				e2
 				e3
+				e4
 		and states
 				s4
 
@@ -424,12 +453,15 @@ this machine has data
 union {
 	struct {
 		int a;
-	} foo;
+	} * foo;
 	struct {
 		float f;
 	} beep;
-	int bop;
+	int ** bop;
 } u;
+float f[15];
+double d[];
+long l[NUM_LONGS];
 
 this machine has 2 sub-machines
 the sub-machine depth is 2
