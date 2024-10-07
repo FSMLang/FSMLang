@@ -6,6 +6,7 @@
 .PHONEY: check_html
 
 include ../../fsmrules.mk
+FSM_RULES_INCLUDED=true
 
 FSM_HTML_FLAGS = --css-content-filename="../../fsmlang.css"
 

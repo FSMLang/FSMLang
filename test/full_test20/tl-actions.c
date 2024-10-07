@@ -23,6 +23,18 @@ TOP_LEVEL_EVENT UFMN(activate_sub_machine3)(pTOP_LEVEL pfsm)
 	return THIS(sub_machine3_e1);
 }
 
+TOP_LEVEL_EVENT UFMN(a1)(pTOP_LEVEL pfsm)
+{
+	(void) pfsm;
+	return THIS(noEvent);
+}
+
+TOP_LEVEL_EVENT UFMN(noAction)(pTOP_LEVEL pfsm)
+{
+	(void) pfsm;
+	return THIS(noEvent);
+}
+
 int main ()
 {
 

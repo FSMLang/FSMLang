@@ -12,14 +12,7 @@ override CFLAGS += -DFSM_DEBUG \
 	 -Wall \
 	 -ggdb
 
-override FSM_FLAGS += --short-user-fn-names --generate-run-function=true -ts
+override FSM_FLAGS += --short-user-fn-names --generate-run-function=true
 
-SRC = $(shell find . -name "*-actions.c" -printf "%P ")
-SRC += test.c
-
-FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
-
-include ../../fsmrules.mk
-
-include ../test.mk
+include ../variants.mk
 

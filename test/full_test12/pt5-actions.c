@@ -83,7 +83,7 @@ NEW_MACHINE_EVENT newMachine_noAction(pNEW_MACHINE pfsm)
 {
    (void) pfsm;
 
-   DBG_PRINTF("newMachine_noAction\n");
+   DBG_PRINTF("%s",__func__);
 
    return newMachine_noEvent;
 }
@@ -115,7 +115,6 @@ NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT 
    
 }
 
-
 void newMachine_machineTransition(pNEW_MACHINE pfsm, NEW_MACHINE_STATE new_state)
 {
    DBG_PRINTF("newMachine_machineTransitionFn\n\told state: %s\n\tnew state: %s\n"
@@ -123,4 +122,19 @@ void newMachine_machineTransition(pNEW_MACHINE pfsm, NEW_MACHINE_STATE new_state
               , NEW_MACHINE_STATE_NAMES[new_state]
               );
 }
+
+NEW_MACHINE_STATE newMachine_transitionTos2(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+{
+	(void) pfsm;
+	(void) e;
+	return newMachine_s2;
+}
+
+NEW_MACHINE_STATE newMachine_noTransitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+{
+	(void) pfsm;
+	(void) e;
+	return pfsm->state;
+}
+
 

@@ -1,0 +1,116 @@
+machine name: anotherNewMachine
+reentrance protection:  no
+machine transition: baz
+actions return: events
+number of events: 4
+number of events handled in zero states: 1
+number of events handled in one state: 0
+machine has events with single pai: yes
+number of states: 3
+number of states with entry fns: 0
+number of states with exit fns: 0
+number of states handling zero events: 0
+number of states handling one event: 0
+number of states with no way in: 0
+number of states with no way out: 0
+number of actions: 3
+number of sub-machines: 2
+depth of sub-machines: 2
+Action Array:
+Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
+e1                  multiple       3           100        a1, a2
+e2                  single         3           100        
+e3                  single         3           100        
+e4                  multiple       0           0          
+
+State Name           Events Handled Avg Use (%) Transitions (In/Out) Actions Triggered 
+s1                   3              75          2 / 2 : s2, s3 / s2, s3 a1
+s2                   3              75          2 / 2 : s3, s1 / s1, s3 a2
+s3                   3              75          2 / 2 : s1, s2 / s1, s2 a2
+
+machine name: anotherNewMachine::anotherSubMachine1
+reentrance protection:  no
+machine transition: none
+actions return: events
+number of events: 4
+number of events handled in zero states: 2
+number of events handled in one state: 2
+machine has events with single pai: no
+number of states: 3
+number of states with entry fns: 0
+number of states with exit fns: 0
+number of states handling zero events: 2
+number of states handling one event: 0
+number of states with no way in: 0
+number of states with no way out: 2
+number of actions: 2
+number of sub-machines: 1
+depth of sub-machines: 1
+Action Array:
+Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
+ee1                 multiple       1           33         aa1
+ee2                 multiple       1           33         aa2
+ee3                 multiple       0           0          
+e1                  multiple       0           0          
+
+State Name           Events Handled Avg Use (%) Transitions (In/Out) Actions Triggered 
+ss1                  2              50          0 / 2 : none / ss2, ss3 aa1, aa2
+ss2                  0              0           1 / 0 : ss1
+ss3                  0              0           1 / 0 : ss1
+
+machine name: anotherNewMachine::anotherSubMachine1::anotherSubSubMachine1
+reentrance protection:  no
+machine transition: none
+actions return: events
+number of events: 4
+number of events handled in zero states: 2
+number of events handled in one state: 2
+machine has events with single pai: no
+number of states: 2
+number of states with entry fns: 0
+number of states with exit fns: 0
+number of states handling zero events: 1
+number of states handling one event: 0
+number of states with no way in: 0
+number of states with no way out: 1
+number of actions: 2
+number of sub-machines: 0
+Action Array:
+Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
+y1                  multiple       1           50         x1
+y2                  multiple       1           50         x2
+e1                  multiple       0           0          
+ee1                 multiple       0           0          
+
+State Name           Events Handled Avg Use (%) Transitions (In/Out) Actions Triggered 
+z1                   2              50          0 / 1 : none / z2 x1, x2
+z2                   0              0           1 / 0 : z1
+
+machine name: anotherNewMachine::anotherSubMachine2
+reentrance protection:  no
+machine transition: none
+actions return: events
+number of events: 3
+number of events handled in zero states: 1
+number of events handled in one state: 2
+machine has events with single pai: no
+number of states: 3
+number of states with entry fns: 0
+number of states with exit fns: 0
+number of states handling zero events: 2
+number of states handling one event: 0
+number of states with no way in: 0
+number of states with no way out: 2
+number of actions: 2
+number of sub-machines: 0
+Action Array:
+Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
+eee1                multiple       1           33         aaa1
+eee2                multiple       1           33         aaa2
+eee3                multiple       0           0          
+
+State Name           Events Handled Avg Use (%) Transitions (In/Out) Actions Triggered 
+sss1                 2              66          0 / 2 : none / sss2, sss3 aaa1, aaa2
+sss2                 0              0           1 / 0 : sss1
+sss3                 0              0           1 / 0 : sss1
+

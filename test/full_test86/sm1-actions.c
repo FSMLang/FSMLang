@@ -40,3 +40,25 @@ SUB_MACHINE1_STATE UFMN(checkTransition)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
    return sub_machine1_s3;
 }
 
+SUB_MACHINE1_STATE __attribute__((weak)) top_level_sub_machine1_transitionTos2(FSM_TYPE_PTR pfsm,TOP_LEVEL_EVENT e)
+{
+	(void) e;
+	(void) pfsm;
+
+	return sub_machine1_s2;
+}
+
+SUB_MACHINE1_STATE __attribute__((weak)) top_level_sub_machine1_transitionTos1(FSM_TYPE_PTR pfsm,TOP_LEVEL_EVENT e)
+{
+	(void) e;
+	(void) pfsm;
+
+	return sub_machine1_s1;
+}
+
+SUB_MACHINE1_STATE __attribute__((weak)) UFMN(noTransitionFn)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
+{
+	(void) e;
+	return pfsm->state;
+}
+
