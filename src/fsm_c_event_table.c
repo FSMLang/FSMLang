@@ -1219,14 +1219,14 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
 
    if (add_profiling_macros)
    {
-	   fprintf(pcmd->cFile, "\n\tFSM_ENTRY();\n\n");
+	   fprintf(pcmd->cFile, "\n\tFSM_ENTRY(pfsm);\n\n");
    }
 
    writeFSMLoop(pfsmcog);
 
    if (add_profiling_macros)
    {
-	   fprintf(pcmd->cFile, "\n\tFSM_EXIT();\n\n");
+	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
    }
 
    writeReentrantEpilogue(pcmd);
