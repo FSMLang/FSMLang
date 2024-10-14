@@ -456,6 +456,12 @@ void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator pfsmcog)
    }
 
    fprintf(pcmd->cFile, "\n\t}\n");
+
+   if (add_profiling_macros)
+   {
+	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
+   }
+
    fprintf(pcmd->cFile
            , "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"
            );
@@ -496,6 +502,11 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
        fprintf(pcmd->cFile
                , " findAndRunSubMachine(pfsm, e);\n\t\t}\n"
                );
+   }
+
+   if (add_profiling_macros)
+   {
+	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
    }
 
    fprintf(pcmd->cFile, "\n\t}\n");

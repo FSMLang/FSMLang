@@ -1,0 +1,88 @@
+machine test
+on transition transitioning;
+native impl
+{
+#include <stdio.h>
+#ifdef FSM_VARIANT_C
+#include <string.h>
+#endif
+
+#define FSM_ENTRY(...) fsm_entry()
+#define FSM_EXIT(...)  fsm_exit()
+#define ACTION_ENTRY(A) action_entry((A))
+#define ACTION_EXIT(A)  action_exit((A))
+
+static void fsm_entry()
+{
+	printf("%s\n", __func__);
+}
+
+static void fsm_exit()
+{
+	printf("%s\n", __func__);
+}
+
+
+static void action_entry(FSM_TYPE_PTR pfsm)
+{
+#ifdef FSM_VARIANT_C
+	if ((*pfsm->actionArray)[pfsm->event][pfsm->state].action != UFMN(noAction))
+	{
+		printf("%s: e=%u, s=%u\n"
+	          , __func__
+	          , pfsm->event
+	          , pfsm->state
+	         );
+	}
+#else
+	printf("%s: e=%u, s=%u\n"
+          , __func__
+          , pfsm->event
+          , pfsm->state
+         );
+#endif
+}
+
+static void action_exit(FSM_TYPE_PTR pfsm)
+{
+#ifdef FSM_VARIANT_C
+	if ((*pfsm->actionArray)[pfsm->event][pfsm->state].action != UFMN(noAction))
+	{
+		printf("%s: e=%u, s=%u\n"
+	          , __func__
+	          , pfsm->event
+	          , pfsm->state
+			);
+	}
+#else
+	printf("%s: e=%u, s=%u\n"
+          , __func__
+          , pfsm->event
+          , pfsm->state
+         );
+#endif
+}
+
+void UFMN(transitioning)(FSM_TYPE_PTR pfsm, TEST_STATE to)
+{
+	printf("%s: from=%u; to=%u\n"
+          , __func__
+          , pfsm->state
+          , to
+          );
+}
+
+}
+
+{
+	state s1, s2, s3;
+	event e1, e2, e3;
+
+	action a1[e1,(s1, s2, s3)];
+	action a2[e2,(s1, s2, s3)];
+
+	transition [e3, s1] s2;
+	transition [e3, s2] s3;
+	transition [e3, s3] s1;
+}
+

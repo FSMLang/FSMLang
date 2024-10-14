@@ -1,0 +1,13 @@
+fsm_entry
+action_entry: e=0, s=0
+test_a1
+action_exit: e=0, s=0
+fsm_exit
+fsm_entry
+action_entry: e=1, s=0
+test_a2
+action_exit: e=1, s=0
+fsm_exit
+fsm_entry
+test_transitioning: from=0; to=1
+fsm_exit

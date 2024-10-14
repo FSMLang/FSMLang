@@ -556,7 +556,7 @@ static bool event_handler_cannot_be_its_action(pID_INFO pevent, pACTION_INFO *pp
 		(*ppai) = pai;
 	}
 
-	return !event_handler_can_be_its_action;
+	return add_profiling_macros || !event_handler_can_be_its_action;
 }
 
 static void defineCEventTableHandlers(pFSMCOutputGenerator pfsmcog)
@@ -637,24 +637,32 @@ static bool define_event_table_handler(pLIST_ELEMENT pelem, void *data)
 static void print_event_table_handler_body_for_single_state_or_pai_events_are(FILE *fout, pID_INFO pevent, pACTION_INFO pai, pCMachineData pcmd)
 {
 	pMACHINE_INFO pmi     = pcmd->pmi;
+	bool          have_an_action = (pai->action->name && strlen(pai->action->name));
 
-	if (!(pmi->modFlags & mfActionsReturnVoid))
+	if (have_an_action)
 	{
-		fprintf(fout
-				, "\tACTION_RETURN_TYPE event = "
-				);
-	}
+		if (add_profiling_macros)
+		{
+			fprintf(fout
+					, "\tACTION_ENTRY(pfsm);\n"
+				   );
+		}
 
-	if (pai->action->name && strlen(pai->action->name))
-	{
 		fprintf(fout
-				, "UFMN(%s)(pfsm);\n"
+				, "\tACTION_RETURN_TYPE event = UFMN(%s)(pfsm);\n"
 				, pai->action->name
 				);
+
+		if (add_profiling_macros)
+		{
+			fprintf(fout
+					, "\tACTION_EXIT(pfsm);\n"
+				   );
+		}
 	}
 	else 
 	{
-		fprintf(fout, "THIS(noEvent);\n\n");
+		fprintf(fout, "\tACTION_RETURN_TYPE event = THIS(noEvent);\n\n");
 		fprintf(fout
 				, "\tDBG_PRINTF(\"%s_noAction\");\n"
 				, ufMachineName(pcmd)
@@ -693,10 +701,24 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_arv(FI
 
 	if (pai->action->name && strlen(pai->action->name))
 	{
+		if (add_profiling_macros)
+		{
+			fprintf(fout
+					, "\tACTION_ENTRY(pfsm);\n"
+				   );
+		}
+
 		fprintf(fout
 				, "\tUFMN(%s)(pfsm);\n"
 				, pai->action->name
 				);
+
+		if (add_profiling_macros)
+		{
+			fprintf(fout
+					, "\tACTION_EXIT(pfsm);\n"
+				   );
+		}
 
 	}
 	else
@@ -740,10 +762,24 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_ars(FI
 
 	if (pai->action->name && strlen(pai->action->name))
 	{
+		if (add_profiling_macros)
+		{
+			fprintf(fout
+					, "\tACTION_ENTRY(pfsm);\n"
+				   );
+		}
+
 		fprintf(fout
 				, "\tstate = UFMN(%s)(pfsm);\n"
 				, pai->action->name
 				);
+
+		if (add_profiling_macros)
+		{
+			fprintf(fout
+					, "\tACTION_EXIT(pfsm);\n"
+				   );
+		}
 	}
 
 	if (pai->transition)
@@ -917,10 +953,24 @@ static bool print_event_table_handler_state_case_are(pLIST_ELEMENT pelem, void *
 	{
 		if (pai->action->name && strlen(pai->action->name))
 		{
+			if (add_profiling_macros)
+			{
+				fprintf(fout
+						, "\tACTION_ENTRY(pfsm);\n"
+					   );
+			}
+
 			fprintf(fout
 					, "\t\t\tevent = UFMN(%s)(pfsm);\n"
 					, pai->action->name
 					);
+
+			if (add_profiling_macros)
+			{
+				fprintf(fout
+						, "\tACTION_EXIT(pfsm);\n"
+					   );
+			}
 
 		}
 		else
@@ -975,10 +1025,24 @@ static bool print_event_table_handler_state_case_arv(pLIST_ELEMENT pelem, void *
 	{
 		if (pai->action->name && strlen(pai->action->name))
 		{
+			if (add_profiling_macros)
+			{
+				fprintf(fout
+						, "\tACTION_ENTRY(pfsm);\n"
+					   );
+			}
+
 			fprintf(fout
 					, "\t\t\tUFMN(%s)(pfsm);\n"
 					, pai->action->name
 					);
+
+			if (add_profiling_macros)
+			{
+				fprintf(fout
+						, "\tACTION_EXIT(pfsm);\n"
+					   );
+			}
 
 		}
 		else
@@ -1034,10 +1098,24 @@ static bool print_event_table_handler_state_case_ars(pLIST_ELEMENT pelem, void *
 	{
 		if (pai->action->name && strlen(pai->action->name))
 		{
+			if (add_profiling_macros)
+			{
+				fprintf(fout
+						, "\tACTION_ENTRY(pfsm);\n"
+					   );
+			}
+
 			fprintf(fout
 					, "\t\t\tstate = UFMN(%s)(pfsm);\n"
 					, pai->action->name
 					);
+
+			if (add_profiling_macros)
+			{
+				fprintf(fout
+						, "\tACTION_EXIT(pfsm);\n"
+					   );
+			}
 
 			handled = true;
 		}
@@ -1139,7 +1217,17 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
              );
    }
 
+   if (add_profiling_macros)
+   {
+	   fprintf(pcmd->cFile, "\n\tFSM_ENTRY();\n\n");
+   }
+
    writeFSMLoop(pfsmcog);
+
+   if (add_profiling_macros)
+   {
+	   fprintf(pcmd->cFile, "\n\tFSM_EXIT();\n\n");
+   }
 
    writeReentrantEpilogue(pcmd);
 
@@ -1194,6 +1282,7 @@ static void writeEventTableFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *ta
 			   , tabstr
 			   );
 	}
+
 }
 
 static void writeEventTableSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)

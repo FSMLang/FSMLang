@@ -633,7 +633,19 @@ static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
    fprintf(pcmd->cFile, "_EVENT event)\n{\n");
 
    writeReentrantPrologue(pcmd);
+
+   if (add_profiling_macros)
+   {
+       fprintf(pcmd->cFile, "\n\tFSM_ENTRY(pfsm);\n\n");
+   }
+
    writeFSMLoop(pfsmcog);
+
+   if (add_profiling_macros)
+   {
+       fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
+   }
+
    writeReentrantEpilogue(pcmd);
 
    fprintf(pcmd->cFile, "\n}\n\n");
@@ -683,10 +695,16 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 		   , eventType(pcmd)
           );
 
-   writeReentrantPrologue(pcmd);
+   if (add_profiling_macros)
+   {
+       fprintf(pcmd->cFile, "\n\tFSM_ENTRY(pfsm);\n\n");
+   }
+
    writeFSMLoop(pfsmcog);
-   writeReentrantEpilogue(pcmd);
-   
+
+   //The FSM_EXIT invocation is added in the loop writer, since it 
+   //    must precede the return statement.
+
    fprintf(pcmd->cFile
            , "\n}\n\n"
           );
@@ -1004,10 +1022,25 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
             {
                 if (strlen(pai->action->name))
                 {
+                    if (add_profiling_macros)
+                    {
+                        fprintf(pich->pcmd->cFile
+                                , "\t\tACTION_ENTRY(pfsm);\n"
+                               );
+                    }
+
                     fprintf(pich->pcmd->cFile
                             , "\t\tretVal = UFMN(%s)(pfsm);\n"
                             , pai->action->name
                             );
+
+                    if (add_profiling_macros)
+                    {
+                        fprintf(pich->pcmd->cFile
+                                , "\t\t\tACTION_EXIT(pfsm);\n"
+                               );
+                    }
+
                 }
                 else
                 {
@@ -1091,10 +1124,24 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 
                 if (strlen(pai->action->name))
                 {
+                    if (add_profiling_macros)
+                    {
+                        fprintf(pich->pcmd->cFile
+                                , "\t\tACTION_ENTRY(pfsm);\n"
+                               );
+                    }
+
                     fprintf(pich->pcmd->cFile
                             , "\t\tUFMN(%s)(pfsm);\n"
                             , pai->action->name
                             );
+
+                    if (add_profiling_macros)
+                    {
+                        fprintf(pich->pcmd->cFile
+                                , "\t\tACTION_EXIT(pfsm);\n"
+                               );
+                    }
                 }
                 else
                 {
@@ -1149,7 +1196,6 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                                            : NULL
                                            ;
 
-
     if (!pevent->type_data.event_data.single_pai_for_all_states)
     {
         if (pai)
@@ -1162,18 +1208,32 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 
             if (pai != paiNext)
             {
-                fprintf(pich->pcmd->cFile, "\t\tretVal = ");
                 if (strlen(pai->action->name))
                 {
+                    if (add_profiling_macros)
+                    {
+                        fprintf(pich->pcmd->cFile
+                                , "\t\t\tACTION_ENTRY(pfsm);\n"
+                               );
+                    }
+
                     fprintf(pich->pcmd->cFile
-                            , "UFMN(%s)(pfsm);\n"
+                            , "\t\tretVal = UFMN(%s)(pfsm);\n"
                             , pai->action->name
                             );
+
+                    if (add_profiling_macros)
+                    {
+                        fprintf(pich->pcmd->cFile
+                                , "\t\t\tACTION_EXIT(pfsm);\n"
+                               );
+                    }
+
                 }
                 else
                 {
                    fprintf(pich->pcmd->cFile
-                           , "UFMN(%s)%s;\n"
+                           , "\t\tretVal = UFMN(%s)%s;\n"
                            , pai->transition->name
                            , pai->transition->type == STATE ? "" : "(pfsm,e)"
                            );
@@ -1301,11 +1361,12 @@ static void writeOriginalSwitchFSMAre(pFSMCOutputGenerator pfsmcog)
            );
 
     writeOriginalSwitchFSMLoopAre(pfsmcog);
+
 }
 
 static void writeOriginalSwitchFSMArv(pFSMCOutputGenerator pfsmcog)
 {
-   writeOriginalSwitchFSMLoopArv(pfsmcog);
+    writeOriginalSwitchFSMLoopArv(pfsmcog);
 }
 
 static void writeOriginalSwitchSubFSMAre(pFSMCOutputGenerator pfsmcog)
@@ -1318,11 +1379,12 @@ static void writeOriginalSwitchSubFSMAre(pFSMCOutputGenerator pfsmcog)
            );
 
     writeOriginalSwitchSubFSMLoopAre(pfsmcog);
+
 }
 
 static void writeOriginalSwitchSubFSMArv(pFSMCOutputGenerator pfsmcog)
 {
-   writeOriginalSwitchSubFSMLoopArv(pfsmcog);
+    writeOriginalSwitchSubFSMLoopArv(pfsmcog);
 }
 
 static bool print_state_fn_name(pLIST_ELEMENT pelem, void *data)
@@ -1381,10 +1443,25 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
       {
           if (strlen(event->type_data.event_data.psingle_pai->action->name))
           {
-             fprintf(pich->pcmd->cFile
+              if (add_profiling_macros)
+              {
+                  fprintf(pich->pcmd->cFile
+                          , "\t\t\tACTION_ENTRY(pfsm);\n"
+                         );
+              }
+
+              fprintf(pich->pcmd->cFile
                      , "\t\t\tUFMN(%s)(pfsm);\n"
                      , event->type_data.event_data.psingle_pai->action->name
                      );
+
+              if (add_profiling_macros)
+              {
+                  fprintf(pich->pcmd->cFile
+                          , "\t\t\tACTION_EXIT(pfsm);\n"
+                         );
+              }
+
           }
           else
           {
@@ -1418,10 +1495,25 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
       {
           if (strlen(event->type_data.event_data.psingle_pai->action->name))
           {
+             if (add_profiling_macros)
+             {
+                 fprintf(pich->pcmd->cFile
+                         , "\t\t\tACTION_ENTRY(pfsm);\n"
+                         );
+             }
+
              fprintf(pich->pcmd->cFile
                      , "\t\t\tretVal = UFMN(%s)(pfsm);\n"
                      , event->type_data.event_data.psingle_pai->action->name
                      );
+
+             if (add_profiling_macros)
+             {
+                 fprintf(pich->pcmd->cFile
+                         , "\t\t\tACTION_EXIT(pfsm);\n"
+                         );
+             }
+
           }
           else
           {
@@ -1472,10 +1564,16 @@ static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMEN
 			  );
 
       fprintf(pich->pcmd->cFile
-              , "\t\t\tpfsm->state = UFMN(%s)(pfsm);\n"
+              , "%s\t\t\tpfsm->state = UFMN(%s)(pfsm);\n%s"
+              , event->type_data.event_data.psingle_pai->transition
+                ? ""
+                : add_profiling_macros ? "\t\t\tACTION_ENTRY(pfsm);\n" : ""
               , event->type_data.event_data.psingle_pai->transition
                 ? event->type_data.event_data.psingle_pai->transition->name
                 : event->type_data.event_data.psingle_pai->action->name
+              , event->type_data.event_data.psingle_pai->transition
+                ? ""
+                : add_profiling_macros ? "\t\t\tACTION_EXIT(pfsm);\n" : ""
               );
       
       fprintf(pich->pcmd->cFile

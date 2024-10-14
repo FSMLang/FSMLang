@@ -4,11 +4,14 @@ VARIANTS ?= c s e
 
 #e e.size e_run: FSM_FLAGS=-te
 e e.size e_run: FSM_FLAGS+=-te --generate-weak-fns=false --force-generation-of-event-passing-actions
+e e.size e_run: CFLAGS+=-DFSM_VARIANT_E
 
 c c.size c_run: FSM_FLAGS+=-tc --generate-weak-fns=false --force-generation-of-event-passing-actions
+c c.size c_run: CFLAGS+=-DFSM_VARIANT_C
 
 #s s.size s_run: FSM_FLAGS=-ts
-s c.size s_run: FSM_FLAGS+=-ts --generate-weak-fns=false --force-generation-of-event-passing-actions
+s s.size s_run: FSM_FLAGS+=-ts --generate-weak-fns=false --force-generation-of-event-passing-actions
+s s.size s_run: CFLAGS+=-DFSM_VARIANT_S
 
 runtest: $(addsuffix _run, $(VARIANTS))
 	@echo "all tests successful"

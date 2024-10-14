@@ -2170,6 +2170,7 @@ typedef enum {
  , lo_event_cross_ref_only
  , lo_event_cross_ref_format
  , lo_convenience_macro_in_public_header
+ , lo_add_profiling_macros
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2313,6 +2314,12 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_convenience_macro_in_public_header
+    }
+		, {
+        .name      = "add-profiling-macros"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_add_profiling_macros
     }
     , {0}
 };
@@ -2476,6 +2483,12 @@ int main(int argc, char **argv)
 								 convenience_macros_in_public_header = false;
 							 }
 							 break;
+      			case lo_add_profiling_macros:
+							if (optarg && !strcmp(optarg, "true"))
+							{
+								add_profiling_macros = true;
+							}
+							break;
             default:
                 usage();
                 return(0);
@@ -2743,6 +2756,8 @@ void usage(void)
  fprintf(stdout,"\t-Md print a lines suitable for inclusion in a Makefile giving the recipe for\n");
  fprintf(stdout,"\t\tcreating dependent files.\n");
  fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
+ fprintf(stdout,"\t--add-profiling-macros<=true|*false> adds profiling macros at the beginning\n");
+ fprintf(stdout,"\t\tand end of the FSM function, and before and after invocation of action functions.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }
