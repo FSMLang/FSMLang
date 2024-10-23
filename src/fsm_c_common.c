@@ -249,10 +249,6 @@ void writeCFilePreambles(pCMachineData pcmd, bool sub_machine)
 				fprintf(pcmd->cFile, "#include <stddef.h>\n\n"
 						);
 
-				/* protect ourselves from not having DBG_PRINTF defined */
-				fprintf(pcmd->cFile, "#ifndef DBG_PRINTF\n#define DBG_PRINTF(...)\n");
-
-				fprintf(pcmd->cFile, "#endif\n\n");
 
 			}
 			else
@@ -903,6 +899,13 @@ void generateRunFunction(pCMachineData pcmd, pMACHINE_INFO pmi)
 void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 {
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   if (pmi->data)
+   {
+	   fprintf(pcmd->cFile
+			   , "#ifndef INIT_FSM_DATA\n#error INIT_FSM_DATA must be defined\n#endif\n\n"
+			   );
+   }
 
    /* instantiate the machine and the pointer to it */
    /* the (empty) data struct and the state */
@@ -2917,21 +2920,45 @@ void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
 {
    if (pmi->native_impl_prologue)
    {
+	  fprintf(fout
+			  , "/* Begin Native Implementation Prolog */\n\n"
+			  );
+
       fprintf(fout
               , "%s\n"
               , pmi->native_impl_prologue
               );
+
+	  fprintf(fout
+			  , "/* End Native Implementation Prolog */\n\n"
+			  );
+
    }
+
+   /* protect ourselves from not having DBG_PRINTF defined */
+   fprintf(fout, "\n#ifndef DBG_PRINTF\n#define DBG_PRINTF(...)\n");
+
+   fprintf(fout, "#endif\n\n");
+
 }
 
 void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO pmi, FILE *fout)
 {
    if (pmi->native_impl_epilogue)
    {
+	  fprintf(fout
+			  , "/* Begin Native Implementation Epilog */\n\n"
+			  );
+
       fprintf(fout
               , "%s\n"
               , pmi->native_impl_epilogue
               );
+
+	  fprintf(fout
+			  , "/* End Native Implementation Epilog */\n\n"
+			  );
+
    }
 }
 

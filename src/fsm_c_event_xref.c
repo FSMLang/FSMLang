@@ -198,7 +198,7 @@ static void writeCEventXRefJSON(pMACHINE_INFO pmi)
 		, .pfn_sub_iterator = print_event_xref_json
 	};
 
-	fprintf(fout, "\"event_xrefs\":[\n");
+	fprintf(fout, "{\n\"event_xrefs\":[\n");
 
 	iterate_list(pmi->event_list
 				 , print_event_xref_json
@@ -208,7 +208,7 @@ static void writeCEventXRefJSON(pMACHINE_INFO pmi)
 	complete_top_level(&ih);
 	process_any_sub_machines(&ih);
 
-	fprintf(fout, "]\n");
+	fprintf(fout, "]\n}\n");
 }
 
 static void writeCEventXRefCSV(pMACHINE_INFO pmi)
@@ -293,6 +293,9 @@ static bool iterate_sub_machines(pLIST_ELEMENT pelem, void *data)
 				 , pih->pfn_sub_iterator
 				 , pih
 				 );
+
+	// Cap this machine's events before processing submachines
+	(*pxref_writer)->entry_writer("noEvent", pih);
 
 	if (pmi->machine_list)
 	{

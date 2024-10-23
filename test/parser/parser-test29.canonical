@@ -12,22 +12,22 @@ Native implementation prologue
 Native implementation
  copy this to the source file at the end; 
 found simple data type id
-found data field: TYPE: simple; NAME: a; dimension: none
+found data field: TYPE: simple; NAME: a
 Starting data_fields list
 found struct data type
-found data field: TYPE: struct; NAME: foo; dimension: none
+found data field: TYPE: struct; NAME: foo
 Starting data_fields list
 found simple data type id
-found data field: TYPE: simple; NAME: f; dimension: none
+found data field: TYPE: simple; NAME: f
 Starting data_fields list
 found struct data type
-found data field: TYPE: struct; NAME: beep; dimension: none
+found data field: TYPE: struct; NAME: beep
 Continuing data_fields list
 found simple data type name
-found data field: TYPE: simple; NAME: bop; dimension: none
+found data field: TYPE: simple; NAME: bop
 Continuing data_fields list
 found union data type
-found data field: TYPE: union; NAME: u; dimension: none
+found data field: TYPE: union; NAME: u
 Starting data_fields list
 Data block done
 found the start of a state declaration list
@@ -440,12 +440,12 @@ The 2 transition functions :
 this machine has data
 union {
 	struct {
-		int  a ;
+		int a;
 	} foo;
 	struct {
-		float  f ;
+		float f;
 	} beep;
-	int  bop ;
+	int bop;
 } u;
 
 this machine has 2 sub-machines

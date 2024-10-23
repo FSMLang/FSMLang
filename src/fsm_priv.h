@@ -183,6 +183,7 @@ typedef enum
    , dtt_union 
    , dtt_struct 
 } DATA_TYPE_TYPE;
+
 union _data_type_union_
 {
    pID_INFO         name;
@@ -191,16 +192,17 @@ union _data_type_union_
 
 struct _data_type_struct_
 {
-   DATA_TYPE_TYPE  dtt;
-   DATA_TYPE_UNION dtu;
+   DATA_TYPE_TYPE    dtt;
+   DATA_TYPE_UNION   dtu;
+   unsigned          indirection_level;
+   bool              is_array;
+   char            * dimension;
 };
 
 struct _data_field_              
 {
    pID_INFO            data_field_name;
    pDATA_TYPE_STRUCT   pdts;
-   bool                isPointer;
-   char              * dimension;
 };
 
 struct _iterator_helper_

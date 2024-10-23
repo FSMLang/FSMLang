@@ -16,5 +16,3 @@ override CFLAGS += -DFSM_DEBUG \
 override FSM_FLAGS+=--add-profiling-macros=true
 
 include ../variants.mk
-
-

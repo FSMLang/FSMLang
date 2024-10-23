@@ -9,42 +9,43 @@ found simple data type id
 found data field: TYPE: simple; NAME: a; dimension: NUM_FLOATS
 Starting data_fields list
 found struct data type
-found data field: TYPE: struct; NAME: foo; dimension: none
+found data field: TYPE: struct; NAME: foo
 Starting data_fields list
 found simple data type id
-found data field: TYPE: simple; NAME: f; dimension: none
+found data field: TYPE: simple; NAME: f
 Starting data_fields list
 found struct data type
-found data field: TYPE: struct; NAME: beep; dimension: none
+found data field: TYPE: struct; NAME: beep
 Continuing data_fields list
 found simple data type name
 found data field: TYPE: simple; NAME: bop; dimension: 20
 Continuing data_fields list
 found union data type
-found data field: TYPE: union; NAME: u; dimension: none
+found data field: TYPE: union; NAME: u
 Starting data_fields list
 Data block done
 found simple data type id
-found pointer data field: TYPE: simple; NAME: cp; dimension: none
+found pointer data type: TYPE: simple; indirection_level: 1
+found data field: TYPE: simple; NAME: cp
 Starting data_fields list
 found simple data type name
-found data field: TYPE: simple; NAME: f; dimension: none
+found data field: TYPE: simple; NAME: f
 Continuing data_fields list
 Data block done
 found data fields
-char * cp ;
-float  f ;
+char * cp;
+float f;
 
 found simple data type name
-found data field: TYPE: simple; NAME: i; dimension: none
+found data field: TYPE: simple; NAME: i
 Starting data_fields list
 found simple data type name
-found data field: TYPE: simple; NAME: f; dimension: none
+found data field: TYPE: simple; NAME: f
 Continuing data_fields list
 Data block done
 found data fields
-int  i ;
-float  f ;
+int i;
+float f;
 
 added another id to the event declaration list
 The 2 events in this list:
@@ -53,23 +54,23 @@ The 2 events in this list:
 	1:	e2
 
 found simple data type name
-found data field: TYPE: simple; NAME: i; dimension: none
+found data field: TYPE: simple; NAME: i
 Starting data_fields list
 found simple data type name
-found data field: TYPE: simple; NAME: i; dimension: none
+found data field: TYPE: simple; NAME: i
 Starting data_fields list
 found simple data type name
-found data field: TYPE: simple; NAME: f; dimension: none
+found data field: TYPE: simple; NAME: f
 Continuing data_fields list
 found struct data type
-found data field: TYPE: struct; NAME: s; dimension: none
+found data field: TYPE: struct; NAME: s
 Continuing data_fields list
 Data block done
 found data fields
-int  i ;
+int i;
 struct {
-	int  i ;
-	float  f ;
+	int i;
+	float f;
 } s;
 
 The 1 events in this list:
@@ -113,7 +114,7 @@ found data field: TYPE: simple; NAME: i; dimension: 12
 Starting data_fields list
 Data block done
 found data fields
-int  i [12];
+int i[12];
 
 added another id to the event declaration list
 added another id to the event declaration list
@@ -473,12 +474,12 @@ The 2 transition functions :
 this machine has data
 union {
 	struct {
-		int  a [NUM_FLOATS];
+		int a[NUM_FLOATS];
 	} foo;
 	struct {
-		float  f ;
+		float f;
 	} beep;
-	int  bop [20];
+	int bop[20];
 } u;
 
 this machine has 2 sub-machines

@@ -1855,9 +1855,25 @@ data_type : ID
  		 $$->dtu.members = $3;
 
    }
+   | data_type '*'
+   {
+    $$ = $1;
+    ($$->indirection_level)++;
+
+		 #ifdef PARSER_DEBUG
+		 fprintf(yyout
+            ,"found pointer data type: TYPE: %s; indirection_level: %u\n"
+            , $1->dtt == dtt_simple ? "simple"
+ 					   : $1->dtt == dtt_struct ? "struct"
+ 					     : "union"
+            , $1->indirection_level
+            );
+		 #endif
+   }
    ;
 
-data_field : data_type ID data_field_dimension ';'
+data_field : 
+   data_type ID data_field_dimension ';'
   {
 		 #ifdef PARSER_DEBUG
 		 fprintf(yyout
@@ -1873,21 +1889,21 @@ data_field : data_type ID data_field_dimension ';'
  	 if (($$ = calloc(1, sizeof(DATA_FIELD))) == NULL)
  	    yyerror("out of memory");
 
-    $$->pdts            = $1;
+   $$->pdts            = $1;
+   $$->pdts->is_array  = true;
+ 	 $$->pdts->dimension = $3;
  	 $$->data_field_name = $2;
- 	 $$->dimension       = $3;
 
   }
-  | data_type '*' ID data_field_dimension ';'
+  | data_type ID ';'
   {
 		 #ifdef PARSER_DEBUG
 		 fprintf(yyout
-            ,"found pointer data field: TYPE: %s; NAME: %s; dimension: %s\n"
+            ,"found data field: TYPE: %s; NAME: %s\n" 
             , $1->dtt == dtt_simple ? "simple"
  					   : $1->dtt == dtt_struct ? "struct"
  					     : "union"
-            , $3->name
-            , $4 ? $4 : "none"
+            , $2->name
             );
 		 #endif
 
@@ -1895,15 +1911,12 @@ data_field : data_type ID data_field_dimension ';'
  	    yyerror("out of memory");
 
     $$->pdts            = $1;
- 	 $$->isPointer       = true;
- 	 $$->data_field_name = $3;
- 	 $$->dimension       = $4;
-
+ 	 $$->data_field_name = $2;
 
   }
   ;
 
-data_field_dimension:
+data_field_dimension: '[' ']'
    {
        $$ = NULL;
    }
@@ -2335,7 +2348,7 @@ int main(int argc, char **argv)
 {
 
 	char	*cp1;
-	char    *outFileBase = 0;
+	char    *outFileBase = NULL;
 
  #ifndef PARSER_DEBUG
  int   c;
@@ -2664,7 +2677,9 @@ int main(int argc, char **argv)
 
 		#ifndef PARSER_DEBUG
 			(*pfsmog->closeOutput)(pfsmog,good);
-			CHECK_AND_FREE(outFileBase);
+
+      //prepare for next input file, if any
+      outFileBase = NULL;
 
 		}
 		#endif
@@ -2738,7 +2753,6 @@ void usage(void)
  fprintf(stdout,"\t\t(THIS, UFMN, e.g.) in the public header of the top-level machine;\n");
  fprintf(stdout,"\t\totherwise, they are placed in the private header.\n");
  fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
- fprintf(stdout,"\t--add-event-cross-reference<=*true|false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t--add-event-cross-reference<=true|*false> adds a cross-reference list as a comment block\n");
  fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
  fprintf(stdout,"\t\tto specifying \"true\"\n");
