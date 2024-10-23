@@ -2171,6 +2171,7 @@ typedef enum {
  , lo_event_cross_ref_format
  , lo_convenience_macro_in_public_header
  , lo_add_profiling_macros
+ , lo_profile_sub_fsms
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2320,6 +2321,12 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_add_profiling_macros
+    }
+		, {
+        .name      = "profile-sub-fsms"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_profile_sub_fsms
     }
     , {0}
 };
@@ -2487,6 +2494,12 @@ int main(int argc, char **argv)
 							if (optarg && !strcmp(optarg, "true"))
 							{
 								add_profiling_macros = true;
+							}
+							break;
+      			case lo_profile_sub_fsms:
+							if (optarg && !strcmp(optarg, "true"))
+							{
+								profile_sub_fsms = true;
 							}
 							break;
             default:

@@ -428,6 +428,7 @@ extern bool                 short_user_fn_names;
 extern bool                 print_action_array;
 extern bool                 convenience_macros_in_public_header;
 extern bool                 add_profiling_macros;
+extern bool                 profile_sub_fsms;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

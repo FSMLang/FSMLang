@@ -1346,10 +1346,24 @@ static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
               );
    }
 
+   if (add_profiling_macros)
+   {
+	   fprintf(pcmd->cFile
+			   , "\tACTION_ENTRY(pfsm);\n"
+			  );
+   }
+
    fprintf(pcmd->cFile
            , "\t%ss = ((* (*pfsm->eventsArray)[event])(pfsm));\n\n"
            , tabstr
            );
+
+   if (add_profiling_macros)
+   {
+	   fprintf(pcmd->cFile
+			   , "\tACTION_EXIT(pfsm);\n"
+			  );
+   }
 
    fprintf(pcmd->cFile
            , "\tif (s != UFMN(noTransition))\n\t{\n"
@@ -1450,7 +1464,21 @@ static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 			   );
 	}
 
+	if (add_profiling_macros && profile_sub_fsms)
+	{
+		fprintf(pcmd->cFile
+				, "\tFSM_ENTRY(pfsm);\n\n"
+			   );
+	}
+
 	writeFSMLoop(pfsmcog);
+
+	if (add_profiling_macros && profile_sub_fsms)
+	{
+		fprintf(pcmd->cFile
+				, "\tFSM_EXIT(pfsm);\n"
+			   );
+	}
 
 	fprintf(pcmd->cFile, "\n}\n\n");
 

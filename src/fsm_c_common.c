@@ -65,6 +65,7 @@ bool core_logging_only                   = false;
 bool include_svg_img                     = false;
 bool convenience_macros_in_public_header = true;
 bool add_profiling_macros                = false;
+bool profile_sub_fsms                    = false;
 
 
 static char  *eventXRefFormat0Str = "\t%5u  ";

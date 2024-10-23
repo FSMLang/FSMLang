@@ -569,17 +569,7 @@ static void writeOriginalSubFSMAre(pFSMCOutputGenerator pfsmcog)
 				);
 	}
 
-	if (add_profiling_macros)
-	{
-		fprintf(pcmd->cFile, "\n\tFSM_ENTRY(pfsm);\n\n");
-	}
-
 	writeOriginalSubFSMLoop(pcmd, pmi);
-
-	if (add_profiling_macros)
-	{
-		fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
-	}
 
 	fprintf(pcmd->cFile
 			, "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"
@@ -606,17 +596,7 @@ static void writeOriginalSubFSMArv(pFSMCOutputGenerator pfsmcog)
 				);
 	}
 
-	if (add_profiling_macros)
-	{
-		fprintf(pcmd->cFile, "\n\tFSM_ENTRY(pfsm);\n\n");
-	}
-
 	writeOriginalSubFSMLoop(pcmd, pmi);
-
-	if (add_profiling_macros)
-	{
-		fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
-	}
 
 	fprintf(pcmd->cFile
 			, "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"
@@ -892,6 +872,13 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
+	if (add_profiling_macros)
+	{
+		fprintf(pcmd->cFile
+				, "\tACTION_ENTRY(pfsm);\n"
+			   );
+	}
+
 	if (!(pmi->modFlags & mfActionsReturnVoid))
 	{
 		if (compact_action_array)
@@ -929,6 +916,13 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 					, eventNameByIndex(pmi, 0)
 				   );
 		}
+	}
+
+	if (add_profiling_macros)
+	{
+		fprintf(pcmd->cFile
+				, "\tACTION_EXIT(pfsm);\n"
+			   );
 	}
 
 	if (!pmi->transition_fn_list->count)
@@ -1105,7 +1099,7 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	char *tabstr = "\t";
 
-	if (add_profiling_macros)
+	if (add_profiling_macros && profile_sub_fsms)
 	{
 		fprintf(pcmd->cFile, "\n\tFSM_ENTRY(pfsm);\n\n");
 	}
@@ -1156,7 +1150,7 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 			   );
 	}
 
-	if (add_profiling_macros)
+	if (add_profiling_macros && profile_sub_fsms)
 	{
 		fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
 	}

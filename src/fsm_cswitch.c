@@ -695,7 +695,7 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 		   , eventType(pcmd)
           );
 
-   if (add_profiling_macros)
+   if (add_profiling_macros && profile_sub_fsms)
    {
        fprintf(pcmd->cFile, "\n\tFSM_ENTRY(pfsm);\n\n");
    }
@@ -1329,6 +1329,13 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
            , "\t\tif ((e >= THIS(firstEvent))\n\t\t    && (e < THIS(noEvent))\n\t\t\t)\n\t\t{\n"
            );
 
+   if (add_profiling_macros)
+   {
+       fprintf(pcmd->cFile
+               , "\tACTION_ENTRY(pfsm);\n"
+              );
+   }
+
    if (pmi->modFlags & mfActionsReturnVoid)
    {
       fprintf(pcmd->cFile
@@ -1339,6 +1346,13 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
    {
       fprintf(pcmd->cFile
               , "\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
+              );
+   }
+
+   if (add_profiling_macros)
+   {
+       fprintf(pcmd->cFile
+               , "\tACTION_EXIT(pfsm);\n"
               );
    }
 

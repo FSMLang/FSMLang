@@ -457,7 +457,7 @@ void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator pfsmcog)
 
    fprintf(pcmd->cFile, "\n\t}\n");
 
-   if (add_profiling_macros)
+   if (add_profiling_macros && profile_sub_fsms)
    {
 	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
    }
@@ -504,7 +504,7 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
                );
    }
 
-   if (add_profiling_macros)
+   if (add_profiling_macros && profile_sub_fsms)
    {
 	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
    }
