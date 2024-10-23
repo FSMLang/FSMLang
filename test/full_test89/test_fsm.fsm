@@ -1,0 +1,67 @@
+machine test
+on transition transitioning;
+native impl
+{
+#include "profiling.inc"
+
+#define INIT_FSM_DATA {.i = 0}
+
+
+void UFMN(transitioning)(FSM_TYPE_PTR pfsm, TEST_STATE to)
+{
+	printf("%s: from=%u; to=%u\n"
+          , __func__
+          , pfsm->state
+          , to
+          );
+}
+
+void UFMN(prep_s2)(pTEST_DATA pdata)
+{
+	(void) pdata;
+	printf("%s\n", __func__);
+}
+
+void UFMN(decommission_s1)(pTEST_DATA pdata)
+{
+	(void) pdata;
+	printf("%s\n", __func__);
+}
+
+}
+
+{
+
+data
+{
+	int i;
+}
+
+	state s1 on exit decommission_s1;
+	state s2 on entry prep_s2;
+	state s3;
+
+	event e1, e2, e3;
+
+	machine sub
+	native impl
+	{
+#define SUB_MACHINE 0
+#include "profiling.inc"
+	}
+	{
+		state s1;
+		event e1;
+
+		action always[e1, s1];
+	}
+
+	action a1[e1,(s1, s2, s3)];
+	action a2[e2,(s1, s2, s3)];
+
+	action a3[e3, s1] transition s2;
+
+	transition [e3, s2] s3;
+	transition [e3, s3] s1;
+}
+
