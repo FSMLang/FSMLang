@@ -222,7 +222,7 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 	/* do this now, since some header stuff puts content into the source file.*/
 	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-	subMachineHeaderStart(pcmd, pmi, "action");
+	subMachineHeaderStart(pcmd, pmi, "action", true);
 
 	/* we need our count of events */
 	fprintf(pcmd->hFile

@@ -2141,7 +2141,7 @@ void print_native_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi)
 	}
 }
 
-void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
+void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, bool add_num_states)
 {
 	(void) arrayName;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
@@ -2248,7 +2248,10 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 	   print_plain_enum_member("noTransition", &ich);
    }
 
-   print_plain_enum_member("numStates", &ich);
+   if (add_num_states)
+   {
+	   print_plain_enum_member("numStates", &ich);
+   }
 
    fprintf(pcmd->hFile
            , "}%s %s;\n\n"

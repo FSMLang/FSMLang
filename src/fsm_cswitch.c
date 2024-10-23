@@ -399,7 +399,7 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
    /* do this now, since some header stuff puts content into the source file.*/
    addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-   subMachineHeaderStart(pcmd, pmi, "state_fn");
+   subMachineHeaderStart(pcmd, pmi, "state_fn", true);
 
    declareCSwitchMachineStateFnArray(pcmd);
 
@@ -1329,13 +1329,6 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
            , "\t\tif ((e >= THIS(firstEvent))\n\t\t    && (e < THIS(noEvent))\n\t\t\t)\n\t\t{\n"
            );
 
-   if (add_profiling_macros)
-   {
-       fprintf(pcmd->cFile
-               , "\tACTION_ENTRY(pfsm);\n"
-              );
-   }
-
    if (pmi->modFlags & mfActionsReturnVoid)
    {
       fprintf(pcmd->cFile
@@ -1346,13 +1339,6 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
    {
       fprintf(pcmd->cFile
               , "\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
-              );
-   }
-
-   if (add_profiling_macros)
-   {
-       fprintf(pcmd->cFile
-               , "\tACTION_EXIT(pfsm);\n"
               );
    }
 
