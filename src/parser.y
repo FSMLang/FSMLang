@@ -2771,6 +2771,9 @@ void usage(void)
  fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
  fprintf(stdout,"\t--add-profiling-macros<=true|*false> adds profiling macros at the beginning\n");
  fprintf(stdout,"\t\tand end of the FSM function, and before and after invocation of action functions.\n");
+ fprintf(stdout,"\t--profile-sub-fsms<=true|*false> adds profiling macros at the beginning\n");
+ fprintf(stdout,"\t\tand end of the FSM function in sub-machines.  Profiling macros\n");
+ fprintf(stdout,"\t\tmust also be enabled.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }
