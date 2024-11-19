@@ -484,5 +484,7 @@ bool print_sub_machine_component_name(pLIST_ELEMENT,void*);
 bool print_sub_machine_events(pLIST_ELEMENT,void*);
 bool print_sub_machine_event_names(pLIST_ELEMENT,void*);
 bool print_data_field(pLIST_ELEMENT,void*);
+char *create_string_from_file(FILE*,unsigned long*);
+
 
 #endif /* ----------- nothing below this line ---------------- */
