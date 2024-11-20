@@ -1441,3 +1441,5 @@ The code of FSMLang itself is distrubuted under the Gnu General Public License. 
 FSMLang is yours to do with as you will.  FSMLang claims no ownership of the generated code.  Of course with that, we
 must also absolve ourselves of any responsibility for correctness, freedom from bugs, usefullness, or merchantability
 (or any other thing).
+
+[Top of page](#fsmlang)
