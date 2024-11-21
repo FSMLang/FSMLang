@@ -87,7 +87,6 @@ static void print_machine_statistics(pFSMRSTOutputGenerator);
 static void print_transition_fns(pFSMRSTOutputGenerator);
 static void eat_spaces(FILE*,char*);
 static bool print_pid_as_reference_in_list(pLIST_ELEMENT,void*);
-static bool print_pid_in_list(pLIST_ELEMENT,void*);
 static bool print_pmi_in_list(pLIST_ELEMENT,void*);
 
 static char * fqMachineName(pRSTMachineData);
@@ -1064,20 +1063,6 @@ static bool print_pid_as_reference_in_list(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
-
-static bool print_pid_in_list(pLIST_ELEMENT pelem, void *data)
-{
-	pID_INFO               pid       = (pID_INFO) pelem->mbr;
-	pFSMRSTOutputGenerator pfsmrstog = (pFSMRSTOutputGenerator) data;
-
-	                    ;
-	fprintf(FOUT(pfsmrstog)
-			, "* %s\n"
-			, pid->name
-			);
-
-	return false;
-}
 
 static bool print_pmi_in_list(pLIST_ELEMENT pelem, void *data)
 {
