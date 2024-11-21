@@ -88,6 +88,7 @@ static void print_transition_fns(pFSMRSTOutputGenerator);
 static void eat_spaces(FILE*,char*);
 static bool print_pid_as_reference_in_list(pLIST_ELEMENT,void*);
 static bool print_pid_in_list(pLIST_ELEMENT,void*);
+static bool print_pmi_in_list(pLIST_ELEMENT,void*);
 
 static char * fqMachineName(pRSTMachineData);
 
@@ -284,6 +285,22 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 			   );
 	}
 
+	if (PMI(pfsmrstog)->data)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\nMachine data:\n\n.. code:: c\n\n"
+				);
+
+		ITERATOR_HELPER ih = {
+			. fout = FOUT(pfsmrstog)
+			, .tab_level = 1
+		};
+
+		iterate_list(PMI(pfsmrstog)->data
+					 , print_data_field
+					 , &ih
+					 );
+	}
 
 	print_state_chart(pfsmrstog);
 	print_events(pfsmrstog);
@@ -427,6 +444,18 @@ static bool print_transition_fn_data(pLIST_ELEMENT pelem, void *data)
 						   );
 
 	print_id_info_data(ptransition_fn, FOUT(pfsmrstog));
+
+	if (ptransition_fn->transition_fn_returns_decl)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\nReturns:\n\n"
+				);
+
+		iterate_list(ptransition_fn->transition_fn_returns_decl
+					 , print_pid_as_reference_in_list
+					 , pfsmrstog
+					 );
+	}
 
 	return false;
 }
@@ -629,11 +658,11 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 	if (pdata->psharing_sub_machines)
 	{
 		fprintf(FOUT(pfsmrstog)
-				, "These sub-machines share this event:\n\n"
+				, "\n\nThese sub-machines share this event:\n\n"
 				);
 
 		iterate_list(pdata->psharing_sub_machines
-					 , print_pid_in_list
+					 , print_pmi_in_list
 					 , pfsmrstog
 					 );
 
@@ -658,9 +687,12 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 	}
 	else
 	{
-		fprintf(FOUT(pfsmrstog)
-				, "\n\n.. warning::\n\n   This event is handled in no state.\n\n"
-				);
+		if (!pdata->psharing_sub_machines)
+		{
+			fprintf(FOUT(pfsmrstog)
+					, "\n\n.. warning::\n\n   This event is handled in no state.\n\n"
+				   );
+		}
 
 	}
 
@@ -683,6 +715,24 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 					, "\n\nNo actions are taken in response to this event.\n\n"
 				   );
 		}
+
+	}
+
+	if (pdata->puser_event_data && pdata->puser_event_data->data_fields)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\nEvent data:\n\n.. code:: c\n\n"
+				);
+
+		ITERATOR_HELPER ih = {
+			.fout = FOUT(pfsmrstog)
+			, .tab_level = 1
+		};
+
+		iterate_list(pdata->puser_event_data->data_fields
+					 , print_data_field
+					 , &ih
+					 );
 
 	}
 
@@ -1024,6 +1074,20 @@ static bool print_pid_in_list(pLIST_ELEMENT pelem, void *data)
 	fprintf(FOUT(pfsmrstog)
 			, "* %s\n"
 			, pid->name
+			);
+
+	return false;
+}
+
+static bool print_pmi_in_list(pLIST_ELEMENT pelem, void *data)
+{
+	pMACHINE_INFO          pmi       = (pMACHINE_INFO) pelem->mbr;
+	pFSMRSTOutputGenerator pfsmrstog = (pFSMRSTOutputGenerator) data;
+
+	                    ;
+	fprintf(FOUT(pfsmrstog)
+			, "* %s\n"
+			, pmi->name->name
 			);
 
 	return false;
