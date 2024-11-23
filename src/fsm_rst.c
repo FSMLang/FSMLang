@@ -249,12 +249,16 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	PMI(pfsmrstog) = pmi;
 
+	int title_decoration_len = strlen(pmi->name->name) + 1;
+
+	print_nchar(FOUT(pfsmrstog), '=', title_decoration_len);
+
 	fprintf(FOUT(pfsmrstog)
 			, "\n%s\n"
 			, pmi->name->name
 			);
 
-	print_nchar(FOUT(pfsmrstog), '=', strlen(pmi->name->name) + 1);
+	print_nchar(FOUT(pfsmrstog), '=', title_decoration_len);
 
 	if (pmi->name->docCmnt)
 	{
