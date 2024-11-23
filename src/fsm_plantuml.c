@@ -94,11 +94,12 @@ struct _loop_back_event_
 
 FSMPlantUMLOutputGenerator PlantUMLMachineWriter = {
 	{
-     initPlantUMLWriter,
-     writePlantUMLWriter,
-     closePlantUMLWriter
-  },
-  NULL
+		initPlantUMLWriter
+		, writePlantUMLWriter
+		, closePlantUMLWriter
+		, generatePlantUMLMachineWriter
+  }
+  , NULL
 };
 
 const char * const horizontal_placement_strs[] =

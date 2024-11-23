@@ -26,10 +26,18 @@ TOP_LEVEL_EVENT UFMN(a1)(pSUB_MACHINE1 pfsm)
    return THIS(e2);
 }
 
+TOP_LEVEL_EVENT UFMN(handle_e7)(pSUB_MACHINE1 pfsm)
+{
+	(void) pfsm;
+   DBG_PRINTF("%s", __func__);
+
+   return THIS(noEvent);
+}
+
 TOP_LEVEL_EVENT UFMN(noAction)(pSUB_MACHINE1 pfsm)
 {
 	(void) pfsm;
-   DBG_PRINTF("%s\n", __func__);
+   DBG_PRINTF("%s", __func__);
 
    return THIS(noEvent);
 }

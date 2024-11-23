@@ -60,10 +60,12 @@
 
 #include "revision.h"
 
-bool generate_weak_fns           = true;
-bool core_logging_only           = false;
-bool include_svg_img             = false;
+bool generate_weak_fns                   = true;
+bool core_logging_only                   = false;
+bool include_svg_img                     = false;
 bool convenience_macros_in_public_header = true;
+bool add_profiling_macros                = false;
+bool profile_sub_fsms                    = false;
 
 
 static char  *eventXRefFormat0Str = "\t%5u  ";
@@ -276,38 +278,38 @@ void writeCFilePreambles(pCMachineData pcmd, bool sub_machine)
 
 int initCSubMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
-   pFSMCSubMachineOutputGenerator pfsmcsmog = (pFSMCSubMachineOutputGenerator) pfsmog;
+   pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   if ((pfsmcsmog->pcmd = newCMachineData(fileName)))
+   if ((pfsmcog->pcmd = newCMachineData(fileName)))
    {
 
 	  /* Only data (not pointers to the writers) are passed around; 
 	  this gives the data block access to the parent.  writeCFilePreables
 	  uses parent_pcmd. */
-	  pfsmcsmog->pcmd->parent_pcmd = pfsmcsmog->parent_fsmcog->pcmd;
+	  pfsmcog->pcmd->parent_pcmd = pfsmcog->parent_fsmcog->pcmd;
 
 	  /* With parent_pcmd assigned, we can call writeCFilePreambles. */
-	  writeCFilePreambles(pfsmcsmog->pcmd, true);
+	  writeCFilePreambles(pfsmcog->pcmd, true);
 
 	  /* The parent has encountered a sub-machine. This affects how
 	  the data block is destroyed.
 	  */
-	  pfsmcsmog->parent_fsmcog->pcmd->a_sub_machine_was_encountered = true;
+	  pfsmcog->parent_fsmcog->pcmd->a_sub_machine_was_encountered = true;
 
 	  /* for sub machines, some output strings are taken from the parent */
-	  pfsmcsmog->pcmd->action_return_type = pfsmcsmog->parent_fsmcog->pcmd->action_return_type;
-	  pfsmcsmog->pcmd->fsm_fn_event_type  = pfsmcsmog->parent_fsmcog->pcmd->action_return_type;
-	  pfsmcsmog->pcmd->event_type         = pfsmcsmog->parent_fsmcog->pcmd->event_type;
+	  pfsmcog->pcmd->action_return_type = pfsmcog->parent_fsmcog->pcmd->action_return_type;
+	  pfsmcog->pcmd->fsm_fn_event_type  = pfsmcog->parent_fsmcog->pcmd->action_return_type;
+	  pfsmcog->pcmd->event_type         = pfsmcog->parent_fsmcog->pcmd->event_type;
 
 	 /* Put the call to the top-level header file into the header. */
-	 fprintf(pfsmcsmog->pcmd->hFile
+	 fprintf(pfsmcog->pcmd->hFile
 			 , "#include \"%s\"\n\n"
-			 , pfsmcsmog->top_level_fsmcog->pcmd->pubHName
+			 , pfsmcog->top_level_fsmcog->pcmd->pubHName
 			 );
 
-	 fprintf(pfsmcsmog->pcmd->subMachineHFile
+	 fprintf(pfsmcog->pcmd->subMachineHFile
 			 , "#include \"%s\"\n\n"
-			 , pfsmcsmog->top_level_fsmcog->pcmd->pubHName
+			 , pfsmcog->top_level_fsmcog->pcmd->pubHName
 			 );
 
       return 0;
@@ -319,11 +321,11 @@ int initCSubMachine(pFSMOutputGenerator pfsmog, char *fileName)
 
 int initCSubMachineFN(pFSMOutputGenerator pfsmog, char *fileName)
 {
-   pFSMCSubMachineOutputGenerator pfsmcsmog = (pFSMCSubMachineOutputGenerator) pfsmog;
+   pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   if ((pfsmcsmog->pcmd = newCMachineData(fileName)))
+   if ((pfsmcog->pcmd = newCMachineData(fileName)))
    {
-	   pfsmcsmog->pcmd->parent_pcmd = pfsmcsmog->parent_fsmcog->pcmd;
+	   pfsmcog->pcmd->parent_pcmd = pfsmcog->parent_fsmcog->pcmd;
 	   return 0;
    }
 
@@ -397,7 +399,7 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_CAL
 
 }
 
-void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
+void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, bool add_numStates)
 {
 	//TODO: remove from signature
 	(void) arrayName;
@@ -461,6 +463,11 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 		     ? pcmd->pubHFile
 		     : pcmd->hFile
 		   , "#endif\n"
+		   );
+
+   fprintf(pcmd->pubHFile
+		   , "#undef STATE\n#define STATE(A) %s_##A\n"
+		   , machineName(pcmd)
 		   );
 
    if (pmi->machine_list)
@@ -598,7 +605,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 
    fprintf(pcmd->hFile
 		   , "\n#ifdef %s_DEBUG\n"
-		   , fsmType(pcmd)
+		   , ucfqMachineName(pcmd)
 		   );
    fprintf(pcmd->hFile
 		   , "extern char *%s_EVENT_NAMES[];\n"
@@ -634,10 +641,13 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
              );
    }
 
-   fprintf(pcmd->hFile
-           , "\t, %s_numStates\n"
-		   , machineName(pcmd)
-           );
+   if (add_numStates)
+   {
+	   fprintf(pcmd->hFile
+			   , "\t, %s_numStates\n"
+			   , machineName(pcmd)
+			   );
+   }
 
    fprintf(pcmd->hFile
            , "}%s %s;\n\n"
@@ -1001,9 +1011,9 @@ static void print_transition_function_signature(FILE *fout, pCMachineData pcmd, 
 			, name_prefix ? name_prefix : ""
 			, name
 			, define ? " pfsm" : ""
-			, pcmd->pmi->modFlags & mfActionsReturnStates ? "" : ", "
-			, pcmd->pmi->modFlags & mfActionsReturnStates ? "" : eventType(pcmd)
-			, define && pcmd->pmi->modFlags & mfActionsReturnStates ? "" : " e"
+			, (pcmd->pmi->modFlags & mfActionsReturnStates) ? "" : ","
+			, (pcmd->pmi->modFlags & mfActionsReturnStates) ? "" : eventType(pcmd)
+			, (pcmd->pmi->modFlags & mfActionsReturnStates) ? "" : " e"
 			, define ? "\n{" : ";"
 			);
 }
@@ -1012,13 +1022,9 @@ static void print_transition_function_body(FILE *fout, pCMachineData pcmd, char 
 {
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-	if (!(pcmd->pmi->modFlags & mfActionsReturnStates))
-	{
-		fprintf(fout, "\t(void) e;\n");
-	}
-
 	fprintf(fout
-			, "\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n\treturn %s_%s;\n}\n"
+			, "%s\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n\treturn %s_%s;\n}\n"
+			, !(pcmd->pmi->modFlags & mfActionsReturnStates) ? "\t(void) e;\n" : ""
 			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
 			, machineName(pcmd)
 			, name
@@ -1068,6 +1074,8 @@ static bool define_transition_list_functions(pLIST_ELEMENT pelem, void *data)
 	pITERATOR_CALLBACK_HELPER pich        = (pITERATOR_CALLBACK_HELPER) data;
 	pID_INFO                  ptransition = (pID_INFO) pelem->mbr;
 
+	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	if (ptransition->type == STATE)
 	{
 		print_transition_function_signature(pich->pcmd->cFile, pich->pcmd, "transitionTo", ptransition->name, true);
@@ -1093,6 +1101,7 @@ void writeStateTransitions(pCMachineData pcmd, pMACHINE_INFO pmi)
 				   , define_action_array_transition_functions
 				   , &ich
 				   );
+
    }
    else
    {
@@ -1169,7 +1178,7 @@ void writeDebugInfoShort(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    fprintf(pcmd->cFile
 		   , "char *%s_STATE_NAMES[] = {\n"
-		   , fsmType(pcmd)
+		   , ucMachineName(pcmd)
 		   );
 
    ich.ih.first = true;
@@ -1199,7 +1208,7 @@ void writeDebugInfoLong(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    fprintf(pcmd->cFile
 		   , "\n#ifdef %s_DEBUG\nchar *%s_EVENT_NAMES[] = {\n"
-		   , ucMachineName(pcmd)
+		   , ucfqMachineName(pcmd)
 		   , ucMachineName(pcmd)
 		   );
 
@@ -1239,7 +1248,7 @@ void writeDebugInfoLong(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    fprintf(pcmd->cFile
 		   , "char *%s_STATE_NAMES[] = {\n"
-		   , fsmType(pcmd)
+		   , ucMachineName(pcmd)
 		   );
 
    ich.ih.first = true;
@@ -1807,6 +1816,8 @@ bool declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT pelem, v
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    print_transition_fn_declaration_for_when_actions_return_states(pich->pcmd, pich->pcmd->hFile, pid_info->name);
 
    return false;
@@ -1816,6 +1827,8 @@ bool declare_state_only_transition_functions_for_when_actions_return_states(pLIS
 {
    pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+
+   FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    print_state_only_transition_fn_declaration_for_when_actions_return_states(pich->pcmd, pich->pcmd->hFile, pid_info->name);
 
@@ -2131,7 +2144,7 @@ void print_native_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi)
 	}
 }
 
-void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
+void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, bool add_num_states)
 {
 	(void) arrayName;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
@@ -2200,8 +2213,13 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
            );
 
    fprintf(pcmd->hFile
+		   , "#undef STATE\n#define STATE(A) %s_##A\n"
+		   , machineName(pcmd)
+		   );
+
+   fprintf(pcmd->hFile
 		   , "\n#ifdef %s_DEBUG\n"
-		   , ucMachineName(pcmd)
+		   , ucfqMachineName(pcmd)
 		   );
    fprintf(pcmd->hFile
 		   , "extern char *%s_EVENT_NAMES[];\n"
@@ -2233,12 +2251,15 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 	   print_plain_enum_member("noTransition", &ich);
    }
 
-   print_plain_enum_member("numStates", &ich);
+   if (add_num_states)
+   {
+	   print_plain_enum_member("numStates", &ich);
+   }
 
    fprintf(pcmd->hFile
-           , "}%s %s_STATE;\n\n"
+           , "}%s %s;\n\n"
            , compact_action_array ? " __attribute__((__packed__))" : " "
-		   , fsmType(pcmd)
+		   , stateType(pcmd)
           );
 
    /* put the data struct typedef into the header file */
@@ -2308,7 +2329,6 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 		   , fsmFnEventType(pcmd)
 		   );
 
-   /* TODO: move this to source file */
    fprintf(pcmd->cFile
            , "static %s %sFSM(FSM_TYPE_PTR,%s);\n\n"
 		   , actionReturnType(pcmd)
@@ -3269,7 +3289,7 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	fprintf(pcmd->cFile
 			, "#ifdef %s_DEBUG\n"
-			, fsmType(pcmd)
+			, ucfqMachineName(pcmd)
 			);
 	fprintf(pcmd->cFile
 			, "if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n"
@@ -3299,5 +3319,98 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, ucMachineName(pcmd)
 			);
 
+}
+
+void print_transition_for_assignment_to_state_var(pMACHINE_INFO pmi, pID_INFO ptransition, char *event, FILE *fout)
+{
+	char *format_str;
+	char *event_str = "";
+
+	if (ptransition->type == STATE)
+	{
+		if (pmi->modFlags & mfActionsReturnStates)
+		{
+			format_str = "UFMN(transitionTo%s)(pfsm)";
+		}
+		else
+		{
+			format_str = "STATE(%s%s)";
+		}
+	}
+	else
+	{
+		if (pmi->modFlags & mfActionsReturnStates)
+		{
+			format_str = "UFMN(%s%s)(pfsm)";
+		}
+		else
+		{
+			format_str = "UFMN(%s)(pfsm,THIS(%s))";
+			event_str  = event;
+		}
+	}
+
+	fprintf(fout
+			, format_str
+			, ptransition->name
+			, event_str
+			);
+}
+
+void writeNoTransition(pCMachineData pcmd, pMACHINE_INFO pmi)
+{
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
+
+	fprintf(pcmd->cFile
+			, "\n%s __attribute__((weak)) UFMN(noTransitionFn)(p%s pfsm"
+			, stateType(pcmd)
+			, fsmType(pcmd)
+			);
+	if (pmi->modFlags & mfActionsReturnStates)
+	{
+		fprintf(pcmd->cFile, ")\n{\n");
+
+		fprintf(pcmd->cFile
+				, "\t%s(\"%%s\\n\", __func__);\n"
+				, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+				);
+		fprintf(pcmd->cFile
+				, "\t(void) pfsm;\n\treturn THIS(noTransition)"
+				);
+	}
+	else
+	{
+		fprintf(pcmd->cFile
+				, ", %s e)\n{\n"
+				, eventType(pcmd)
+				);
+		fprintf(pcmd->cFile, "\t(void) e;\n");
+		fprintf(pcmd->cFile
+				, "\t%s(\"%%s\\n\", __func__);\n"
+				, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+				);
+		fprintf(pcmd->cFile, "\treturn pfsm->state");
+	}
+	fprintf(pcmd->cFile, ";\n}\n\n");
+}
+
+void writeReentrantPrologue(pCMachineData pcmd)
+{
+	if (pcmd->pmi->modFlags & mfReentrant)
+	{
+		fprintf(pcmd->cFile, "\n\n#ifdef FSM_START_CRITICAL\n");
+		fprintf(pcmd->cFile, "\tFSM_START_CRITICAL;\n");
+		fprintf(pcmd->cFile, "#endif\n\n");
+	}
+}
+
+void writeReentrantEpilogue(pCMachineData pcmd)
+{
+	if (pcmd->pmi->modFlags & mfReentrant)
+	{
+		fprintf(pcmd->cFile, "\n\n#ifdef FSM_END_CRITICAL\n");
+		fprintf(pcmd->cFile, "\tFSM_END_CRITICAL;\n");
+		fprintf(pcmd->cFile, "#endif\n\n");
+	}
 }
 

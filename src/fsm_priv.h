@@ -330,6 +330,7 @@ struct _machine_info_ {
   unsigned      shared_event_count;
   pLIST         id_list;
   bool          has_single_pai_events;
+  bool          executes_fns_on_state_transitions;
   unsigned      states_with_entry_fns_count;
   unsigned      states_with_exit_fns_count;
   unsigned      sub_machine_depth;
@@ -382,8 +383,6 @@ void count_events_with_one_handler(pLIST,unsigned*);
 void compute_event_and_state_density_pct(pMACHINE_INFO);
 bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
-void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO, FILE*);
-void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO, FILE*);
 bool printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 void printNameWithAncestry(char*,pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);
@@ -430,6 +429,8 @@ extern bool                 output_make_recipe;
 extern bool                 short_user_fn_names;
 extern bool                 print_action_array;
 extern bool                 convenience_macros_in_public_header;
+extern bool                 add_profiling_macros;
+extern bool                 profile_sub_fsms;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 
@@ -464,9 +465,10 @@ typedef pFSMOutputGenerator (*fpFSMOutputGeneratorFactory)(pFSMOutputGenerator);
 
 struct _fsm_output_generator_
 {
-	fpInitOutput	initOutput;
-	fpWriteMachine	writeMachine;
-	fpCloseOutput	closeOutput;
+	fpInitOutput	            initOutput;
+	fpWriteMachine	            writeMachine;
+	fpCloseOutput	            closeOutput;
+	fpFSMOutputGeneratorFactory fsmogFactory;
 };
 
 struct _fsm_output_generator_factory_

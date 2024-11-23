@@ -110,7 +110,7 @@ pLIST pplantuml_prefix_files_list               = NULL;
 bool  output_generated_file_names_only          = false;
 bool  output_header_files                       = false;
 bool  output_make_recipe                        = false;
-bool  short_user_fn_names                               = false;
+bool  short_user_fn_names                       = false;
 
 void print_tab_levels(FILE *output, unsigned levels)
 {

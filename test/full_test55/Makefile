@@ -12,12 +12,5 @@ override CFLAGS += -DFSM_DEBUG \
 
 override FSM_FLAGS += --generate-run-function
 
-SRC = $(shell find . -name "*-actions.c" -printf "%P ")
-SRC += test.c
-FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
+include ../variants.mk
 
-GENERATED_SRC=subMachine1.c \
-              subMachine2.c
-
-include ../test.mk
-include ../../fsmrules.mk

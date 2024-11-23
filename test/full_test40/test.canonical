@@ -6,9 +6,11 @@ newMachine_machineTransition:
 	new state: newMachine_s2
 
 event: newMachine_e2; state: newMachine_s2
+newMachine_noAction
 newMachine_transitionFn1
 
 event: newMachine_e3; state: newMachine_s2
+newMachine_noAction
 newMachine_transitionFn1
 
 event: newMachine_e4; state: newMachine_s2

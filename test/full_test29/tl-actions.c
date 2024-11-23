@@ -23,3 +23,17 @@ TOP_LEVEL_EVENT UFMN(activate_sub_machine3)(pTOP_LEVEL pfsm)
 	return SUB_MACHINE3(e1);
 }
 
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(noAction)(FSM_TYPE_PTR pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	(void) pfsm;
+	return THIS(noEvent);
+}
+
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(a1)(FSM_TYPE_PTR pfsm)
+{
+	DBG_PRINTF("weak: %s", __func__);
+	(void) pfsm;
+	return THIS(noEvent);
+}
+
