@@ -44,48 +44,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-static char *create_string_from_file(FILE*,unsigned long*);
-
-/**
- * Creates a string comprising the contents of the provided
- * file.  The file is closed after reading.  Memory is
- * allocated, which must be freed by the caller.
- * 
- * @author Steven Stanton (2/10/2024)
- * 
- * @param file   FILE* pointer to the file containing the
- *  			 desrired string contents
- * 
- * @return char* pointer to the created string.
- */
-static char *create_string_from_file(FILE *file, unsigned long *str_len)
-{
-	char *cp = NULL;
-
-	if (file)
-	{
-		fseek(file, 0, SEEK_END);
-		const unsigned long file_size = ftell(file);
-
-		fseek(file, 0, SEEK_SET);
-
-		if ((cp = (char *) malloc(file_size + 1)) != NULL)
-		{
-			fread(cp, 1, file_size, file);
-			cp[file_size] = 0;
-		}
-
-		fclose(file);
-
-		if (str_len)
-		{
-			*str_len = file_size;
-		}
-	}
-
-	return cp;
-}
-
 char *createAncestryFileName(pMACHINE_INFO pmi)
 {
 	FILE *tmp = tmpfile();

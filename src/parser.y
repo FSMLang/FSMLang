@@ -31,6 +31,7 @@
 #include "fsm_plantuml.h"
 #include "fsm_statistics.h"
 #include "fsm_c_event_xref.h"
+#include "fsm_rst.h"
 
 #include "list.h"
 
@@ -2216,7 +2217,7 @@ const struct option longopts[] =
     }
     , {
         .name      = "include-svg-img"
-        , .has_arg = required_argument
+        , .has_arg = optional_argument
         , .flag    = &longval
         , .val     = lo_include_svg_img
     }
@@ -2368,8 +2369,10 @@ int main(int argc, char **argv)
                     = !strcmp(optarg,"true") ? true : false;
                 break;
             case lo_include_svg_img:
-                include_svg_img
-                    = !strcmp(optarg,"true") ? true : false;
+                if (!optarg || !strcmp(optarg, "true"))
+                {
+                  include_svg_img = true;
+                }
                 break;
             case lo_css_content_filename:
                 css_content_filename = optarg;
@@ -2518,6 +2521,10 @@ int main(int argc, char **argv)
 					case 'p':
 						fpfsmogf = generatePlantUMLMachineWriter;
 						break;
+
+          case 'r':
+            fpfsmogf = generateRSTMachineWriter;
+            break;
 
 					default:
 						usage();
@@ -2676,11 +2683,12 @@ void yyerror(char *s)
 void usage(void)
 {
 
-	fprintf(stdout,"Usage : %s [-tc|s|h|p] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
+	fprintf(stdout,"Usage : %s [-tc|s|h|p|r] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
 	fprintf(stdout,"\t and 'p' gets you PlantUML output\n");
+	fprintf(stdout,"\t and 'p' gets you reStructuredText output\n");
 	fprintf(stdout,"\t-i0 inhibits the creation of a machine instance\n");
 	fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n");
 	fprintf(stdout,"\t\tthis is the default\n");
@@ -2697,7 +2705,7 @@ void usage(void)
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");
 	fprintf(stdout,"\t\tno RUN_STATE_MACHINE macro is provided.\n");
-	fprintf(stdout,"\t--include-svg-img=true adds <img/> tag referencing <filename>.svg to include an image at\n");
+	fprintf(stdout,"\t--include-svg-img<=*true|false> adds <img/> tag referencing <filename>.svg to include an image at\n");
   fprintf(stdout,"\t\tthe top of the web page.\n");
 	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
 	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
