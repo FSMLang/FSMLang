@@ -47,6 +47,34 @@ NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm)
    return newMachine_s2;
 }
 
+NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos2(FSM_TYPE_PTR pfsm)
+{
+	(void) pfsm;
+
+	return newMachine_s2;
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos3(FSM_TYPE_PTR pfsm)
+{
+	(void) pfsm;
+
+	return newMachine_s3;
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos1(FSM_TYPE_PTR pfsm)
+{
+	(void) pfsm;
+
+	return newMachine_s1;
+}
+
+NEW_MACHINE_STATE UFMN(noTransitionFn)(pNEW_MACHINE pfsm)
+{
+	DBG_PRINTF("%s\n", __func__);
+	(void) pfsm;
+	return THIS(noTransition);
+}
+
 int main()
 {
    fprintf(stdout,"hello, world\n");

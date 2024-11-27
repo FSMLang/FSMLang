@@ -2,7 +2,7 @@
 
 #include "subMachine1_priv.h"
 
-NEW_MACHINE_EVENT subMachine1_aa1(pSUB_MACHINE1 pfsm1)
+NEW_MACHINE_EVENT UFMN(aa1)(FSM_TYPE_PTR pfsm1)
 {
 	(void) pfsm1;
 	printf("subMachine1_aa1\n");
@@ -10,7 +10,7 @@ NEW_MACHINE_EVENT subMachine1_aa1(pSUB_MACHINE1 pfsm1)
 	return newMachine_noEvent;
 }
 
-NEW_MACHINE_EVENT subMachine1_aa2(pSUB_MACHINE1 pfsm1)
+NEW_MACHINE_EVENT UFMN(aa2)(FSM_TYPE_PTR pfsm1)
 {
 	(void) pfsm1;
 	printf("subMachine1_aa2\n");
@@ -18,14 +18,13 @@ NEW_MACHINE_EVENT subMachine1_aa2(pSUB_MACHINE1 pfsm1)
 	return newMachine_noEvent;
 }
 
-NEW_MACHINE_EVENT subMachine1_noAction(pSUB_MACHINE1 pfsm1)
+NEW_MACHINE_EVENT UFMN(noAction)(FSM_TYPE_PTR pfsm1)
 {
 	(void) pfsm1;
 	printf("subMachine1_noAction\n");
 
 	return newMachine_noEvent;
 }
-
 
 
 

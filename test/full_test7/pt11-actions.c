@@ -53,3 +53,19 @@ NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm,NEW_MACHINE_EVENT e
    return newMachine_s2;
 }
 
+
+
+NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos1(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT e)
+{
+	(void) e;
+	(void) pfsm;
+
+	return newMachine_s1;
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) UFMN(noTransitionFn)(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+{
+	(void) e;
+	return pfsm->state;
+}
+

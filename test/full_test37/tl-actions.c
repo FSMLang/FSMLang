@@ -30,3 +30,10 @@ ACTION_RETURN_TYPE UFMN(a1)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(noAction)(FSM_TYPE_PTR pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	(void) pfsm;
+	return THIS(noEvent);
+}
+

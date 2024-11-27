@@ -56,9 +56,10 @@ static bool compute_pid_name_len(pLIST_ELEMENT,void*);
 static bool write_action_array_pointers(pLIST_ELEMENT,void*);
 
 FSMOutputGenerator MachineStatisticsWriter = {
-   initMachineStatisticsWriter,
-   writeMachineStatistics,
-   closeMachineStatisticsWriter
+   initMachineStatisticsWriter
+   , writeMachineStatistics
+   , closeMachineStatisticsWriter
+   , NULL
 };
 
 pFSMOutputGenerator pMachineStatisticsWriter = &MachineStatisticsWriter;
@@ -237,12 +238,12 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 	   printf("machine has data\n");
    }
 
+   printf("number of sub-machines: %u\n"
+		  , pmi->machine_list ? pmi->machine_list->count : 0
+		  );
+
    if (pmi->machine_list)
    {
-	   printf("number of sub-machines: %u\n"
-			  , pmi->machine_list->count
-			  );
-
 	   printf("depth of sub-machines: %u\n"
 			  , pmi->sub_machine_depth 
 			  );

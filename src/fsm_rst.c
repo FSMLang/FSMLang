@@ -116,7 +116,8 @@ static FSMRSTOutputGenerator RSTMachineWriter = {
 	{
      initRSTWriter,
      writeRSTWriter,
-     closeRSTWriter
+     closeRSTWriter,
+	   generateRSTMachineWriter 
   },
   NULL
 };

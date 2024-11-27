@@ -1,0 +1,20 @@
+native
+{
+#include "test.h"
+
+#undef FSM_END_CRITICAL
+
+}
+
+reentrant machine messenger
+	actions return states;
+{
+	event	goodMessage, badMessage;
+	state	initial, working;
+
+	action	processMessage[goodMessage,initial];
+	action	processMessage[goodMessage,working];
+	action	sendErrorIndication[badMessage,(initial,working)];
+
+}
+

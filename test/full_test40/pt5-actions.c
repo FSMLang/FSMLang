@@ -51,7 +51,7 @@ void newMachine_noAction(pNEW_MACHINE pfsm)
 {
    (void) pfsm;
 
-   DBG_PRINTF("%s\n", __func__);
+   DBG_PRINTF("%s", __func__);
 }
 
 NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
@@ -89,5 +89,19 @@ void newMachine_machineTransition(pNEW_MACHINE pfsm, NEW_MACHINE_STATE new_state
               , NEW_MACHINE_STATE_NAMES[pfsm->state]
               , NEW_MACHINE_STATE_NAMES[new_state]
               );
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos2(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT e)
+{
+	(void) e;
+	(void) pfsm;
+
+	return newMachine_s2;
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) UFMN(noTransitionFn)(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+{
+	(void) e;
+	return pfsm->state;
 }
 
