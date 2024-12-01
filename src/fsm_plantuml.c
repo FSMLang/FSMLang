@@ -682,7 +682,7 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
          if (pai->docCmnt)
          {
             fprintf(pfsmpumlog->pmd->pumlFile
-                    , "\nnote on link\n%send note\n"
+                    , "\nnote on link\n%s\nend note\n"
                     , pai->docCmnt
                    );
          }
