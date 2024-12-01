@@ -89,6 +89,7 @@
 	border-width   : .5px;
 	border-color   : black;
 	width          : 75%;
+	padding        : 20px;
 }
 
 .elements th {
@@ -96,14 +97,14 @@
 	border-style: solid;
 	border-width: .5px;
 	border-color: black;
-	padding: 3px;
+	padding: 20px;
 }
 
 .elements td {
 	border-style: solid;
 	border-width: .5px;
 	border-color: black;
-	padding: 3px;
+	padding: 20px;
 }
 
 .elements .summary tr, th, td {
@@ -358,7 +359,7 @@ code {
 	</td>
 </tr>
 <tr>
-<td class='label stateWithNoEntry'>s1</td>
+<td class='label'>s1</td>
 <td>
 <p> A state to begin with. </p>
 <p>Outbound Transitions:</p>

@@ -754,7 +754,8 @@ static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
 	fprintf(pih->fout
 			,"<td class='label%s%s%s'>%s</td>\n<td>\n"
 			, psd->pevents_handled->count == 0       ? " lazyState"        : ""
-			, psd->pinbound_transitions->count == 0  ? " stateWithNoEntry" : ""
+			, ((psd->pinbound_transitions->count == 0) && (pelem->ordinal != 0))
+			    ? " stateWithNoEntry" : ""
 			, psd->poutbound_transitions->count == 0 ? " deadEndState"     : ""
 			, pstate->name
 			);
