@@ -18,7 +18,7 @@ $(SUITES):
 	$(MAKE) -C $@ CFLAGS="$(CFLAGS)" ARCH="$(ARCH)" OUTPUT_DIR="$(OUTPUT_DIR)" runtest
 
 $(CLEAN_SUITES):
-	$(MAKE) -C $(basename $@) clean
+	$(MAKE) -C $(basename $@) OUTPUT_DIR="$(OUTPUT_DIR)" clean
 
 check:
 	@echo $(SUITES)

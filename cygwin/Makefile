@@ -27,7 +27,7 @@ clean::
 	-@rm -f *.output            2> /dev/nul
 
 test: 
-	$(MAKE) -C ../test clean
+	$(MAKE) OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test clean
 	$(MAKE) CFLAGS="-DCYGWIN" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
 
 testonly:

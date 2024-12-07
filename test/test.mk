@@ -8,11 +8,13 @@
 override CFLAGS += -Wall -Wpedantic -Wextra -I../
 
 
-ifdef OUTPUT_DIR
-include $(OUTPUT_DIR)/system.mk
+ifndef OUTPUT_DIR
+$(error OUTPUT_DIR must be set to the location of the built executable)
 endif
 
+include $(OUTPUT_DIR)/system.mk
 include $(OUTPUT_DIR)/../depends.mk
+
 
 POSSIBLE_OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o) $(GENERATED_SRC:.c=.o)
 OBJS = $(sort $(POSSIBLE_OBJS))

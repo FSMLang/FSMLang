@@ -27,7 +27,7 @@ clean::
 
 test: 
 	@echo mingwsa/Makefile: OUTPUT_DIR: $(OUTPUT_DIR)
-	$(MAKE) -C ../test clean
+	$(MAKE) OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test clean
 	$(MAKE) CFLAGS="-DCYGWIN -DMINGW" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
 
 testonly: 
