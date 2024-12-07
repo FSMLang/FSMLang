@@ -4,9 +4,10 @@
 #
 #
 
-ifdef OUTPUT_DIR
-include $(OUTPUT_DIR)/system.mk
+ifndef OUTPUT_DIR
+$(error OUTPUT_DIR must be defined as the location of the created executable.)
 endif
+include $(OUTPUT_DIR)/system.mk
 
 VPATH=../../src
 
