@@ -216,14 +216,20 @@ machine:	machine_prefix ID machine_qualifier
          {
             if (!($3->modFlags & ACTIONS_RETURN_FLAGS))
             {
-   						pID_INFO pid_info;
-              /* note that this is not added to the machine event list; it is here only to be
-              found as an event id for return decls.
+   						pID_INFO pid_event;
+							/* note that this is not added to the machine event list;
+								 it is here only to be found as an event id for return
+								 decls.
               */
-   						add_id(id_list, EVENT,"noEvent",&pid_info);
-              pid_info->powningMachine = pmachineInfo;
-   
+   						add_id(id_list, EVENT,"noEvent",&pid_event);
+              pid_event->powningMachine = pmachineInfo;
             }
+
+						/* as with 'noEvent', we need this to support return decls */
+						pID_INFO pid_state;
+						add_id(id_list, STATE, "noTransition",&pid_state);
+						pid_state->powningMachine = pmachineInfo;
+
          } 
         '{' statement_decl_list '}'
 					{
