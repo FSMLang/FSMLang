@@ -29,7 +29,7 @@ clean::
 	-@rm -f y.output            2> /dev/null
 
 test: 
-	$(MAKE) -C ../test clean
+	$(MAKE) OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test clean
 	$(MAKE) ARCH="$(ARCH)" OUTPUT_DIR="$(OUTPUT_DIR)" -C ../test all
 
 testonly:
