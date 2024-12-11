@@ -99,3 +99,24 @@ NEW_MACHINE_EVENT_ENUM newMachine_doNothing(pNEW_MACHINE pfsm)
 	}
 }
 
+NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(noAction)(FSM_TYPE_PTR pfsm)
+{
+	(void) pfsm;
+	DBG_PRINTF("%s", __func__);
+	return THIS(noEvent);
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos4(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT_ENUM e)
+{
+	(void) e;
+	(void) pfsm;
+
+	return newMachine_s4;
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) UFMN(noTransitionFn)(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT_ENUM e)
+{
+	(void) e;
+	return pfsm->state;
+}
+

@@ -77,11 +77,12 @@ struct _fsm_html_output_generator_
 
 static FSMHTMLOutputGenerator HTMLMachineWriter = {
 	{
-     initHTMLWriter,
-     writeHTMLWriter,
-     closeHTMLWriter
-  },
-  NULL
+     initHTMLWriter
+	 , writeHTMLWriter
+	 , closeHTMLWriter
+	 , generateHTMLMachineWriter
+  }
+  , NULL
 };
 
 bool  css_content_internal = false;

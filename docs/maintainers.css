@@ -1,0 +1,95 @@
+.typical {
+	border: 1px solid;
+	border-collapse: collapse;
+	margin: 30px;
+}
+
+table.typical th, table.typical td {
+	border: 1px solid;
+	padding: 10px;
+}
+
+th.lhs {
+	text-align : left;
+	column-span: 2;
+}
+
+.selection {
+	text-align: center;
+}
+
+table.selection {
+	width: 100%;
+}
+
+/* 
+  The .scrollable styles enable scrolling of the
+   event-state table
+*/
+.scrollable {
+  max-height: 600px;
+  overflow: scroll;
+}
+
+
+.scrollable thead th {
+  background-color: lightgrey;
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  top: 0;
+}
+
+.scrollable tbody th {
+  background-color: lightgrey;
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  left: 0;
+}
+
+.scrollable thead th.machine_level {
+	background-color: cornflowerblue;
+}
+
+.scrollable tbody td.machine_level {
+	background-color: lightblue;
+}
+
+.scrollable thead th.action_return_type {
+	background-color: red;
+}
+
+.scrollable tbody td.action_return_type {
+	background-color: pink;
+}
+
+.scrollable tbody td.action_return_type table td {
+	background-color: lightgrey;
+}
+
+.scrollable thead th.c_design_type_aware {
+	background-color: green;
+}
+
+.scrollable tbody td.c_design_type_aware {
+	background-color: lightgreen;
+}
+
+.scrollable tbody td.c_design_type_aware table td {
+	background-color: lightgrey;
+}
+
+.category {
+	display         : block;
+	writing-mode    : vertical-lr;
+	text-orientation: upright;
+	margin          : 0 auto;
+	width           : 50%;
+}
+
+/* To have the header in the first column stick to the left: */
+
+.scrollable thead th:first-child {
+  left: 0;
+  z-index: 1;
+}
+

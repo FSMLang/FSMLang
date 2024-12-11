@@ -27,6 +27,7 @@
 
 #include "fsm_c.h"
 #include "fsm_cswitch.h"
+#include "fsm_c_event_table.h"
 #include "fsm_html.h"
 #include "fsm_plantuml.h"
 #include "fsm_statistics.h"
@@ -276,6 +277,10 @@ machine:	machine_prefix ID machine_qualifier
 																					 ,&($$->states_with_exit_fns_count)
 																					 );
 
+          $$->executes_fns_on_state_transitions = (
+                                                   (($$->states_with_entry_fns_count + $$->states_with_exit_fns_count) > 0)
+                                                   || ($$->machineTransition != NULL)
+                                                   );
  					if ($$->machine_list)
 						{
 						    count_sub_machine_inhibitors  ($$->state_list,&($$->submachine_inhibitor_count));
@@ -2185,6 +2190,8 @@ typedef enum {
  , lo_event_cross_ref_only
  , lo_event_cross_ref_format
  , lo_convenience_macro_in_public_header
+ , lo_add_profiling_macros
+ , lo_profile_sub_fsms
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2328,6 +2335,18 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_convenience_macro_in_public_header
+    }
+		, {
+        .name      = "add-profiling-macros"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_add_profiling_macros
+    }
+		, {
+        .name      = "profile-sub-fsms"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_profile_sub_fsms
     }
     , {0}
 };
@@ -2493,6 +2512,18 @@ int main(int argc, char **argv)
 								 convenience_macros_in_public_header = false;
 							 }
 							 break;
+      			case lo_add_profiling_macros:
+							if (optarg && !strcmp(optarg, "true"))
+							{
+								add_profiling_macros = true;
+							}
+							break;
+      			case lo_profile_sub_fsms:
+							if (optarg && !strcmp(optarg, "true"))
+							{
+								profile_sub_fsms = true;
+							}
+							break;
             default:
                 usage();
                 return(0);
@@ -2528,9 +2559,12 @@ int main(int argc, char **argv)
 						fpfsmogf = generatePlantUMLMachineWriter;
 						break;
 
-          case 'r':
-            fpfsmogf = generateRSTMachineWriter;
-            break;
+					case 'e':
+						fpfsmogf = generateCEventTableMachineWriter;
+						break;
+          		case 'r':
+            		fpfsmogf = generateRSTMachineWriter;
+            		break;
 
 					default:
 						usage();
@@ -2689,9 +2723,10 @@ void yyerror(char *s)
 void usage(void)
 {
 
-	fprintf(stdout,"Usage : %s [-tc|s|h|p|r] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
+	fprintf(stdout,"Usage : %s [-tc|s|e|h|p|r] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
 	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
 	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
+	fprintf(stdout,"\t 'e' gets you c code output with a table of functions for each event using switch constructions,\n");
 	fprintf(stdout,"\t and 'h' gets you html output\n");
 	fprintf(stdout,"\t and 'p' gets you PlantUML output\n");
 	fprintf(stdout,"\t and 'p' gets you reStructuredText output\n");
@@ -2706,7 +2741,7 @@ void usage(void)
 	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
 	fprintf(stdout,"\t--short-user-fn-names=true causes user functions (such as action functions to use only the machine name when the sub-machine depth is 1.\n");
 	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of actions which pass events\n");
- fprintf(stdout,"\t\twhen weak function generation is disabled..\n");
+ fprintf(stdout,"\t\twhen weak function generation is disabled.\n");
  fprintf(stdout,"\t\tThe generated functions are not weak.\n");
 	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
  fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");
@@ -2761,6 +2796,11 @@ void usage(void)
  fprintf(stdout,"\t-Md print a lines suitable for inclusion in a Makefile giving the recipe for\n");
  fprintf(stdout,"\t\tcreating dependent files.\n");
  fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
+ fprintf(stdout,"\t--add-profiling-macros<=true|*false> adds profiling macros at the beginning\n");
+ fprintf(stdout,"\t\tand end of the FSM function, and before and after invocation of action functions.\n");
+ fprintf(stdout,"\t--profile-sub-fsms<=true|*false> adds profiling macros at the beginning\n");
+ fprintf(stdout,"\t\tand end of the FSM function in sub-machines.  Profiling macros\n");
+ fprintf(stdout,"\t\tmust also be enabled.\n");
  fprintf(stdout,"\t-v prints the version and exits\n");
 	
 }

@@ -19,8 +19,8 @@ NEW_MACHINE_EVENT_ENUM  UFMN(aa2)(pSUB_MACHINE1 pfsm)
 
 NEW_MACHINE_EVENT_ENUM  UFMN(noAction)(pSUB_MACHINE1 pfsm)
 {
+	(void) pfsm;
 	DBG_PRINTF("%s", __func__);
-	print_machine_data(&pfsm->data);
 	return PARENT(noEvent);
 }
 

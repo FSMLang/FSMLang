@@ -23,6 +23,13 @@ TOP_LEVEL_EVENT UFMN(activate_sub_machine3(pTOP_LEVEL pfsm))
 	return THIS(sub_machine3_e1);
 }
 
+TOP_LEVEL_EVENT UFMN(noAction(pTOP_LEVEL pfsm))
+{
+	(void) pfsm;
+	DBG_PRINTF("%s", __func__);
+	return THIS(noEvent);
+}
+
 int main ()
 {
    run_top_level(THIS(e1));
@@ -38,5 +45,12 @@ int main ()
    }
 
    return 0;
+}
+
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(a1)(pTOP_LEVEL pfsm)
+{
+	(void) pfsm;
+	DBG_PRINTF("weak: %s", __func__);
+	return THIS(noEvent);
 }
 

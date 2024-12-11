@@ -3,7 +3,6 @@
 
 #include "top_level_priv.h"
 
-// this is provided by test.c
 extern void print_newMachine_data(pNEW_MACHINE_DATA);
 
 void newMachine_translate_e1_data(pNEW_MACHINE_DATA pfsm_data, pNEW_MACHINE_E1_DATA pevent_data)
@@ -97,5 +96,26 @@ NEW_MACHINE_EVENT_ENUM newMachine_doNothing(pNEW_MACHINE pfsm)
 		case 4:  return SUB_MACHINE2(eee3);
 		default: return THIS(noEvent);
 	}
+}
+
+NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(noAction)(FSM_TYPE_PTR pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	(void) pfsm;
+	return THIS(noEvent);
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos4(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT_ENUM e)
+{
+	(void) e;
+	(void) pfsm;
+
+	return newMachine_s4;
+}
+
+NEW_MACHINE_STATE __attribute__((weak)) UFMN(noTransitionFn)(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT_ENUM e)
+{
+	(void) e;
+	return pfsm->state;
 }
 

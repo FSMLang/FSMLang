@@ -3,47 +3,32 @@ top_level_a1
 event: top_level_e2; state: top_level_s2
 top_level_activate_sub_machine1
 event: top_level_sub_machine1_e1; state: top_level_s2
-event: top_level_sub_machine1_e1; state: top_level_sub_machine1_s1
 top_level_sub_machine1_a1
-event: top_level_sub_machine1_e2; state: top_level_sub_machine1_s2
 top_level_sub_machine1_a2
-event: top_level_sub_machine1_e3; state: top_level_sub_machine1_s3
 top_level_sub_machine1_a3
 event: top_level_e3; state: top_level_s2
 top_level_activate_sub_machine2
 event: top_level_sub_machine2_e1; state: top_level_s2
-event: top_level_sub_machine2_e1; state: top_level_sub_machine2_s1
 top_level_sub_machine2_a1
-event: top_level_sub_machine2_e2; state: top_level_sub_machine2_s2
 top_level_sub_machine2_a2
-event: top_level_sub_machine2_e3; state: top_level_sub_machine2_s3
 top_level_sub_machine2_a3
 event: top_level_e4; state: top_level_s2
 top_level_activate_sub_machine3
 event: top_level_sub_machine3_e1; state: top_level_s3
-event: top_level_sub_machine3_e1; state: top_level_sub_machine3_s1
 top_level_sub_machine3_a1
-event: top_level_sub_machine3_e2; state: top_level_sub_machine3_s2
 top_level_sub_machine3_a2
-event: top_level_sub_machine3_e3; state: top_level_sub_machine3_s3
 top_level_sub_machine3_a3
 event: top_level_e5; state: top_level_s3
 top_level_activate_sub_machine2
 event: top_level_sub_machine2_e1; state: top_level_s3
-event: top_level_sub_machine2_e1; state: top_level_sub_machine2_s1
 top_level_sub_machine2_a1
-event: top_level_sub_machine2_e2; state: top_level_sub_machine2_s2
 top_level_sub_machine2_a2
-event: top_level_sub_machine2_e3; state: top_level_sub_machine2_s3
 top_level_sub_machine2_a3
 event: top_level_e4; state: top_level_s3
 top_level_activate_sub_machine3
 event: top_level_sub_machine3_e1; state: top_level_s3
-event: top_level_sub_machine3_e1; state: top_level_sub_machine3_s1
 top_level_sub_machine3_a1
-event: top_level_sub_machine3_e2; state: top_level_sub_machine3_s2
 top_level_sub_machine3_a2
-event: top_level_sub_machine3_e3; state: top_level_sub_machine3_s3
 top_level_sub_machine3_a3
 
 0
@@ -51,20 +36,14 @@ top_level_sub_machine3_a3
 event: top_level_e5; state: top_level_s3
 top_level_activate_sub_machine2
 event: top_level_sub_machine2_e1; state: top_level_s3
-event: top_level_sub_machine2_e1; state: top_level_sub_machine2_s1
 top_level_sub_machine2_a1
-event: top_level_sub_machine2_e2; state: top_level_sub_machine2_s2
 top_level_sub_machine2_a2
-event: top_level_sub_machine2_e3; state: top_level_sub_machine2_s3
 top_level_sub_machine2_a3
 event: top_level_e4; state: top_level_s3
 top_level_activate_sub_machine3
 event: top_level_sub_machine3_e1; state: top_level_s3
-event: top_level_sub_machine3_e1; state: top_level_sub_machine3_s1
 top_level_sub_machine3_a1
-event: top_level_sub_machine3_e2; state: top_level_sub_machine3_s2
 top_level_sub_machine3_a2
-event: top_level_sub_machine3_e3; state: top_level_sub_machine3_s3
 top_level_sub_machine3_a3
 weak: top_level_handle_dispatch
 top_level_sub_machine1_noAction
@@ -76,9 +55,7 @@ The int: 0
 
 The string: loop: 0
 
-event: top_level_sub_machine1_e7; state: top_level_sub_machine1_s1
 top_level_sub_machine1_handle_e7
-event: top_level_sub_machine3_e7; state: top_level_sub_machine3_s1
 top_level_sub_machine3_handle_e7
 
 1
@@ -86,20 +63,14 @@ top_level_sub_machine3_handle_e7
 event: top_level_e5; state: top_level_s3
 top_level_activate_sub_machine2
 event: top_level_sub_machine2_e1; state: top_level_s3
-event: top_level_sub_machine2_e1; state: top_level_sub_machine2_s1
 top_level_sub_machine2_a1
-event: top_level_sub_machine2_e2; state: top_level_sub_machine2_s2
 top_level_sub_machine2_a2
-event: top_level_sub_machine2_e3; state: top_level_sub_machine2_s3
 top_level_sub_machine2_a3
 event: top_level_e4; state: top_level_s3
 top_level_activate_sub_machine3
 event: top_level_sub_machine3_e1; state: top_level_s3
-event: top_level_sub_machine3_e1; state: top_level_sub_machine3_s1
 top_level_sub_machine3_a1
-event: top_level_sub_machine3_e2; state: top_level_sub_machine3_s2
 top_level_sub_machine3_a2
-event: top_level_sub_machine3_e3; state: top_level_sub_machine3_s3
 top_level_sub_machine3_a3
 weak: top_level_handle_dispatch
 top_level_sub_machine1_noAction
@@ -111,9 +82,7 @@ The int: 1
 
 The string: loop: 1
 
-event: top_level_sub_machine1_e7; state: top_level_sub_machine1_s1
 top_level_sub_machine1_handle_e7
-event: top_level_sub_machine3_e7; state: top_level_sub_machine3_s1
 top_level_sub_machine3_handle_e7
 
 2
@@ -121,20 +90,14 @@ top_level_sub_machine3_handle_e7
 event: top_level_e5; state: top_level_s3
 top_level_activate_sub_machine2
 event: top_level_sub_machine2_e1; state: top_level_s3
-event: top_level_sub_machine2_e1; state: top_level_sub_machine2_s1
 top_level_sub_machine2_a1
-event: top_level_sub_machine2_e2; state: top_level_sub_machine2_s2
 top_level_sub_machine2_a2
-event: top_level_sub_machine2_e3; state: top_level_sub_machine2_s3
 top_level_sub_machine2_a3
 event: top_level_e4; state: top_level_s3
 top_level_activate_sub_machine3
 event: top_level_sub_machine3_e1; state: top_level_s3
-event: top_level_sub_machine3_e1; state: top_level_sub_machine3_s1
 top_level_sub_machine3_a1
-event: top_level_sub_machine3_e2; state: top_level_sub_machine3_s2
 top_level_sub_machine3_a2
-event: top_level_sub_machine3_e3; state: top_level_sub_machine3_s3
 top_level_sub_machine3_a3
 weak: top_level_handle_dispatch
 top_level_sub_machine1_noAction
@@ -146,9 +109,7 @@ The int: 2
 
 The string: loop: 2
 
-event: top_level_sub_machine1_e7; state: top_level_sub_machine1_s1
 top_level_sub_machine1_handle_e7
-event: top_level_sub_machine3_e7; state: top_level_sub_machine3_s1
 top_level_sub_machine3_handle_e7
 
 3
@@ -156,20 +117,14 @@ top_level_sub_machine3_handle_e7
 event: top_level_e5; state: top_level_s3
 top_level_activate_sub_machine2
 event: top_level_sub_machine2_e1; state: top_level_s3
-event: top_level_sub_machine2_e1; state: top_level_sub_machine2_s1
 top_level_sub_machine2_a1
-event: top_level_sub_machine2_e2; state: top_level_sub_machine2_s2
 top_level_sub_machine2_a2
-event: top_level_sub_machine2_e3; state: top_level_sub_machine2_s3
 top_level_sub_machine2_a3
 event: top_level_e4; state: top_level_s3
 top_level_activate_sub_machine3
 event: top_level_sub_machine3_e1; state: top_level_s3
-event: top_level_sub_machine3_e1; state: top_level_sub_machine3_s1
 top_level_sub_machine3_a1
-event: top_level_sub_machine3_e2; state: top_level_sub_machine3_s2
 top_level_sub_machine3_a2
-event: top_level_sub_machine3_e3; state: top_level_sub_machine3_s3
 top_level_sub_machine3_a3
 weak: top_level_handle_dispatch
 top_level_sub_machine1_noAction
@@ -181,9 +136,7 @@ The int: 3
 
 The string: loop: 3
 
-event: top_level_sub_machine1_e7; state: top_level_sub_machine1_s1
 top_level_sub_machine1_handle_e7
-event: top_level_sub_machine3_e7; state: top_level_sub_machine3_s1
 top_level_sub_machine3_handle_e7
 
 4
@@ -191,20 +144,14 @@ top_level_sub_machine3_handle_e7
 event: top_level_e5; state: top_level_s3
 top_level_activate_sub_machine2
 event: top_level_sub_machine2_e1; state: top_level_s3
-event: top_level_sub_machine2_e1; state: top_level_sub_machine2_s1
 top_level_sub_machine2_a1
-event: top_level_sub_machine2_e2; state: top_level_sub_machine2_s2
 top_level_sub_machine2_a2
-event: top_level_sub_machine2_e3; state: top_level_sub_machine2_s3
 top_level_sub_machine2_a3
 event: top_level_e4; state: top_level_s3
 top_level_activate_sub_machine3
 event: top_level_sub_machine3_e1; state: top_level_s3
-event: top_level_sub_machine3_e1; state: top_level_sub_machine3_s1
 top_level_sub_machine3_a1
-event: top_level_sub_machine3_e2; state: top_level_sub_machine3_s2
 top_level_sub_machine3_a2
-event: top_level_sub_machine3_e3; state: top_level_sub_machine3_s3
 top_level_sub_machine3_a3
 weak: top_level_handle_dispatch
 top_level_sub_machine1_noAction
@@ -216,9 +163,7 @@ The int: 4
 
 The string: loop: 4
 
-event: top_level_sub_machine1_e7; state: top_level_sub_machine1_s1
 top_level_sub_machine1_handle_e7
-event: top_level_sub_machine3_e7; state: top_level_sub_machine3_s1
 top_level_sub_machine3_handle_e7
 
 

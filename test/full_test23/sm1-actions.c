@@ -40,3 +40,27 @@ SUB_MACHINE1_STATE UFMN(checkTransition)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
    return sub_machine1_s3;
 }
 
+/* The next two are needed to prevent the weak functions, which will be
+generated in the -tc variant, from messing up the canonical output.
+*/
+SUB_MACHINE1_STATE UFMN(transitionTos1)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
+{
+   (void) pfsm;
+   (void) e;
+
+	return sub_machine1_s1;
+}
+
+SUB_MACHINE1_STATE UFMN(transitionTos2)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
+{
+   (void) pfsm;
+   (void) e;
+
+	return sub_machine1_s2;
+}
+
+SUB_MACHINE1_STATE __attribute__((weak)) UFMN(noTransitionFn)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
+{
+	(void) e;
+	return pfsm->state;
+}

@@ -74,8 +74,8 @@ if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 }
 #endif
 
-	/* This is read-only data to facilitate error reporting in action functions */
-	pfsm->event = e;
+		/* This is read-only data to facilitate error reporting in action functions */
+		pfsm->event = e;
 
 		if (e < top_level_noEvent)
 		{
@@ -83,7 +83,7 @@ if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 		}
 		else
 		{
-			e = findAndRunSubMachine(pfsm, e);
+				e = findAndRunSubMachine(pfsm, e);
 		}
 
 	}
@@ -178,11 +178,11 @@ static TOP_LEVEL_EVENT s3_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 
 	switch(e)
 	{
-	case THIS(e4):
-		retVal = UFMN(activate_sub_machine3)(pfsm);
-		break;
 	case THIS(e5):
 		retVal = UFMN(activate_sub_machine2)(pfsm);
+		break;
+	case THIS(e4):
+		retVal = UFMN(activate_sub_machine3)(pfsm);
 		break;
 	default:
 		DBG_PRINTF("top_level_noAction");

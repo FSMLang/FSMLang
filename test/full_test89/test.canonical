@@ -1,0 +1,23 @@
+fsm_entry
+action_entry: e=0, s=0
+test_a1
+action_exit: e=0, s=0
+fsm_exit
+fsm_entry
+action_entry: e=1, s=0
+test_a2
+action_exit: e=1, s=0
+fsm_exit
+fsm_entry
+action_entry: e=2, s=0
+test_a3
+action_exit: e=2, s=0
+test_transitioning: from=0; to=1
+test_decommission_s1
+test_prep_s2
+fsm_exit
+fsm_entry
+action_entry: e=5, s=0
+test_sub_always
+action_exit: e=5, s=0
+fsm_exit

@@ -33,7 +33,7 @@ cleanfsm:
 	rm -f $*.c
 
 .fsm.c:
-	@echo "FSM:" $(FSM)
+	@echo "FSM:" $(FSM) $(FSM_FLAGS)
 	$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
 
 .fsm.h:
