@@ -376,5 +376,27 @@
 	The main loop does not improperly free unallocated memory relating to the outFileBase.
 
 */
-const char rev_string[] = "1.43.1";
+
+/*
+	Revision 1.44
+
+	New C langugage construction option, -te, added which creates an event-based table (rather than the state-based
+	table of -ts).
+
+	The native impl block is now included in the source before the generated macros, thus preceding *any* generated code.
+
+	Data blocks for machines and events now support more than a single level of indirection.
+
+	It is now possible to indicate that a transition function will return "noTransition."
+
+	New laguage ouput, ReStructuredText, is possible with the -tr option.  See https://www.sphinx-doc.org/en/master/index.html.
+
+	Bug in the generation of plantuml for the case of there being a single loopback function in a state is fixed.
+
+	HTML class for the first machine state corrected to *not* indicate that there is no way into that state.
+
+	Profiling of the main FSM function is provided, including sub-machines.
+
+*/
+const char rev_string[] = "1.44";
 

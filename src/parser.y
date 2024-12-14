@@ -49,6 +49,8 @@ extern int yylex(void);
 
 char *rindex(const char *str,int c);
 
+bool html_help = false;
+
 pMACHINE_INFO               pmachineInfo = NULL;
 pFSMOutputGenerator         pfsmog       = NULL;
 fpFSMOutputGeneratorFactory fpfsmogf     = NULL;
@@ -2377,7 +2379,7 @@ int main(int argc, char **argv)
 
 #ifndef PARSER_DEBUG
 
-	while ((c = getopt_long(argc,argv,"vht:o:i:csM::", longopts, &longindex)) != -1) {
+	while ((c = getopt_long(argc,argv,"vh:t:o:i:csM::", longopts, &longindex)) != -1) {
 
 		switch(c) {
   
@@ -2532,6 +2534,10 @@ int main(int argc, char **argv)
         break;
 
 		case 'h':
+      if (optarg[0])
+      {
+        html_help = true;
+      }
 			usage();
 			return (1);
 
@@ -2722,86 +2728,453 @@ void yyerror(char *s)
 
 void usage(void)
 {
+	char *list_start       = html_help ? "\n<ul class=\"syntax\">\n" : "\n";
+	char *list_end         = html_help ? "</ul>\n"                   : "";
+	char *item_start       = html_help ? "<li>"                      : "\t";
+	char *inner_item_start = html_help ? "<li>"                      : "\t\t";
+	char *item_end         = html_help ? "</li>\n"                   : "\n";
+	char *list_item_end    = html_help ? "</li>\n\t</ul>\n</li>\n"   : "\n";
+	char *lt               = html_help ? "&lt;"                      : "<";
+	char *gt               = html_help ? "&gt;"                      : "<";
 
-	fprintf(stdout,"Usage : %s [-tc|s|e|h|p|r] [-o outfile] [-s] filename, where filename ends with '.fsm'\n",me);
-	fprintf(stdout,"\t and where 'c' gets you c code output based on an event/state table,\n");
-	fprintf(stdout,"\t 's' gets you c code output with individual state functions using switch constructions,\n");
-	fprintf(stdout,"\t 'e' gets you c code output with a table of functions for each event using switch constructions,\n");
-	fprintf(stdout,"\t and 'h' gets you html output\n");
-	fprintf(stdout,"\t and 'p' gets you PlantUML output\n");
-	fprintf(stdout,"\t and 'p' gets you reStructuredText output\n");
-	fprintf(stdout,"\t-i0 inhibits the creation of a machine instance\n");
-	fprintf(stdout,"\t\tany other argument to 'i' allows the creation of an instance;\n");
-	fprintf(stdout,"\t\tthis is the default\n");
-	fprintf(stdout,"\t-c will create a more compact event/state table when -tc is used\n");
-	fprintf(stdout,"\t\twith machines having actions which return states\n");
-	fprintf(stdout,"\t-s prints some useful statistics and exits\n");
-	fprintf(stdout,"\t-o  <outfile> will use <outfile> as the filename for the top-level machine output.\n");
-	fprintf(stdout,"\t\tAny sub-machines will be put into files based on the sub-machine names.\n");
-	fprintf(stdout,"\t--generate-weak-fns=false suppresses the generation of weak function stubs.\n");
-	fprintf(stdout,"\t--short-user-fn-names=true causes user functions (such as action functions to use only the machine name when the sub-machine depth is 1.\n");
-	fprintf(stdout,"\t--force-generation-of-event-passing-actions forces the generation of actions which pass events\n");
- fprintf(stdout,"\t\twhen weak function generation is disabled.\n");
- fprintf(stdout,"\t\tThe generated functions are not weak.\n");
-	fprintf(stdout,"\t--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.\n");
- fprintf(stdout,"\t--generate-run-function<=true|false> this option is deprecated.  The run function is always generated;\n");
-	fprintf(stdout,"\t\tno RUN_STATE_MACHINE macro is provided.\n");
-	fprintf(stdout,"\t--include-svg-img<=*true|false> adds <img/> tag referencing <filename>.svg to include an image at\n");
-  fprintf(stdout,"\t\tthe top of the web page.\n");
-	fprintf(stdout,"\t--css-content-internal=true puts the CSS directly into the html.\n");
-	fprintf(stdout,"\t--css-content-filename=<filename> uses the named file for the css citation, or\n");
-	fprintf(stdout,"\t\tfor the content copy.\n");
- fprintf(stdout,"\t--add-plantuml-title=<*true|false> adds the machine name as a title to the plantuml.\n");
- fprintf(stdout,"\t--add-plantuml-legend=<*center|left|right|top|*bottm> adds a legend to the plantuml.\n");
- fprintf(stdout,"\t\tCenter, bottom are the defaults.  Horizontal and vertial parameters can be added in a quoted string.\n");
- fprintf(stdout,"\t\tCenter is a horizontal parameter.\n");
- fprintf(stdout,"\t\tBy default, event, state, and action lists are\n");
- fprintf(stdout,"\t\tincluded in the legend, and event descriptions are removed\n");
- fprintf(stdout,"\t\tfrom the body of the diagram.\n");
- fprintf(stdout,"\t--exclude-states-from-plantuml-legend=<*true|false> excludes state information from the plantuml legend.\n");
- fprintf(stdout,"\t\tWhen excluded from legend, state comments are included in the diagram body.\n");
- fprintf(stdout,"\t--exclude-events-from-plantuml-legend=<*true|false> excludes event information from the plantuml legend.\n");
- fprintf(stdout,"\t--exclude-actions-from-plantuml-legend=<*true|false> excludes action information from the plantuml legend.\n");
- fprintf(stdout,"\t--convenience-macros-in-public-header[=<*true|false>] includes convenience macros\n");
- fprintf(stdout,"\t\t(THIS, UFMN, e.g.) in the public header of the top-level machine;\n");
- fprintf(stdout,"\t\totherwise, they are placed in the private header.\n");
- fprintf(stdout,"\t--add-machine-name adds the machine name when using the --short-debug-names option\n");
- fprintf(stdout,"\t--add-event-cross-reference<=true|*false> adds a cross-reference list as a comment block\n");
- fprintf(stdout,"\t\tin front of the machine event enumeration. Omitting the optional argument is equivalent\n");
- fprintf(stdout,"\t\tto specifying \"true\"\n");
- fprintf(stdout,"\t--event-cross-ref-only<=*true|false> creates a cross-reference list as a separate file.\n");
- fprintf(stdout,"\t\tWhen the format is not specified by --event-cross-ref-format, json is provided.\n");
- fprintf(stdout,"\t\tThe file created is <filename>.[json|csv|tab|xml]\n");
- fprintf(stdout,"\t--event-cross-ref-format=[json|csv|tab|xml] specifies the output format for --event-cross-ref-only.\n");
- fprintf(stdout,"\t\tSpecifying this option obviates --event-cross-ref-only.\n");
- fprintf(stdout,"\t--add-plantuml-prefix-string=<text> will add the specified text to the plantuml output before\n");
- fprintf(stdout,"\t\tany generated output.  This option can be specified multiple times; all text will be\n");
- fprintf(stdout,"\t\tadded in the order given\n");
- fprintf(stdout,"\t\tfor the content copy.\n");
- fprintf(stdout,"\t--add-plantuml-prefix-file=<text> will add the text in the specified file\n");
- fprintf(stdout,"\t\tto the plantuml output before any generated output.\n");
-	fprintf(stdout,"\t\tThis option can be specified multiple times; all text will be\n");
- fprintf(stdout,"\t\tadded in the order given\n");
- fprintf(stdout,"\t\tfor the content copy.\n");
- fprintf(stdout,"\t-M prints the file name(s) of the source files that would have been created to stdout.\n");
- fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
- fprintf(stdout,"\t\tthat will be generated \n");
- fprintf(stdout,"\t\t(e.g. GENERATED_SRC=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
- fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
- fprintf(stdout,"\t-Mh prints the file name(s) of the headers that would have been created to stdout.\n");
- fprintf(stdout,"\t\tThis is useful in Makefiles for getting the list of files\n");
- fprintf(stdout,"\t\tthat will be generated \n");
- fprintf(stdout,"\t\t(e.g. GENERATED_HDRS=$(shell $(FSM) -M -tc $(FSM_SRC))).\n");
- fprintf(stdout,"\t\tThis option must preceed the -t option.  And, only tc or ts are applicable.\n");
- fprintf(stdout,"\t-Md print a lines suitable for inclusion in a Makefile giving the recipe for\n");
- fprintf(stdout,"\t\tcreating dependent files.\n");
- fprintf(stdout,"\t\tThis option must preceed the -t option.\n");
- fprintf(stdout,"\t--add-profiling-macros<=true|*false> adds profiling macros at the beginning\n");
- fprintf(stdout,"\t\tand end of the FSM function, and before and after invocation of action functions.\n");
- fprintf(stdout,"\t--profile-sub-fsms<=true|*false> adds profiling macros at the beginning\n");
- fprintf(stdout,"\t\tand end of the FSM function in sub-machines.  Profiling macros\n");
- fprintf(stdout,"\t\tmust also be enabled.\n");
- fprintf(stdout,"\t-v prints the version and exits\n");
+	fprintf(stdout
+			, "%s%sUsage : %s [-tc|s|e|h|p|r] [-o outfile] [-s] filename, where filename ends with '.fsm'%s"
+			, list_start
+			, item_start
+			, me
+			, list_start
+			);
+	fprintf(stdout
+			, "%sand where 'c' gets you c code output based on an event/state table,%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%s's' gets you c code output with individual state functions using switch constructions,%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%s'e' gets you c code output with a table of functions for each event using switch constructions,%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%s'h' gets you html output%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%s'p' gets you PlantUML output%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%s'r' gets you reStructuredText output%s"
+			, inner_item_start
+			, list_item_end
+			);
+	fprintf(stdout
+			,"%s-i0 inhibits the creation of a machine instance%s"
+			, item_start
+			, list_start
+			);
+	fprintf(stdout
+			,"%sany other argument to 'i' allows the creation of an instance;%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%sthis is the default%s"
+			, inner_item_start
+			, list_item_end
+			);
+	fprintf(stdout
+			,"%s-c will create a more compact event/state table when -tc is used%s"
+			, item_start
+			, list_start
+			);
+	fprintf(stdout
+			,"%swith machines having actions which return states%s"
+			, inner_item_start
+			, list_item_end
+			);
+	fprintf(stdout
+			,"%s-s prints some useful statistics and exits%s"
+			, item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%s-o  %soutfile%s will use %soutfile%s as the filename for the top-level machine output.%s"
+			, item_start
+      , lt
+      , gt
+      , lt
+      , gt
+			, list_start
+			);
+	fprintf(stdout
+			,"%sAny sub-machines will be put into files based on the sub-machine names.%s"
+			, inner_item_start
+			, list_item_end
+			);
+	fprintf(stdout
+			,"%s--generate-weak-fns=false suppresses the generation of weak function stubs.%s"
+			, item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%s--short-user-fn-names=true causes user functions (such as action functions to use only the machine name when the sub-machine depth is 1).%s"
+			, item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%s--force-generation-of-event-passing-actions forces the generation of actions which pass events%s"
+			, item_start
+			, list_start
+			);
+ fprintf(stdout
+		 ,"%swhen weak function generation is disabled.%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sThe generated functions are not weak.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+	fprintf(stdout
+			,"%s--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.%s"
+			, item_start
+			, item_end
+			);
+ fprintf(stdout
+		 ,"%s--generate-run-function%s=true|false%s this option is deprecated.  The run function is always generated;%s"
+		 , item_start
+     , lt
+     , gt
+		 , list_start
+		 );
+	fprintf(stdout
+			,"%sno RUN_STATE_MACHINE macro is provided.%s"
+			, inner_item_start
+			, list_item_end
+			);
+	fprintf(stdout
+			,"%s--include-svg-img%s=*true|false%s adds %simg/%s tag referencing %sfilename%s.svg to include an image at%s"
+			, item_start
+      , lt
+      , gt
+      , lt
+      , gt
+      , lt
+      , gt
+			, list_start
+			);
+  fprintf(stdout
+		  ,"%sthe top of the web page.%s"
+		  , inner_item_start
+		  , list_item_end
+		  );
+	fprintf(stdout
+			,"%s--css-content-internal=true puts the CSS directly into the html.%s"
+			, item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%s--css-content-filename=%sfilename%s uses the named file for the css citation, or%s"
+			, item_start
+      , lt
+      , gt
+			, list_start
+			);
+	fprintf(stdout
+			,"%sfor the content copy.%s"
+			, inner_item_start
+			, list_item_end
+			);
+ fprintf(stdout
+		 ,"%s--add-plantuml-title=%s*true|false%s adds the machine name as a title to the plantuml.%s"
+		 , item_start
+      , lt
+      , gt
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%s--add-plantuml-legend=%s*center|left|right|top|*bottm%s adds a legend to the plantuml.%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sCenter, bottom are the defaults.  Horizontal and vertial parameters can be added in a quoted string.%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sCenter is a horizontal parameter.%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sBy default, event, state, and action lists are%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sincluded in the legend, and event descriptions are removed%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sfrom the body of the diagram.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--exclude-states-from-plantuml-legend=%s*true|false%s excludes state information from the plantuml legend.%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sWhen excluded from legend, state comments are included in the diagram body.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--exclude-events-from-plantuml-legend=%s*true|false%s excludes event information from the plantuml legend.%s"
+		 , item_start
+      , lt
+      , gt
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%s--exclude-actions-from-plantuml-legend=%s*true|false%s excludes action information from the plantuml legend.%s"
+		 , item_start
+      , lt
+      , gt
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%s--convenience-macros-in-public-header[=%s*true|false%s] includes convenience macros%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%s(THIS, UFMN, e.g.) in the public header of the top-level machine;%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sotherwise, they are placed in the private header.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--add-machine-name adds the machine name when using the --short-debug-names option%s"
+		 , item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%s--add-event-cross-reference%s=true|*false%s adds a cross-reference list as a comment block%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sin front of the machine event enumeration. Omitting the optional argument is equivalent%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sto specifying \"true\"%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--event-cross-ref-only%s=*true|false%s creates a cross-reference list as a separate file.%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sWhen the format is not specified by --event-cross-ref-format, json is provided.%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sThe file created is %sfilename%s.[json|csv|tab|xml]%s"
+		 , inner_item_start
+      , lt
+      , gt
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--event-cross-ref-format=[json|csv|tab|xml] specifies the output format for --event-cross-ref-only.%s"
+		 , item_start
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sSpecifying this option obviates --event-cross-ref-only.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--add-plantuml-prefix-string=%stext%s will add the specified text to the plantuml output before%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sany generated output.  This option can be specified multiple times; all text will be%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sadded in the order given%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sfor the content copy.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--add-plantuml-prefix-file=%stext%s will add the text in the specified file%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sto the plantuml output before any generated output.%s"
+		 , inner_item_start
+		 , item_end
+		 );
+	fprintf(stdout
+			,"%sThis option can be specified multiple times; all text will be%s"
+			, inner_item_start
+			, item_end
+			);
+ fprintf(stdout
+		 ,"%sadded in the order given%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sfor the content copy.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s-M prints the file name(s) of the source files that would have been created to stdout.%s"
+		 , item_start
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sThis is useful in Makefiles for getting the list of files%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sthat will be generated %s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%s(e.g. GENERATED_SRC=$(shell $(FSM) -M -tc $(FSM_SRC))).%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sThis option must preceed the -t option.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s-Mh prints the file name(s) of the headers that would have been created to stdout.%s"
+		 , item_start
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sThis is useful in Makefiles for getting the list of files%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sthat will be generated %s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%s(e.g. GENERATED_HDRS=$(shell $(FSM) -M -tc $(FSM_SRC))).%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sThis option must preceed the -t option.  And, only tc or ts are applicable.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s-Md print a lines suitable for inclusion in a Makefile giving the recipe for%s"
+		 , item_start
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%screating dependent files.%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sThis option must preceed the -t option.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--add-profiling-macros%s=true|*false%s adds profiling macros at the beginning%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sand end of the FSM function, and before and after invocation of action functions.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--profile-sub-fsms%s=true|*false%s adds profiling macros at the beginning%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sand end of the FSM function in sub-machines.  Profiling macros%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%smust also be enabled.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s-v prints the version and exits%s%s"
+		 , item_start
+		 , item_end
+		 , list_end
+		 );
 	
 }
 
