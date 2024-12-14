@@ -383,7 +383,7 @@
 	New C langugage construction option, -te, added which creates an event-based table (rather than the state-based
 	table of -ts).
 
-	The native impl block is now included in the source before the generated macros, thus proceeding *any* generated code.
+	The native impl block is now included in the source before the generated macros, thus preceding *any* generated code.
 
 	Data blocks for machines and events now support more than a single level of indirection.
 
@@ -394,6 +394,8 @@
 	Bug in the generation of plantuml for the case of there being a single loopback function in a state is fixed.
 
 	HTML class for the first machine state corrected to *not* indicate that there is no way into that state.
+
+	Profiling of the main FSM function is provided, including sub-machines.
 
 */
 const char rev_string[] = "1.44";
