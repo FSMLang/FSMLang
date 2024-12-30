@@ -1,6 +1,8 @@
 #	Makefile for fsmlang
 #
 
+CFG ?= v1
+
 .SECONDEXPANSION:
 
 override CFLAGS += -I ../src -I . 
@@ -30,21 +32,21 @@ all:
 	@echo You must choose a target.
 
 $(ARCHITECTURES):
-	$(MAKE) CFLAGS="$(CFLAGS)" -C $(OUT_DIR) fsm
+	$(MAKE) CFLAGS="$(CFLAGS)" CFG=$(CFG) -C $(OUT_DIR) fsm
 
 $(addsuffix .clean, $(ARCHITECTURES)):
-	$(MAKE) -j -C ../test OUTPUT_DIR="$(shell pwd)/$(OUT_DIR)" clean
-	$(MAKE) -j -C $(OUT_DIR) clean
+	$(MAKE) CFG=$(CFG) -j -C ../test OUTPUT_DIR="$(shell pwd)/$(OUT_DIR)" clean
+	$(MAKE) CFG=$(CFG) -j -C $(OUT_DIR) clean
 
 $(addsuffix .test, $(ARCHITECTURES)): $$(basename $$@)
-	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) test
+	$(MAKE) CFG=$(CFG) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) test
 
 $(addsuffix .testonly, $(ARCHITECTURES)): $$(basename $$@)
-	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) testonly
+	$(MAKE) CFG=$(CFG) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) testonly
 
 $(addsuffix .lexer, $(ARCHITECTURES)):
-	$(MAKE) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test lexer
+	$(MAKE) CFG=$(CFG) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test lexer
 
 $(addsuffix .parser, $(ARCHITECTURES)):
-	$(MAKE) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test parser
+	$(MAKE) CFG=$(CFG) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test parser
 

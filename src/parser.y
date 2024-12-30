@@ -2660,11 +2660,18 @@ int main(int argc, char **argv)
 
 		}
 
+#ifdef SUPPORT_INCLUDE_FILES
+    if (!newfile(argv[fnind]))
+    {
+      return 1;
+    }
+#else
 		if ((yyin = openFile(argv[fnind],"r")) == NULL) {
 
 			return 1;
 
 		}
+#endif
 
 		/* get the base file name */
 		if (!outFileBase) {
@@ -2702,7 +2709,9 @@ int main(int argc, char **argv)
 		}
 		#endif
 
+#ifndef SUPPORT_INCLUDE_FILES
 		fclose(yyin);
+#endif
 
 	}
 
