@@ -57,7 +57,7 @@ endif()
 if (${MY_PROJ_VER} EQUAL "2")
 
     if(WIN32)
-        target_compile_definitions(fsm PUBLIC CYGWIN MINGW MSDOS FSM_DEBUG _XOPEN_SOURCE=700 YY_NO_UNPUT YY_NO_INPUT)
+        target_compile_definitions(fsm PUBLIC CYGWIN MINGW MSDOS FSM_DEBUG _XOPEN_SOURCE=700 YY_NO_UNPUT)
     endif()
 
     if(UNIX AND NOT APPLE)
