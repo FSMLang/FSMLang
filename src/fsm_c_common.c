@@ -2265,7 +2265,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    /* put the data struct typedef into the header file */
    if (pmi->data)
    {
-      fprintf(pcmd->hFile
+	  fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
 			  , "typedef struct _%s_data_struct_ %s, *p%s;\n"
 			  , pmi->name->name
 			  , fsmDataType(pcmd)
@@ -2275,12 +2275,21 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    }
 
    /* put the machine struct typedef into the header */
-   fprintf(pcmd->hFile
+   fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
 		   , "typedef struct _%s_struct_ %s, *p%s;\n"
 		   , pmi->name->name
 		   , fsmType(pcmd)
 		   , fsmType(pcmd)
 		   );
+
+   if (pmi->machine_list)
+   {
+	   /* The sub-machine header will hold things needed by the private header. */
+	   fprintf(pcmd->hFile
+			   ,"#include \"%s\"\n"
+			   , pcmd->subMachineHName
+			   );
+   }
 
    fprintf(pcmd->hFile
 		   , "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
@@ -2339,27 +2348,22 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    /* put the data structure definition into the header */
    if (pmi->data)
    {
-      fprintf(pcmd->hFile
+	  fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
 			  , "struct _%s_data_struct_ {\n"
 			  , machineName(pcmd)
 			  );
 
       ich.ih.tab_level = 1;
+	  ich.ih.fout      = pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile;
       iterate_list(pmi->data, print_data_field, &ich);
 
-      fprintf(pcmd->hFile 
+      fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
               , "};\n\n"
               );
    }
 
    if (pmi->machine_list)
    {
-	   /* The sub-machine header will hold things needed by the private header. */
-	   fprintf(pcmd->hFile
-			   ,"#include \"%s\"\n"
-			   , pcmd->subMachineHName
-			   );
-
 	   printSubMachinesDeclarations(pcmd, pmi);
    }
    
