@@ -1,0 +1,13 @@
+	machine sub
+	native impl
+	{
+#include "profiling.inc"
+	}
+	{
+		state s1 on exit;
+		state s2 on entry;
+		event e1;
+
+		action always[e1, s1] transition s2;
+		action always[e1, s2];
+	}

@@ -1,4 +1,4 @@
-SRC =	lexer.c                  \
+SRC =	$(LEXER_SRC)             \
 			parser.c              \
 			revision.c            \
 			fsm_utils.c           \

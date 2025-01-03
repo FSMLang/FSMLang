@@ -1,0 +1,16 @@
+diff --git a/src/lexer.l b/src/lexer.l
+index f7195ba..aed295a 100644
+--- a/src/lexer.l
++++ b/src/lexer.l
+@@ -103,8 +103,10 @@ data	{
+ 
+ 		}
+ 
+-translator {
++	/* Let's add a new rule here. */
+ 
++translator {
++	    
+          #ifdef LEX_DEBUG
+          printf("%s\n",strings[TRANSLATOR_KEY]);
+          #else

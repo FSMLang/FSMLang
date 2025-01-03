@@ -70,7 +70,7 @@ clean::
 	-@rm -f $(GENERATED_PLANTUML)          2> /dev/null
 	-@rm -f test                           2> /dev/null
 	-@rm -f y.output                       2> /dev/null
-	-@rm -f lexer.c                        2> /dev/null
+	-@rm -f $(LEXER_SRC)                   2> /dev/null
 
 stats.txt: $(FSM_SRC)
 	$(FSM) -s $< > $@

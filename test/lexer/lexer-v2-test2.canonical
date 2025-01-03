@@ -1,0 +1,42 @@
+MACHINE_KEY
+Added : baz of type ID
+baz : ID
+{
+EVENT_KEY
+Added : e1 of type ID
+e1 : ID
+;
+STATE_KEY
+Added : s1 of type ID
+s1 : ID
+,
+Added : s2 of type ID
+s2 : ID
+;
+include [foo.fsm]
+MACHINE_KEY
+Added : foo of type ID
+foo : ID
+{
+}
+include [bar.fsm]
+MACHINE_KEY
+Added : bar of type ID
+bar : ID
+{
+}
+ACTION_KEY
+Added : a1 of type ID
+a1 : ID
+[
+Found : e1 of type ID
+e1 : ID
+,
+Found : s1 of type ID
+s1 : ID
+]
+TRANSITION_KEY
+Found : s2 of type ID
+s2 : ID
+;
+}

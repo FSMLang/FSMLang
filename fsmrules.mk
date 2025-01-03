@@ -5,8 +5,10 @@
 
 .SUFFIXES: .fsm .html .plantuml 
 
+ifndef FSM
 ifdef OUTPUT_DIR
 FSM=$(OUTPUT_DIR)/fsm
+endif
 endif
 
 ifeq ($(WEAK_FNS),FALSE)

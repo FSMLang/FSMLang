@@ -1,0 +1,14 @@
+include [foo.fsm]
+MACHINE_KEY
+Added : foo of type ID
+foo : ID
+{
+}
+include [bar.fsm]
+MACHINE_KEY
+Added : bar of type ID
+bar : ID
+{
+}
+include [baz.fsm]
+./test: Failed to open input file baz.fsm

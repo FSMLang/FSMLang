@@ -390,6 +390,8 @@ unsigned maxDepth(pMACHINE_INFO);
 void print_tab_levels(FILE*,unsigned);
 void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
 void increase_sub_machine_depth(pMACHINE_INFO);
+int newfile(char*);
+int popfile(void);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);

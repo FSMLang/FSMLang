@@ -1,0 +1,12 @@
+machine baz
+{
+  event e1;
+  state s1, s2;
+
+  include foo.fsm
+  include "bar.fsm"
+
+  action a1[e1, s1] transition s2;
+
+}
+
