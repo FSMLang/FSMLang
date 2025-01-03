@@ -398,5 +398,12 @@
 	Profiling of the main FSM function is provided, including sub-machines.
 
 */
-const char rev_string[] = "1.44";
+
+/*
+	Revision 1.44.1
+
+	Declaration and definition of machine structure is moved to _submach.h when necessary to
+	support event sharing when machines involved have data.
+*/
+const char rev_string[] = "1.44.1";
 
