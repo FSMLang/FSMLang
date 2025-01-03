@@ -1,0 +1,7 @@
+test_sub_onExitFrom_s1
+test_sub_onEntryTo_s2
+test_a2
+test_a3
+test_transitioning: from=0; to=1
+test_decommission_s1
+test_prep_s2
