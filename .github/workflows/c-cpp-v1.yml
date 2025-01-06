@@ -1,0 +1,46 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:  
+
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Update Packages
+      run: sudo apt install -y libfl-dev
+      
+    - name: Build Linux v1
+      run: |
+        cd src
+        make Linux CFG=v1
+        
+    - name: Execute Linux v1 Tests
+      run: |
+        cd src
+        make Linux.testonly CFG=v1
+
+    - name: Archive Test Results
+      if: ${{ failure() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: v1-test-failures
+        path: |
+              test/**/test.result
+              test/**/test.out
+    - name: Archive Image
+      if: ${{ success() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: fsm-v1-linux-image
+        path: linux/fsm
+

@@ -19,21 +19,21 @@ jobs:
     - name: Update Packages
       run: sudo apt install -y libfl-dev
       
-    - name: Build Linux
+    - name: Build Linux v2
       run: |
         cd src
-        make Linux
+        make Linux CFG=v2
         
-    - name: Execute Linux Tests
+    - name: Execute Linux v2 Tests
       run: |
         cd src
-        make Linux.testonly
+        make Linux.testonly CFG=v2
 
     - name: Archive Test Results
       if: ${{ failure() }}
       uses: actions/upload-artifact@v4
       with:
-        name: test-failures
+        name: v2-test-failures
         path: |
               test/**/test.result
               test/**/test.out
@@ -41,5 +41,6 @@ jobs:
       if: ${{ success() }}
       uses: actions/upload-artifact@v4
       with:
-        name: fsm-linux-image
+        name: fsm-v2-linux-image
         path: linux/fsm
+

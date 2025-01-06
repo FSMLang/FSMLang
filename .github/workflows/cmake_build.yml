@@ -15,9 +15,15 @@ jobs:
       run: cmake -B ./build
     - name: make
       run: cmake --build build
-    - name: Archive Image
+    - name: Archive v1 Image
       if: ${{ success() }}
       uses: actions/upload-artifact@v4
       with:
-        name: fsm-cmake-linux-image
-        path: build/fsm
+        name: fsm-v1-cmake-linux-image
+        path: build/v1/fsm
+    - name: Archive v2 Image
+      if: ${{ success() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: fsm-v2-cmake-linux-image
+        path: build/v2/fsm

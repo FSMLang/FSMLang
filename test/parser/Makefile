@@ -8,10 +8,13 @@ VPATH=../../src
 
 ifdef OUTPUT_DIR
 include $(OUTPUT_DIR)/system.mk
-#include $(OUTPUT_DIR)/source.mk
 endif
 
-SRC =	lexer.c \
+ifdef CFG
+include $(OUTPUT_DIR)/../cfg-$(CFG).mk
+endif
+
+SRC =	$(LEXER_SRC) \
 			parser.c \
 			fsm_utils.c \
 			list.c \

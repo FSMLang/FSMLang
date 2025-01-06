@@ -6,7 +6,9 @@ VPATH=../src
 
 OUTPUT_DIR = $(shell pwd)
 
-
+ifdef CFG
+include ../cfg-$(CFG).mk
+endif
 include system.mk
 
 override CFLAGS += -DLINUX
