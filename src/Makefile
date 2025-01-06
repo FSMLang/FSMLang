@@ -12,6 +12,8 @@ ARCHITECTURES=Cygwin \
 	Mingwsa      \
 	Linux
 
+CFGS=v1 v2
+
 Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser : OUT_DIR=../cygwin
 Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  : OUT_DIR=../mingw
 Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : OUT_DIR=../mingwsa
@@ -27,6 +29,9 @@ Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  : NEED
 
 Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : WEAK_FNS=FALSE
 Cygwin  Cygwin.clean  Cygwin.test  Cygwin.testonly Cygwin.lexer  Cygwin.parser  : WEAK_FNS=FALSE
+
+v1: CFG=v1
+v2: CFG=v2
 
 all:
 	@echo You must choose a target.
@@ -49,4 +54,14 @@ $(addsuffix .lexer, $(ARCHITECTURES)):
 
 $(addsuffix .parser, $(ARCHITECTURES)):
 	$(MAKE) CFG=$(CFG) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test parser
+
+
+allcfgs: $(CFGS)
+	@echo All configurations built for architecture $(ARCHITECTURE)
+
+$(CFGS):
+	if [ -z ${ARCHITECTURE}]; then echo You must specify an ARCHITECTURE; false; fi;
+	$(MAKE) CFG="$@" $(ARCHITECTURE).clean
+	$(MAKE) CFG="$@" $(ARCHITECTURE)
+	$(MAKE) CFG="$@" $(ARCHITECTURE).testonly
 

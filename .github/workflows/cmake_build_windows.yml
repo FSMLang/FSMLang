@@ -17,9 +17,15 @@ jobs:
       run: cmake -B ./build -G "MinGW Makefiles"
     - name: make
       run: cmake --build build
-    - name: Archive Image
+    - name: Archive v1 Image
       if: ${{ success() }}
       uses: actions/upload-artifact@v4
       with:
-        name: fsm-cmake-windows-image
-        path: build/fsm.exe
+        name: fsm-v1-cmake-windows-image
+        path: build/v1/fsm.exe
+    - name: Archive v2 Image
+      if: ${{ success() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: fsm-v2-cmake-windows-image
+        path: build/v2/fsm.exe
