@@ -2735,7 +2735,7 @@ void usage(void)
 	char *item_end         = html_help ? "</li>\n"                   : "\n";
 	char *list_item_end    = html_help ? "</li>\n\t</ul>\n</li>\n"   : "\n";
 	char *lt               = html_help ? "&lt;"                      : "<";
-	char *gt               = html_help ? "&gt;"                      : "<";
+	char *gt               = html_help ? "&gt;"                      : ">";
 
 	fprintf(stdout
 			, "%s%sUsage : %s [-tc|s|e|h|p|r] [-o outfile] [-s] filename, where filename ends with '.fsm'%s"
