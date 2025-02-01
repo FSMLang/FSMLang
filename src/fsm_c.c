@@ -489,10 +489,10 @@ static void writeCMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 */
 static void writeOriginalFSMAre(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s */\n", __func__);
-
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s */\n", __func__);
 
  	fprintf(pcmd->cFile
  			, "\t%s new_e;\n"
@@ -523,10 +523,10 @@ static void writeOriginalFSMAre(pFSMCOutputGenerator pfsmcog)
 */
 static void writeOriginalFSMArv(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s */\n", __func__);
-
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s */\n", __func__);
 
 	if (pmi->executes_fns_on_state_transitions)
 	{
@@ -546,10 +546,10 @@ static void writeOriginalFSMArv(pFSMCOutputGenerator pfsmcog)
 */
 static void writeOriginalSubFSMAre(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
-
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
  	fprintf(pcmd->cFile
  			, "\t%s new_e;\n"
@@ -583,10 +583,10 @@ static void writeOriginalSubFSMAre(pFSMCOutputGenerator pfsmcog)
 */
 static void writeOriginalSubFSMArv(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
-
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
 	if (pmi->executes_fns_on_state_transitions)
 	{
@@ -609,10 +609,10 @@ static void writeOriginalSubFSMArv(pFSMCOutputGenerator pfsmcog)
 */
 static void writeActionsReturnStateFSM(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
-
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
 	fprintf(pcmd->cFile
 			, "\t%s s;\n"
@@ -1667,10 +1667,10 @@ static void defineCMachineFSM(pFSMCOutputGenerator pfsmcog)
 
 static void defineCSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
-
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
 	if (pmi->machine_list)
 	{

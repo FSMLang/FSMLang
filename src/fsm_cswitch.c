@@ -654,9 +654,10 @@ static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
 
 static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    if (pmi->machine_list)
    {
