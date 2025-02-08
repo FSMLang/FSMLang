@@ -120,3 +120,9 @@ NEW_MACHINE_STATE __attribute__((weak)) UFMN(noTransitionFn)(pNEW_MACHINE pfsm, 
 	return pfsm->state;
 }
 
+NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(shareSharedEvent)(pNEW_MACHINE pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return newMachine_pass_shared_event(pfsm, sharing_newMachine_eShared);
+}
+

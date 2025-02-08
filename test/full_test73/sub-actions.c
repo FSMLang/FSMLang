@@ -20,3 +20,8 @@ void UFMN(onEntryTo_s2)(pSUB_DATA pdata)
 	printf("%s\n", __func__);
 }
 
+TEST_EVENT __attribute((weak)) UFMN(always)(FSM_TYPE_PTR pfsm)
+{
+	return sub_pass_shared_event(pfsm, sharing_sub_e1);
+}
+

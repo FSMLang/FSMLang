@@ -502,7 +502,9 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    {
       if (assignExternalEventValues(pmi) == false)
       {
-         printf("warning: cannot use external event designations\n");
+         fprintf(stdout
+				 , "Warning: Ignoring external event designations\n"
+				 );
       }
    }
 
@@ -555,7 +557,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 
    fprintf(pcmd->eventsHFile
            , "}%s %s;\n\n"
-           , compact_action_array ? "__attribute__((__packed__)) " : " "
+           , compacting(pmi) ? "__attribute__((__packed__)) " : " "
 		   , eventType(pcmd)
           );
 
@@ -651,7 +653,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 
    fprintf(pcmd->hFile
            , "}%s %s;\n\n"
-           , compact_action_array ? " __attribute__((__packed__))" : " "
+           , compacting(pmi) ? " __attribute__((__packed__))" : " "
 		   , stateType(pcmd)
           );
 
@@ -782,7 +784,9 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
    /* declare the dummy, or no op action */
    if (needNoOp)
    {
-	   print_action_function_declaration(pcmd, "noAction");
+	   print_action_function_declaration(pcmd
+										 , empty_cell_fn ? empty_cell_fn : "noAction"
+										 );
    }
 
    fprintf(pcmd->hFile
@@ -969,7 +973,9 @@ void defineWeakActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 void defineWeakNoActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-	print_weak_action_function_body_omitting_return_statement(pcmd, "noAction");
+	print_weak_action_function_body_omitting_return_statement(pcmd
+		, empty_cell_fn ? empty_cell_fn : "noAction"
+		);
 
 	if (!(pcmd->pmi->modFlags & mfActionsReturnVoid))
 	{
@@ -1392,10 +1398,8 @@ void destroyCMachineData(pCMachineData pcmd, int good)
 
 bool assignExternalEventValues(pMACHINE_INFO pmi)
 {
-   return (
-           (pmi->modFlags & (mfActionsReturnStates | mfActionsReturnVoid))
-           && (pmi->event_list->count == pmi->external_event_designation_count)
-           && !compact_action_array
+   return !( (pmi->event_list->count != pmi->external_event_designation_count)
+           || compacting(pmi)
           );
 
 }
@@ -2037,7 +2041,7 @@ static void print_sub_machine_data_translator_fn_signature(FILE* file, pCMachine
 	   {
 		  fprintf(file
 				  , "void%s%s_%s(p%s%s)%s\n"
-				   , dod == dod_declare ? " __attribute__((weak)) " : " "
+				   , dod == dod_declare ? " " : " __attribute__((weak)) "
 				  , ufMachineName(pcmd)
 				  , pevent->type_data.event_data.puser_event_data->translator->name
 				  , fsmDataType(pcmd->parent_pcmd)
@@ -2258,7 +2262,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 
    fprintf(pcmd->hFile
            , "}%s %s;\n\n"
-           , compact_action_array ? " __attribute__((__packed__))" : " "
+           , compacting(pmi) ? " __attribute__((__packed__))" : " "
 		   , stateType(pcmd)
           );
 
@@ -2684,8 +2688,9 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
                 );
 
          fprintf(pich->pcmd->cFile
-                 , "\t%s(\"weak: %%s\", __func__);\n"
+                 , "\t%s(\"%s%%s\", __func__);\n"
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+				 , force_generation_of_event_passing_actions ? "" : "weak: "
                 );
 
          fprintf(pich->pcmd->cFile

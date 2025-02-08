@@ -115,7 +115,9 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
    /* declare the dummy, or no op action */
    if (needNoOp)
    {
-      print_action_function_declaration(pcmd, "noAction");
+      print_action_function_declaration(pcmd
+										, empty_cell_fn ? empty_cell_fn : "noAction"
+										);
    }
    fprintf(pcmd->hFile, "\n");
  
@@ -190,10 +192,10 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
 
 void writeOriginalSwitchFSMLoopAre(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
-
 	pCMachineData pcmd = pfsmcog->pcmd;
     pMACHINE_INFO pmi  = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    char *tabstr = "\t";
 
@@ -259,9 +261,10 @@ void writeOriginalSwitchFSMLoopAre(pFSMCOutputGenerator pfsmcog)
 
 void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    char *tabstr = "\t";
 
@@ -329,7 +332,9 @@ void cswitchSubMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool need
    /* declare the dummy, or no op action */
    if (needNoOp)
    {
-      print_action_function_declaration(pcmd, "noAction");
+      print_action_function_declaration(pcmd
+										 , empty_cell_fn ? empty_cell_fn : "noAction"
+										);
    }
 
    fprintf(pcmd->hFile

@@ -129,7 +129,7 @@ newMachine_subMachine1_noAction
 
 marker 12
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -152,7 +152,7 @@ weak: newMachine_subMachine2_aaa1
 
 marker 14
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -173,7 +173,7 @@ newMachine_subMachine2_noAction
 
 marker 15
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -196,7 +196,7 @@ newMachine_subMachine2_noAction
 
 marker 17
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -218,7 +218,7 @@ newMachine_subMachine2_noAction
 
 marker 19
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -241,7 +241,7 @@ newMachine_subMachine2_noAction
 
 marker 21
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -278,7 +278,7 @@ newMachine_subMachine1_noAction
 
 marker 24
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -300,7 +300,7 @@ newMachine_subMachine1_noAction
 
 marker 26
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -337,7 +337,7 @@ newMachine_subMachine1_noAction
 
 marker 29
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 

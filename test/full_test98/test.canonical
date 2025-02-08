@@ -1,0 +1,24 @@
+event: compact_e1; state: compact_s1
+compact_a1
+compact_sub_compact_grab_e1_data
+event: compact_sub_compact_e1; state: compact_sub_compact_s1
+compact_sub_compact_a1
+event: compact_sub_compact_sub_sub_compact_e1; state: compact_sub_compact_sub_sub_compact_s1
+compact_sub_compact_sub_sub_compact_a1
+compact_sub_compact_sub_sub_compact_on_transition
+from compact_sub_compact_sub_sub_compact_s1 to compact_sub_compact_sub_sub_compact_s2
+compact_sub_compact_on_transition
+from compact_sub_compact_s1 to compact_sub_compact_s2
+compact_transition_to_s2
+compact_on_transition
+from compact_s1 to compact_s2
+event: compact_e2; state: compact_s2
+compact_a3
+event: compact_sub_compact_e2; state: compact_sub_compact_s2
+compact_sub_compact_a2
+event: compact_sub_compact_sub_sub_compact_e2; state: compact_sub_compact_sub_sub_compact_s2
+compact_sub_compact_sub_sub_compact_a2
+compact_on_transition
+from compact_s2 to compact_s1
+event: compact_e3; state: compact_s1
+compact_i_am_empty

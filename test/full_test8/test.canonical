@@ -13,4 +13,4 @@ newMachine_noAction
 newMachine_transitionFn1
 event: newMachine_e4; state: newMachine_s2
 newMachine_noAction
-warning: cannot use external event designations
+Warning: Ignoring external event designations

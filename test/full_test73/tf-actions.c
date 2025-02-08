@@ -23,3 +23,8 @@ TEST_EVENT UFMN(noAction)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
+TEST_EVENT __attribute((weak)) UFMN(a1)(FSM_TYPE_PTR pfsm)
+{
+	return test_pass_shared_event(pfsm, sharing_test_e1);
+}
+

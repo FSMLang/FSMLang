@@ -156,7 +156,7 @@ static bool declare_transition_fn_enum_member(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->hFile , "/* %s */\n", __func__ );
 
 	fprintf(pich->pcmd->hFile
-			, "%sUFMN(%s_e)\n"
+			, "%sTHIS(%s_e)\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
 			, pid_info->name
 		   );
@@ -172,7 +172,7 @@ static bool declare_transition_enum_member(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->hFile , "/* %s */\n", __func__ );
 
 	fprintf(pich->pcmd->hFile
-			, "%sUFMN(transitionTo%s_e)\n"
+			, "%sTHIS(transitionTo%s_e)\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
 			, pid_info->name
 		   );
@@ -204,9 +204,8 @@ static bool define_transition_array_member(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile , "/* %s */\n", __func__ );
 
 	fprintf(pich->pcmd->cFile
-			, "\t%s%s_transitionTo%s\n"
+			, "\t%sUFMN(transitionTo%s)\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
-			, fqMachineName(pich->pcmd)
 			, pid_info->name
 		   );
 
@@ -716,7 +715,7 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, c
 					);
 		}
 
-		if (compact_action_array)
+		if (compacting(pmi))
 		{
 			fprintf(pcmd->cFile
 					, "%s\tnew_e = (*THIS(action_fns)[(*pfsm->actionArray)[e][pfsm->state].action])(pfsm);\n\n"
@@ -750,7 +749,7 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, c
 				   );
 		}
 
-		if (compact_action_array)
+		if (compacting(pmi))
 		{
 			fprintf(pcmd->cFile
 					, "%s(*THIS(action_fns)[(*pfsm->actionArray)[event][pfsm->state].action])(pfsm);\n\n"
@@ -793,7 +792,7 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, c
 				, pmi->executes_fns_on_state_transitions
 				? "new_s" : "pfsm->state"
 			   );
-		if (compact_action_array)
+		if (compacting(pmi))
 		{
 			fprintf(pcmd->cFile
 					, "*THIS(transition_fns)[(*pfsm->actionArray)[%s][pfsm->state].transition])(pfsm,%s);\n\n"
@@ -881,7 +880,7 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 
 	if (!(pmi->modFlags & mfActionsReturnVoid))
 	{
-		if (compact_action_array)
+		if (compacting(pmi))
 		{
 			fprintf(pcmd->cFile
 					, "%s\tnew_e = (*THIS(action_fns)[(*pfsm->actionArray)[e - THIS(%s)][pfsm->state].action])(pfsm);\n\n"
@@ -900,7 +899,7 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 	}
 	else
 	{
-		if (compact_action_array)
+		if (compacting(pmi))
 		{
 			fprintf(pcmd->cFile
 					, "%s(*THIS(action_fns)[(*pfsm->actionArray)[event - THIS(%s)][pfsm->state].action])(pfsm);\n\n"
@@ -938,7 +937,7 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 	}
 	else
 	{
-		if (compact_action_array)
+		if (compacting(pmi))
 		{
 			fprintf(pcmd->cFile
 					, "%s\t%s = (*THIS(transition_fns)[(*pfsm->actionArray)[%s - THIS(%s)][pfsm->state].transition])(pfsm,%s);\n\n"
@@ -974,9 +973,8 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 		if (pmi->machineTransition)
 		{
 			fprintf(pcmd->cFile
-					, "%s\t\t%s_%s(pfsm,new_s);\n"
+					, "%s\t\tUFMN(%s)(pfsm,new_s);\n"
 					, tabstr
-					, pmi->name->name
 					, pmi->machineTransition->name
 				   );
 		}
@@ -1188,7 +1186,7 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 		   if compacting, we will use an array for the action functions,
 		   and the transition functions, should they exist
 		 */
-		if (compact_action_array)
+		if (compacting(pmi))
 		{
 			declareCMachineActionFnEnum(pcmd, pmi);
 			if (pmi->transition_fn_list->count)
@@ -1206,7 +1204,7 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 		fprintf(pcmd->hFile
 				, "%s%s\taction;\n\t"
 				, actionFnType(pcmd)
-				, compact_action_array ? "_E" : ""
+				, compacting(pmi) ? "_E" : ""
 			   );
 
 		fprintf(pcmd->hFile
@@ -1214,7 +1212,7 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 				, pmi->transition_fn_list->count 
 				  ? transitionFnType(pcmd)
 				  : stateType(pcmd)
-				, (pmi->transition_fn_list->count && compact_action_array) ? "_E" : ""
+				, (pmi->transition_fn_list->count && compacting(pmi)) ? "_E" : ""
 			   );
 		fprintf(pcmd->hFile
 				, "%s, *p%s;\n\n"
@@ -1274,7 +1272,7 @@ static void defineCMachineActionFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	/* open the array */
 	fprintf(pcmd->cFile
-			, "const %s THIS(action_fns)[] =\n{\n"
+			, "static const %s THIS(action_fns)[] =\n{\n"
 			, actionFnType(pcmd)
 			);
 
@@ -1283,7 +1281,8 @@ static void defineCMachineActionFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	/* declare the dummy, or no op action and close the array */
 	fprintf(pcmd->cFile
-			, "\t,  THIS(noAction)\n};\n\n"
+			, "\t, UFMN(%s)\n};\n\n"
+			, empty_cell_fn ? empty_cell_fn : "noAction"
 			);
 
 }
@@ -1337,9 +1336,8 @@ static void defineCMachineTransitionFnArray(pCMachineData pcmd, pMACHINE_INFO pm
 
 	/* open the array */
 	fprintf(pcmd->cFile
-			, "const %s %s_transition_fns[] =\n{\n"
+			, "static const %s UFMN(transition_fns)[] =\n{\n"
 			, transitionFnType(pcmd)
-			, fqMachineName(pcmd)
 			);
 
 	/* fill the array */
@@ -1353,8 +1351,7 @@ static void defineCMachineTransitionFnArray(pCMachineData pcmd, pMACHINE_INFO pm
 				);
 
 	fprintf(pcmd->cFile
-			, "\t, %s_noTransitionFn\n"
-			, fqMachineName(pcmd)
+			, "\t, UFMN(noTransitionFn)\n"
 			);
 
 	fprintf(pcmd->cFile
@@ -1431,7 +1428,7 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 	   if compacting, we will use an array for the action functions,
 	   and the transition functions, should they exist
 	 */
-	if (compact_action_array)
+	if (compacting(pmi))
 	{
 		defineCMachineActionFnArray(pcmd, pmi);
 		if (pmi->transition_fn_list->count)
@@ -1493,11 +1490,15 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 					/* also handle the transition only case */
 					fprintf(pcmd->cFile
-							, "UFMN(%s%s),"
+							, "%s(%s%s),"
+							, compacting(pmi) ? "THIS" : "UFMN"
 							, strlen(pmi->actionArray[i][j]->action->name)
 							  ? pmi->actionArray[i][j]->action->name
-							  : "noAction"
-							, compact_action_array ? "_e" : ""
+							  : (compacting(pmi)
+								 ? "noAction"
+								 : (empty_cell_fn ? empty_cell_fn : "noAction")
+								)
+							, compacting(pmi) ? "_e" : ""
 						   );
 
 
@@ -1506,21 +1507,21 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 						if (pmi->actionArray[i][j]->transition)
 						{
 							fprintf(pcmd->cFile
-									, "UFMN(%s%s%s)"
+									, "%s(%s%s%s)"
+									, compacting(pmi) ? "THIS" : "UFMN"
 									, pmi->actionArray[i][j]->transition->type == STATE
 									  ? "transitionTo"
 									  : ""
 									, pmi->actionArray[i][j]->transition->name
-									, compact_action_array
-									  ? "_e"
-									  : ""
+									, compacting(pmi) ? "_e" : ""
 								   );
 						}
 						else
 						{
 							fprintf(pcmd->cFile
-									, "UFMN(noTransition%s)"
-									, compact_action_array
+									, "%s(noTransition%s)"
+									, compacting(pmi) ? "THIS" : "UFMN"
+									, compacting(pmi)
 									  ? "_e"
 									  : pmi->transition_fn_list->count
 									    ? "Fn"
@@ -1561,8 +1562,9 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 				{
 
 					fprintf(pcmd->cFile
-							, "UFMN(noTransition%s)\n"
-							, compact_action_array
+							, "%s(noTransition%s)\n"
+							, compacting(pmi) ? "THIS" : "UFMN"
+							, compacting(pmi)
 							  ? "_e"
 							  : pmi->transition_fn_list->count
 							    ? "Fn"
@@ -1576,8 +1578,11 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 					fprintf(pcmd->cFile, "{");
 
 					fprintf(pcmd->cFile
-							, "UFMN(noAction%s), "
-							, compact_action_array ? "_e" : ""
+							, "%s(%s%s), "
+							, compacting(pmi) ? "THIS" : "UFMN"
+							, compacting(pmi) ? "noAction"
+							  : (empty_cell_fn ? empty_cell_fn : "noAction")
+							, compacting(pmi) ? "_e" : ""
 						   );
 
 					if (pmi->transition_fn_list->count == 0)
@@ -1591,10 +1596,9 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 					else
 					{
 						fprintf(pcmd->cFile
-								, "UFMN(noTransition%s)"
-								, compact_action_array
-									? "_e"
-									: "Fn"
+								, "%s(noTransition%s)"
+								, compacting(pmi) ? "THIS" : "UFMN"
+								, compacting(pmi) ? "_e" : "Fn"
 							   );
 					}
 

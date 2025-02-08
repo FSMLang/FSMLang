@@ -1,4 +1,4 @@
-VARIANTS ?= c s e
+VARIANTS ?= c s e cc
 
 .PHONY: runtest test clean clean_generated $(VARIANTS)
 
@@ -12,6 +12,9 @@ c c.size c_run: CFLAGS+=-DFSM_VARIANT_C
 #s s.size s_run: FSM_FLAGS=-ts
 s s.size s_run: FSM_FLAGS+=-ts --generate-weak-fns=false --force-generation-of-event-passing-actions
 s s.size s_run: CFLAGS+=-DFSM_VARIANT_S
+
+cc cc.size cc_run: FSM_FLAGS+=-tc -c --generate-weak-fns=false
+cc cc.size cc_run: CFLAGS+=-DFSM_VARIANT_CC
 
 runtest: $(addsuffix _run, $(VARIANTS))
 	@echo "all tests successful"
@@ -30,7 +33,7 @@ $(addsuffix .size, $(VARIANTS)):
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
 
 $(addsuffix _run, $(VARIANTS)):
-	@echo $(FSM_FLAGS)
+	@echo $@: $(FSM_FLAGS)
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" CFLAGS="$(CFLAGS)" do_runtest
 
 clean:
