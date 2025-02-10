@@ -405,5 +405,13 @@
 	Declaration and definition of machine structure is moved to _submach.h when necessary to
 	support event sharing when machines involved have data.
 */
-const char rev_string[] = "1.44.1";
+
+/*
+	Revision 1.45.0-alpha.1
+
+	implement --empty-cell-fn=<fn name> to allow user to designate a
+	function two be called when the state machine encounters an empty
+	event/state cell.
+*/
+const char rev_string[] = "1.45.0-alpha.1";
 
