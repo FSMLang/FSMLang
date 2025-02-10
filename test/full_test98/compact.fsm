@@ -60,7 +60,6 @@ native impl
 
 	action a1[e1, s1] transition transition_to_s2;
 	action a2[e1, s2];
-	action a3[e2, s2] transition s1;
 	[e3, s2] transition s1;
 
 }

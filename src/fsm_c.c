@@ -116,9 +116,8 @@ static bool declare_action_enum_member(pLIST_ELEMENT pelem, void *data)
 	{
 
 		fprintf(pich->pcmd->hFile
-				, "%s%s_%s_e\n"
-				, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
-				, fqMachineName(pich->pcmd)
+				, "%sTHIS(%s_e)\n"
+				, pich->ih.first ? (pich->ih.first = false, "\t") : "\t, "
 				, pid_info->name
 			   );
 
@@ -1248,8 +1247,16 @@ static void declareCMachineActionFnEnum(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	iterate_list(pmi->action_list, declare_action_enum_member, &ich);
 
+	if (empty_cell_fn)
+	{
+		fprintf(pcmd->hFile
+				, "\t, THIS(%s_e)\n"
+				, empty_cell_fn
+				);
+	}
+
 	/* declare the dummy, or no op action */
-	fprintf(pcmd->hFile, ", THIS(noAction_e)\n");
+	fprintf(pcmd->hFile, "\t, THIS(noAction_e)\n");
 
 	fprintf(pcmd->hFile, "} __attribute__((__packed__)) ");
 	fprintf(pcmd->hFile
@@ -1279,10 +1286,17 @@ static void defineCMachineActionFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 	/* fill the array */
 	iterate_list(pmi->action_list,  declare_action_array_member, &ich);
 
+	if (empty_cell_fn)
+	{
+		fprintf(pcmd->cFile
+				, "\t, UFMN(%s)\n"
+				, empty_cell_fn
+				);
+	}
+
 	/* declare the dummy, or no op action and close the array */
 	fprintf(pcmd->cFile
-			, "\t, UFMN(%s)\n};\n\n"
-			, empty_cell_fn ? empty_cell_fn : "noAction"
+			, "\t, UFMN(noAction)\n};\n\n"
 			);
 
 }
@@ -1374,20 +1388,20 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (pmi->data)
 	{
 		fprintf(pcmd->hFile
-				, "\t%-*sdata;\n"
+				, "\t%-*s data;\n"
 				, (int) pcmd->c_machine_struct_format_width
 				, fsmDataType(pcmd)
 				);
 	}
 
 	fprintf(pcmd->hFile
-			, "\t%-*sstate;\n"
+			, "\t%-*s state;\n"
 			, (int) pcmd->c_machine_struct_format_width
 			, stateType(pcmd)
 			);
 
 	fprintf(pcmd->hFile
-			, "\t%-*sevent;\n"
+			, "\t%-*s event;\n"
 			, (int) pcmd->c_machine_struct_format_width
 			, eventType(pcmd)
 			);
@@ -1494,10 +1508,7 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 							, compacting(pmi) ? "THIS" : "UFMN"
 							, strlen(pmi->actionArray[i][j]->action->name)
 							  ? pmi->actionArray[i][j]->action->name
-							  : (compacting(pmi)
-								 ? "noAction"
-								 : (empty_cell_fn ? empty_cell_fn : "noAction")
-								)
+							  : "noAction"
 							, compacting(pmi) ? "_e" : ""
 						   );
 
@@ -1580,8 +1591,7 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 					fprintf(pcmd->cFile
 							, "%s(%s%s), "
 							, compacting(pmi) ? "THIS" : "UFMN"
-							, compacting(pmi) ? "noAction"
-							  : (empty_cell_fn ? empty_cell_fn : "noAction")
+							, empty_cell_fn ? empty_cell_fn : "noAction"
 							, compacting(pmi) ? "_e" : ""
 						   );
 

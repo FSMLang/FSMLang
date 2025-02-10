@@ -425,20 +425,20 @@ static void defineCEventTableMachineStruct(pCMachineData pcmd)
    if (pmi->data)
    {
       fprintf(pcmd->hFile
-			  , "\t%-*sdata;\n"
+			  , "\t%-*s data;\n"
 			  , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 			  , fsmDataType(pcmd)
 			 );
    }
 
    fprintf(pcmd->hFile
-		   , "\t%-*sstate;\n"
+		   , "\t%-*s state;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , stateType(pcmd)
 		   );
 
    fprintf(pcmd->hFile
-		   , "\t%-*sevent;\n"
+		   , "\t%-*s event;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , eventType(pcmd)
 		  );
@@ -453,7 +453,7 @@ static void defineCEventTableMachineStruct(pCMachineData pcmd)
    if (pmi->machine_list)
    {
       fprintf(pcmd->hFile
-			  , "\tp%-*sconst (*subMachineArray)[%s_numSubMachines];\n"
+			  , "\tp%-*s const (*subMachineArray)[%s_numSubMachines];\n"
 			  , (int)pcmd->sub_machine_struct_format_width
 			  , subFsmIfType(pcmd)
 			   , fqMachineName(pcmd)
@@ -461,7 +461,7 @@ static void defineCEventTableMachineStruct(pCMachineData pcmd)
    }
 
    fprintf(pcmd->hFile
-		   , "\t%-*sfsm;\n};\n\n"
+		   , "\t%-*s fsm;\n};\n\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , fsmFnType(pcmd)
 		   );
@@ -668,20 +668,10 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_are(FI
 	else 
 	{
 		fprintf(fout, "\tACTION_RETURN_TYPE event = THIS(noEvent);\n\n");
-		if (empty_cell_fn)
-		{
-			fprintf(fout
-					, "\tUFMN(%s)(pfsm);\n"
-					, empty_cell_fn
-					);
-		}
-		else
-		{
-			fprintf(fout
-					, "\tDBG_PRINTF(\"%s_noAction\");\n"
-					, ufMachineName(pcmd)
-					);
-		}
+		fprintf(fout
+				, "\tDBG_PRINTF(\"%s_noAction\");\n"
+				, ufMachineName(pcmd)
+				);
 	}
 
 	if (pai->transition)
@@ -741,20 +731,10 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_arv(FI
 	}
 	else
 	{
-		if (empty_cell_fn)
-		{
-			fprintf(fout
-					, "\tUFMN(%s)(pfsm);\n"
-					, empty_cell_fn
-					);
-		}
-		else
-		{
-			fprintf(fout
-					, "\tDBG_PRINTF(\"%s_noAction\");\n"
-					, ufMachineName(pcmd)
-					);
-		}
+		fprintf(fout
+				, "\tDBG_PRINTF(\"%s_noAction\");\n"
+				, ufMachineName(pcmd)
+				);
 	}
 
 	if (pai->transition)
@@ -833,6 +813,8 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_ars(FI
 
 static void print_event_table_handler_body_for_multiple_state_events_are(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
 {
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
 
 	if (ped->phandling_states->count > 0)
@@ -913,6 +895,8 @@ static void print_event_table_handler_body_for_multiple_state_events_are(FILE *f
 
 static void print_event_table_handler_body_for_multiple_state_events_arv(FILE *fout, pEVENT_DATA ped, pITERATOR_CALLBACK_HELPER pich)
 {
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	pFSMCOutputGenerator pfsmcog = pich->pfsmcog;
 
 	if (ped->phandling_states->count > 0)
@@ -1021,6 +1005,8 @@ static bool print_event_table_handler_state_case_are(pLIST_ELEMENT pelem, void *
 		                                   : NULL
 		                                   ;
 
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	fprintf(fout
 			, "\t\tcase STATE(%s):\n"
 			, pstate->name
@@ -1052,7 +1038,7 @@ static bool print_event_table_handler_state_case_are(pLIST_ELEMENT pelem, void *
 		}
 		else
 		{
-			if (empty_cell_fn)
+			if (empty_cell_fn && (pai->transition == NULL))
 			{
 				fprintf(pich->pcmd->cFile
 						, "\t\t\tUFMN(%s)(pfsm);\n"
@@ -1102,6 +1088,8 @@ static bool print_event_table_handler_state_case_arv(pLIST_ELEMENT pelem, void *
 		                                   ? pmi->actionArray[pevent->order][pnextState->order]
 		                                   : NULL
 		                                   ;
+
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
 			, "\t\tcase STATE(%s):\n"
@@ -1185,6 +1173,8 @@ static bool print_event_table_handler_state_case_ars(pLIST_ELEMENT pelem, void *
 		                                   : NULL
 		                                   ;
 	bool                      handled    = false;
+
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
 			, "\t\tcase STATE(%s):\n"

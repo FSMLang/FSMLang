@@ -21,6 +21,13 @@ ACTION_RETURN_TYPE UFMN(i_am_empty)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
+ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
+{
+	(void) pfsm;
+	DBG_PRINTF(__func__);
+	return THIS(noEvent);
+}
+
 void compact_sub_compact_grab_e1_data(pCOMPACT_DATA pdata)
 {
 	DBG_PRINTF(__func__);

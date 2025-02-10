@@ -28,6 +28,13 @@ ACTION_RETURN_TYPE UFMN(i_am_empty)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
+ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
+{
+	(void) pfsm;
+	DBG_PRINTF(__func__);
+	return THIS(noEvent);
+}
+
 void compact_translate_e1_data(pCOMPACT_DATA pfsm_data,pCOMPACT_E1_DATA pe_data)
 {
 	pfsm_data->e1_payload = pe_data->payload;

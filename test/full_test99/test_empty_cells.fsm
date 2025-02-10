@@ -1,0 +1,26 @@
+native
+{
+#include "test.h"
+}
+
+/*
+	The new --empty-cell-fn=<fn_name> should result in fn_name being
+		called iff there is no action or transition for a given
+		event/state cell.
+
+	Action a1 is defined in e1,s1.
+	A transition is defined in e2, s1.
+
+	All other cells are empty.
+*/
+machine test_empty_cells
+{
+
+	event e1, e2, e3;
+	state s1, s2;
+
+	action a1[e1, s1];
+	[e2, s1] transition s2;
+
+}
+

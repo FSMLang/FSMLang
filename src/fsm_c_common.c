@@ -781,12 +781,15 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
    /* declare the action functions themselves */
    iterate_list(pmi->action_list, declare_action_function, &ich);
 
+   if (empty_cell_fn)
+   {
+	   print_action_function_declaration(pcmd, empty_cell_fn);
+   }
+
    /* declare the dummy, or no op action */
    if (needNoOp)
    {
-	   print_action_function_declaration(pcmd
-										 , empty_cell_fn ? empty_cell_fn : "noAction"
-										 );
+	   print_action_function_declaration(pcmd, "noAction");
    }
 
    fprintf(pcmd->hFile
@@ -973,9 +976,7 @@ void defineWeakActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 void defineWeakNoActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-	print_weak_action_function_body_omitting_return_statement(pcmd
-		, empty_cell_fn ? empty_cell_fn : "noAction"
-		);
+	print_weak_action_function_body_omitting_return_statement(pcmd, "noAction");
 
 	if (!(pcmd->pmi->modFlags & mfActionsReturnVoid))
 	{
@@ -2692,6 +2693,13 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
                  , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
 				 , force_generation_of_event_passing_actions ? "" : "weak: "
                 );
+
+		 if (pich->ih.pmi->data == NULL)
+		 {
+			 fprintf(pich->pcmd->cFile
+					 , "\t(void) pfsm;\n"
+					 );
+		 }
 
          fprintf(pich->pcmd->cFile
                  , "\treturn %s_pass_shared_event(%ssharing_%s_%s);\n}\n\n"
