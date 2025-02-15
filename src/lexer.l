@@ -402,6 +402,14 @@ struct {
 					#endif
 				}
 
+sequence {
+					#ifndef LEX_DEBUG
+					return SEQUENCE_KEY;
+					#else
+					printf("%s\n",strings[SEQUENCE_KEY]);
+					#endif
+				}
+
 union {
 					#ifndef LEX_DEBUG
 					return UNION_KEY;

@@ -250,6 +250,7 @@ struct _statement_decl_list_
    pLIST                    data;
    pSTATE_AND_EVENT_DECLS   pstate_and_event_decls;
    pACTIONS_AND_TRANSITIONS pactions_and_transitions;
+   pLIST                    sequences;
 };
 
 struct _state_and_event_decls_
@@ -342,6 +343,7 @@ struct _machine_info_ {
   unsigned      states_with_no_way_out;
   unsigned      average_state_event_density_pct;
   unsigned      average_event_state_density_pct;
+  pLIST         sequences;
 };
 
 /* lexer id list handlers */
@@ -399,6 +401,7 @@ void parser_debug_print_action_list_deep(pLIST,pMACHINE_INFO,FILE*);
 void parser_debug_print_transition_list(pLIST,FILE*);
 void parser_debug_print_transition_fn_list(pLIST,FILE*);
 void parser_debug_print_data_block(pLIST,FILE*);
+void parser_debug_print_event_sequences(pLIST,FILE*);
 #endif
 
 /* general use data */
@@ -486,6 +489,8 @@ bool print_sub_machine_component_name(pLIST_ELEMENT,void*);
 bool print_sub_machine_events(pLIST_ELEMENT,void*);
 bool print_sub_machine_event_names(pLIST_ELEMENT,void*);
 bool print_data_field(pLIST_ELEMENT,void*);
+bool print_event_sequence(pLIST_ELEMENT,void*);
+bool print_event_sequence_event(pLIST_ELEMENT,void*);
 char *create_string_from_file(FILE*,unsigned long*);
 
 

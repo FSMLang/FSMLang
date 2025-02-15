@@ -85,6 +85,7 @@ void yyerror(char *);
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
+%token SEQUENCE_KEY
 
 %token <charData> ACTION_KEY 
 %token <charData> TRANSITION_KEY 
@@ -146,6 +147,8 @@ void yyerror(char *);
 %type <pid_info>                 state
 %type <charData>                 parent_namespace
 %type <pdata_type_struct>        data_type
+%type <plist>                    sequence
+%type <plist>                    sequences
 
 %%
 
@@ -239,11 +242,11 @@ machine:	machine_prefix ID machine_qualifier
 
 						$$                     = $1->pmachineInfo;
 
-				        $$->name               = $2;
- 			            $$->modFlags          |= $3->modFlags;
- 			            $$->machineTransition  = $3->machineTransition;
-                        $$->native_impl_prologue = $3->native_impl_prologue;
-                        $$->native_impl_epilogue = $3->native_impl_epilogue;
+				    $$->name               = $2;
+ 			      $$->modFlags          |= $3->modFlags;
+ 			      $$->machineTransition  = $3->machineTransition;
+            $$->native_impl_prologue = $3->native_impl_prologue;
+            $$->native_impl_epilogue = $3->native_impl_epilogue;
 
 
 						/* harvest the lists */
@@ -255,6 +258,7 @@ machine:	machine_prefix ID machine_qualifier
  					$$->transition_list    = $6->pactions_and_transitions->transition_list;
  					$$->transition_fn_list = $6->pactions_and_transitions->transition_fn_list;
  					$$->machine_list       = $6->pactions_and_transitions->machine_list;
+					$$->sequences          = $6->sequences;
 
 						count_external_declarations     ($$->event_list,&($$->external_event_designation_count));
 						count_parent_event_referenced   ($$->event_list,&($$->parent_event_reference_count));
@@ -389,6 +393,19 @@ machine:	machine_prefix ID machine_qualifier
                       ,"%d events reference the parent machine.\n"
                       , $$->parent_event_reference_count);
            }
+
+					 if ($$->sequences)
+					 {
+						 fprintf(yyout
+										 , "There %s %d event sequence%s given:\n"
+										 , $$->sequences->count == 1 ? "is" : "are"
+										 , $$->sequences->count
+										 , $$->sequences->count == 1 ? "" : "s"
+										 );
+
+						 parser_debug_print_event_sequences($$->sequences, yyout);
+
+					 }
 
 						fprintf(yyout,"The actions :\n");
  					parser_debug_print_action_list_deep($$->action_list,$$,yyout);
@@ -555,7 +572,55 @@ statement_decl_list:	state_and_event_decls actions_and_transitions
     	$$->pactions_and_transitions = $3;
    
    	}
+ | statement_decl_list sequences
+ {
+	#ifdef PARSER_DEBUG
+	fprintf(yyout
+					,"Found %d sequence%s.\n"
+					, $2->count
+					, $2->count == 1 ? "" : "s"
+					);
+	#endif
+
+	$$ = $1;
+	$$->sequences = $2;
+
+ }
 	;
+
+sequence: SEQUENCE_KEY event_comma_list EVENT ';'
+	{
+		#ifdef PARSER_DEBUG
+		fprintf(yyout, "Found an event sequence\n");
+		#endif
+
+		add_to_list($2, $3);
+
+		$$ = $2;
+	}
+	;
+
+sequences: 
+	sequence 
+	{
+		if (($$ = init_list()) == NULL)
+    		yyerror("Out of memory");
+
+		add_to_list($$, $1);
+	}
+	| sequences sequence
+	{
+		#ifdef PARSER_DEBUG
+		fprintf(yyout, "Found another event sequence\n");
+		#endif
+
+		add_to_list($1, $2);
+
+		$$ = $1;
+
+	}
+	;
+
 
 machine_list:
     machine

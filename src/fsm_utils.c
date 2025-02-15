@@ -1807,5 +1807,49 @@ void parser_debug_print_data_block(pLIST plist, FILE *file)
 
    fprintf(file, "\n");
 }
+
+bool print_event_sequence_event(pLIST_ELEMENT pelem, void *data)
+{
+    pID_INFO         pevent = (pID_INFO) pelem->mbr;
+    pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+
+    fprintf(pih->fout
+            , "%s%s"
+            , pih->first ? (pih->first = false, "") : ", "
+            , pevent->name
+            );
+
+    return false;
+}
+
+bool print_event_sequence(pLIST_ELEMENT pelem, void *data)
+{
+    pLIST            sequence = (pLIST) pelem->mbr;
+    pITERATOR_HELPER pih      = (pITERATOR_HELPER) data;
+
+    fprintf(pih->fout
+            , "\tSequence %d: "
+            , pelem->ordinal
+            );
+
+    pih->first = true;
+
+    iterate_list(sequence, print_event_sequence_event, pih);
+
+    fprintf(pih->fout, "\n");
+
+    return false;
+}
+
+void parser_debug_print_event_sequences(pLIST sequences, FILE *file)
+{
+    ITERATOR_HELPER ih;
+
+    ih.fout = file;
+
+    iterate_list(sequences, print_event_sequence, &ih);
+
+    fprintf(file, "\n");
+}
 #endif
 
