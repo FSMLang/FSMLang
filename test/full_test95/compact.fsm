@@ -1,0 +1,53 @@
+native
+{
+#include "test.h"
+}
+
+/*
+ C submachines should be able to be created with compact arrays.
+*/
+machine compact
+native impl
+{
+#define INIT_FSM_DATA {.e1_payload = 0}
+}
+
+{
+
+data
+{
+	int e1_payload;
+}
+
+	event e1 data {int payload;};
+	event e2, e3, e4;
+	state s1, s2;
+
+	machine sub_compact
+	{
+		event parent::e1, parent::e2, parent::e3, e4;
+		state s1, s2;
+	
+		machine sub_sub_compact
+		{
+			event parent::e1, parent::e2, parent::e3, e4;
+			state s1, s2;
+		
+			action a1[e1, s1] transition s2;
+			action a2[(e1, e2), s2];
+			[e3, s2] transition s1;
+		}
+
+		action a1[e1, s1] transition s2;
+		action a2[e1, s2];
+		action a2[e2, s2];
+		[e3, s2] transition s1;
+	}
+
+	action a1[e1, s1] transition s2;
+	action a2[e1, s2];
+	action a3[e2, s2] transition s1;
+	[e3, s2] transition s1;
+
+}
+

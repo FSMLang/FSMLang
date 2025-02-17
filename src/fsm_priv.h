@@ -390,6 +390,7 @@ unsigned maxDepth(pMACHINE_INFO);
 void print_tab_levels(FILE*,unsigned);
 void streamStrCaseAware(FILE*,char*,ANCESTRY_LETTER_CASE);
 void increase_sub_machine_depth(pMACHINE_INFO);
+bool compacting(pMACHINE_INFO);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);
@@ -431,6 +432,7 @@ extern bool                 print_action_array;
 extern bool                 convenience_macros_in_public_header;
 extern bool                 add_profiling_macros;
 extern bool                 profile_sub_fsms;
+extern char                 *empty_cell_fn;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

@@ -1,0 +1,63 @@
+native
+{
+#include "test.h"
+extern void set_sub_state_s1(void);
+extern void set_sub_state_s2(void);
+extern void set_sub_state_s3(void);
+}
+
+/*
+	The new --empty-cell-fn=<fn_name> should result in fn_name being
+		called iff there is no action or transition for a given
+		event/state cell.
+
+	Action a1 is defined in e1,s1.
+	A transition is defined in e2, s1.
+
+	Event e3 is shared to the sub machine via action share in s1.
+
+	Within the sub machine:
+
+		Action a1 is defined in e3, s1.
+
+		A transition is defined in e3, s2.
+*/
+machine test_empty_cells
+{
+
+	event e1, e2, e3;
+	state s1, s2;
+
+	machine sub
+	native impl epilogue
+	{
+		void set_sub_state_s1()
+      {
+			psub->state = STATE(s1);
+		}
+
+		void set_sub_state_s2()
+      {
+			psub->state = STATE(s2);
+		}
+
+		void set_sub_state_s3()
+      {
+			psub->state = STATE(s3);
+		}
+
+	}
+	{
+		event parent::e3;
+		state s1, s2, s3;
+
+		action a1[e3, s1];
+		[e3, s2] transition s1;
+	}
+
+	action a1[e1, s1];
+	[e2, s1] transition s2;
+	action share[e3, s1];
+
+}
+

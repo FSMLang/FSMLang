@@ -3,7 +3,6 @@
 
 #include "top_level_priv.h"
 
-// provided by test.c
 extern void print_newMachine_data(pNEW_MACHINE_DATA);
 
 void newMachine_translate_e1_data(pNEW_MACHINE_DATA pfsm_data, pNEW_MACHINE_E1_DATA pevent_data)
@@ -101,8 +100,8 @@ NEW_MACHINE_EVENT_ENUM newMachine_doNothing(pNEW_MACHINE pfsm)
 
 NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(noAction)(FSM_TYPE_PTR pfsm)
 {
-	(void) pfsm;
 	DBG_PRINTF("%s", __func__);
+	(void) pfsm;
 	return THIS(noEvent);
 }
 
@@ -118,5 +117,11 @@ NEW_MACHINE_STATE __attribute__((weak)) UFMN(noTransitionFn)(pNEW_MACHINE pfsm, 
 {
 	(void) e;
 	return pfsm->state;
+}
+
+NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(shareSharedEvent)(pNEW_MACHINE pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return newMachine_pass_shared_event(pfsm, sharing_newMachine_eShared);
 }
 

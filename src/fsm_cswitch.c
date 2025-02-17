@@ -292,7 +292,7 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    fprintf(pcmd->hFile, "\n");
 
-   cswitchMachineHeaderEnd(pcmd, pmi, false);
+   cswitchMachineHeaderEnd(pcmd, pmi, empty_cell_fn != NULL);
 
    /*
      Source File
@@ -413,7 +413,7 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    fprintf(pcmd->hFile, "\n");
 
-   cswitchSubMachineHeaderEnd(pcmd, pmi, false);
+   cswitchSubMachineHeaderEnd(pcmd, pmi, empty_cell_fn != NULL);
 
    /*
      Source File
@@ -505,26 +505,26 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
    if (pmi->data)
    {
       fprintf(pcmd->hFile
-			  , "\t%-*sdata;\n"
+			  , "\t%-*s data;\n"
 			  , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 			  , fsmDataType(pcmd)
 			 );
    }
 
    fprintf(pcmd->hFile
-		   , "\t%-*sstate;\n"
+		   , "\t%-*s state;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , stateType(pcmd)
 		   );
 
    fprintf(pcmd->hFile
-		   , "\t%-*sevent;\n"
+		   , "\t%-*s event;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , eventType(pcmd)
 		  );
 
    fprintf(pcmd->hFile
-		   , "\t%-*sconst (*statesArray)[%s_numStates];\n"
+		   , "\t%-*s const (*statesArray)[%s_numStates];\n"
 		   , (int)pcmd->sub_machine_struct_format_width
 		   , stateFnType(pcmd)
 		   , machineName(pcmd)
@@ -533,7 +533,7 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
    if (pmi->machine_list)
    {
       fprintf(pcmd->hFile
-			  , "\tp%-*sconst (*subMachineArray)[%s_numSubMachines];\n"
+			  , "\tp%-*s const (*subMachineArray)[%s_numSubMachines];\n"
 			  , (int)pcmd->sub_machine_struct_format_width
 			  , subFsmIfType(pcmd)
 			   , fqMachineName(pcmd)
@@ -541,7 +541,7 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
    }
 
    fprintf(pcmd->hFile
-		   , "\t%-*sfsm;\n};\n\n"
+		   , "\t%-*s fsm;\n};\n\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , fsmFnType(pcmd)
 		   );
@@ -654,9 +654,10 @@ static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
 
 static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    if (pmi->machine_list)
    {
@@ -751,11 +752,23 @@ static bool define_void_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     if (pich->counter < pich->ih.pmi->event_list->count + 1)
     {
-        fprintf(pich->pcmd->cFile
-                , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
-                , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-                , ufMachineName(pich->pcmd)
-               );
+		fprintf(pich->pcmd->cFile, "\tdefault:\n");
+		if (empty_cell_fn)
+		{
+			fprintf(pich->pcmd->cFile
+					, "\t\tUFMN(%s)(pfsm);\n"
+					, empty_cell_fn
+					);
+		}
+		else
+		{
+			fprintf(pich->pcmd->cFile
+					, "\t\t%s(\"%s_noAction\");\n"
+					, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+					, ufMachineName(pich->pcmd)
+				   );
+		}
+		fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
     }
 
     fprintf(pich->pcmd->cFile, "\t}\n");
@@ -873,11 +886,23 @@ static bool define_event_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     if (pich->counter < pich->ih.pmi->event_list->count + 1)
     {
-        fprintf(pich->pcmd->cFile
-                , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
-                , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-                , ufMachineName(pich->pcmd)
-               );
+		fprintf(pich->pcmd->cFile, "\tdefault:\n");
+		if (empty_cell_fn)
+		{
+			fprintf(pich->pcmd->cFile
+					, "\t\tUFMN(%s)(pfsm);\n"
+					, empty_cell_fn
+					);
+		}
+		else
+		{
+			fprintf(pich->pcmd->cFile
+					, "\t\t%s(\"%s_noAction\");\n"
+					, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+					, ufMachineName(pich->pcmd)
+				   );
+		}
+		fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
     }
 
     fprintf(pich->pcmd->cFile, "\t}\n");
@@ -935,11 +960,23 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     if (pich->counter < pich->ih.pmi->event_list->count + 1)
     {
-        fprintf(pich->pcmd->cFile
-                , "\tdefault:\n\t\t%s(\"%s_noAction\");\n\t\tbreak;\n"
-                , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-                , ufMachineName(pich->pcmd)
-               );
+		fprintf(pich->pcmd->cFile, "\tdefault:\n");
+		if (empty_cell_fn)
+		{
+			fprintf(pich->pcmd->cFile
+					, "\t\tUFMN(%s)(pfsm);\n"
+					, empty_cell_fn
+					);
+		}
+		else
+		{
+			fprintf(pich->pcmd->cFile
+					, "\t\t%s(\"%s_noAction\");\n"
+					, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+					, ufMachineName(pich->pcmd)
+				   );
+		}
+		fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
     }
 
     fprintf(pich->pcmd->cFile, "\t}\n");
@@ -1044,12 +1081,11 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                 }
                 else
                 {
-                    fprintf(pich->pcmd->cFile
-                            , "#ifdef %s\n\t\t%s(\"%s_noAction\");\n#endif\n"
-                            , ucfqMachineName(pich->pcmd)
-                            , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-                            , ufMachineName(pich->pcmd)
-                            );
+					fprintf(pich->pcmd->cFile
+							, "\t\t%s(\"%s_noAction\");\n"
+							, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+							, ufMachineName(pich->pcmd)
+						   );
                 }
 
                 if (pai->transition)
@@ -1145,12 +1181,23 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                 }
                 else
                 {
-                    fprintf(pich->pcmd->cFile
-                            , "#ifdef %s_DEBUG\n\t\t%s(\"%s_noAction\");\n#endif\n"
-                            , ucfqMachineName(pich->pcmd)
-                            , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-                           , ufMachineName(pich->pcmd)
-                            );
+					fprintf(pich->pcmd->cFile, "\tdefault:\n");
+					if (empty_cell_fn)
+					{
+						fprintf(pich->pcmd->cFile
+								, "\t\tUFMN(%s)(pfsm);\n"
+								, empty_cell_fn
+								);
+					}
+					else
+					{
+						fprintf(pich->pcmd->cFile
+								, "\t\t%s(\"%s_noAction\");\n"
+								, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+								, ufMachineName(pich->pcmd)
+							   );
+					}
+					fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
                 }
 
                 if (pai->transition)
@@ -1428,8 +1475,9 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 {
    pITERATOR_CALLBACK_HELPER pich  = (pITERATOR_CALLBACK_HELPER) data;
    pID_INFO                  event = (pID_INFO) pelem->mbr;
+   pEVENT_DATA               ped   = &event->type_data.event_data;
 
-   if (event->type_data.event_data.single_pai_for_all_states)
+   if (ped->single_pai_for_all_states)
    {
       pich->counter++;
 
@@ -1441,7 +1489,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 
       if (pich->ih.pmi->modFlags & mfActionsReturnVoid)
       {
-          if (strlen(event->type_data.event_data.psingle_pai->action->name))
+          if (strlen(ped->psingle_pai->action->name))
           {
               if (add_profiling_macros)
               {
@@ -1452,7 +1500,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 
               fprintf(pich->pcmd->cFile
                      , "\t\t\tUFMN(%s)(pfsm);\n"
-                     , event->type_data.event_data.psingle_pai->action->name
+                     , ped->psingle_pai->action->name
                      );
 
               if (add_profiling_macros)
@@ -1465,21 +1513,21 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
           }
           else
           {
-              fprintf(pich->pcmd->cFile
-                      , "\t\t\tDBG_PRINTF(\"%s_noAction\");\n"
-                      , ufMachineName(pich->pcmd)
-                      );
+			  fprintf(pich->pcmd->cFile
+					  , "\t\tDBG_PRINTF(\"%s_noAction\");\n"
+					  , ufMachineName(pich->pcmd)
+					 );
           }
 
-         if (event->type_data.event_data.psingle_pai->transition)
+         if (ped->psingle_pai->transition)
          {
             fprintf(pich->pcmd->cFile
                     , "\t\t\t%s = UFMN(%s)%s;\n"
                      , (pich->ih.pmi->executes_fns_on_state_transitions)
                       ? "new_s" 
                       : "pfsm->state"
-                    , event->type_data.event_data.psingle_pai->transition->name
-                    , event->type_data.event_data.psingle_pai->transition->type == STATE
+                    , ped->psingle_pai->transition->name
+                    , ped->psingle_pai->transition->type == STATE
                        ? ""
                        : "(pfsm,e)"
                     );
@@ -1504,7 +1552,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 
              fprintf(pich->pcmd->cFile
                      , "\t\t\tretVal = UFMN(%s)(pfsm);\n"
-                     , event->type_data.event_data.psingle_pai->action->name
+                     , ped->psingle_pai->action->name
                      );
 
              if (add_profiling_macros)
@@ -1518,19 +1566,29 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
           else
           {
              fprintf(pich->pcmd->cFile,"\t\t\tretVal = THIS(noEvent);\n");
-             fprintf(pich->pcmd->cFile
-                     , "\t\t\tDBG_PRINTF(\"%s_noAction\");\n"
-                     , ufMachineName(pich->pcmd)
-                     );
+			 if (empty_cell_fn && (ped->psingle_pai->transition == NULL))
+			 {
+				 fprintf(pich->pcmd->cFile
+						 , "\t\tUFMN(%s)(pfsm);\n"
+						 , empty_cell_fn
+						 );
+			 }
+			 else
+			 {
+				 fprintf(pich->pcmd->cFile
+						 , "\t\t\tDBG_PRINTF(\"%s_noAction\");\n"
+						 , ufMachineName(pich->pcmd)
+						 );
+			 }
           }
-          if (event->type_data.event_data.psingle_pai->transition)
+          if (ped->psingle_pai->transition)
           {
              fprintf(pich->pcmd->cFile
                      , "\t\t\t%s = UFMN(%s)%s;\n"
                      , pich->pcmd->pmi->executes_fns_on_state_transitions
                        ? "new_s" : "pfsm->state"
-                     , event->type_data.event_data.psingle_pai->transition->name
-                     , event->type_data.event_data.psingle_pai->transition->type == STATE
+                     , ped->psingle_pai->transition->name
+                     , ped->psingle_pai->transition->type == STATE
                         ? ""
                         : "(pfsm,e)"
                      );

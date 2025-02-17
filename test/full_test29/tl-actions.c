@@ -37,3 +37,15 @@ TOP_LEVEL_EVENT __attribute__((weak)) UFMN(a1)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(handle_dispatch)(pTOP_LEVEL pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return top_level_pass_shared_event(pfsm, sharing_top_level_e6);
+}
+
+TOP_LEVEL_EVENT __attribute__((weak)) UFMN(handle_other_passed_event)(pTOP_LEVEL pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return top_level_pass_shared_event(pfsm, sharing_top_level_e7);
+}
+

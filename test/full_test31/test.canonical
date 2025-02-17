@@ -73,11 +73,11 @@ top_level_sub_machine3_a2
 
 top_level_sub_machine3_a3
 
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 The int: 0
@@ -109,11 +109,11 @@ top_level_sub_machine3_a2
 
 top_level_sub_machine3_a3
 
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 The int: 1
@@ -145,11 +145,11 @@ top_level_sub_machine3_a2
 
 top_level_sub_machine3_a3
 
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 The int: 2
@@ -181,11 +181,11 @@ top_level_sub_machine3_a2
 
 top_level_sub_machine3_a3
 
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 The int: 3
@@ -217,11 +217,11 @@ top_level_sub_machine3_a2
 
 top_level_sub_machine3_a3
 
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 The int: 4

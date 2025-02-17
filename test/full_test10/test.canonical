@@ -21,4 +21,4 @@ newMachine_machineTransitionFn
 	new state: newMachine_s3
 
 end state: newMachine_s3
-warning: cannot use external event designations
+Warning: Ignoring external event designations

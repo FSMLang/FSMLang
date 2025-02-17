@@ -148,3 +148,9 @@ NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(noAction)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
+NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(shareSharedEvent)(pNEW_MACHINE pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return newMachine_pass_shared_event(pfsm, sharing_newMachine_eShared);
+}
+
