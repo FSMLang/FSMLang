@@ -16,7 +16,8 @@ SRC = $(shell find . -name "*-actions.c" -printf "%P ")
 FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
 
 GENERATED_PLANTUML=subMachine1.plantuml \
-                   subMachine2.plantuml
+                   subMachine2.plantuml \
+                   top_level.plantuml
 
 TARGET = check_top_level_plantuml
 
@@ -30,4 +31,4 @@ check_top_level_plantuml: top_level.plantuml $(GENERATED_PLANTUML)
 	@rm -f test.result
 	@rm -f *.plantuml
 
-$(GENERATED_PLANTUML): top_level.plantuml
+$(GENERATED_PLANTUML): top_level.fsm
