@@ -2504,9 +2504,6 @@ int main(int argc, char **argv)
  						add_plantuml_title = true;
  					 break;
  			   case lo_add_plantuml_legend:
- 				   printf("adding plantuml legend: %s\n"
- 									, optarg ? optarg : " with no arguments"
- 									);
  					 if (!optarg)
 						 {
  					    add_plantuml_legend = true;

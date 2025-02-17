@@ -86,11 +86,11 @@ static bool find_id_by_name(pLIST_ELEMENT,void*);
 static bool compute_state_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool compute_event_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool add_inbound_state_wrapper(pLIST_ELEMENT,void*);
+static bool print_pid_name(pLIST_ELEMENT,void*);
 #ifdef PARSER_DEBUG
 static bool print_state_id_info(pLIST_ELEMENT,void*);
 static bool print_transition_info(pLIST_ELEMENT,void*);
 static bool print_full_action_info(pLIST_ELEMENT,void*);
-static bool print_pid_name(pLIST_ELEMENT,void*);
 static bool print_event_id_info(pLIST_ELEMENT,void*);
 static bool print_sharing_sub_machine(pLIST_ELEMENT,void*);
 #endif
