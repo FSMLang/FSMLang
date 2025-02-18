@@ -410,7 +410,7 @@
 	Revision 1.45.0
 
 	Implement --empty-cell-fn=<fn name> to allow user to designate a
-	function two be called when the state machine encounters an empty
+	function to be called when the state machine encounters an empty
 	event/state cell.
 
 	-c now works with sub-machines.
