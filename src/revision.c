@@ -407,11 +407,15 @@
 */
 
 /*
-	Revision 1.45.0-alpha.1
+	Revision 1.45.0
 
-	implement --empty-cell-fn=<fn name> to allow user to designate a
+	Implement --empty-cell-fn=<fn name> to allow user to designate a
 	function two be called when the state machine encounters an empty
 	event/state cell.
+
+	-c now works with sub-machines.
+
+	Not using --short-user-fn-names with sub-machines and -c now works.
 */
-const char rev_string[] = "1.45.0-alpha.1";
+const char rev_string[] = "1.45.0";
 
