@@ -1,6 +1,6 @@
 Hello, world.
 
-FSM version: 1.44.1
+FSM version: 1.45.0
 
 event: top_level_e1; state: top_level_s1
 top_level_a1
@@ -78,11 +78,11 @@ top_level_sub_machine3_a2
 top_level_sub_machine3_a3
 
 event: top_level_e6; state: top_level_s3
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 top_level_sub_machine1_handle_e7
@@ -111,11 +111,11 @@ top_level_sub_machine3_a2
 top_level_sub_machine3_a3
 
 event: top_level_e6; state: top_level_s3
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 top_level_sub_machine1_handle_e7
@@ -144,11 +144,11 @@ top_level_sub_machine3_a2
 top_level_sub_machine3_a3
 
 event: top_level_e6; state: top_level_s3
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 top_level_sub_machine1_handle_e7
@@ -177,11 +177,11 @@ top_level_sub_machine3_a2
 top_level_sub_machine3_a3
 
 event: top_level_e6; state: top_level_s3
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 top_level_sub_machine1_handle_e7
@@ -210,11 +210,11 @@ top_level_sub_machine3_a2
 top_level_sub_machine3_a3
 
 event: top_level_e6; state: top_level_s3
-weak: top_level_handle_dispatch
+top_level_handle_dispatch
 top_level_sub_machine1_noAction
 top_level_sub_machine2_noAction
 event: top_level_e7; state: top_level_s3
-weak: top_level_handle_other_passed_event
+top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
 top_level_sub_machine1_handle_e7

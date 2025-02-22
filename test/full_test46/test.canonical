@@ -145,7 +145,7 @@ event: newMachine_subMachine1_ee3; state: newMachine_s4
 newMachine_subMachine1_noAction
 
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 
 sub_machine1.data.cp: Good-bye, world.
@@ -170,7 +170,7 @@ event: newMachine_subMachine2_eee1; state: newMachine_s4
 weak: newMachine_subMachine2_aaa1
 
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 
 sub_machine1.data.cp: Good-bye, world.
@@ -193,7 +193,7 @@ event: newMachine_subMachine2_eee1; state: newMachine_s4
 newMachine_subMachine2_noAction
 
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 
 sub_machine1.data.cp: Good-bye, world.
@@ -218,7 +218,7 @@ event: newMachine_subMachine2_eee2; state: newMachine_s4
 newMachine_subMachine2_noAction
 
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 
 sub_machine1.data.cp: Good-bye, world.
@@ -241,7 +241,7 @@ event: newMachine_subMachine2_eee2; state: newMachine_s4
 newMachine_subMachine2_noAction
 
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 
 sub_machine1.data.cp: Good-bye, world.
@@ -266,7 +266,7 @@ event: newMachine_subMachine2_eee3; state: newMachine_s4
 newMachine_subMachine2_noAction
 
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 
 sub_machine1.data.cp: Good-bye, world.
@@ -305,7 +305,7 @@ event: newMachine_subMachine1_ee2; state: newMachine_s4
 newMachine_subMachine1_noAction
 
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 
 sub_machine1.data.cp: Good-bye, world.
@@ -328,7 +328,7 @@ event: newMachine_subMachine1_ee2; state: newMachine_s4
 newMachine_subMachine1_noAction
 
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 
 sub_machine1.data.cp: Good-bye, world.
@@ -367,7 +367,7 @@ event: newMachine_subMachine1_ee3; state: newMachine_s4
 newMachine_subMachine1_noAction
 
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
 
 sub_machine1.data.cp: Good-bye, world.

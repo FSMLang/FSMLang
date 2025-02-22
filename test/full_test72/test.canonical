@@ -156,7 +156,7 @@ do_end_critical
 marker 12
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -183,7 +183,7 @@ do_end_critical
 marker 14
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -208,7 +208,7 @@ do_end_critical
 marker 15
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -235,7 +235,7 @@ do_end_critical
 marker 17
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -261,7 +261,7 @@ do_end_critical
 marker 19
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -288,7 +288,7 @@ do_end_critical
 marker 21
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -331,7 +331,7 @@ do_end_critical
 marker 24
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -357,7 +357,7 @@ do_end_critical
 marker 26
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 
@@ -400,7 +400,7 @@ do_end_critical
 marker 29
 do_start_critical
 event: newMachine_eShared; state: newMachine_s4
-weak: newMachine_shareSharedEvent
+newMachine_shareSharedEvent
 subMachine1_eShared_dt
 sub_machine1.data.cp: Good-bye, world.
 

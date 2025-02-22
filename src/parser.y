@@ -2259,6 +2259,7 @@ typedef enum {
  , lo_convenience_macro_in_public_header
  , lo_add_profiling_macros
  , lo_profile_sub_fsms
+ , lo_empty_cell_fn
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2414,6 +2415,12 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_profile_sub_fsms
+    }
+		, {
+        .name      = "empty-cell-fn"
+        , .has_arg = required_argument
+        , .flag    = &longval
+				, .val     = lo_empty_cell_fn
     }
     , {0}
 };
@@ -2588,6 +2595,9 @@ int main(int argc, char **argv)
 								profile_sub_fsms = true;
 							}
 							break;
+            case lo_empty_cell_fn:
+                empty_cell_fn = optarg;
+                break;
             default:
                 usage();
                 return(0);
@@ -2797,7 +2807,7 @@ void usage(void)
 	char *item_end         = html_help ? "</li>\n"                   : "\n";
 	char *list_item_end    = html_help ? "</li>\n\t</ul>\n</li>\n"   : "\n";
 	char *lt               = html_help ? "&lt;"                      : "<";
-	char *gt               = html_help ? "&gt;"                      : "<";
+	char *gt               = html_help ? "&gt;"                      : ">";
 
 	fprintf(stdout
 			, "%s%sUsage : %s [-tc|s|e|h|p|r] [-o outfile] [-s] filename, where filename ends with '.fsm'%s"
@@ -3188,7 +3198,7 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s-Md print a lines suitable for inclusion in a Makefile giving the recipe for%s"
+		 ,"%s-Md print a line suitable for inclusion in a Makefile giving the recipe for%s"
 		 , item_start
 		 , list_start
 		 );
@@ -3228,6 +3238,18 @@ void usage(void)
 		 );
  fprintf(stdout
 		 ,"%smust also be enabled.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
+		 ,"%s--empty-cell-fn=%sname%s designates a function to be called when%s"
+		 , item_start
+      , lt
+      , gt
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%san event/state cell is empty.%s"
 		 , inner_item_start
 		 , list_item_end
 		 );

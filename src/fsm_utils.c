@@ -111,6 +111,7 @@ bool  output_generated_file_names_only          = false;
 bool  output_header_files                       = false;
 bool  output_make_recipe                        = false;
 bool  short_user_fn_names                       = false;
+char  *empty_cell_fn                            = NULL;
 
 void print_tab_levels(FILE *output, unsigned levels)
 {
@@ -1528,6 +1529,33 @@ char *create_string_from_file(FILE *file, unsigned long *str_len)
 	}
 
 	return cp;
+}
+
+/**
+ * Allow compacting only when actions return events.  Set the
+ * compacting request flag to false so that code generation will
+ * proceed without compacting.
+ * 
+ * @author Steven Stanton (2/2/2025)
+ * 
+ * @param pmi    
+ * 
+ * @return bool	true iff compact structures are requested and
+ *  	   allowed.
+ */
+bool compacting(pMACHINE_INFO pmi)
+{
+	if (compact_action_array && (pmi->modFlags & ACTIONS_RETURN_FLAGS))
+	{
+		fprintf(stderr
+				, "Warning: Ignoring compact array request because actions do not return events.\n"
+				);
+		compact_action_array = false;
+	}
+
+	return compact_action_array
+		   && !(pmi->modFlags & ACTIONS_RETURN_FLAGS)
+	       ;
 }
 
 #ifdef PARSER_DEBUG
