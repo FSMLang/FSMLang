@@ -1,3 +1,4 @@
+include $(OUTPUT_DIR)/system.mk
 
 .PHONY: test_file_listers test_file_creators $(LISTERS)
 
@@ -42,7 +43,7 @@ CREATORS = \
 
 FSM=$(OUTPUT_DIR)/fsm
 
-all: test_file_listers test_file_creators
+all: test_file_listers test_file_creators clean
 
 test_file_creators: test.json test.xml test.tab
 	@rm $?
@@ -54,11 +55,11 @@ test_file_listers: $(LISTERS)
 
 $(LISTERS): $(FSM) Makefile
 	$(FSM) $(FSM_FLAGS) test.fsm > $@.out
-	@diff $@.out $@.canonical > $@.result
+	@$(DIFF) $@.out $@.canonical > $@.result
 
 $(CREATORS): $(FSM) Makefile
 	$(FSM) $(FSM_FLAGS) test.fsm 
-	@diff $@ $@.canonical > $@.result
+	@$(DIFF) $@ $@.canonical > $@.result
 
 clean::
 	@rm -f *.out 2> /dev/null
