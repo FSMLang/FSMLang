@@ -215,6 +215,7 @@ void print_transition_for_assignment_to_state_var(pMACHINE_INFO,pID_INFO,char*,F
 void writeNoTransition(pCMachineData,pMACHINE_INFO);
 void writeReentrantPrologue(pCMachineData);
 void writeReentrantEpilogue(pCMachineData);
+void writeCMachineFN(pFSMOutputGenerator, pMACHINE_INFO);
 
 pCMachineData   newCMachineData(char*);
 
