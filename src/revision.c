@@ -417,5 +417,15 @@
 
 	Not using --short-user-fn-names with sub-machines and -c now works.
 */
-const char rev_string[] = "1.45.0";
+
+/*
+	Revision 1.45.1-alpha.1
+
+	Fixes issues with reporting files through -Md and -Mh which are
+	not actually built.
+
+	Also, removes _events.h files for sub-machines, since they are
+	empty.
+*/
+const char rev_string[] = "1.45.1-alpha.1";
 
