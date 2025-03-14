@@ -1363,6 +1363,13 @@ void destroyCMachineData(pCMachineData pcmd, int good)
 		  (void) unlink(pcmd->subMachineHName);
 	  }
 
+	  if (pcmd->parent_pcmd)
+	  {
+		  //sub-machines do not have event headers
+		  FCLOSE_AND_CLEAR(pcmd->eventsHFile);
+		  (void) unlink(pcmd->eventsHName);
+	  }
+
    }
 
    /* A special case */
@@ -3429,5 +3436,63 @@ void writeReentrantEpilogue(pCMachineData pcmd)
 		fprintf(pcmd->cFile, "\tFSM_END_CRITICAL;\n");
 		fprintf(pcmd->cFile, "#endif\n\n");
 	}
+}
+
+void writeCMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
+{
+	pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
+	 if (output_make_recipe || output_header_files)
+	 {
+		 for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
+		 {
+			 //if this machine has no sub-machines, skip _submach.h
+			 if (!pmi->machine_list
+				 && (cf == cf_subMachineH)
+				 )
+			 {
+				 continue;
+			 }
+
+			 //sub machines do not have public headers
+			 if (pfsmcog->pcmd->parent_pcmd && (cf == cf_pubH))
+			 {
+				 continue;
+			 }
+
+			 //sub machines do not have event headers
+			 if (pfsmcog->pcmd->parent_pcmd && (cf == cf_eventsH))
+			 {
+				 continue;
+			 }
+
+			 //if we're outputting headers (only), skip the source file
+			 if (output_header_files &&(cf == cf_c))
+			 {
+				 continue;
+			 }
+
+			 if (pfsmcog->pcmd->file_name_array[cf])
+			 {
+				 printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
+			 }
+		 }
+	 }
+	 else
+	 {
+		 printf("%s ", pfsmcog->pcmd->cName);
+	 }
+
+	 if (pmi->machine_list)
+	 {
+		 write_machines(pmi->machine_list, pfsmog->fsmogFactory, pfsmog);
+	 }
+
+	 if (output_make_recipe && !pfsmcog->pcmd->parent_pcmd)
+	 {
+		 printf(": %s.fsm\n"
+				, inputFileName
+				);
+		 printf("\t$(FSM) $(FSM_FLAGS) $<\n\n");
+	 }
 }
 

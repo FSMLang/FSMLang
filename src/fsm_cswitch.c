@@ -1793,7 +1793,7 @@ pFSMOutputGenerator generateCSwitchMachineWriter(pFSMOutputGenerator parent)
 	if (output_generated_file_names_only)
 	{
 		pfsmog->initOutput   = parent ? initCSubMachineFN : initCMachineFN;
-		pfsmog->writeMachine = writeCSwitchMachineFN;
+		pfsmog->writeMachine = writeCMachineFN;
 		pfsmog->closeOutput  = closeCMachineFN;
 	}
 
