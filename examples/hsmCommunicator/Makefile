@@ -30,12 +30,22 @@ OBJS = $(SRC:.c=.o) $(GENERATED_SRC:.c=.o)
 
 all: hsmCommunicator.exe
 
+run: hsmCommunicator.exe
+	@./$<
+
+do_check: hsmCommunicator.exe
+	@./$< > out
+	@diff out canonical > result
+
+check: do_check clean
+
 hsmCommunicator.exe: $(OBJS) Makefile
 	@$(CC) -o $@ $(OBJS) $(LDFLAGS)
 
 clean::
 	-@rm -f *.exe                          2> /dev/null
-	-@rm -f *.out                          2> /dev/null
+	-@rm -f out                            2> /dev/null
+	-@rm -f result                         2> /dev/null
 	-@rm -f fsmout                         2> /dev/null
 	-@rm -f *.d*                           2> /dev/null
 	-@rm -f *.fsmd*                        2> /dev/null
@@ -47,5 +57,5 @@ clean::
 	-@rm -f $(GENERATED_PLANTUML)          2> /dev/null
 
 stats.txt: $(FSM_SRC)
-	$(FSM) -s $< > $@
+	@$(FSM) -s $< > $@
 
