@@ -24,6 +24,10 @@ machine to its IN_SESSION state and cause it to send the message(s) which are en
 machine hsmCommunicator
 native impl
 {
+/* 
+   The barest skeleton of a queue has only a count.  We aren't really
+   sending messages, after all.
+*/
 unsigned queue_count = 0;
 }
 {
@@ -104,6 +108,17 @@ unsigned queue_count = 0;
     parseMessage returns STEP0_RESPONSE, STEP1_RESPONSE, noEvent;
     }
 
+    /**
+    <p>Send a message to the peer.
+    </p>
+    <p>Since the protocol allows only one message to be outsanding, the machine dequeues and transmits a message only
+    from the IDLE state, transitioning to the AWAITING_ACK state immediately thereafter.
+    </p>
+    <p>In the AWAITNG_ACK state, incomming messages are parsed and, when an ACK is found, the machine checks the queue
+    and transitions to the IDLE state.  Checking the queue can return the SEND_MESSAGE event, which will be handled
+    from the IDLE state, thus resulting in a transmission and return to the AWAITING_ACK state.
+    </p>
+    */
     machine sendMessage
     {
     event	parent::SEND_MESSAGE
@@ -140,15 +155,22 @@ unsigned queue_count = 0;
     /** Pass the MESSAGE_RECEIVED event along. */
     action passMessageReceived[MESSAGE_RECEIVED, (ESTABLISHING_SESSION, IN_SESSION)];
 
+    /** Extend the session timer and queue the message */
+    action queueMessage[SEND_MESSAGE, ESTABLISHING_SESSION];
+
     /** Extend the session timer and pass the message to be sent to the <i>sendMessage</i> machine. */
     action requestMessageTransmission[SEND_MESSAGE, IN_SESSION];
 
+    transition [SESSION_TIMEOUT, IN_SESSION] IDLE;
+
 
     /* these lines are informational; they affect the html output, but do not affect any C code generated. */
-    startSessionEstablishment   returns SEND_MESSAGE;
+    startSessionEstablishment   returns establishSession::ESTABLISH_SESSION_REQUEST;
     
     completeSessionStart        returns sendMessage::SEND_MESSAGE;
     
     requestMessageTransmission  returns sendMessage::SEND_MESSAGE;
+
+    queueMessage                returns noEvent;
 }
 
