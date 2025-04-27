@@ -55,6 +55,16 @@ HSM_COMMUNICATOR_EVENT  UFMN(passMessageReceived)(FSM_TYPE_PTR pfsm)
 	return hsmCommunicator_pass_shared_event(sharing_hsmCommunicator_MESSAGE_RECEIVED);
 }
 
+HSM_COMMUNICATOR_EVENT  UFMN(queueMessage)(FSM_TYPE_PTR pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	(void) pfsm;
+
+	queue_count++;
+
+	return THIS(noEvent);
+}
+
 HSM_COMMUNICATOR_EVENT  UFMN(requestMessageTransmission)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
@@ -74,6 +84,8 @@ HSM_COMMUNICATOR_EVENT  UFMN(noAction)(FSM_TYPE_PTR pfsm)
 
 int main(void)
 {
+	run_hsmCommunicator(THIS(SEND_MESSAGE));
+	run_hsmCommunicator(THIS(MESSAGE_RECEIVED));
 	run_hsmCommunicator(THIS(SEND_MESSAGE));
 	run_hsmCommunicator(THIS(MESSAGE_RECEIVED));
 	run_hsmCommunicator(THIS(MESSAGE_RECEIVED));
