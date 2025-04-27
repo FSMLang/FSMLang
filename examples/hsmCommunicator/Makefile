@@ -28,7 +28,7 @@ include ../../depends.mk
 
 OBJS = $(SRC:.c=.o) $(GENERATED_SRC:.c=.o)
 
-all: hsmCommunicator.exe
+check: hsmCommunicator.exe
 
 run: hsmCommunicator.exe
 	@./$<
