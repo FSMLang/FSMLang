@@ -424,7 +424,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    fprintf(pcmd->hFile, "#include <stdlib.h>\n");
    fprintf(pcmd->hFile, "#endif\n\n");
 
-   if (pmi->has_single_pai_events)
+   if (pmi->has_single_pai_events || (pmi->submachine_inhibitor_count > 0))
    {
       fprintf(pcmd->hFile, "#include <stdbool.h>\n");
    }
@@ -2175,7 +2175,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    fprintf(pcmd->hFile, "#include <stdlib.h>\n");
    fprintf(pcmd->hFile, "#endif\n\n");
 
-   if (pmi->has_single_pai_events)
+   if (pmi->has_single_pai_events || (pmi->submachine_inhibitor_count > 0))
    {
       fprintf(pcmd->hFile, "#include <stdbool.h>\n");
    }
