@@ -34,6 +34,7 @@
 */
 
 #include "fsm_rst.h"
+#include "y.tab.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 	#include <stdio.h>
@@ -90,6 +91,7 @@ static bool print_pid_as_reference_in_list(pLIST_ELEMENT,void*);
 static bool print_pmi_in_list(pLIST_ELEMENT,void*);
 
 static char * fqMachineName(pRSTMachineData);
+static char * fqMachineNamePMI(pMACHINE_INFO);
 
 struct _rst_machine_data_ {
 
@@ -102,8 +104,9 @@ struct _rst_machine_data_ {
 
 struct _fsm_rst_output_generator_
 {
-   FSMOutputGenerator fsmog;
-   pRSTMachineData   pmd;
+   FSMOutputGenerator     fsmog;
+   pRSTMachineData        pmd;
+   pFSMRSTOutputGenerator parent_fsmrstog;
 };
 
 struct _rst_iterator_helper_
@@ -135,6 +138,8 @@ pFSMOutputGenerator generateRSTMachineWriter(pFSMOutputGenerator parent)
 		pfsmrstog->fsmog.writeMachine = writeRSTWriter;
 		pfsmrstog->fsmog.initOutput   = initRSTWriter;
 		pfsmrstog->fsmog.closeOutput  = closeRSTWriter;
+
+		pfsmrstog->parent_fsmrstog    = (pFSMRSTOutputGenerator) parent;
 
 		pfsmog = (pFSMOutputGenerator)pfsmrstog;
 	}
@@ -746,7 +751,8 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 static void print_state_chart(pFSMRSTOutputGenerator pfsmrstog)
 {
 	fprintf(FOUT(pfsmrstog)
-			, "\n.. list-table:: State Chart\n%s:align: left\n%s:header-rows: 1\n%s:stub-columns: 1\n"
+			, "\n.. list-table:: State Chart\n%s:align: left\n%s:header-rows: 1\n%s:stub-columns: 1\n%s:class: scrollable\n"
+			, indent
 			, indent
 			, indent
 			, indent
@@ -804,6 +810,22 @@ char *fqMachineName(pRSTMachineData pcmd)
 	}
 
 	return pcmd->fqmn;
+}
+
+char *fqMachineNamePMI(pMACHINE_INFO pmi)
+{
+	FILE *tmp;
+	char *str = NULL;
+
+	/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+	if (NULL != (tmp = tmpfile()))
+	{
+		printAncestry(pmi, tmp, ".", alc_lower, ai_include_self);
+
+		str = create_string_from_file(tmp, NULL);
+	}
+
+	return str;
 }
 
 static bool print_state_chart_state_row(pLIST_ELEMENT pelem, void *data)
@@ -1057,12 +1079,37 @@ static bool print_pid_as_reference_in_list(pLIST_ELEMENT pelem, void *data)
 	}
 	else
 	{
+		char *fq_machine_name = fqMachineName(PMD(pfsmrstog));
+		bool free_str         = false;
+
+		/* Reset the machine name to the parent, if this is a shared event or it belongs to the parent. */
+		if (pid->type == EVENT)
+		{
+			if (
+				pid->type_data.event_data.shared_with_parent
+				|| (pfsmrstog->parent_fsmrstog && pid->powningMachine == pfsmrstog->parent_fsmrstog->pmd->pmi)
+				)
+			{
+				fq_machine_name = fqMachineName(PMD(pfsmrstog->parent_fsmrstog));
+			}
+			else if (pid->powningMachine != pfsmrstog->pmd->pmi)
+			{
+				fq_machine_name = fqMachineNamePMI(pid->powningMachine);
+				free_str        = true;
+			}
+		}
+
 		fprintf(FOUT(pfsmrstog)
 				, "* :ref:`%s <%s.%s>`\n"
 				, pid->name
-				, fqMachineName(PMD(pfsmrstog))
+				, fq_machine_name
 				, pid->name
 				);
+
+		if (free_str)
+		{
+			free(fq_machine_name);
+		}
 	}
 
 	return false;
