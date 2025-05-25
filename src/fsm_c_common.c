@@ -1788,9 +1788,16 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
            );
 
    fprintf(pcmd->cFile
-		   , "\t%s return_event = THIS(noEvent);\n"
+		   , "\t%s return_event = THIS(noEvent);\n\n"
 		   , eventType(pcmd)
            );
+
+   if (pmi->submachine_inhibitor_count)
+   {
+	   fprintf(pcmd->cFile
+			   , "\tif (!doNotInhibitSubMachines(pfsm->state))\n\t\treturn return_event;\n\n"
+			   );
+   }
 
    fprintf(pcmd->cFile, "\tfor (p");
    streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
