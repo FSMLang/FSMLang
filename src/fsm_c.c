@@ -1597,7 +1597,6 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 static void defineCMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
 	pCMachineData pcmd = pfsmcog->pcmd;
-	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
