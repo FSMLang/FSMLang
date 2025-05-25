@@ -49,7 +49,7 @@ extern int yylex(void);
 
 char *rindex(const char *str,int c);
 
-bool html_help = false;
+char help_fmt = '\0';
 
 pMACHINE_INFO               pmachineInfo = NULL;
 pFSMOutputGenerator         pfsmog       = NULL;
@@ -2546,10 +2546,10 @@ int main(int argc, char **argv)
 		case 'h':
       if (optarg[0])
       {
-        html_help = true;
+         help_fmt = optarg[0];
       }
 			usage();
-			return (1);
+			return (0);
 
  		case 's':
  			pfsmog = pMachineStatisticsWriter;
@@ -2738,55 +2738,112 @@ void yyerror(char *s)
 
 void usage(void)
 {
-	char *list_start       = html_help ? "\n<ul class=\"syntax\">\n" : "\n";
-	char *list_end         = html_help ? "</ul>\n"                   : "";
-	char *item_start       = html_help ? "<li>"                      : "\t";
-	char *inner_item_start = html_help ? "<li>"                      : "\t\t";
-	char *item_end         = html_help ? "</li>\n"                   : "\n";
-	char *list_item_end    = html_help ? "</li>\n\t</ul>\n</li>\n"   : "\n";
-	char *lt               = html_help ? "&lt;"                      : "<";
-	char *gt               = html_help ? "&gt;"                      : ">";
+	char *list_start;
+	char *list_end;
+	char *item_start;
+	char *expl_start;
+	char *inner_item_start;
+	char *item_end;
+	char *list_item_end;
+	char *lt;
+	char *gt;
+	char *dflt;
+
+  switch (help_fmt)
+  {
+    default:
+      list_start       = "\n";
+      list_end         = "";
+      item_start       = "\t";
+      expl_start       = " ";
+      inner_item_start = "\t\t";
+      item_end         = "\n";
+      list_item_end    = "\n";
+      lt               = "<";
+      gt               = ">";
+      dflt             = "*";
+      break;
+
+    case 'h':
+      list_start       = "\n<ul class=\"syntax\">\n";
+      list_end         = "</ul>\n";
+      item_start       = "<li>";
+      expl_start       = " ";
+      inner_item_start = "<li>";
+      item_end         = "</li>\n";
+      list_item_end    = "</li>\n\t</ul>\n</li>\n";
+      lt               = "&lt;";
+      gt               = "&gt;";
+      dflt             = "*";
+      break;
+
+    case 'r':
+      list_start       = "";
+      list_end         = "\n\n";
+      item_start       = "\n\n.. option:: ";
+      expl_start       = "\n\n\t";
+      inner_item_start = "\t";
+      item_end         = "";
+      list_item_end    = "\n\n";
+      lt               = "<";
+      gt               = ">";
+      dflt             = "*";
+      break;
+
+  }
 
 	fprintf(stdout
-			, "%s%sUsage : %s [-tc|s|e|h|p|r] [-o outfile] [-s] filename, where filename ends with '.fsm'%s"
+			, "%s%sUsage : %s [-tc|s|e|h|p|r] [-o outfile] %sfilename%s.fsm%s"
 			, list_start
 			, item_start
 			, me
+      , lt
+      , gt
 			, list_start
 			);
+
 	fprintf(stdout
-			, "%sand where 'c' gets you c code output based on an event/state table,%s"
-			, inner_item_start
-			, item_end
+			, "%s'c'%sgets you c code output based on an event/state table,%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
 			);
 	fprintf(stdout
-			,"%s's' gets you c code output with individual state functions using switch constructions,%s"
-			, inner_item_start
-			, item_end
+			,"%s's'%sgets you c code output with individual state functions using switch constructions,%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
 			);
 	fprintf(stdout
-			,"%s'e' gets you c code output with a table of functions for each event using switch constructions,%s"
-			, inner_item_start
-			, item_end
+			,"%s'e'%sgets you c code output with a table of functions for each event using switch constructions,%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
 			);
 	fprintf(stdout
-			,"%s'h' gets you html output%s"
-			, inner_item_start
-			, item_end
+			,"%s'h'%sgets you html output%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
 			);
 	fprintf(stdout
-			,"%s'p' gets you PlantUML output%s"
-			, inner_item_start
-			, item_end
+			,"%s'p'%sgets you PlantUML output%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
 			);
+
 	fprintf(stdout
-			,"%s'r' gets you reStructuredText output%s"
-			, inner_item_start
+			,"%s'r'%sgets you reStructuredText output%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
 			, list_item_end
 			);
+
 	fprintf(stdout
-			,"%s-i0 inhibits the creation of a machine instance%s"
+			,"%s-i0%sinhibits the creation of a machine instance%s"
 			, item_start
+      , expl_start
 			, list_start
 			);
 	fprintf(stdout
@@ -2800,8 +2857,9 @@ void usage(void)
 			, list_item_end
 			);
 	fprintf(stdout
-			,"%s-c will create a more compact event/state table when -tc is used%s"
+			,"%s-c%swill create a more compact event/state table when -tc is used%s"
 			, item_start
+      , expl_start
 			, list_start
 			);
 	fprintf(stdout
@@ -2810,15 +2868,17 @@ void usage(void)
 			, list_item_end
 			);
 	fprintf(stdout
-			,"%s-s prints some useful statistics and exits%s"
+			,"%s-s%sprints some useful statistics and exits%s"
 			, item_start
+      , expl_start
 			, item_end
 			);
 	fprintf(stdout
-			,"%s-o  %soutfile%s will use %soutfile%s as the filename for the top-level machine output.%s"
+			,"%s-o %soutfile%s%swill use %soutfile%s as the filename for the top-level machine output.%s"
 			, item_start
       , lt
       , gt
+      , expl_start
       , lt
       , gt
 			, list_start
@@ -2829,18 +2889,28 @@ void usage(void)
 			, list_item_end
 			);
 	fprintf(stdout
-			,"%s--generate-weak-fns=false suppresses the generation of weak function stubs.%s"
+			,"%s--generate-weak-fns=false%ssuppresses the generation of weak function stubs.%s"
 			, item_start
+      , expl_start
 			, item_end
 			);
 	fprintf(stdout
-			,"%s--short-user-fn-names=true causes user functions (such as action functions to use only the machine name when the sub-machine depth is 1).%s"
+			,"%s--short-user-fn-names=true%scauses user functions (such as action functions to use only the%s"
 			, item_start
+      , expl_start
 			, item_end
 			);
+
 	fprintf(stdout
-			,"%s--force-generation-of-event-passing-actions forces the generation of actions which pass events%s"
+     , "%smachine name when the sub-machine depth is 1).%s"
+		 , inner_item_start
+		 , item_end
+		 );
+
+	fprintf(stdout
+			,"%s--force-generation-of-event-passing-actions%sforces the generation of actions which pass events%s"
 			, item_start
+      , expl_start
 			, list_start
 			);
  fprintf(stdout
@@ -2854,15 +2924,17 @@ void usage(void)
 		 , list_item_end
 		 );
 	fprintf(stdout
-			,"%s--core-logging-only=true suppresses the generation of debug log messages in all but the core FSM function.%s"
+			,"%s--core-logging-only=true%ssuppresses the generation of debug log messages in all but the core FSM function.%s"
 			, item_start
+      , expl_start
 			, item_end
 			);
  fprintf(stdout
-		 ,"%s--generate-run-function%s=true|false%s this option is deprecated.  The run function is always generated;%s"
+		 ,"%s--generate-run-function%s=true|false%s%sthis option is deprecated.  The run function is always generated;%s"
 		 , item_start
      , lt
      , gt
+      , expl_start
 		 , list_start
 		 );
 	fprintf(stdout
@@ -2871,10 +2943,12 @@ void usage(void)
 			, list_item_end
 			);
 	fprintf(stdout
-			,"%s--include-svg-img%s=*true|false%s adds %simg/%s tag referencing %sfilename%s.svg to include an image at%s"
+			,"%s--include-svg-img%s=%strue|false%s%sadds %simg/%s tag referencing %sfilename%s.svg to include an image at%s"
 			, item_start
       , lt
+      , dflt
       , gt
+      , expl_start
       , lt
       , gt
       , lt
@@ -2887,15 +2961,17 @@ void usage(void)
 		  , list_item_end
 		  );
 	fprintf(stdout
-			,"%s--css-content-internal=true puts the CSS directly into the html.%s"
+			,"%s--css-content-internal=true%sputs the CSS directly into the html.%s"
 			, item_start
+      , expl_start
 			, item_end
 			);
 	fprintf(stdout
-			,"%s--css-content-filename=%sfilename%s uses the named file for the css citation, or%s"
+			,"%s--css-content-filename=%sfilename%s%suses the named file for the css citation, or%s"
 			, item_start
       , lt
       , gt
+      , expl_start
 			, list_start
 			);
 	fprintf(stdout
@@ -2904,17 +2980,22 @@ void usage(void)
 			, list_item_end
 			);
  fprintf(stdout
-		 ,"%s--add-plantuml-title=%s*true|false%s adds the machine name as a title to the plantuml.%s"
+		 ,"%s--add-plantuml-title=%s%strue|false%s%sadds the machine name as a title to the plantuml.%s"
 		 , item_start
       , lt
+      , dflt
       , gt
+      , expl_start
 		 , item_end
 		 );
  fprintf(stdout
-		 ,"%s--add-plantuml-legend=%s*center|left|right|top|*bottm%s adds a legend to the plantuml.%s"
+		 ,"%s--add-plantuml-legend=%s%scenter|left|right|top|%sbottm%s%sadds a legend to the plantuml.%s"
 		 , item_start
       , lt
+      , dflt
+      , dflt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -2943,10 +3024,12 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--exclude-states-from-plantuml-legend=%s*true|false%s excludes state information from the plantuml legend.%s"
+		 ,"%s--exclude-states-from-plantuml-legend=%s%strue|false%s%sexcludes state information from the plantuml legend.%s"
 		 , item_start
       , lt
+      , dflt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -2955,24 +3038,30 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--exclude-events-from-plantuml-legend=%s*true|false%s excludes event information from the plantuml legend.%s"
+		 ,"%s--exclude-events-from-plantuml-legend=%s%strue|false%s%sexcludes event information from the plantuml legend.%s"
 		 , item_start
       , lt
+      , dflt
       , gt
+      , expl_start
 		 , item_end
 		 );
  fprintf(stdout
-		 ,"%s--exclude-actions-from-plantuml-legend=%s*true|false%s excludes action information from the plantuml legend.%s"
+		 ,"%s--exclude-actions-from-plantuml-legend=%s%strue|false%s%sexcludes action information from the plantuml legend.%s"
 		 , item_start
       , lt
+      , dflt
       , gt
+      , expl_start
 		 , item_end
 		 );
  fprintf(stdout
-		 ,"%s--convenience-macros-in-public-header[=%s*true|false%s] includes convenience macros%s"
+		 ,"%s--convenience-macros-in-public-header[=%s%strue|false%s]%sincludes convenience macros%s"
 		 , item_start
       , lt
+      , dflt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -2986,15 +3075,18 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--add-machine-name adds the machine name when using the --short-debug-names option%s"
+		 ,"%s--add-machine-name%sadds the machine name when using the --short-debug-names option%s"
 		 , item_start
+      , expl_start
 		 , item_end
 		 );
  fprintf(stdout
-		 ,"%s--add-event-cross-reference%s=true|*false%s adds a cross-reference list as a comment block%s"
+		 ,"%s--add-event-cross-reference%s=true|%sfalse%s%sadds a cross-reference list as a comment block%s"
 		 , item_start
       , lt
+      , dflt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3008,10 +3100,12 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--event-cross-ref-only%s=*true|false%s creates a cross-reference list as a separate file.%s"
+		 ,"%s--event-cross-ref-only%s=%strue|false%s%screates a cross-reference list as a separate file.%s"
 		 , item_start
       , lt
+      , dflt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3027,8 +3121,9 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--event-cross-ref-format=[json|csv|tab|xml] specifies the output format for --event-cross-ref-only.%s"
+		 ,"%s--event-cross-ref-format=[json|csv|tab|xml]%sspecifies the output format for --event-cross-ref-only.%s"
 		 , item_start
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3037,10 +3132,11 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--add-plantuml-prefix-string=%stext%s will add the specified text to the plantuml output before%s"
+		 ,"%s--add-plantuml-prefix-string=%stext%s%swill add the specified text to the plantuml output before%s"
 		 , item_start
       , lt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3059,10 +3155,11 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--add-plantuml-prefix-file=%stext%s will add the text in the specified file%s"
+		 ,"%s--add-plantuml-prefix-file=%stext%s%swill add the text in the specified file%s"
 		 , item_start
       , lt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3086,8 +3183,9 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s-M prints the file name(s) of the source files that would have been created to stdout.%s"
+		 ,"%s-M%sprints the file name(s) of the source files that would have been created to stdout.%s"
 		 , item_start
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3111,8 +3209,9 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s-Mh prints the file name(s) of the headers that would have been created to stdout.%s"
+		 ,"%s-Mh%sprints the file name(s) of the headers that would have been created to stdout.%s"
 		 , item_start
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3136,8 +3235,9 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s-Md print a line suitable for inclusion in a Makefile giving the recipe for%s"
+		 ,"%s-Md%sprint a line suitable for inclusion in a Makefile giving the recipe for%s"
 		 , item_start
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3151,10 +3251,12 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--add-profiling-macros%s=true|*false%s adds profiling macros at the beginning%s"
+		 ,"%s--add-profiling-macros%s=true|%sfalse%s%sadds profiling macros at the beginning%s"
 		 , item_start
       , lt
+      , dflt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3163,10 +3265,12 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--profile-sub-fsms%s=true|*false%s adds profiling macros at the beginning%s"
+		 ,"%s--profile-sub-fsms%s=true|%sfalse%s%sadds profiling macros at the beginning%s"
 		 , item_start
       , lt
+      , dflt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3180,10 +3284,11 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s--empty-cell-fn=%sname%s designates a function to be called when%s"
+		 ,"%s--empty-cell-fn=%sname%s%sdesignates a function to be called when%s"
 		 , item_start
       , lt
       , gt
+      , expl_start
 		 , list_start
 		 );
  fprintf(stdout
@@ -3192,8 +3297,9 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
-		 ,"%s-v prints the version and exits%s%s"
+		 ,"%s-v%sprints the version and exits%s%s"
 		 , item_start
+      , expl_start
 		 , item_end
 		 , list_end
 		 );
