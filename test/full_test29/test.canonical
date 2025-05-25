@@ -241,3 +241,13 @@ event: top_level_e8; state: top_level_s3
 top_level_noAction
 event: top_level_e5; state: top_level_s4
 top_level_noAction
+event: top_level_e7; state: top_level_s4
+top_level_handle_other_passed_event
+top_level_sub_machine1_translate_e7_data
+
+The int: 4
+
+The string: loop: 4
+
+weak: top_level_sub_machine1_handle_e7
+weak: top_level_sub_machine3_handle_e7

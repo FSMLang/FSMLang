@@ -244,7 +244,7 @@ machine top_level
    action activate_sub_machine3[e4, s3];
 
    action handle_dispatch[e6, (s1, s2, s3)];
-   action handle_other_passed_event[e7, (s1, s2, s3)];
+   action handle_other_passed_event[e7, (s1, s2, s3, s4)];
 
 	transition [e8, (s1, s2, s3)] s4;
 

@@ -2194,6 +2194,7 @@ typedef enum {
  , lo_add_profiling_macros
  , lo_profile_sub_fsms
  , lo_empty_cell_fn
+ , lo_inhibiting_states_share_events
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2355,6 +2356,12 @@ const struct option longopts[] =
         , .has_arg = required_argument
         , .flag    = &longval
 				, .val     = lo_empty_cell_fn
+    }
+		, {
+        .name      = "inhibiting-states-share-events"
+        , .has_arg = required_argument
+        , .flag    = &longval
+				, .val     = lo_inhibiting_states_share_events
     }
     , {0}
 };
@@ -2535,6 +2542,10 @@ int main(int argc, char **argv)
             case lo_empty_cell_fn:
                 empty_cell_fn = optarg;
                 break;
+			      case lo_inhibiting_states_share_events:
+				      if (!optarg || !strcmp(optarg, "true"))
+					      inhibiting_states_share_events = true;
+				      break;
             default:
                 usage();
                 return(0);

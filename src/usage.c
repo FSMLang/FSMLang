@@ -611,6 +611,25 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
+		 ,"%s--inhibiting-states-share-events%s=%strue|false%s%sWhen true, events are shared to%s"
+		 , item_start
+		 , lt
+		 , dflt
+		 , gt
+		 , expl_start
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%ssub-machines even in states which inhibit them.  The default is to not share.%s"
+		 , inner_item_start
+		 , item_end
+		 );
+ fprintf(stdout
+		 ,"%sThis option allows sharing behavior of version 1.45.1 and before to be preserved.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
 		 ,"%s-v%sprints the version and exits%s%s"
 		 , item_start
       , expl_start

@@ -23,6 +23,7 @@ int main ()
 	DBG_PRINTF("\n");
    run_top_level(TOP_LEVEL(e8));
    run_top_level(TOP_LEVEL(e5));
+   run_top_level(TOP_LEVEL(e7));
 
    return 0;
 }
