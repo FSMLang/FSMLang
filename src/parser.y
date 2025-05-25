@@ -2359,7 +2359,7 @@ const struct option longopts[] =
     }
 		, {
         .name      = "inhibiting-states-share-events"
-        , .has_arg = required_argument
+        , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_inhibiting_states_share_events
     }
