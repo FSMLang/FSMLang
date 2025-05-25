@@ -14,5 +14,6 @@ SRC =	lexer.c                  \
 			fsm_statistics.c      \
 			fsm_c_event_xref.c    \
 			fsm_c_event_table.c   \
-			fsm_rst.c
+			fsm_rst.c             \
+			usage.c
 

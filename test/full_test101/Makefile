@@ -13,7 +13,7 @@ override CFLAGS += -DFSM_DEBUG \
 	 -Wall \
 	 -ggdb
 
-FSM_FLAGS = --inhibiting-states-share-events=true
+FSM_FLAGS = --inhibiting-states-share-events
 
 include ../variants.mk
 

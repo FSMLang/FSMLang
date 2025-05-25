@@ -199,6 +199,16 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
      Source File
    */
 
+   if (pmi->machine_list)
+   {
+	   declareSubMachineManagers(pcmd, pmi);
+   }
+
+   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   {
+	   declareStateEntryAndExitManagers(pcmd, pmi);
+   }
+
    /* Declare needed event functions. */
    ich.define = false;
    iterate_list(pmi->event_list
@@ -332,6 +342,21 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 	/*
 	    Source File
 	*/
+
+	if (pmi->machine_list)
+	{
+	   declareSubMachineManagers(pcmd, pmi);
+	}
+
+	if (pmi->data_block_count)
+	{
+	   declareEventDataManager(pcmd);
+	}
+
+	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+	{
+		declareStateEntryAndExitManagers(pcmd, pmi);
+	}
 
 	/* Declare needed event functions. */
 	ich.define = false;
@@ -1261,21 +1286,6 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pcmd->pmi;
 
-   if (pmi->machine_list)
-   {
-      declareSubMachineManagers(pcmd, pmi);
-   }
-
-   if (pmi->data_block_count)
-   {
-      declareEventDataManager(pcmd);
-   }
-
-   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-   {
-	   declareStateEntryAndExitManagers(pcmd, pmi);
-   }
-
    fprintf(pcmd->cFile, "\n");
 
    fprintf(pcmd->cFile
@@ -1534,16 +1544,6 @@ static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 	fprintf(pcmd->cFile
 			, "#endif\n"
 			);
-
-	if (pmi->machine_list)
-	{
-		declareSubMachineManagers(pcmd, pmi);
-	}
-
-	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-	{
-		declareStateEntryAndExitManagers(pcmd, pmi);
-	}
 
 	fprintf(pcmd->cFile
 			, "%s %sFSM(p%s pfsm, %s event)\n{\n"

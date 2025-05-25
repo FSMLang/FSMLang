@@ -66,6 +66,7 @@ bool include_svg_img                     = false;
 bool convenience_macros_in_public_header = true;
 bool add_profiling_macros                = false;
 bool profile_sub_fsms                    = false;
+bool inhibiting_states_share_events      = false;
 
 
 static char  *eventXRefFormat0Str = "\t%5u  ";
@@ -1788,9 +1789,16 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
            );
 
    fprintf(pcmd->cFile
-		   , "\t%s return_event = THIS(noEvent);\n"
+		   , "\t%s return_event = THIS(noEvent);\n\n"
 		   , eventType(pcmd)
            );
+
+   if (pmi->submachine_inhibitor_count && !inhibiting_states_share_events)
+   {
+	   fprintf(pcmd->cFile
+			   , "\tif (!doNotInhibitSubMachines(pfsm->state))\n\t\treturn return_event;\n\n"
+			   );
+   }
 
    fprintf(pcmd->cFile, "\tfor (p");
    streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
