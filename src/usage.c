@@ -446,6 +446,17 @@ void usage(void)
 		 , list_item_end
 		 );
  fprintf(stdout
+		 ,"%s--include-state-cross-refs=<*true|false>%sIncludes cross reference for states.%s"
+		 , item_start
+      , expl_start
+		 , list_start
+		 );
+ fprintf(stdout
+		 ,"%sTop-level states are placed in the same file as the events; sub-machines each get their own files.%s"
+		 , inner_item_start
+		 , list_item_end
+		 );
+ fprintf(stdout
 		 ,"%s--add-plantuml-prefix-string=%stext%s%swill add the specified text to the plantuml output before%s"
 		 , item_start
       , lt

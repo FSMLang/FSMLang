@@ -31,7 +31,7 @@
 #include "fsm_html.h"
 #include "fsm_plantuml.h"
 #include "fsm_statistics.h"
-#include "fsm_c_event_xref.h"
+#include "fsm_c_pid_xref.h"
 #include "fsm_rst.h"
 #include "usage.h"
 
@@ -2190,6 +2190,7 @@ typedef enum {
  , lo_short_user_fn_names
  , lo_event_cross_ref_only
  , lo_event_cross_ref_format
+ , lo_include_state_cross_refs
  , lo_convenience_macro_in_public_header
  , lo_add_profiling_macros
  , lo_profile_sub_fsms
@@ -2333,6 +2334,12 @@ const struct option longopts[] =
         , .flag    = &longval
 				, .val     = lo_event_cross_ref_format
 		}
+    , {
+        .name      = "include-state-cross-refs"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_include_state_cross_refs
+    }
 		, {
         .name      = "convenience-macros-in-public-header"
         , .has_arg = optional_argument
@@ -2441,6 +2448,10 @@ int main(int argc, char **argv)
          case lo_event_cross_ref_only:
  					 if (!optarg || !strcmp(optarg,"true"))
 						fpfsmogf = generateCEventXRefWriter;
+           break;
+         case lo_include_state_cross_refs:
+ 					 if (!optarg || !strcmp(optarg,"true"))
+              include_state_cross_refs = true;
            break;
          case lo_event_cross_ref_format:
            if (!check_requested_xref_format(optarg))
