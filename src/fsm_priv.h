@@ -220,6 +220,7 @@ struct _iterator_helper_
    unsigned      tab_level;
    bool          found;
    LIST_ITERATOR_FN pfn_sub_iterator;
+   char          *str;                  //!< for general use
 };
 
 

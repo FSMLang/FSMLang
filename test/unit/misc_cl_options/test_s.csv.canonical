@@ -8,4 +8,12 @@
 7,top_sub2_sub2Sub1_e1
 8,top_sub2_sub2Sub1_noEvent
 9,top_numAllEvents
+0,top_s1
+0,top_sub1_s1
+1,top_sub1_s2
+2,top_sub1_s3
+0,top_sub2_s1
+0,top_sub2_sub2Sub1_s1
+1,top_sub2_sub2Sub1_s2
+2,top_sub2_sub2Sub1_s3
 

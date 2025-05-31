@@ -19,6 +19,11 @@ test.json: FSM_FLAGS=--event-cross-ref-only=true
 test.xml: FSM_FLAGS=--event-cross-ref-format=xml
 test.tab: FSM_FLAGS=--event-cross-ref-format=tab
 test.csv: FSM_FLAGS=--event-cross-ref-format=csv
+test_s.json: FSM_FLAGS=--event-cross-ref-only=true --include-state-cross-refs
+test_s.xml: FSM_FLAGS=--event-cross-ref-format=xml --include-state-cross-refs=true
+test_s.tab: FSM_FLAGS=--event-cross-ref-format=tab --include-state-cross-refs
+test_s.csv: FSM_FLAGS=--event-cross-ref-format=csv --include-state-cross-refs
+test_s_f.csv: FSM_FLAGS=--event-cross-ref-format=csv --include-state-cross-refs=false
 
 LISTERS = \
         test_m_c  \
@@ -36,16 +41,21 @@ LISTERS = \
         test_m_r_o
 
 CREATORS = \
-         test.json \
-         test.xml  \
-         test.tab  \
-         test.csv
+         test.json   \
+         test.xml    \
+         test.tab    \
+         test.csv    \
+         test_s.json \
+         test_s.xml  \
+         test_s.tab  \
+         test_s.csv  \
+         test_s_f.csv 
 
 FSM=$(OUTPUT_DIR)/fsm
 
 all: test_file_listers test_file_creators clean
 
-test_file_creators: test.json test.xml test.tab
+test_file_creators: $(CREATORS)
 	@rm $?
 	@rm -f *.result
 
@@ -58,14 +68,11 @@ $(LISTERS): $(FSM) Makefile
 	@$(DIFF) $@.out $@.canonical > $@.result
 
 $(CREATORS): $(FSM) Makefile
-	$(FSM) $(FSM_FLAGS) test.fsm 
+	$(FSM) $(FSM_FLAGS) -o $(basename $@) test.fsm 
 	@$(DIFF) $@ $@.canonical > $@.result
 
 clean::
-	@rm -f *.out 2> /dev/null
-	@rm -f *.result 2> /dev/null
-	-@rm -f test.json 2> /dev/null
-	-@rm -f test.csv 2> /dev/null
-	-@rm -f test.tab 2> /dev/null
-	-@rm -f test.xml 2> /dev/null
+	@rm -f *.out        2> /dev/null
+	@rm -f *.result     2> /dev/null
+	-@rm -f $(CREATORS) 2> /dev/null
 
