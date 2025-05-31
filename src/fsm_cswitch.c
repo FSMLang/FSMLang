@@ -298,6 +298,26 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
      Source File
    */
 
+   if (pmi->machine_list)
+   {
+      declareSubMachineManagers(pcmd, pmi);
+   }
+
+   if (pmi->data_block_count)
+   {
+      declareEventDataManager(pcmd);
+   }
+
+   if (pmi->has_single_pai_events)
+   {
+       declareOrDefineSinglePAIEventHandler(pcmd, pmi, dod_declare);
+   }
+
+   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   {
+	   declareStateEntryAndExitManagers(pcmd, pmi);
+   }
+
    defineStateFnArray(pcmd, pmi);
 
    defineSubMachineArray(pcmd, pmi);
@@ -418,6 +438,16 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
    /*
      Source File
    */
+
+   if (pmi->machine_list)
+   {
+      declareSubMachineManagers(pcmd, pmi);
+   }
+
+   if (pmi->has_single_pai_events)
+   {
+       declareOrDefineSinglePAIEventHandler(pcmd, pmi, dod_declare);
+   }
 
    defineStateFnArray(pcmd, pmi);
 
@@ -586,26 +616,6 @@ static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pcmd->pmi;
 
-   if (pmi->machine_list)
-   {
-      declareSubMachineManagers(pcmd, pmi);
-   }
-
-   if (pmi->data_block_count)
-   {
-      declareEventDataManager(pcmd);
-   }
-
-   if (pmi->has_single_pai_events)
-   {
-       declareOrDefineSinglePAIEventHandler(pcmd, pmi, dod_declare);
-   }
-
-   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-   {
-	   declareStateEntryAndExitManagers(pcmd, pmi);
-   }
-
    fprintf(pcmd->cFile, "\n");
 
    fprintf(pcmd->cFile
@@ -658,16 +668,6 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 	pMACHINE_INFO pmi  = pcmd->pmi;
 
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
-
-   if (pmi->machine_list)
-   {
-      declareSubMachineManagers(pcmd, pmi);
-   }
-
-   if (pmi->has_single_pai_events)
-   {
-       declareOrDefineSinglePAIEventHandler(pcmd, pmi, dod_declare);
-   }
 
    fprintf(pcmd->cFile, "\n");
 

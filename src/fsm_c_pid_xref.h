@@ -38,6 +38,8 @@
 
 #include "fsm_priv.h"
 
+extern bool include_state_cross_refs;
+
 pFSMOutputGenerator generateCEventXRefWriter(pFSMOutputGenerator);
 bool                check_requested_xref_format(char*);
 

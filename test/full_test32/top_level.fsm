@@ -4,7 +4,6 @@ native
 #include <stdio.h>
 #include "test.h"
 #endif
-#include <stdbool.h>
 
 #define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e != THIS(e6))
 #define INIT_FSM_DATA {{0, {0}}}

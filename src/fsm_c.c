@@ -242,6 +242,16 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 	  Source File
 	*/
 
+	if (pmi->machine_list)
+	{
+		declareSubMachineManagers(pcmd, pmi);
+	}
+
+	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+	{
+		declareStateEntryAndExitManagers(pcmd, pmi);
+	}
+
 	defineActionArray(pcmd, pmi);
 
 	defineSubMachineIF(pcmd);
@@ -320,6 +330,20 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 	  Source File
 	*/
 
+	if (pmi->machine_list)
+	{
+		declareSubMachineManagers(pcmd, pmi);
+	}
+
+	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+	{
+		declareStateEntryAndExitManagers(pcmd, pmi);
+	}
+
+	if (pmi->data_block_count)
+	{
+		declareEventDataManager(pcmd);
+	}
 
 	defineActionArray(pcmd, pmi);
 
@@ -1573,29 +1597,8 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 static void defineCMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
 	pCMachineData pcmd = pfsmcog->pcmd;
-	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
-
-	if (pmi->machine_list)
-	{
-		declareSubMachineManagers(pcmd, pmi);
-	}
-
-	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-	{
-		declareStateEntryAndExitManagers(pcmd, pmi);
-	}
-
-	if (pmi->data_block_count)
-	{
-		declareEventDataManager(pcmd);
-	}
-
-	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
-	{
-		declareStateEntryAndExitManagers(pcmd, pmi);
-	}
 
 	fprintf(pcmd->cFile
 			, "#ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG\n"
