@@ -1,0 +1,194 @@
+.machine {
+	border-collapse: collapse;
+	border-style   : solid;
+	border-width   : .5px;
+	border-color   : black;
+}
+
+.machine td, .machine th {
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
+	padding     : 10px;
+}
+
+.machine_stats {
+	padding: 10px;
+	margin : 20px;
+}
+
+.machine_stats th {
+	text-align: left;
+}
+
+.eventLabel, .stateLabel, .blankCorner {
+	background-color: rgb(96,182,255);
+	padding         : 20px;
+}
+
+.stateLabel {
+    writing-mode:     vertical-rl;
+    text-orientation: upright;
+    position: -webkit-sticky; /* for Safari */
+    position: sticky;
+    left: 0;
+}
+
+.eventName th, .stateName th {
+	background-color: rgb(96,182,255);
+	border-style    : solid;
+	border-width    : .5px;
+	border-color    : black;
+}
+
+.eventName a, .stateName a {
+	color: black;
+}
+
+.action {
+	color: green;
+}
+
+.eventWithNoHandler {
+	color: red;
+}
+
+
+.action a {
+	color: green;
+}
+
+.nullAction, .deadEndState, .lazyState {
+	color: orange;
+}
+
+.stateWithNoEntry {
+	color: red;
+}
+
+.noAction {
+	color: green;
+}
+
+.elements {
+	margin         : 10px;
+	border-style   : solid;
+	border-collapse: collapse;
+	border-width   : .5px;
+	border-color   : black;
+	width          : 75%;
+	padding        : 20px;
+}
+
+.elements th {
+	background-color: rgb(96,182,255);
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
+	padding: 20px;
+}
+
+.elements td {
+	border-style: solid;
+	border-width: .5px;
+	border-color: black;
+	padding: 20px;
+}
+
+.elements .summary tr, th, td {
+	border-style:     none;
+	border-width:     0px;
+	padding:          3px;
+	background-color: white;
+}
+
+.label {
+	font-weight: bold;
+	padding    : 20px;
+}
+
+.action .return_decl {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.action .return_decl li {
+  margin-top: 0px;
+}
+
+.action ul + br {
+	content: "";
+	margin: 0px;
+	display: block;
+	font-size: 0px;
+}
+
+.noAction .return_decl {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+.noAction .return_decl li {
+  margin-top: 0px;
+}
+
+.noAction ul + br {
+	content: "";
+	margin: 0px;
+	display: block;
+	font-size: 0px;
+}
+
+a:link {
+	text-decoration: none;
+}
+
+a:visited {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:active {
+	text-decoration: underline;
+}
+
+
+/* 
+  The .scrollable styles enable scrolling of the
+   event-state table
+*/
+.scrollable {
+  max-height: 600px;
+  overflow: scroll;
+}
+
+
+.scrollable thead th {
+	background-color: rgb(96,182,255);
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  top: 0;
+}
+
+.scrollable tbody th {
+	background-color: rgb(96,182,255);
+  position: -webkit-sticky; /* for Safari */
+  position: sticky;
+  left: 0;
+}
+
+
+/* To have the header in the first column stick to the left: */
+
+.scrollable thead th:first-child {
+  left: 0;
+  z-index: 1;
+}
+
+code {
+  white-space: pre;
+}
+

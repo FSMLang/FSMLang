@@ -3,7 +3,7 @@
 #  .fsm rules
 #
 
-.SUFFIXES: .fsm .html .plantuml 
+.SUFFIXES: .fsm .html .plantuml .rst
 
 ifdef OUTPUT_DIR
 FSM=$(OUTPUT_DIR)/fsm
@@ -21,6 +21,8 @@ endif
 
 GENERATED_SRC = $(shell $(FSM) -M $(FSM_FLAGS) $(FSM_SRC))
 GENERATED_HDR = $(shell $(FSM) -Mh $(FSM_FLAGS) $(FSM_SRC))
+GENERATED_RST = $(shell $(FSM) -M -tr $(FSM_SRC))
+GENERATED_PLANTUML = $(shell $(FSM) -M -tp $(FSM_SRC))
 
 cleanfsm:
 	@-rm -f $(GENERATED_SRC) 2> /dev/null
@@ -42,6 +44,9 @@ cleanfsm:
 
 .fsm.plantuml:
 	@$(FSM) $(FSM_PLANTUML_FLAGS) -tp $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+
+.fsm.rst:
+	@$(FSM) $(FSM_RST_FLAGS) -tr $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
 
 $(FSM_SRC:.fsm=.html): $(FSM_SRC) $(FSM)
 
