@@ -427,5 +427,29 @@
 	Also, removes _events.h files for sub-machines, since they are
 	empty.
 */
-const char rev_string[] = "1.45.1";
+
+/*
+	Revision 1.46
+
+	Include stdbool.h when functions returning bool are generated.
+
+	Add RST as an opton to alternative output format for -h.  The
+	existence of these alternative formats is unpublished and
+	undocumented.
+
+	Move the usage function to its own file.
+
+	Add an option to include state enumerations in the cross-reference only
+	output.
+
+	Create a complete example of a hierarchical state machine.
+
+	Do not share events in states which inhibit sub-machines.  A new CL option,
+
+		--inhibiting-states-share-events=<*true|false>
+
+	has been added to preserve the previous behavior, which was to share events.
+
+*/
+const char rev_string[] = "1.46";
 
