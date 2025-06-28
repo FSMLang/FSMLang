@@ -45,6 +45,7 @@ struct _counter_str_
 	{
 		unsigned target;
 		unsigned start;
+		unsigned counter;
 	} ct;
 };
 
@@ -73,6 +74,15 @@ static bool update_ordinal(pLIST_ELEMENT pmbr, void *data)
 	pCOUNTER_STR pcs = (pCOUNTER_STR) data;
 
 	pmbr->ordinal += pcs->ct.start;
+
+	return false;
+}
+
+static bool reset_ordinals(pLIST_ELEMENT pmbr, void *data)
+{
+	pCOUNTER_STR pcs = (pCOUNTER_STR) data;
+
+	pmbr->ordinal = pcs->ct.counter++;
 
 	return false;
 }
@@ -109,6 +119,42 @@ pLIST_ELEMENT iterate_list(pLIST plist, LIST_ITERATOR_FN action, void *data)
    if (plist && action)
    {
       for (pLIST_ELEMENT mbr = plist->head;  mbr; mbr = mbr->next)
+      {
+         if ((*action)(mbr,data))
+         {
+            pfound = mbr;
+            break;
+         }
+      }
+   }
+
+   return pfound;
+}
+
+/**
+ * Iterate the given list from tail to head, calling the action
+ * function for each record.  Stop when the action function
+ * returns true, or the head of the list is found.
+ * 
+ * @author Steven Stanton (2/26/2025)
+ * 
+ * @param plist  The list to iterate; null is not an error
+ * @param action The action to perform on each list member; when
+ *  			 this function returns, the iteration will
+ *  			 cease
+ * @param data   Data to be passed to the action function
+ * 
+ * @return pLIST_ELEMENT a pointer to the record which caused
+ *  	   iteration to cease, or NULL, when there was no such
+ *  	   record.
+ */
+pLIST_ELEMENT reverse_iterate_list(pLIST plist, LIST_ITERATOR_FN action, void *data)
+{
+   pLIST_ELEMENT pfound = NULL;
+
+   if (plist && action)
+   {
+      for (pLIST_ELEMENT mbr = plist->tail;  mbr; mbr = mbr->prev)
       {
          if ((*action)(mbr,data))
          {
@@ -280,7 +326,7 @@ static bool list_copier_unique_with_exception(pLIST_ELEMENT pelem, void *data)
  ***********************************************************************************************************************/
 pLIST copy_list(pLIST dest, pLIST src)
 {
-   if (dest && src)
+	if (dest && src)
    {
       iterate_list(src,list_copier,dest);
    }
@@ -385,14 +431,16 @@ pLIST_ELEMENT add_to_list(pLIST plist, void *pmbr)
 
          if (NULL == plist->head)
          {
-            plist->head  = plist->tail = pelem;
-            plist->count = 1;
+			 plist->head  = plist->tail = pelem;
+			 pelem->prev  = NULL;
+			 plist->count = 1;
          }
          else
          {
-            plist->tail->next = pelem;
-            plist->tail       = pelem;
-            plist->count++;
+			 pelem->prev       = plist->tail;
+			 plist->tail->next = pelem;
+			 plist->tail       = pelem;
+			 plist->count++;
          }
       }
    }
@@ -455,5 +503,85 @@ pLIST_ELEMENT add_unique_to_list(pLIST plist, void *pmbr)
    }
 
    return pelem;
+}
+
+/**
+ * Remove the element containing the given member from the given
+ * list.
+ * 
+ * @author Steven Stanton (2/23/2025)
+ * 
+ * @param list   The list containing the member to be removed.
+ * @param pmbr   The member to be removed.
+ */
+void remove_from_list(pLIST plist, void *mbr)
+{
+	pLIST_ELEMENT pelem;
+
+	if (NULL != (pelem = iterate_list(plist, match_member, mbr)))
+	{
+		if (pelem == plist->head)
+		{
+			plist->head = pelem->next ? pelem->next : plist->tail;
+			plist->head->prev = NULL;
+		}
+		else if (pelem == plist->tail)
+		{
+			plist->tail = pelem->prev;
+			pelem->prev->next = NULL;
+		}
+		else
+		{
+			pelem->prev->next = pelem->next;
+			pelem->next->prev = pelem->prev;
+		}
+
+		plist->count--;
+		pelem->next = NULL;
+		//free(pelem);
+
+		if (plist->count == 0)
+		{
+			plist->head = plist->tail = NULL;
+		}
+
+		COUNTER_STR cs;
+		cs.ct.counter = 0;
+		iterate_list(plist, reset_ordinals, &cs);
+	}
+}
+
+
+/**
+ * Remove the nth member from the given list.
+ * 
+ * @author Steven Stanton (2/23/2025)
+ * 
+ * @param plist  The list in question.
+ * @param target The member in question.
+ */
+void remove_nth_list_member(pLIST plist, unsigned target)
+{
+	void *mbr = find_nth_list_member(plist, target);
+
+	if (mbr)
+	{
+		remove_from_list(plist, mbr);
+	}
+}
+
+/**
+ * Check for the presence of the given member in the given list.
+ * 
+ * @author Steven Stanton (6/28/2025)
+ * 
+ * @param plist  List to search
+ * @param mbr    item to find
+ * 
+ * @return bool true when the item is found; false when not.
+ */
+bool member_is_in_list(pLIST plist, void *mbr)
+{
+	return NULL != iterate_list(plist, match_member, mbr);
 }
 
