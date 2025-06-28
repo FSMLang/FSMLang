@@ -346,7 +346,10 @@ Found a transition_fn return declaration
 Found an action return declaration
 Starting an event sequence
 Found an event sequence
-Found 1 sequence.
+Starting an event sequence
+Found an event sequence
+Found another event sequence
+Found 2 sequences.
 process_action_info: a1
 	iterate_matrix_states: event: e1
 		add_to_action_array: state: s1
@@ -395,10 +398,13 @@ The events :
 
 	3:	e4 = BAR
 
-There is 1 event sequence given:
+There are 2 event sequences given:
 	Sequence 0 <unnamed>:
 		Initial State: s1
-		Events: e1, e2, e4
+		Events: e1, e2 (new state s3) , e4
+	Sequence 1 <unnamed>:
+		Initial State: s1
+		Events: e2, e3
 
 The actions :
 	a1

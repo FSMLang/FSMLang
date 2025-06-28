@@ -344,10 +344,9 @@ found the beginning of a state comma list
 found the continuation of a state comma list
 Found a transition_fn return declaration
 Found an action return declaration
-found the begining of an event comma list: e1
-found the continuation of an event comma list. adding e2
+Starting an event sequence
 Found an event sequence
-found the begining of an event comma list: e2
+Starting an event sequence
 Found an event sequence
 Found another event sequence
 Found 2 sequences.
@@ -400,8 +399,12 @@ The events :
 	3:	e4 = BAR
 
 There are 2 event sequences given:
-	Sequence 0: e1, e2, e4
-	Sequence 1: e2, e3
+	Sequence 0 <unnamed>:
+		Initial State: s1
+		Events: e1, e2, e4
+	Sequence 1 <unnamed>:
+		Initial State: s1
+		Events: e2, e3
 
 The actions :
 	a1
