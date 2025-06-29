@@ -1194,6 +1194,15 @@ static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	{
 		write_machines(pmi->machine_list, generateHTMLMachineWriter, pfsmog);
 	}
+
+	if (output_make_recipe && !pmi->parent)
+	{
+		printf(": %s.fsm\n"
+			   , inputFileName
+			   );
+
+		printf("\t$(FSM) -th $(FSM_HTML_FLAGS) $<\n\n");
+	}
 }
 
 static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
