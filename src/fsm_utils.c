@@ -86,8 +86,8 @@ static bool find_id_by_name(pLIST_ELEMENT,void*);
 static bool compute_state_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool compute_event_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool add_inbound_state_wrapper(pLIST_ELEMENT,void*);
-static bool print_pid_name(pLIST_ELEMENT,void*);
 #ifdef PARSER_DEBUG
+static bool print_pid_name(pLIST_ELEMENT,void*);
 static bool print_state_id_info(pLIST_ELEMENT,void*);
 static bool print_transition_info(pLIST_ELEMENT,void*);
 static bool print_full_action_info(pLIST_ELEMENT,void*);
@@ -243,8 +243,6 @@ void free_ids(pLIST id_list)
 void freeMachineInfo(pMACHINE_INFO pmi)
 {
 
-	unsigned							i;
-
 	if (!pmi)
 
 		return;
@@ -252,10 +250,8 @@ void freeMachineInfo(pMACHINE_INFO pmi)
 	/* and, the action array */
 	if (pmi->actionArray) {
 
-		for (i = 0; i < pmi->event_list->count; i++) {
-
-			CHECK_AND_FREE(pmi->actionArray[i]);
-
+		for (unsigned i = 0; i < pmi->event_list->count; i++) {
+            CHECK_AND_FREE(pmi->actionArray[i]);
 		}
 
 		FREE_AND_CLEAR(pmi->actionArray);
@@ -332,22 +328,29 @@ char *createFileName(char *base, char *ext)
 int allocateActionArray(pMACHINE_INFO pmi)
 {
 
-	unsigned i;
-
 	if (!pmi || !pmi->state_list->count || !pmi->event_list->count)
 		return 1;
 
-	if (!(pmi->actionArray = (pACTION_INFO **)calloc(pmi->event_list->count,sizeof(pACTION_INFO *))))
+    return allocateActionArray2(&pmi->actionArray, pmi->event_list->count, pmi->state_list->count);
+
+}
+
+int allocateActionArray2(pACTION_INFO*** array, unsigned num_events, unsigned num_states)
+{
+	if (!(*array = (pACTION_INFO **)calloc(num_events,sizeof(pACTION_INFO *))))
+    {
 		return 1;
+    }
 
-	for (i = 0; i < pmi->event_list->count; i++)
-
-		if (!(pmi->actionArray[i] = (pACTION_INFO *)calloc(pmi->state_list->count,sizeof(pACTION_INFO))))
-
-			return 1;
+	for (unsigned i = 0; i < num_events; i++)
+    {
+		if (!((*array)[i] = (pACTION_INFO *)calloc(num_states,sizeof(pACTION_INFO))))
+        {
+            return 1;
+        }
+    }
 
 	return 0;
-
 }
 
 static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
@@ -699,7 +702,7 @@ pID_INFO transitionPidByIndex(pMACHINE_INFO pmi, int index)
 */
 static bool enumerate_pid(pLIST_ELEMENT pelem, void *data)
 {
-   ((pID_INFO)pelem->mbr)->order = (*((unsigned*)data))++;
+   ((pID_INFO)pelem->mbr)->order = (*((int*)data))++;
    return false;
 }
 
@@ -1558,6 +1561,39 @@ bool compacting(pMACHINE_INFO pmi)
 	       ;
 }
 
+pID_INFO get_transition(pMACHINE_INFO pmi, unsigned event, unsigned state)
+{
+	pID_INFO     ptransition = NULL; 
+	pACTION_INFO pai;
+
+	if (NULL != (pai = pmi->actionArray[event][state]))
+	{
+		if (pai->transition)
+		{
+			ptransition = pai->transition;
+		}
+	}
+
+	return ptransition;
+}
+
+pID_INFO get_action(pMACHINE_INFO pmi, unsigned event, unsigned state)
+{
+	pID_INFO     paction = NULL;
+	pACTION_INFO pai;
+
+	if (NULL != (pai = pmi->actionArray[event][state]))
+	{
+		if (pai->action && strlen(pai->action->name))
+		{
+			paction = pai->action;
+		}
+	}
+
+	return paction;
+}
+
+
 #ifdef PARSER_DEBUG
 
 typedef struct _debug_list_helper_ DEBUG_LIST_HELPER, *pDEBUG_LIST_HELPER;
@@ -1838,46 +1874,60 @@ void parser_debug_print_data_block(pLIST plist, FILE *file)
 
 bool print_event_sequence_event(pLIST_ELEMENT pelem, void *data)
 {
-    pID_INFO         pevent = (pID_INFO) pelem->mbr;
-    pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+    pEVENT_SEQUENCE_NODE pesn = (pEVENT_SEQUENCE_NODE) pelem->mbr;
+    pITERATOR_HELPER     pih  = (pITERATOR_HELPER) data;
 
     fprintf(pih->fout
             , "%s%s"
             , pih->first ? (pih->first = false, "") : ", "
-            , pevent->name
+            , pesn->pevent->name
             );
 
-    return false;
+	if (pesn->pnew_state)
+	{
+		fprintf(pih->fout
+				, " (new state %s) "
+				, pesn->pnew_state->name
+				);
+	}
+
+	return false;
 }
 
 bool print_event_sequence(pLIST_ELEMENT pelem, void *data)
 {
-    pLIST            sequence = (pLIST) pelem->mbr;
+    pEVENT_SEQUENCE  sequence = (pEVENT_SEQUENCE) pelem->mbr;
     pITERATOR_HELPER pih      = (pITERATOR_HELPER) data;
 
     fprintf(pih->fout
-            , "\tSequence %d: "
+            , "\tSequence %d <%s>:\n\t\tInitial State: %s\n\t\tEvents: "
             , pelem->ordinal
+            , sequence->name ? sequence->name->name : "unnamed"
+            , sequence->initial_state->name
             );
 
     pih->first = true;
 
-    iterate_list(sequence, print_event_sequence_event, pih);
+    iterate_list(sequence->sequence, print_event_sequence_event, pih);
 
     fprintf(pih->fout, "\n");
 
     return false;
 }
 
-void parser_debug_print_event_sequences(pLIST sequences, FILE *file)
+void parser_debug_print_event_sequences(pMACHINE_INFO pmi, FILE *file)
 {
     ITERATOR_HELPER ih;
 
-    ih.fout = file;
+    if (pmi->sequences)
+    {
+        ih.fout = file;
+        ih.pmi  = pmi;
 
-    iterate_list(sequences, print_event_sequence, &ih);
+        iterate_list(pmi->sequences, print_event_sequence, &ih);
 
-    fprintf(file, "\n");
+        fprintf(file, "\n");
+    }
 }
 #endif
 

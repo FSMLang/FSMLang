@@ -34,6 +34,7 @@
 
 #include "fsm_plantuml.h"
 #include "list.h"
+//#include "event_sequences.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,11 +67,16 @@ typedef struct _puml_machine_data_ PlantUMLMachineData, *pPlantUMLMachineData;
 typedef struct _loop_back_event_ LOOP_BACK_EVENT, *pLOOP_BACK_EVENT;
 typedef struct _fsm_puml_sq_output_generator_ FSMPlantUMLSqOutputGenerator, *pFSMPlantUMLSqOutputGenerator;
 typedef struct _fsmpumlsq_og_factory_str_ FSMPumlSqOgFactoryStr, *pFSMPumlSqOgFactoryStr;
+typedef struct _sequence_iterator_helper_ SEQUENCE_ITERATOR_HELPER, *pSEQUENCE_ITERATOR_HELPER;
 
-static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(unsigned,pLIST);
+static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(unsigned,pEVENT_SEQUENCE);
+static pFSMPlantUMLSqOutputGenerator generatePlantUMLSeqFNWriter(unsigned,pEVENT_SEQUENCE);
+
 static char *create_sequence_name(unsigned);
 static bool write_sequence(pLIST_ELEMENT,void*);
 static void write_sequences(pMACHINE_INFO);
+
+static void write_sequence_names(pMACHINE_INFO);
 
 static int  initPlantUMLWriter(pFSMOutputGenerator,char *);
 static void writePlantUMLWriter(pFSMOutputGenerator,pMACHINE_INFO);
@@ -83,7 +89,17 @@ static void closePlantUMLFileNameWriter(pFSMOutputGenerator,int);
 static int initPlantUMLEventSequenceWriter(pFSMOutputGenerator,char*);
 static void writePlantUMLEventSequence(pFSMOutputGenerator,pMACHINE_INFO);
 
-typedef pFSMPlantUMLSqOutputGenerator (*fpGeneratePlantUMLSequenceWriter)(unsigned,pLIST);
+static int  initPlantUMLSeqFNWriter(pFSMOutputGenerator,char *);
+static void writePlantUMLSeqFN(pFSMOutputGenerator,pMACHINE_INFO);
+
+typedef pFSMPlantUMLSqOutputGenerator (*fpGeneratePlantUMLSequenceWriter)(unsigned,pEVENT_SEQUENCE);
+
+struct _sequence_iterator_helper_
+{
+	ITERATOR_HELPER ih;
+	pID_INFO        pcurr_state;
+	pLIST           pvisited_states;
+};
 
 struct _puml_machine_data_ {
 
@@ -102,8 +118,9 @@ struct _fsm_puml_output_generator_
 struct _fsm_puml_sq_output_generator_
 {
    FSMPlantUMLOutputGenerator fsmpumlog;
-   pLIST                      sequence;
+   pEVENT_SEQUENCE            sequence;
    unsigned                   ordinal;
+   char                       *name;
 };
 
 struct _fsmpumlsq_og_factory_str_
@@ -146,6 +163,131 @@ const char * const vertical_placement_strs[] =
 };
 
 /* list iteration callbacks */
+static bool hide_unvisited_state(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO                  pstate = (pID_INFO) pelem->mbr;
+	pITERATOR_HELPER          pih    = (pITERATOR_HELPER) data;
+	pSEQUENCE_ITERATOR_HELPER psih   = (pSEQUENCE_ITERATOR_HELPER) data;
+
+	if (!member_is_in_list(psih->pvisited_states, pstate))
+	{
+		fprintf(pih->fout
+				, "hide %s\n"
+				, pstate->name
+				);
+	}
+
+	return false;
+	
+}
+
+static bool print_seqence_node(pLIST_ELEMENT pelem, void *data)
+{
+	pEVENT_SEQUENCE_NODE      pesn  = (pEVENT_SEQUENCE_NODE) pelem->mbr;
+	pITERATOR_HELPER          pih   = (pITERATOR_HELPER) data;
+	pSEQUENCE_ITERATOR_HELPER psih  = (pSEQUENCE_ITERATOR_HELPER) data;
+
+	pID_INFO paction     = get_action(pih->pmi, pesn->pevent->order, psih->pcurr_state->order);
+	pID_INFO ptransition = get_transition(pih->pmi, pesn->pevent->order, psih->pcurr_state->order);
+
+	enum transition_note {tn_none, tn_state_mismatch, tn_fn_mismatch, tn_fn_match, tn_first_return, tn_no_fsm_transition} note_on_transition = tn_none;
+
+	fprintf(pih->fout
+			, "%s --> "
+			, psih->pcurr_state->name
+			);
+
+	if (pesn->pnew_state)
+	{
+		psih->pcurr_state = pesn->pnew_state;
+		if (ptransition)
+		{
+			if (ptransition->type == STATE && ptransition != pesn->pnew_state)
+			{
+				note_on_transition = tn_state_mismatch;
+			}
+			else if (ptransition->type != STATE)
+			{
+				note_on_transition = member_is_in_list(ptransition->transition_fn_returns_decl, pesn->pnew_state) ? tn_fn_match : tn_fn_mismatch;
+			}
+		}
+		else
+		{
+			note_on_transition = tn_no_fsm_transition;
+		}
+	}
+	else if (ptransition)
+	{
+		if (STATE == ptransition->type)
+		{
+			psih->pcurr_state = ptransition;
+		}
+		else
+		{
+			psih->pcurr_state = (pID_INFO) find_nth_list_member(ptransition->transition_fn_returns_decl, 0);
+			note_on_transition = tn_first_return;
+		}
+	}
+	fprintf(pih->fout, "%s", psih->pcurr_state->name);
+
+	fprintf(pih->fout
+			, ": **Event %u:** %s\\n"
+			, pelem->ordinal + 1
+			, pesn->pevent->name
+			);
+
+	fprintf(pih->fout
+			, " **Action:** %s"
+			, paction ? paction->name : "None"
+			);
+
+	fprintf(pih->fout, "\n");
+
+	if (note_on_transition != tn_none)
+	{
+		fprintf(pih->fout
+				, "note on link\n"
+				);
+		switch (note_on_transition)
+		{
+		case tn_no_fsm_transition:
+			fprintf(pih->fout
+					, "The sequence indicates a tranisition, but none is given in the FSM."
+					);
+			break;
+		case tn_state_mismatch:
+			fprintf(pih->fout
+					, "The tranisition indicated in the sequence does not match the FSM."
+					);
+			break;
+		case tn_fn_mismatch:
+		case tn_fn_match:
+			fprintf(pih->fout
+					, "State machine indicates transition is via function %s.\n\nThe transition given in the sequence is %sfound in the function's return declaration."
+					, ptransition->name
+					, note_on_transition == tn_fn_match ? "" : "not "
+					);
+			break;
+		case tn_first_return:
+			fprintf(pih->fout
+					, "State machine indicates transition is via function %s and no transition was indicated in the sequence.\n\n"
+					, ptransition->name
+					);
+			fprintf(pih->fout, "The first indicated return value was chosen.");
+			break;
+		default:
+			break;
+		}
+		fprintf(pih->fout
+				, "\nend note\n"
+				);
+	}
+
+	add_unique_to_list(psih->pvisited_states, psih->pcurr_state);
+
+	return false;
+}
+
 static bool print_sharing_machines(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO               pmi        = (pMACHINE_INFO) pelem->mbr;
@@ -436,19 +578,6 @@ static bool print_prefix_file(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-static bool print_pid_name(pLIST_ELEMENT pelem, void *data)
-{
-	pID_INFO         pid = (pID_INFO) pelem->mbr;
-	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
-
-	fprintf(pih->fout
-			, "%s\n"
-			, pid->name
-			);
-
-	return false;
-}
-
 /* Main section */
 static int initPlantUMLFileNameWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
@@ -534,6 +663,8 @@ static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	{
 		write_machines(pmi->machine_list, generatePlantUMLMachineWriter, pfsmog);
 	}
+
+   write_sequence_names(pmi);
 
 	if (output_make_recipe && !pfsmpumlog->parent)
 	{
@@ -831,7 +962,7 @@ pFSMOutputGenerator generatePlantUMLMachineWriter(pFSMOutputGenerator parent)
 	return pfsmog;
 }
 
-static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(unsigned ordinal, pLIST sequence)
+static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(unsigned ordinal, pEVENT_SEQUENCE sequence)
 {
 	pFSMPlantUMLSqOutputGenerator pfsmplantumlsqog = calloc(1, sizeof(FSMPlantUMLSqOutputGenerator));
 
@@ -848,8 +979,27 @@ static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(unsigned ord
 	return pfsmplantumlsqog;
 }
 
+static pFSMPlantUMLSqOutputGenerator generatePlantUMLSeqFNWriter(unsigned ordinal, pEVENT_SEQUENCE sequence)
+{
+	pFSMPlantUMLSqOutputGenerator pfsmplantumlsqog = calloc(1, sizeof(FSMPlantUMLSqOutputGenerator));
+
+	if (pfsmplantumlsqog)
+	{
+		pfsmplantumlsqog->fsmpumlog.fsmog.writeMachine = writePlantUMLSeqFN;
+		pfsmplantumlsqog->fsmpumlog.fsmog.initOutput   = initPlantUMLSeqFNWriter;
+		pfsmplantumlsqog->fsmpumlog.fsmog.closeOutput  = closePlantUMLFileNameWriter;
+		
+		pfsmplantumlsqog->sequence = sequence;
+		pfsmplantumlsqog->ordinal  = ordinal;
+	}
+
+	return pfsmplantumlsqog;
+}
+
 static void write_sequences(pMACHINE_INFO pmi)
 {
+//   process_event_sequences(pmi);
+
 	FSMPumlSqOgFactoryStr factory = {
 		.pmi = pmi
 		, .factory = generatePlantUMLSequenceWriter
@@ -861,10 +1011,23 @@ static void write_sequences(pMACHINE_INFO pmi)
 	}
 }
 
+static void write_sequence_names(pMACHINE_INFO pmi)
+{
+	FSMPumlSqOgFactoryStr factory = {
+		.pmi = pmi
+		, .factory = generatePlantUMLSeqFNWriter
+	};
+
+	if (pmi->sequences)
+	{
+		iterate_list(pmi->sequences, write_sequence, &factory);
+	}
+}
+
 static bool write_sequence(pLIST_ELEMENT pelem, void *data)
 {
-	pLIST psequence                                    = (pLIST) pelem->mbr;
-	pFSMPumlSqOgFactoryStr factory                     = (pFSMPumlSqOgFactoryStr) data;
+	pEVENT_SEQUENCE        psequence = (pEVENT_SEQUENCE) pelem->mbr;
+	pFSMPumlSqOgFactoryStr factory   = (pFSMPumlSqOgFactoryStr) data;
 
 	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (*factory->factory)(pelem->ordinal, psequence);
 
@@ -877,6 +1040,7 @@ static bool write_sequence(pLIST_ELEMENT pelem, void *data)
 		free(pfsmpumlsqog);
 	}
 
+	return false;
 }
 
 static char *create_sequence_name(unsigned ordinal)
@@ -902,11 +1066,11 @@ static int initPlantUMLEventSequenceWriter (pFSMOutputGenerator pfsmog, char *ba
 	int                           retVal;
 	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (pFSMPlantUMLSqOutputGenerator) pfsmog;
 
-	char *fn = create_sequence_name(pfsmpumlsqog->ordinal);
+	pfsmpumlsqog->name = create_sequence_name(pfsmpumlsqog->ordinal);
 
-	retVal = initPlantUMLWriter((pFSMOutputGenerator) pfsmpumlsqog, fn);
-
-	CHECK_AND_FREE(fn);
+	retVal = initPlantUMLWriter((pFSMOutputGenerator) pfsmpumlsqog
+								, pfsmpumlsqog->name
+								);
 
 	return retVal;
 }
@@ -914,15 +1078,62 @@ static int initPlantUMLEventSequenceWriter (pFSMOutputGenerator pfsmog, char *ba
 static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (pFSMPlantUMLSqOutputGenerator) pfsmog;
-	ITERATOR_HELPER ih;
+	SEQUENCE_ITERATOR_HELPER      sih;
 
-	ih.fout = pfsmpumlsqog->fsmpumlog.pmd->pumlFile;
-	ih.pmi  = pmi;
+	sih.ih.fout         = pfsmpumlsqog->fsmpumlog.pmd->pumlFile;
+	sih.ih.pmi          = pmi;
+	sih.pcurr_state     = pfsmpumlsqog->sequence->initial_state;
+	sih.pvisited_states = init_list();
 
-	iterate_list(pfsmpumlsqog->sequence
-				 , print_pid_name
-				 , &ih
+	if (add_plantuml_title)
+	{
+		fprintf(sih.ih.fout
+				, "title %s\n"
+				, pfsmpumlsqog->sequence->name ? pfsmpumlsqog->name : pfsmpumlsqog->name
+				);
+	}
+	iterate_list(pmi->state_list, print_state_name, pfsmpumlsqog);
+
+	fprintf(sih.ih.fout
+			, "[*] --> %s\n"
+			, sih.pcurr_state->name
+			);
+
+	add_unique_to_list(sih.pvisited_states, sih.pcurr_state);
+
+	iterate_list(pfsmpumlsqog->sequence->sequence
+				 , print_seqence_node
+				 , &sih
 				 );
+
+	//remove any states not visited
+	fprintf(sih.ih.fout, "\n");
+	iterate_list(pmi->state_list, hide_unvisited_state, &sih);
 	
+}
+
+static int  initPlantUMLSeqFNWriter(pFSMOutputGenerator pfsmog, char *baseFileName)
+{
+	(void) baseFileName;
+	int                           retVal;
+	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (pFSMPlantUMLSqOutputGenerator) pfsmog;
+
+	char *fn = create_sequence_name(pfsmpumlsqog->ordinal);
+
+	retVal = initPlantUMLFileNameWriter((pFSMOutputGenerator) pfsmpumlsqog, fn);
+
+	CHECK_AND_FREE(fn);
+
+	return retVal;
+}
+
+static void writePlantUMLSeqFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
+{
+	(void) pmi;
+
+	pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator)pfsmog;
+
+	printf("%s ", pfsmpumlog->pmd->pumlName);
+
 }
 
