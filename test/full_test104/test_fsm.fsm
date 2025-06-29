@@ -29,6 +29,7 @@ machine test_fsm
 	sequence e2, e3 transition s3;
 	sequence e3, e2;
 	sequence e2, e2 transition s3;
+	sequence eight start s2 e2, e2;
 
 }
 

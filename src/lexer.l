@@ -410,6 +410,14 @@ sequence {
 					#endif
 				}
 
+start {
+					#ifndef LEX_DEBUG
+					return START_KEY;
+					#else
+					printf("%s\n",strings[START_KEY]);
+					#endif
+				}
+
 union {
 					#ifndef LEX_DEBUG
 					return UNION_KEY;

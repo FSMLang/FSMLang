@@ -1033,7 +1033,7 @@ static bool write_sequence(pLIST_ELEMENT pelem, void *data)
 
 	if (pfsmpumlsqog)
 	{
-		pfsmpumlsqog->fsmpumlog.fsmog.initOutput((pFSMOutputGenerator) pfsmpumlsqog, NULL);
+		pfsmpumlsqog->fsmpumlog.fsmog.initOutput((pFSMOutputGenerator) pfsmpumlsqog, psequence->name ? psequence->name->name : NULL);
 		pfsmpumlsqog->fsmpumlog.fsmog.writeMachine((pFSMOutputGenerator) pfsmpumlsqog, factory->pmi);
 		pfsmpumlsqog->fsmpumlog.fsmog.closeOutput((pFSMOutputGenerator)pfsmpumlsqog, 1);
 
@@ -1066,7 +1066,7 @@ static int initPlantUMLEventSequenceWriter (pFSMOutputGenerator pfsmog, char *ba
 	int                           retVal;
 	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (pFSMPlantUMLSqOutputGenerator) pfsmog;
 
-	pfsmpumlsqog->name = create_sequence_name(pfsmpumlsqog->ordinal);
+	pfsmpumlsqog->name = baseFileName ? baseFileName : create_sequence_name(pfsmpumlsqog->ordinal);
 
 	retVal = initPlantUMLWriter((pFSMOutputGenerator) pfsmpumlsqog
 								, pfsmpumlsqog->name
@@ -1114,15 +1114,13 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 
 static int  initPlantUMLSeqFNWriter(pFSMOutputGenerator pfsmog, char *baseFileName)
 {
-	(void) baseFileName;
 	int                           retVal;
 	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (pFSMPlantUMLSqOutputGenerator) pfsmog;
 
-	char *fn = create_sequence_name(pfsmpumlsqog->ordinal);
-
-	retVal = initPlantUMLFileNameWriter((pFSMOutputGenerator) pfsmpumlsqog, fn);
-
-	CHECK_AND_FREE(fn);
+	pfsmpumlsqog->name = baseFileName ? baseFileName : create_sequence_name(pfsmpumlsqog->ordinal);
+	retVal = initPlantUMLFileNameWriter((pFSMOutputGenerator) pfsmpumlsqog
+										, pfsmpumlsqog->name
+										);
 
 	return retVal;
 }

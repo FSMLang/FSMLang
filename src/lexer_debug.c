@@ -75,5 +75,6 @@ char *strings[]  = {
   , "PROLOGUE_KEY"
   , "EPILOGUE_KEY"
   , "SEQUENCE_KEY"
+  , "START_KEY"
 };
 
