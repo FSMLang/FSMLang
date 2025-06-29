@@ -48,59 +48,6 @@
 
 static bool            cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
 
-void writeCSwitchMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
-{
-   pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
-	if (output_make_recipe)
-	{
-		for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
-		{
-			if (pfsmcog->pcmd->file_name_array[cf])
-			{
-				printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
-			}
-		}
-	}
-	else
-	{
-       if (output_header_files)
-       {
-          for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
-          {
-              //sub machines do not have public headers
-              if (pfsmcog->pcmd->parent_pcmd)
-              {
-                 if (cf == cf_pubH)
-                 {
-                    continue;
-                 }
-              }
-              if (cf != cf_c && pfsmcog->pcmd->file_name_array[cf])
-              {
-                 printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
-              }
-          }
-       }
-       else
-       {
-          printf("%s ", pfsmcog->pcmd->cName);
-       }
-	}
-
-    if (pmi->machine_list)
-    {
-        write_machines(pmi->machine_list, pfsmog->fsmogFactory, pfsmog);
-    }
-
-	if (output_make_recipe && !pfsmcog->pcmd->parent_pcmd)
-	{
-		printf(": %s.fsm\n"
-			   , inputFileName
-			   );
-		printf("\t$(FSM) $(FSM_FLAGS) $<\n\n");
-	}
-}
-
 void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
 {
    ITERATOR_CALLBACK_HELPER ich = { 0 };
@@ -241,15 +188,10 @@ void writeOriginalSwitchFSMLoopAre(pFSMCOutputGenerator pfsmcog)
 			  , "\t\t\t\te ="
 			  );
 
-      if (pmi->submachine_inhibitor_count)
-      {
-         fprintf(pcmd->cFile
-                 , " (!doNotInhibitSubMachines(pfsm->state)) ? THIS(noEvent) :\n"
-                 );
-      }
-
       fprintf(pcmd->cFile
-              , " findAndRunSubMachine(pfsm, e);"
+              , "%sfindAndRunSubMachine(pfsm, e)%s;"
+			  , pmi->submachine_inhibitor_count ? " doNotInhibitSubMachines(pfsm->state) ? " : " "
+			  , pmi->submachine_inhibitor_count ? " : THIS(noEvent)" : ""
               );
       fprintf(pcmd->cFile
               , "\n\t\t}\n\n\t}"
@@ -497,16 +439,11 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
                , "\n\t\tif ((e > THIS(noEvent))\n\t\t\t&& (e < THIS(lastEvent)))\n\t\t{\n\t\t\te ="
               );
 
-       if (pmi->submachine_inhibitor_count)
-       {
-          fprintf(pcmd->cFile
-                  , "\t\t\t(!doNotInhibitSubMachines(pfsm->state))\n\t\t\t\t? THIS(noEvent)\n\t\t\t\t:"
-                  );
-       }
-
-       fprintf(pcmd->cFile
-               , " findAndRunSubMachine(pfsm, e);\n\t\t}\n"
-               );
+	   fprintf(pcmd->cFile
+			   , "%sfindAndRunSubMachine(pfsm, e)%s;\n\t\t}\n"
+			   , pmi->submachine_inhibitor_count ? " doNotInhibitSubMachines(pfsm->state) ? " : " "
+			   , pmi->submachine_inhibitor_count ? " : THIS(noEvent)" : ""
+			   );
    }
 
    if (add_profiling_macros && profile_sub_fsms)

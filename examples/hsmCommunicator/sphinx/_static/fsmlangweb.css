@@ -1,0 +1,110 @@
+.code {
+	font-family: monospace;
+	white-space: pre-line;
+	margin: 0px;
+	padding: 10px;
+	border: 1px solid black;
+	background-color: blanchedalmond;
+	color: green;
+}
+
+.code p {
+	position: relative;
+	top: 0px;
+	left: 40px;
+	font-family: serif;
+	white-space: pre-line;
+	margin-left: 20px;
+	margin-right: 25%;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	padding: 0px;
+}
+
+.code .block {
+	position: relative;
+	left: 20px;
+	margin: 0px;
+	padding: 0px;
+}
+
+.code .keyword {
+	color: darkslateblue;
+	font-weight: bold;
+}
+
+
+.keyword {
+	color: blue;
+	font-weight: bold;
+}
+
+.inset {
+	text-indent: .5in;
+}
+
+.syntax {
+	padding: 20px;
+}
+
+.syntax ul {
+	padding: 0;
+	margin-left: 40px;
+}
+
+.syntax li {
+	margin: 10px;
+	list-style: none;
+}
+
+iframe {
+	display: block;
+	width:  95%;
+	height: 400px;
+	margin: .25in;
+}
+
+table.release_notes, table.issues {
+	border: 1px solid;
+	border-collapse: collapse;
+}
+
+table.release_notes th {
+	min-width: 10%;
+}
+
+table.release_notes th, table.release_notes td, table.issues th, table.issues td {
+	border:         1px solid;
+	vertical-align: top;
+	padding:        10px;
+}
+
+table.no_border th {
+	text-align:     left;
+}
+
+table.no_border th, table.no_border td {
+	vertical-align: top;
+	padding:        10px;
+	margin:         20px;
+}
+
+.sidebar {
+	float:     inline-end;
+	margin:    20px;
+	padding:   20px;
+	max-width: 25%;
+	min-width: 15%;
+	border:    1px solid black;
+	background: cornsilk;
+}
+
+.after-sidebar {
+	clear: both;
+}
+
+.overview {
+	margin: 0 auto;
+	box-sizing: boarder-box;
+	display: flow;
+}

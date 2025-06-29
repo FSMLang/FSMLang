@@ -34,10 +34,12 @@ $(ARCHITECTURES):
 
 $(addsuffix .clean, $(ARCHITECTURES)):
 	$(MAKE) -j -C ../test OUTPUT_DIR="$(shell pwd)/$(OUT_DIR)" clean
+	$(MAKE) -j -C ../examples clean
 	$(MAKE) -j -C $(OUT_DIR) clean
 
 $(addsuffix .test, $(ARCHITECTURES)): $$(basename $$@)
 	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) test
+	$(MAKE) -C ../examples FSM="$(shell pwd)/$(OUT_DIR)/fsm"
 
 $(addsuffix .testonly, $(ARCHITECTURES)): $$(basename $$@)
 	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) testonly
@@ -47,4 +49,7 @@ $(addsuffix .lexer, $(ARCHITECTURES)):
 
 $(addsuffix .parser, $(ARCHITECTURES)):
 	$(MAKE) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test parser
+
+$(addsuffix .examples, $(ARCHITECTURES)): $$(basename $$@)
+	$(MAKE) -C ../examples FSM="$(OUTPUT_DIR)/fsm"
 

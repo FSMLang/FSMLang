@@ -4,7 +4,6 @@ native
 #include <stdio.h>
 #include "test.h"
 #endif
-#include <stdbool.h>
 
 #define INIT_FSM_DATA {.field1 = 0, .field2 = {0}}
 }

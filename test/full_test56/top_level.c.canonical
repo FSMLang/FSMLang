@@ -19,6 +19,8 @@ extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine3_sub_fsm_if;
 static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
 static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
 static TOP_LEVEL_EVENT s3_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
+static TOP_LEVEL_EVENT findAndRunSubMachine(pTOP_LEVEL,TOP_LEVEL_EVENT);
+
 static const TOP_LEVEL_STATE_FN top_level_state_fn_array[top_level_numStates] = 
 {
 	  s1_stateFn
@@ -51,8 +53,6 @@ void run_top_level(TOP_LEVEL_EVENT e)
 		ptop_level->fsm(ptop_level,e);
 	}
 }
-
-static TOP_LEVEL_EVENT findAndRunSubMachine(pTOP_LEVEL,TOP_LEVEL_EVENT);
 
 
 #ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG

@@ -237,6 +237,7 @@ struct _iterator_helper_
    unsigned      tab_level;
    bool          found;
    LIST_ITERATOR_FN pfn_sub_iterator;
+   char          *str;                  //!< for general use
 };
 
 
@@ -454,6 +455,7 @@ extern bool                 convenience_macros_in_public_header;
 extern bool                 add_profiling_macros;
 extern bool                 profile_sub_fsms;
 extern char                 *empty_cell_fn;
+extern bool                 inhibiting_states_share_events;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

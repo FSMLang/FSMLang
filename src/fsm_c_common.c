@@ -66,6 +66,7 @@ bool include_svg_img                     = false;
 bool convenience_macros_in_public_header = true;
 bool add_profiling_macros                = false;
 bool profile_sub_fsms                    = false;
+bool inhibiting_states_share_events      = false;
 
 
 static char  *eventXRefFormat0Str = "\t%5u  ";
@@ -424,7 +425,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    fprintf(pcmd->hFile, "#include <stdlib.h>\n");
    fprintf(pcmd->hFile, "#endif\n\n");
 
-   if (pmi->has_single_pai_events)
+   if (pmi->has_single_pai_events || (pmi->submachine_inhibitor_count > 0))
    {
       fprintf(pcmd->hFile, "#include <stdbool.h>\n");
    }
@@ -1363,6 +1364,13 @@ void destroyCMachineData(pCMachineData pcmd, int good)
 		  (void) unlink(pcmd->subMachineHName);
 	  }
 
+	  if (pcmd->parent_pcmd)
+	  {
+		  //sub-machines do not have event headers
+		  FCLOSE_AND_CLEAR(pcmd->eventsHFile);
+		  (void) unlink(pcmd->eventsHName);
+	  }
+
    }
 
    /* A special case */
@@ -1781,9 +1789,16 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
            );
 
    fprintf(pcmd->cFile
-		   , "\t%s return_event = THIS(noEvent);\n"
+		   , "\t%s return_event = THIS(noEvent);\n\n"
 		   , eventType(pcmd)
            );
+
+   if (pmi->submachine_inhibitor_count && !inhibiting_states_share_events)
+   {
+	   fprintf(pcmd->cFile
+			   , "\tif (!doNotInhibitSubMachines(pfsm->state))\n\t\treturn return_event;\n\n"
+			   );
+   }
 
    fprintf(pcmd->cFile, "\tfor (p");
    streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
@@ -2168,7 +2183,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    fprintf(pcmd->hFile, "#include <stdlib.h>\n");
    fprintf(pcmd->hFile, "#endif\n\n");
 
-   if (pmi->has_single_pai_events)
+   if (pmi->has_single_pai_events || (pmi->submachine_inhibitor_count > 0))
    {
       fprintf(pcmd->hFile, "#include <stdbool.h>\n");
    }
@@ -3429,5 +3444,63 @@ void writeReentrantEpilogue(pCMachineData pcmd)
 		fprintf(pcmd->cFile, "\tFSM_END_CRITICAL;\n");
 		fprintf(pcmd->cFile, "#endif\n\n");
 	}
+}
+
+void writeCMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
+{
+	pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
+	 if (output_make_recipe || output_header_files)
+	 {
+		 for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
+		 {
+			 //if this machine has no sub-machines, skip _submach.h
+			 if (!pmi->machine_list
+				 && (cf == cf_subMachineH)
+				 )
+			 {
+				 continue;
+			 }
+
+			 //sub machines do not have public headers
+			 if (pfsmcog->pcmd->parent_pcmd && (cf == cf_pubH))
+			 {
+				 continue;
+			 }
+
+			 //sub machines do not have event headers
+			 if (pfsmcog->pcmd->parent_pcmd && (cf == cf_eventsH))
+			 {
+				 continue;
+			 }
+
+			 //if we're outputting headers (only), skip the source file
+			 if (output_header_files &&(cf == cf_c))
+			 {
+				 continue;
+			 }
+
+			 if (pfsmcog->pcmd->file_name_array[cf])
+			 {
+				 printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
+			 }
+		 }
+	 }
+	 else
+	 {
+		 printf("%s ", pfsmcog->pcmd->cName);
+	 }
+
+	 if (pmi->machine_list)
+	 {
+		 write_machines(pmi->machine_list, pfsmog->fsmogFactory, pfsmog);
+	 }
+
+	 if (output_make_recipe && !pfsmcog->pcmd->parent_pcmd)
+	 {
+		 printf(": %s.fsm\n"
+				, inputFileName
+				);
+		 printf("\t$(FSM) $(FSM_FLAGS) $<\n\n");
+	 }
 }
 

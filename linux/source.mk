@@ -12,7 +12,8 @@ SRC =	lexer.c                  \
 			cwalk.c               \
 			ancestry.c            \
 			fsm_statistics.c      \
-			fsm_c_event_xref.c    \
+			fsm_c_pid_xref.c      \
 			fsm_c_event_table.c   \
-			fsm_rst.c
+			fsm_rst.c             \
+			usage.c
 

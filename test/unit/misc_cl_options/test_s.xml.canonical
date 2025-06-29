@@ -1,0 +1,30 @@
+<xrefs>
+<event_xrefs machine_name='top'>
+<event_xref index='0' name='top_e1'/>
+<event_xref index='1' name='top_noEvent'/>
+<event_xref index='2' name='top_numEvents'/>
+<event_xref index='3' name='top_sub1_e1'/>
+<event_xref index='4' name='top_sub1_noEvent'/>
+<event_xref index='5' name='top_sub2_e1'/>
+<event_xref index='6' name='top_sub2_noEvent'/>
+<event_xref index='7' name='top_sub2_sub2Sub1_e1'/>
+<event_xref index='8' name='top_sub2_sub2Sub1_noEvent'/>
+<event_xref index='9' name='top_numAllEvents'/>
+</event_xrefs>
+<states_xrefs machine_name="top">
+<state_xref index='0' name='top_s1'/>
+</states_xref>
+<states_xrefs machine_name="top_sub1">
+<state_xref index='0' name='top_sub1_s1'/>
+<state_xref index='1' name='top_sub1_s2'/>
+<state_xref index='2' name='top_sub1_s3'/>
+</states_xref>
+<states_xrefs machine_name="top_sub2">
+<state_xref index='0' name='top_sub2_s1'/>
+</states_xref>
+<states_xrefs machine_name="top_sub2_sub2Sub1">
+<state_xref index='0' name='top_sub2_sub2Sub1_s1'/>
+<state_xref index='1' name='top_sub2_sub2Sub1_s2'/>
+<state_xref index='2' name='top_sub2_sub2Sub1_s3'/>
+</states_xref>
+</xrefs>

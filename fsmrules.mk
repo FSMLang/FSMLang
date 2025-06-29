@@ -3,7 +3,7 @@
 #  .fsm rules
 #
 
-.SUFFIXES: .fsm .html .plantuml 
+.SUFFIXES: .fsm .html .plantuml .rst
 
 ifdef OUTPUT_DIR
 FSM=$(OUTPUT_DIR)/fsm
@@ -25,6 +25,8 @@ endif
 
 GENERATED_SRC = $(shell $(FSM) -M $(FSM_FLAGS) $(FSM_SRC))
 GENERATED_HDR = $(shell $(FSM) -Mh $(FSM_FLAGS) $(FSM_SRC))
+GENERATED_RST = $(shell $(FSM) -M -tr $(FSM_SRC))
+GENERATED_PLANTUML = $(shell $(FSM) -M -tp $(FSM_SRC))
 
 ifdef FSM_PLANTUML_FLAGS
 GENERATED_PLANTUML = $(shell $(FSM) -tp -M $(FSM_PLANTUML_FLAGS) $(FSM_SRC))
@@ -39,26 +41,24 @@ cleanfsm:
 	@-rm -f $(GENERATED_HDR) 2> /dev/null
 
 .fsm.o:
-	@echo "FSM:" $(FSM) $(FSM_FLAGS)
-	$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
-	$(CC) -c $(CFLAGS) $*.c
-	rm -f $*.c
+	@$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(CC) -c $(CFLAGS) $*.c
+	@rm -f $*.c
 
 .fsm.c:
-	@echo "FSM:" $(FSM) $(FSM_FLAGS)
-	$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
 
 .fsm.h:
-	@echo "FSM:" $(FSM)
-	$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
 
 .fsm.html:
-	@echo "FSM:" $(FSM)
-	$(FSM) $(FSM_HTML_FLAGS) -th $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_HTML_FLAGS) -th $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
 
 .fsm.plantuml:
-	@echo "FSM:" $(FSM)
-	$(FSM) $(FSM_PLANTUML_FLAGS) -tp $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_PLANTUML_FLAGS) -tp $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+
+.fsm.rst:
+	@$(FSM) $(FSM_RST_FLAGS) -tr $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
 
 $(FSM_SRC:.fsm=.html): $(FSM_SRC) $(FSM)
 
