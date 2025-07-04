@@ -145,6 +145,7 @@ struct _event_sequence_node_
 struct _event_sequence_
 {
    pID_INFO name;
+   char     *docCmt;
    pID_INFO initial_state;
    pLIST    sequence;
 };

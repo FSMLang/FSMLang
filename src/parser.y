@@ -60,18 +60,18 @@ void yyerror(char *);
 %}
 
 %union {
-	pID_INFO				         pid_info;
-	pACTION_SE_INFO	         se_info;
-	pACTION_INFO		         action_info;
-	pMATRIX_INFO		         matrix_info;
-	char *					         charData;
+	pID_INFO				        pid_info;
+	pACTION_SE_INFO	        se_info;
+	pACTION_INFO		        action_info;
+	pMATRIX_INFO		        matrix_info;
+	char *					        charData;
  MOD_FLAGS                mod_flags;
  pMACHINE_INFO            pmachineInfo;
  pLIST                    plist;
  pSTATE_AND_EVENT_DECLS   pstate_and_event_decls;
  pSTATEMENT_DECL_LIST     pstatement_decl_list;
  pACTIONS_AND_TRANSITIONS pactions_and_transitions;
- pACTION_DECL						 paction_decl;
+ pACTION_DECL						  paction_decl;
  pMACHINE_QUALIFIER       pmachine_qualifier;
  pMACHINE_PREFIX          pmachine_prefix;
  pDATA_FIELD              pdata_field;
@@ -86,8 +86,9 @@ void yyerror(char *);
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
-%token SEQUENCE_KEY START_KEY EVENT_SEQ
+%token START_KEY EVENT_SEQ
 
+%token <charData> SEQUENCE_KEY
 %token <charData> ACTION_KEY 
 %token <charData> TRANSITION_KEY 
 
@@ -602,12 +603,18 @@ sequence_start : SEQUENCE_KEY
 	{
 		#ifdef PARSER_DEBUG
 		fprintf(yyout, "Starting an event sequence\n");
+		if ($$)
+		{
+			fprintf(yyout, "Comment: %s\n", $1);
+		}
 		#endif
 
     if (NULL == ($$ = (pEVENT_SEQUENCE)calloc(1, sizeof(EVENT_SEQUENCE))))
     	yyerror("Out of memory");
 
 		$$->initial_state = statePidByIndex(pmachineInfo, 0);
+		$$->docCmt = $1;
+
 	}
 	| sequence_start ID
 	{

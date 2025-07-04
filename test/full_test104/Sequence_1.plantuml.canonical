@@ -8,6 +8,12 @@
 
 @startuml
 title Sequence_1
+legend
+
+		This, too is
+		a happy path.
+	
+endlegend
 state s1
 state s2
 state s3

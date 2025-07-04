@@ -21,7 +21,13 @@ machine test_fsm
 
 	tf1 returns s1, s2;
 
+	/** This is the happy path. */
 	sequence e1, e2, e4;
+
+	/**
+		This, too is
+		a happy path.
+	*/
 	sequence e2, e2;
 	sequence e2, e3;
 	sequence e2, e3 transition s1;

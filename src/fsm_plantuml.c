@@ -1092,6 +1092,15 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 				, pfsmpumlsqog->sequence->name ? pfsmpumlsqog->name : pfsmpumlsqog->name
 				);
 	}
+
+	if (pfsmpumlsqog->sequence->docCmt)
+	{
+		fprintf(sih.ih.fout
+				, "legend\n%s\nendlegend\n"
+				, pfsmpumlsqog->sequence->docCmt
+				);
+	}
+
 	iterate_list(pmi->state_list, print_state_name, pfsmpumlsqog);
 
 	fprintf(sih.ih.fout

@@ -404,6 +404,8 @@ struct {
 
 sequence {
 					#ifndef LEX_DEBUG
+                    yylval.charData = currDocCmnt ? currDocCmnt : NULL;
+					currDocCmnt = NULL;
 					return SEQUENCE_KEY;
 					#else
 					printf("%s\n",strings[SEQUENCE_KEY]);
