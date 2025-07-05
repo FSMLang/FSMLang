@@ -86,7 +86,7 @@ void yyerror(char *);
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
-%token START_KEY EVENT_SEQ
+%token START_KEY EVENT_SEQ END_KEY
 
 %token <charData> SEQUENCE_KEY
 %token <charData> ACTION_KEY 
@@ -685,6 +685,17 @@ sequence: sequence_start sequence_nodes ';'
 
 		$$ = $1;
 		$$->sequence = $2;
+
+	}
+	| sequence_start sequence_nodes END_KEY STATE ';'
+	{
+		#ifdef PARSER_DEBUG
+		fprintf(yyout, "Found an event sequence indicating an end state\n");
+		#endif
+
+		$$ = $1;
+		$$->sequence    = $2;
+		$$->final_state = $4;
 
 	}
 	;

@@ -17,5 +17,8 @@ s2 --> s3: **Event 2:** e2\n **Action:** None
 note on link
 The tranisition indicated in the sequence does not match the FSM.
 end note
+note bottom of s3
+No final state was indicated in the sequence.
+end note
 
 @enduml

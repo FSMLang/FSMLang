@@ -19,6 +19,9 @@ State machine indicates transition is via function tf1 and no transition was ind
 
 The first indicated return value was chosen.
 end note
+note bottom of s1
+No final state was indicated in the sequence.
+end note
 
 hide s3
 @enduml

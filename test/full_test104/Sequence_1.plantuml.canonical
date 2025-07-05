@@ -20,6 +20,9 @@ state s3
 [*] --> s1
 s1 --> s2: **Event 1:** e2\n **Action:** a2
 s2 --> s1: **Event 2:** e2\n **Action:** None
+note bottom of s1
+No final state was indicated in the sequence.
+end note
 
 hide s3
 @enduml

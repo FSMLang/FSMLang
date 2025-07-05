@@ -116,6 +116,9 @@ found an action with transition
 started an action declaration
 The actions in this list:
 	x2
+Starting an event sequence
+Found an event sequence
+Found 1 sequence.
 process_action_info: x1
 	iterate_matrix_states: event: y1
 		add_to_action_array: state: z1
@@ -136,6 +139,12 @@ The events :
 	0:	y1
 
 	1:	y2
+
+There is 1 event sequence given:
+	Sequence 0 <unnamed>:
+		Initial State: z1
+		Events: y1, y2
+		End State: Not Given
 
 The actions :
 	x1
@@ -172,6 +181,9 @@ found an action with transition
 started an action declaration
 The actions in this list:
 	aa2
+Starting an event sequence
+Found an event sequence
+Found 1 sequence.
 process_action_info: aa1
 	iterate_matrix_states: event: ee1
 		add_to_action_array: state: ss1
@@ -197,6 +209,12 @@ The events :
 	1:	ee2
 
 	2:	ee3
+
+There is 1 event sequence given:
+	Sequence 0 <unnamed>:
+		Initial State: ss1
+		Events: ee1, ee2, ee3
+		End State: Not Given
 
 The actions :
 	aa1
@@ -353,7 +371,7 @@ Found an event sequence
 Found another event sequence
 Starting an event sequence
 Comment:  As is this. 
-Found an event sequence
+Found an event sequence indicating an end state
 Found another event sequence
 Found 3 sequences.
 process_action_info: a1
@@ -416,7 +434,7 @@ There are 3 event sequences given:
 	Sequence 2 <three>:
 		Initial State: s2
 		Events: e2, e3
-		End State: Not Given
+		End State: s3
 
 The actions :
 	a1

@@ -1159,6 +1159,32 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 				 , &sih
 				 );
 
+	//final state
+	fprintf(sih.ih.fout
+			, "note bottom of %s\n"
+			, sih.pcurr_state->name
+			);
+	if (pfsmpumlsqog->sequence->final_state)
+	{
+		fprintf(sih.ih.fout
+				, "%s was given in the sequence as the final state."
+				, pfsmpumlsqog->sequence->final_state->name
+				);
+
+		if (sih.pcurr_state != pfsmpumlsqog->sequence->final_state)
+		{
+			fprintf(sih.ih.fout
+					, "\n\nThis does not match the last state shown."
+					);
+		}
+
+	}
+	else
+	{
+		fprintf(sih.ih.fout, "No final state was indicated in the sequence.");
+	}
+	fprintf(sih.ih.fout, "\nend note\n");
+
 	//remove any states not visited
 	fprintf(sih.ih.fout, "\n");
 	iterate_list(pmi->state_list, hide_unvisited_state, &sih);

@@ -77,6 +77,7 @@ enum states {
   , EPILOGUE_KEY
   , SEQUENCE_KEY
   , START_KEY
+  , END_KEY
 };
 
 extern char *strings[];

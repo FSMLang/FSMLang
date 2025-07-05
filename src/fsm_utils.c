@@ -1910,7 +1910,10 @@ bool print_event_sequence(pLIST_ELEMENT pelem, void *data)
 
     iterate_list(sequence->sequence, print_event_sequence_event, pih);
 
-    fprintf(pih->fout, "\n");
+    fprintf(pih->fout
+			, "\n\t\tEnd State: %s\n"
+			, sequence->final_state ? sequence->final_state->name : "Not Given"
+			);
 
     return false;
 }

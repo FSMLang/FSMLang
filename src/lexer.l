@@ -420,6 +420,14 @@ start {
 					#endif
 				}
 
+end {
+					#ifndef LEX_DEBUG
+					return END_KEY;
+					#else
+					printf("%s\n",strings[END_KEY]);
+					#endif
+				}
+
 union {
 					#ifndef LEX_DEBUG
 					return UNION_KEY;

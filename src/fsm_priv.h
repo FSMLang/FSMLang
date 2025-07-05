@@ -147,6 +147,7 @@ struct _event_sequence_
    pID_INFO name;
    char     *docCmt;
    pID_INFO initial_state;
+   pID_INFO final_state;
    pLIST    sequence;
 };
 
