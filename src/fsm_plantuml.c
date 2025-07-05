@@ -69,14 +69,15 @@ typedef struct _fsm_puml_sq_output_generator_ FSMPlantUMLSqOutputGenerator, *pFS
 typedef struct _fsmpumlsq_og_factory_str_ FSMPumlSqOgFactoryStr, *pFSMPumlSqOgFactoryStr;
 typedef struct _sequence_iterator_helper_ SEQUENCE_ITERATOR_HELPER, *pSEQUENCE_ITERATOR_HELPER;
 
-static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(unsigned,pEVENT_SEQUENCE);
-static pFSMPlantUMLSqOutputGenerator generatePlantUMLSeqFNWriter(unsigned,pEVENT_SEQUENCE);
+static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(pFSMPlantUMLOutputGenerator,unsigned,pEVENT_SEQUENCE);
+static pFSMPlantUMLSqOutputGenerator generatePlantUMLSeqFNWriter(pFSMPlantUMLOutputGenerator,unsigned,pEVENT_SEQUENCE);
 
 static char *create_sequence_name(unsigned);
+static char* create_sequence_file_name(pFSMPlantUMLSqOutputGenerator);
 static bool write_sequence(pLIST_ELEMENT,void*);
-static void write_sequences(pMACHINE_INFO);
+static void write_sequences(pFSMPlantUMLOutputGenerator);
 
-static void write_sequence_names(pMACHINE_INFO);
+static void write_sequence_names(pFSMPlantUMLOutputGenerator);
 
 static int  initPlantUMLWriter(pFSMOutputGenerator,char *);
 static void writePlantUMLWriter(pFSMOutputGenerator,pMACHINE_INFO);
@@ -92,7 +93,7 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator,pMACHINE_INFO);
 static int  initPlantUMLSeqFNWriter(pFSMOutputGenerator,char *);
 static void writePlantUMLSeqFN(pFSMOutputGenerator,pMACHINE_INFO);
 
-typedef pFSMPlantUMLSqOutputGenerator (*fpGeneratePlantUMLSequenceWriter)(unsigned,pEVENT_SEQUENCE);
+typedef pFSMPlantUMLSqOutputGenerator (*fpGeneratePlantUMLSequenceWriter)(pFSMPlantUMLOutputGenerator,unsigned,pEVENT_SEQUENCE);
 
 struct _sequence_iterator_helper_
 {
@@ -125,7 +126,7 @@ struct _fsm_puml_sq_output_generator_
 
 struct _fsmpumlsq_og_factory_str_
 {
-	pMACHINE_INFO                    pmi;
+	pFSMPlantUMLOutputGenerator      pparent_og;
 	fpGeneratePlantUMLSequenceWriter factory;
 };
 
@@ -659,18 +660,19 @@ static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	printf("%s ", pfsmpumlog->pmd->pumlName);
 
+	pfsmpumlog->pmd->pmi = pmi;
 	if (pmi->machine_list)
 	{
 		write_machines(pmi->machine_list, generatePlantUMLMachineWriter, pfsmog);
 	}
 
-   write_sequence_names(pmi);
+	write_sequence_names(pfsmpumlog);
 
 	if (output_make_recipe && !pfsmpumlog->parent)
 	{
 		printf(": %s.fsm\n"
-			   , inputFileName
-			   );
+				, inputFileName
+				);
 
 		printf("\t$(FSM) -tp $(FSM_PLANTUML_FLAGS) $<\n\n");
 	}
@@ -679,16 +681,16 @@ static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
-	pID_INFO			  pevent;
-	pACTION_INFO	  pai;
-	unsigned        e,s;
+  pID_INFO     pevent;
+  pACTION_INFO pai;
+  unsigned     e,s;
   ITERATOR_HELPER ih;
 
   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
 
-	if (!pmi)
+  if (!pmi)
 
-		return;
+  	return;
 
   pfsmpumlog->pmd->pmi = pmi;
 
@@ -891,7 +893,7 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
      write_machines(pmi->machine_list, generatePlantUMLMachineWriter, pfsmog);
   }
 
-  write_sequences(pmi);
+  write_sequences(pfsmpumlog);
 
 }
 
@@ -962,7 +964,7 @@ pFSMOutputGenerator generatePlantUMLMachineWriter(pFSMOutputGenerator parent)
 	return pfsmog;
 }
 
-static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(unsigned ordinal, pEVENT_SEQUENCE sequence)
+static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(pFSMPlantUMLOutputGenerator pparent_og, unsigned ordinal, pEVENT_SEQUENCE sequence)
 {
 	pFSMPlantUMLSqOutputGenerator pfsmplantumlsqog = calloc(1, sizeof(FSMPlantUMLSqOutputGenerator));
 
@@ -971,6 +973,7 @@ static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(unsigned ord
 		pfsmplantumlsqog->fsmpumlog.fsmog.writeMachine = writePlantUMLEventSequence;
 		pfsmplantumlsqog->fsmpumlog.fsmog.initOutput   = initPlantUMLEventSequenceWriter;
 		pfsmplantumlsqog->fsmpumlog.fsmog.closeOutput  = closePlantUMLWriter;
+		pfsmplantumlsqog->fsmpumlog.parent             = pparent_og;
 		
 		pfsmplantumlsqog->sequence = sequence;
 		pfsmplantumlsqog->ordinal  = ordinal;
@@ -979,7 +982,7 @@ static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(unsigned ord
 	return pfsmplantumlsqog;
 }
 
-static pFSMPlantUMLSqOutputGenerator generatePlantUMLSeqFNWriter(unsigned ordinal, pEVENT_SEQUENCE sequence)
+static pFSMPlantUMLSqOutputGenerator generatePlantUMLSeqFNWriter(pFSMPlantUMLOutputGenerator pparent_og, unsigned ordinal, pEVENT_SEQUENCE sequence)
 {
 	pFSMPlantUMLSqOutputGenerator pfsmplantumlsqog = calloc(1, sizeof(FSMPlantUMLSqOutputGenerator));
 
@@ -988,6 +991,7 @@ static pFSMPlantUMLSqOutputGenerator generatePlantUMLSeqFNWriter(unsigned ordina
 		pfsmplantumlsqog->fsmpumlog.fsmog.writeMachine = writePlantUMLSeqFN;
 		pfsmplantumlsqog->fsmpumlog.fsmog.initOutput   = initPlantUMLSeqFNWriter;
 		pfsmplantumlsqog->fsmpumlog.fsmog.closeOutput  = closePlantUMLFileNameWriter;
+		pfsmplantumlsqog->fsmpumlog.parent             = pparent_og;
 		
 		pfsmplantumlsqog->sequence = sequence;
 		pfsmplantumlsqog->ordinal  = ordinal;
@@ -996,31 +1000,31 @@ static pFSMPlantUMLSqOutputGenerator generatePlantUMLSeqFNWriter(unsigned ordina
 	return pfsmplantumlsqog;
 }
 
-static void write_sequences(pMACHINE_INFO pmi)
+static void write_sequences(pFSMPlantUMLOutputGenerator pfsmpumlog)
 {
 //   process_event_sequences(pmi);
 
-	FSMPumlSqOgFactoryStr factory = {
-		.pmi = pmi
-		, .factory = generatePlantUMLSequenceWriter
-	};
-
-	if (pmi->sequences)
+	if (pfsmpumlog->pmd->pmi->sequences)
 	{
-		iterate_list(pmi->sequences, write_sequence, &factory);
+		FSMPumlSqOgFactoryStr factory = {
+			.pparent_og = pfsmpumlog
+			, .factory = generatePlantUMLSequenceWriter
+		};
+
+		iterate_list(pfsmpumlog->pmd->pmi->sequences, write_sequence, &factory);
 	}
 }
 
-static void write_sequence_names(pMACHINE_INFO pmi)
+static void write_sequence_names(pFSMPlantUMLOutputGenerator pfsmpumlog)
 {
-	FSMPumlSqOgFactoryStr factory = {
-		.pmi = pmi
-		, .factory = generatePlantUMLSeqFNWriter
-	};
-
-	if (pmi->sequences)
+	if (pfsmpumlog->pmd->pmi->sequences)
 	{
-		iterate_list(pmi->sequences, write_sequence, &factory);
+		FSMPumlSqOgFactoryStr factory = {
+			.pparent_og = pfsmpumlog
+			, .factory = generatePlantUMLSeqFNWriter
+		};
+
+		iterate_list(pfsmpumlog->pmd->pmi->sequences, write_sequence, &factory);
 	}
 }
 
@@ -1029,12 +1033,12 @@ static bool write_sequence(pLIST_ELEMENT pelem, void *data)
 	pEVENT_SEQUENCE        psequence = (pEVENT_SEQUENCE) pelem->mbr;
 	pFSMPumlSqOgFactoryStr factory   = (pFSMPumlSqOgFactoryStr) data;
 
-	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (*factory->factory)(pelem->ordinal, psequence);
+	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (*factory->factory)(factory->pparent_og, pelem->ordinal, psequence);
 
 	if (pfsmpumlsqog)
 	{
 		pfsmpumlsqog->fsmpumlog.fsmog.initOutput((pFSMOutputGenerator) pfsmpumlsqog, psequence->name ? psequence->name->name : NULL);
-		pfsmpumlsqog->fsmpumlog.fsmog.writeMachine((pFSMOutputGenerator) pfsmpumlsqog, factory->pmi);
+		pfsmpumlsqog->fsmpumlog.fsmog.writeMachine((pFSMOutputGenerator)pfsmpumlsqog, factory->pparent_og->pmd->pmi);
 		pfsmpumlsqog->fsmpumlog.fsmog.closeOutput((pFSMOutputGenerator)pfsmpumlsqog, 1);
 
 		free(pfsmpumlsqog);
@@ -1060,17 +1064,51 @@ static char *create_sequence_name(unsigned ordinal)
 	return cp;
 }
 
+static char* create_sequence_file_name(pFSMPlantUMLSqOutputGenerator pfsmpumlsqog)
+{
+	FILE *tmp = tmpfile();
+	char *cp  = NULL;
+
+	if (tmp)
+	{
+		if (pfsmpumlsqog->fsmpumlog.parent->parent)
+		{
+			printAncestry(pfsmpumlsqog->fsmpumlog.parent->pmd->pmi
+						  , tmp
+						  , "_"
+						  , alc_lower
+						  , ai_include_self
+						  );
+			fprintf(tmp,"_");
+		}
+
+		fprintf(tmp
+				,"%s"
+				, pfsmpumlsqog->name
+				);
+
+		cp = create_string_from_file(tmp, NULL);
+	}
+
+	return cp;
+}
+
 static int initPlantUMLEventSequenceWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
-	(void) baseFileName;
-	int                           retVal;
+	int                           retVal       = 1; //assume failure
 	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (pFSMPlantUMLSqOutputGenerator) pfsmog;
+	char                          *tmpFileName = NULL;
 
 	pfsmpumlsqog->name = baseFileName ? baseFileName : create_sequence_name(pfsmpumlsqog->ordinal);
 
-	retVal = initPlantUMLWriter((pFSMOutputGenerator) pfsmpumlsqog
-								, pfsmpumlsqog->name
-								);
+	if (NULL != (tmpFileName = create_sequence_file_name(pfsmpumlsqog)))
+	{
+		retVal = initPlantUMLWriter((pFSMOutputGenerator) pfsmpumlsqog
+									, tmpFileName
+									);
+	}
+
+	CHECK_AND_FREE(tmpFileName);
 
 	return retVal;
 }
@@ -1087,9 +1125,15 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 
 	if (add_plantuml_title)
 	{
+		fprintf(sih.ih.fout, "title ");
+		if (pfsmpumlsqog->fsmpumlog.parent->parent)
+		{
+			printAncestry(pmi, sih.ih.fout, "::", alc_lower, ai_include_self);
+		}
 		fprintf(sih.ih.fout
-				, "title %s\n"
-				, pfsmpumlsqog->sequence->name ? pfsmpumlsqog->name : pfsmpumlsqog->name
+				, "%s%s\n"
+				, pfsmpumlsqog->fsmpumlog.parent->parent ? "::" : ""
+				, pfsmpumlsqog->name
 				);
 	}
 
@@ -1123,13 +1167,20 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 
 static int  initPlantUMLSeqFNWriter(pFSMOutputGenerator pfsmog, char *baseFileName)
 {
-	int                           retVal;
+	int                           retVal = 1;  //assume failure
 	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (pFSMPlantUMLSqOutputGenerator) pfsmog;
+	char                          *tmpFileName = NULL;
 
 	pfsmpumlsqog->name = baseFileName ? baseFileName : create_sequence_name(pfsmpumlsqog->ordinal);
-	retVal = initPlantUMLFileNameWriter((pFSMOutputGenerator) pfsmpumlsqog
-										, pfsmpumlsqog->name
-										);
+
+	if (NULL != (tmpFileName = create_sequence_file_name(pfsmpumlsqog)))
+	{
+		retVal = initPlantUMLFileNameWriter((pFSMOutputGenerator)pfsmpumlsqog
+											, tmpFileName
+											);
+	}
+
+	CHECK_AND_FREE(tmpFileName);
 
 	return retVal;
 }
