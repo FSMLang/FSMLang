@@ -34,7 +34,7 @@
 
 #include "fsm_plantuml.h"
 #include "list.h"
-//#include "event_sequences.h"
+#include "event_sequences.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -97,9 +97,8 @@ typedef pFSMPlantUMLSqOutputGenerator (*fpGeneratePlantUMLSequenceWriter)(pFSMPl
 
 struct _sequence_iterator_helper_
 {
-	ITERATOR_HELPER ih;
-	pID_INFO        pcurr_state;
-	pLIST           pvisited_states;
+	ITERATOR_HELPER  ih;
+	SEQUENCE_TRACKER st;
 };
 
 struct _puml_machine_data_ {
@@ -170,7 +169,7 @@ static bool hide_unvisited_state(pLIST_ELEMENT pelem, void *data)
 	pITERATOR_HELPER          pih    = (pITERATOR_HELPER) data;
 	pSEQUENCE_ITERATOR_HELPER psih   = (pSEQUENCE_ITERATOR_HELPER) data;
 
-	if (!member_is_in_list(psih->pvisited_states, pstate))
+	if (!member_is_in_list(psih->st.pvisited_states, pstate))
 	{
 		fprintf(pih->fout
 				, "hide %s\n"
@@ -188,48 +187,19 @@ static bool print_seqence_node(pLIST_ELEMENT pelem, void *data)
 	pITERATOR_HELPER          pih   = (pITERATOR_HELPER) data;
 	pSEQUENCE_ITERATOR_HELPER psih  = (pSEQUENCE_ITERATOR_HELPER) data;
 
-	pID_INFO paction     = get_action(pih->pmi, pesn->pevent->order, psih->pcurr_state->order);
-	pID_INFO ptransition = get_transition(pih->pmi, pesn->pevent->order, psih->pcurr_state->order);
-
-	enum transition_note {tn_none, tn_state_mismatch, tn_fn_mismatch, tn_fn_match, tn_first_return, tn_no_fsm_transition} note_on_transition = tn_none;
+	pID_INFO paction = get_action(pih->pmi
+								  , pesn->pevent->order
+								  , psih->st.pcurr_state->order
+								  );
 
 	fprintf(pih->fout
 			, "%s --> "
-			, psih->pcurr_state->name
+			, psih->st.pcurr_state->name
 			);
 
-	if (pesn->pnew_state)
-	{
-		psih->pcurr_state = pesn->pnew_state;
-		if (ptransition)
-		{
-			if (ptransition->type == STATE && ptransition != pesn->pnew_state)
-			{
-				note_on_transition = tn_state_mismatch;
-			}
-			else if (ptransition->type != STATE)
-			{
-				note_on_transition = member_is_in_list(ptransition->transition_fn_returns_decl, pesn->pnew_state) ? tn_fn_match : tn_fn_mismatch;
-			}
-		}
-		else
-		{
-			note_on_transition = tn_no_fsm_transition;
-		}
-	}
-	else if (ptransition)
-	{
-		if (STATE == ptransition->type)
-		{
-			psih->pcurr_state = ptransition;
-		}
-		else
-		{
-			psih->pcurr_state = (pID_INFO) find_nth_list_member(ptransition->transition_fn_returns_decl, 0);
-			note_on_transition = tn_first_return;
-		}
-	}
-	fprintf(pih->fout, "%s", psih->pcurr_state->name);
+	TRANSITION_NOTE note_on_transition = determine_next_state(pih->pmi, pesn, &psih->st);
+
+	fprintf(pih->fout, "%s", psih->st.pcurr_state->name);
 
 	fprintf(pih->fout
 			, ": **Event %u:** %s\\n"
@@ -265,14 +235,14 @@ static bool print_seqence_node(pLIST_ELEMENT pelem, void *data)
 		case tn_fn_match:
 			fprintf(pih->fout
 					, "State machine indicates transition is via function %s.\n\nThe transition given in the sequence is %sfound in the function's return declaration."
-					, ptransition->name
+					, psih->st.pcurr_transition->name
 					, note_on_transition == tn_fn_match ? "" : "not "
 					);
 			break;
 		case tn_first_return:
 			fprintf(pih->fout
 					, "State machine indicates transition is via function %s and no transition was indicated in the sequence.\n\n"
-					, ptransition->name
+					, psih->st.pcurr_transition->name
 					);
 			fprintf(pih->fout, "The first indicated return value was chosen.");
 			break;
@@ -283,8 +253,6 @@ static bool print_seqence_node(pLIST_ELEMENT pelem, void *data)
 				, "\nend note\n"
 				);
 	}
-
-	add_unique_to_list(psih->pvisited_states, psih->pcurr_state);
 
 	return false;
 }
@@ -1118,10 +1086,10 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 	pFSMPlantUMLSqOutputGenerator pfsmpumlsqog = (pFSMPlantUMLSqOutputGenerator) pfsmog;
 	SEQUENCE_ITERATOR_HELPER      sih;
 
-	sih.ih.fout         = pfsmpumlsqog->fsmpumlog.pmd->pumlFile;
-	sih.ih.pmi          = pmi;
-	sih.pcurr_state     = pfsmpumlsqog->sequence->initial_state;
-	sih.pvisited_states = init_list();
+	sih.ih.fout            = pfsmpumlsqog->fsmpumlog.pmd->pumlFile;
+	sih.ih.pmi             = pmi;
+	sih.st.pcurr_state     = pfsmpumlsqog->sequence->initial_state;
+	sih.st.pvisited_states = init_list();
 
 	if (add_plantuml_title)
 	{
@@ -1149,10 +1117,10 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 
 	fprintf(sih.ih.fout
 			, "[*] --> %s\n"
-			, sih.pcurr_state->name
+			, sih.st.pcurr_state->name
 			);
 
-	add_unique_to_list(sih.pvisited_states, sih.pcurr_state);
+	add_unique_to_list(sih.st.pvisited_states, sih.st.pcurr_state);
 
 	iterate_list(pfsmpumlsqog->sequence->sequence
 				 , print_seqence_node
@@ -1162,7 +1130,7 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 	//final state
 	fprintf(sih.ih.fout
 			, "note bottom of %s\n"
-			, sih.pcurr_state->name
+			, sih.st.pcurr_state->name
 			);
 	if (pfsmpumlsqog->sequence->final_state)
 	{
@@ -1171,7 +1139,7 @@ static void writePlantUMLEventSequence(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 				, pfsmpumlsqog->sequence->final_state->name
 				);
 
-		if (sih.pcurr_state != pfsmpumlsqog->sequence->final_state)
+		if (sih.st.pcurr_state != pfsmpumlsqog->sequence->final_state)
 		{
 			fprintf(sih.ih.fout
 					, "\n\nThis does not match the last state shown."

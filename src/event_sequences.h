@@ -36,5 +36,35 @@
 #ifndef EVENT_SEQUENCES_H
 #define EVENT_SEQUENCES_H
 
+#include "fsm_priv.h"
+#include "list.h"
+
+typedef enum {tn_none, tn_state_mismatch, tn_fn_mismatch, tn_fn_match, tn_first_return, tn_no_fsm_transition} TRANSITION_NOTE;
+
+typedef struct _sequence_tracker_ SEQUENCE_TRACKER, *pSEQUENCE_TRACKER;
+
+struct _sequence_tracker_
+{
+	pID_INFO pcurr_state;
+	pID_INFO pcurr_transition;
+	pLIST    pvisited_states;
+};
+
+/**
+ * Use the determine the next state as indicated by the event
+ * sequence node, or by the machine information.  Return a
+ * comment on the source and reliability of the information.
+ * 
+ * @author Steven Stanton (7/6/2025)
+ * 
+ * @param pmi   The machine owning the event sequence under
+ *  			consideration.
+ * @param pesn  The current event sequence node.
+ * @param psit  The strucuture tracking the current sequence. 
+ * 
+ * @return TRANSITION_NOTE 
+ */
+TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pesn, pSEQUENCE_TRACKER psit);
+
 #endif
 

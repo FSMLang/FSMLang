@@ -33,8 +33,6 @@
 *
 */
 
-#include "event_sequences.h"
-
 #if defined (CYGWIN) || defined (LINUX)
 	#include <stdio.h>
 	#include <ctype.h>
@@ -45,4 +43,51 @@
 #endif
 #include <string.h>
 #include <stdlib.h>
+
+#include "event_sequences.h"
+#include "y.tab.h"
+
+TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pesn, pSEQUENCE_TRACKER psit)
+{
+	TRANSITION_NOTE note_on_transition = tn_none;
+
+	pID_INFO ptransition = get_transition(pmi, pesn->pevent->order, psit->pcurr_state->order);
+
+	if (pesn->pnew_state)
+	{
+		psit->pcurr_state = pesn->pnew_state;
+		if (ptransition)
+		{
+			if (ptransition->type == STATE && ptransition != pesn->pnew_state)
+			{
+				note_on_transition = tn_state_mismatch;
+			}
+			else if (ptransition->type != STATE)
+			{
+				note_on_transition = member_is_in_list(ptransition->transition_fn_returns_decl, pesn->pnew_state) ? tn_fn_match : tn_fn_mismatch;
+			}
+		}
+		else
+		{
+			note_on_transition = tn_no_fsm_transition;
+		}
+	}
+	else if (ptransition)
+	{
+		if (STATE == ptransition->type)
+		{
+			psit->pcurr_state = ptransition;
+		}
+		else
+		{
+			psit->pcurr_state = (pID_INFO) find_nth_list_member(ptransition->transition_fn_returns_decl, 0);
+			note_on_transition = tn_first_return;
+		}
+	}
+
+	psit->pcurr_transition = ptransition;
+	add_unique_to_list(psit->pvisited_states, psit->pcurr_state);
+
+	return note_on_transition;
+}
 

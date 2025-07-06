@@ -35,8 +35,8 @@
 
 #include <stdbool.h>
 
-typedef struct _list_		         LIST, *pLIST;
-typedef struct _list_element_	   LIST_ELEMENT, *pLIST_ELEMENT;
+typedef struct _list_         LIST, *pLIST;
+typedef struct _list_element_ LIST_ELEMENT, *pLIST_ELEMENT;
 
 typedef bool (*LIST_ITERATOR_FN)(pLIST_ELEMENT,void*);
 
