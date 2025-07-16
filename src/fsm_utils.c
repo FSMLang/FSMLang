@@ -1593,6 +1593,23 @@ pID_INFO get_action(pMACHINE_INFO pmi, unsigned event, unsigned state)
 	return paction;
 }
 
+char *create_sequence_name(unsigned ordinal)
+{
+	FILE *tmp = tmpfile();
+	char *cp  = NULL;
+
+	if (tmp)
+	{
+		fprintf(tmp
+				, "Sequence_%u"
+				, ordinal
+				);
+		cp = create_string_from_file(tmp, NULL);
+	}
+
+	return cp;
+}
+
 
 #ifdef PARSER_DEBUG
 

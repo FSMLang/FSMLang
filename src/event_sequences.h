@@ -39,15 +39,33 @@
 #include "fsm_priv.h"
 #include "list.h"
 
-typedef enum {tn_none, tn_state_mismatch, tn_fn_mismatch, tn_fn_match, tn_first_return, tn_no_fsm_transition} TRANSITION_NOTE;
+typedef enum {
+	tn_none
+	, tn_state_mismatch
+	, tn_fn_mismatch
+	, tn_fn_match
+	, tn_first_return
+	, tn_no_fn_return_list
+	, tn_no_fsm_transition
+} TRANSITION_NOTE;
 
-typedef struct _sequence_tracker_ SEQUENCE_TRACKER, *pSEQUENCE_TRACKER;
+typedef struct _sequence_tracker_         SEQUENCE_TRACKER
+                                          , *pSEQUENCE_TRACKER;
+
+typedef struct _sequence_iterator_helper_ SEQUENCE_ITERATOR_HELPER
+                                          , *pSEQUENCE_ITERATOR_HELPER;
 
 struct _sequence_tracker_
 {
 	pID_INFO pcurr_state;
 	pID_INFO pcurr_transition;
 	pLIST    pvisited_states;
+};
+
+struct _sequence_iterator_helper_
+{
+	ITERATOR_HELPER  ih;
+	SEQUENCE_TRACKER st;
 };
 
 /**
@@ -65,6 +83,23 @@ struct _sequence_tracker_
  * @return TRANSITION_NOTE 
  */
 TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pesn, pSEQUENCE_TRACKER psit);
+
+
+/**
+ * generate a sequence file name for the given sequence and
+ * machine info.  The file name will be based on the machine's
+ * ancestry, with levels separated by underscores.  If the
+ * machine has no parent, however, no ancestry will be printed.
+ * 
+ * @author Steven Stanton (7/12/2025)
+ * 
+ * @param pes    Pointer to the sequence.
+ * @param pmi    Pointer to the machine information. This is
+ *  			 allowed to be NULL, if no ancestry is desired.
+ * 
+ * @return char* Pointer to the malloc'd file name.
+ */
+char *generate_sequence_file_name(pEVENT_SEQUENCE pes, pMACHINE_INFO pmi);
 
 #endif
 

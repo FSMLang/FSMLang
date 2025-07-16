@@ -5,7 +5,7 @@ machine test_fsm
 
 	machine sub
 	{
-		event e1, e2, e3, e4, e5;
+		event e1, e2, e3, e4;
 		state s1, s2, s3;
 
 		action a1[e1, s1];
@@ -16,8 +16,6 @@ machine test_fsm
 		action a3[e3, s2] transition tf1;
 	
 		action a4[e4, (s1, s2)];
-
-		action a5[e5, (s1, s2)];
 	
 		a1 returns e4, noEvent;
 		a2 returns e4, noEvent;
@@ -43,9 +41,6 @@ machine test_fsm
 		sequence e3, e2;
 		sequence e2, e2 transition s3;
 		sequence eight start s2 e2, e2;
-
-		sequence e1, e2, e5 end s2;
-		sequence e1, e2, e5 end s3;
 	
 	}
 

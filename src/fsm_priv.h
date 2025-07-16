@@ -518,6 +518,7 @@ bool print_event_sequence_event(pLIST_ELEMENT,void*);
 char *create_string_from_file(FILE*,unsigned long*);
 pID_INFO get_transition(pMACHINE_INFO,unsigned,unsigned);
 pID_INFO get_action(pMACHINE_INFO,unsigned,unsigned);
+char *create_sequence_name(unsigned);
 
 
 #endif /* ----------- nothing below this line ---------------- */

@@ -35,6 +35,7 @@
 
 #include "fsm_html.h"
 #include "list.h"
+#include "event_sequences.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,6 +97,8 @@ static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi);
 static int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName);
 static int initHTMLFileNameWriter (pFSMOutputGenerator pfsmog, char *baseFileName);
 static bool print_sub_machine_row(pLIST_ELEMENT,void*);
+static bool print_event_sequence_html(pLIST_ELEMENT,void*);
+static bool print_event_sequence_puml(pLIST_ELEMENT,void*);
 static bool print_action_table_row(pLIST_ELEMENT,void*);
 static bool print_id_info_as_html_list_element(pLIST_ELEMENT,void*);
 static bool print_machine_name_as_list_element(pLIST_ELEMENT,void*);
@@ -106,11 +109,13 @@ static bool print_state_chart_state_row(pLIST_ELEMENT,void*);
 static bool print_state_chart_state_row_event(pLIST_ELEMENT,void*);
 static bool print_transition_fn_table_transition_fn_row(pLIST_ELEMENT,void*);
 static bool print_id_info_as_vector(pLIST_ELEMENT,void*);
+static bool print_sequence_node_html(pLIST_ELEMENT,void*);
 static void print_event_table(pFSMHTMLOutputGenerator);
 static void print_state_table(pFSMHTMLOutputGenerator);
 static void print_action_table(pFSMHTMLOutputGenerator);
 static void print_transition_fn_table(pFSMHTMLOutputGenerator);
 static void print_machine_table(pFSMHTMLOutputGenerator);
+static void print_event_sequence_table(pFSMHTMLOutputGenerator);
 static void print_state_chart(pFSMHTMLOutputGenerator);
 static void print_machine_statistics(pFSMHTMLOutputGenerator);
 static void print_vector(pLIST,pITERATOR_HELPER);
@@ -417,6 +422,51 @@ static void print_machine_table(pFSMHTMLOutputGenerator pfsmhtmlog)
 	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n</thead>\n<tbody>\n");
 	
 	iterate_list(pfsmhtmlog->pmd->pmi->machine_list, print_sub_machine_row, pfsmhtmlog);
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"</tbody>\n</table>\n");
+
+}
+
+static void print_event_sequence_table(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	RETURN_IF_NULL(pfsmhtmlog->pmd->pmi->transition_fn_list)
+
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
+
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			,"<thead><tr>\n"
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			,"<th colspan=%u align=left>Event Sequences</th>\n"
+			, include_svg_img ? 1 : 5
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			,"</tr>\n"
+			);
+
+	if (!include_svg_img)
+	{
+		fprintf(pfsmhtmlog->pmd->htmlFile
+				, "<tr><th>Name</th><th>Comment</th>"
+				);
+		fprintf(pfsmhtmlog->pmd->htmlFile
+				, "<th>Initial State</th><th>Sequence</th>"
+				);
+		fprintf(pfsmhtmlog->pmd->htmlFile
+				, "<th>Final State</th></tr>\n"
+				);
+	}
+
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "</thead>\n<tbody>\n"
+			);
+	
+	iterate_list(pfsmhtmlog->pmd->pmi->sequences
+				 , include_svg_img 
+				   ? print_event_sequence_puml
+				   : print_event_sequence_html
+				 , pfsmhtmlog
+				 );
 
 	fprintf(pfsmhtmlog->pmd->htmlFile,"</tbody>\n</table>\n");
 
@@ -1093,6 +1143,81 @@ static bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static bool print_event_sequence_html(pLIST_ELEMENT pelem, void *data)
+{
+   pEVENT_SEQUENCE         psequence  = ((pEVENT_SEQUENCE)pelem->mbr);
+   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
+
+   fprintf(pfsmhtmlog->pmd->htmlFile
+           ,"<tr>\n"
+           );
+   fprintf(pfsmhtmlog->pmd->htmlFile
+           ,"<td class=\"label\">%s</td>\n"
+		   , psequence->name->name
+		   );
+
+   fprintf(pfsmhtmlog->pmd->htmlFile,"<td>\n");
+   if (psequence->docCmt)
+   {
+	   fprintf(pfsmhtmlog->pmd->htmlFile
+			   , "%s"
+			   , psequence->docCmt
+			  );
+   }
+   fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n");
+
+   fprintf(pfsmhtmlog->pmd->htmlFile,"<td>\n");
+   if (psequence->initial_state)
+   {
+	   fprintf(pfsmhtmlog->pmd->htmlFile
+			   , "%s"
+			   , psequence->initial_state->name
+			   );
+   }
+   fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n");
+
+   fprintf(pfsmhtmlog->pmd->htmlFile,"<td>\n");
+   SEQUENCE_ITERATOR_HELPER sih = {0};
+
+   sih.ih.fout            = pfsmhtmlog->pmd->htmlFile;
+   sih.ih.pmi             = pfsmhtmlog->pmd->pmi;
+   sih.st.pcurr_state     = psequence->initial_state;
+
+   fprintf(pfsmhtmlog->pmd->htmlFile,"<ul class=\"event_sequence\">\n");
+   iterate_list(psequence->sequence
+				, print_sequence_node_html
+				, &sih
+				);
+
+   fprintf(pfsmhtmlog->pmd->htmlFile,"</ul>\n");
+   fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n");
+
+   fprintf(pfsmhtmlog->pmd->htmlFile,"<td>\n");
+   fprintf(pfsmhtmlog->pmd->htmlFile
+		   , "<p>Traced: %s.</p>"
+		   , sih.st.pcurr_state->name
+		   );
+   if (psequence->final_state)
+   {
+	   fprintf(pfsmhtmlog->pmd->htmlFile
+			   , "<p%s>%s was given in the sequence%s.</p>"
+			   , psequence->final_state != sih.st.pcurr_state
+			     ? " class=\"end_state_mismatch\""
+			     : ""
+			   , psequence->final_state->name
+			   , psequence->final_state != sih.st.pcurr_state
+			     ? "; this does not match the traced state"
+			     : ""
+			   );
+
+   }
+   fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n");
+
+   fprintf(pfsmhtmlog->pmd->htmlFile, "</tr>\n");
+
+   return false;
+}
+
 /* Main section */
 static int initHTMLFileNameWriter (pFSMOutputGenerator pfsmog, char *baseFileName)
 {
@@ -1241,6 +1366,10 @@ static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 		print_transition_fn_table(pfsmhtmlog);
 	}
 
+	if (pmi->sequences)
+	{
+		print_event_sequence_table(pfsmhtmlog);
+	}
 
 	if (pmi->machine_list)
 	{
@@ -1325,3 +1454,105 @@ pFSMOutputGenerator generateHTMLMachineWriter(pFSMOutputGenerator parent)
 	return pfsmog;
 }
 
+static bool print_sequence_node_html(pLIST_ELEMENT pelem, void *data)
+{
+	pEVENT_SEQUENCE_NODE      pesn  = (pEVENT_SEQUENCE_NODE) pelem->mbr;
+	pITERATOR_HELPER          pih   = (pITERATOR_HELPER) data;
+	pSEQUENCE_ITERATOR_HELPER psih  = (pSEQUENCE_ITERATOR_HELPER) data;
+
+	//Grab the current action before moving to the next state.
+	pID_INFO paction = get_action(pih->pmi
+								  , pesn->pevent->order
+								  , psih->st.pcurr_state->order
+								  );
+
+	fprintf(pih->fout
+			, "<li>%s: %s &rarr; "
+			, pesn->pevent->name
+			, psih->st.pcurr_state->name
+			);
+
+	TRANSITION_NOTE tn = determine_next_state(pih->pmi, pesn, &psih->st);
+
+	fprintf(pih->fout
+			, "%s (%s)"
+			, psih->st.pcurr_state->name
+			, paction ? paction->name : "No Action"
+			);
+
+	if (tn != tn_none)
+	{
+
+		fprintf(pih->fout
+				, "\n<ul class=\"transition_note\">\n"
+				);
+
+		switch (tn)
+		{
+		case tn_no_fsm_transition:
+			fprintf(pih->fout
+					, "<li class=\"transition_warning\">The sequence indicates a EVENT_SEQUENCE, but none is given in the FSM."
+					);
+			break;
+		case tn_state_mismatch:
+			fprintf(pih->fout
+					, "<li class=\"transition_warning\">The EVENT_SEQUENCE indicated in the sequence does not match the FSM."
+					);
+			break;
+		case tn_fn_mismatch:
+		case tn_fn_match:
+			fprintf(pih->fout
+					, "<li%s>State machine indicates transition is via function %s.<br/><br/>The transition given in the sequence is %sfound in the function's return declaration."
+					, tn == tn_fn_match ? "" : " class=\"transition_warning\""
+					, psih->st.pcurr_transition->name
+					, tn == tn_fn_match ? "" : "not "
+					);
+			break;
+		case tn_first_return:
+			fprintf(pih->fout
+					, "<li class=\"transition_warning\">State machine indicates transition is via function %s and no transition was indicated in the sequence."
+					, psih->st.pcurr_transition->name
+					);
+			fprintf(pih->fout, "<br/><br/>The first indicated return value was chosen.");
+			break;
+		case tn_no_fn_return_list:
+			fprintf(pih->fout
+					, "<li class=\"transition_warning\">State machine indicates transition is via function %s and no transition was indicated in the sequence."
+					, psih->st.pcurr_transition->name
+					);
+			fprintf(pih->fout, "<br/><br/>Furthermore, no return list was given for the function.");
+			break;
+		default:
+			break;
+		}
+
+		fprintf(pih->fout
+				, "\n</li>\n</ul>\n"
+				);
+
+	}
+
+	fprintf(pih->fout
+			, "</li>\n"
+			);
+
+	return false;
+}
+
+static bool print_event_sequence_puml(pLIST_ELEMENT pelem, void *data)
+{
+   pEVENT_SEQUENCE         psequence  = ((pEVENT_SEQUENCE)pelem->mbr);
+   pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator) data;
+   char                    *fn;
+
+   fprintf(pfsmhtmlog->pmd->htmlFile
+		   , "<tr><td><img src=\"%s.svg\" alt=\"PlantUML diagram separately generated.\"/></td></tr>\n"
+		   , (fn = generate_sequence_file_name(psequence
+											   , pfsmhtmlog->pmd->pmi
+											   ))
+		   );
+
+   CHECK_AND_FREE(fn);
+
+   return false;
+}

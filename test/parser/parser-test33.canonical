@@ -396,7 +396,7 @@ The events :
 	3:	e4 = BAR
 
 There is 1 event sequence given:
-	Sequence 0 <unnamed>:
+	Sequence 0 <Sequence_0>:
 		Initial State: s1
 		Events: e1, e2, e4
 		End State: Not Given

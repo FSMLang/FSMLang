@@ -107,9 +107,17 @@
 	padding    : 20px;
 }
 
-.action .return_decl {
+.action .return_decl .event_sequence {
   margin-top: 0px;
   margin-bottom: 0px;
+}
+
+.event_sequence, .transition_note {
+	list-style-type: none;
+}
+
+.transition_warning {
+	color: red;
 }
 
 .action .return_decl li {
@@ -190,5 +198,9 @@ a:active {
 
 code {
   white-space: pre;
+}
+
+.end_state_mismatch {
+	color: red;
 }
 

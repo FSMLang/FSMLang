@@ -399,11 +399,11 @@ The events :
 	3:	e4 = BAR
 
 There are 2 event sequences given:
-	Sequence 0 <unnamed>:
+	Sequence 0 <Sequence_0>:
 		Initial State: s1
 		Events: e1, e2, e4
 		End State: Not Given
-	Sequence 1 <unnamed>:
+	Sequence 1 <Sequence_1>:
 		Initial State: s1
 		Events: e2, e3
 		End State: Not Given

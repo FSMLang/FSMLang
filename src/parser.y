@@ -707,6 +707,14 @@ sequences:
     		yyerror("Out of memory");
 
 		add_to_list($$, $1);
+
+		if ($1->name == NULL)
+		{
+				//this is the first sequence in the list
+				char *sn;
+				add_id(id_list, ID,sn = create_sequence_name(0),&$1->name);
+				CHECK_AND_FREE(sn);
+		}
 	}
 	| sequences sequence
 	{
@@ -715,6 +723,13 @@ sequences:
 		#endif
 
 		add_to_list($1, $2);
+
+		if ($2->name == NULL)
+		{
+				char *sn;
+				add_id(id_list, ID,sn = create_sequence_name($1->count-1),&$2->name);
+				CHECK_AND_FREE(sn);
+		}
 
 		$$ = $1;
 

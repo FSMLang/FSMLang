@@ -14,7 +14,7 @@ check_plantuml: $(GENERATED_PLANTUML)
 	echo $<
 	set -e; \
 	for f in $(GENERATED_PLANTUML);\
-		do $(DIFF)  $$f $$f.canonical > test.result;\
+		do $(DIFF)  $$f $$f.canonical > $$f.result;\
 	done
 	-@rm -f $(GENERATED_PLANTUML)
 	-@rm -f test.result

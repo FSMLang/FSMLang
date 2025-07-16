@@ -64,7 +64,9 @@ TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pes
 			}
 			else if (ptransition->type != STATE)
 			{
-				note_on_transition = member_is_in_list(ptransition->transition_fn_returns_decl, pesn->pnew_state) ? tn_fn_match : tn_fn_mismatch;
+				note_on_transition = member_is_in_list(ptransition->transition_fn_returns_decl
+													   , pesn->pnew_state
+													   ) ? tn_fn_match : tn_fn_mismatch;
 			}
 		}
 		else
@@ -80,8 +82,19 @@ TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pes
 		}
 		else
 		{
-			psit->pcurr_state = (pID_INFO) find_nth_list_member(ptransition->transition_fn_returns_decl, 0);
-			note_on_transition = tn_first_return;
+			pID_INFO next_state = (pID_INFO) find_nth_list_member(
+				ptransition->transition_fn_returns_decl
+				, 0
+				);
+			if (next_state)
+			{
+				psit->pcurr_state  = next_state;
+				note_on_transition = tn_first_return;
+			}
+			else
+			{
+				note_on_transition = tn_no_fn_return_list;
+			}
 		}
 	}
 
@@ -89,5 +102,29 @@ TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pes
 	add_unique_to_list(psit->pvisited_states, psit->pcurr_state);
 
 	return note_on_transition;
+}
+
+char *generate_sequence_file_name(pEVENT_SEQUENCE pes, pMACHINE_INFO pmi)
+{
+	FILE *tmp = tmpfile();
+	char *cp  = NULL;
+
+	if (tmp)
+	{
+		if (pmi && pmi->parent)
+		{
+			printAncestry(pmi, tmp, "_", alc_lower, ai_include_self);
+			fprintf(tmp,"_");
+		}
+
+		fprintf(tmp
+				,"%s"
+				, pes->name->name
+				);
+
+		cp = create_string_from_file(tmp, NULL);
+	}
+
+	return cp;
 }
 
