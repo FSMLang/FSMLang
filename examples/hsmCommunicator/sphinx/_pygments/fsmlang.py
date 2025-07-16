@@ -90,13 +90,14 @@ class FSMLangLexer(RegexLexer):
 
 		yield match.start(1), token, match.group(1)
 
+
 	flags = re.DOTALL | re.MULTILINE
 
 	keywords = (
 		'actions', 'return', 'returns', 'states', 'events', 'void', 'transition', 'data', 'native',
 		'implementation', 'impl', 'on', 'entry', 'exit', 'prologue', 'epilogue', 'translator', 'all',
 		'struct', 'union', 'inhibits', 'submachines', 'parent', 'void', 'external', 'reentrant',
-		'noEvent', 'noTransition'
+		'noEvent', 'noTransition', 'sequence', 'start'
 		)
 
 	operators = ( '::' )
@@ -122,6 +123,13 @@ class FSMLangLexer(RegexLexer):
             (r'/', Operator, '#pop'),
             default('#pop')
       ],
+		'read_sequence': [
+         include('commentsandwhitespace'),
+			(r',', Operator),
+			(r';', Operator, '#pop'),
+			(r'(start)(\s+)([$a-zA-Z_][\w\\]*)', bygroups(Keyword.Reserved, Whitespace, Name.Variable)),
+			(r'[$a-zA-Z_][\w\\]*', Name.Variable),
+		],
 		'check_event_name': [
          include('commentsandwhitespace'),
 			(r'([$a-zA-Z_][\w\\]*)', check_event, '#pop'),
@@ -307,6 +315,7 @@ class FSMLangLexer(RegexLexer):
 			(r'(action)\b', Keyword.Declaration, 'a_name'),
 			(r'(transition)\b', Keyword.Declaration, 'transition'),
 			(r'(returns)\b', Keyword.Reserved, 'returns'),
+			(r'(sequence)\b', Keyword.Declaration, 'read_sequence'),
 			(r'(native)([{])'
 				, bygroups(Keyword.Reserved, Punctuation)
 				, 'native'),
