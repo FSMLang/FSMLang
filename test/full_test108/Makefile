@@ -1,12 +1,6 @@
 .PHONEY: check_rst sphinx
 
-FSM_RST_FLAGS=--include-svg-img
-
 TARGET = check_rst
-
-PLANTUML=plantuml
-
-FSM_PLANTUML_FLAGS=-tp --add-plantuml-title
 
 include ../../fsmrules.mk
 
@@ -29,17 +23,11 @@ check_rst: $(GENERATED_RST)
 clean::
 	-@rm -f $(GENERATED_RST)              2> /dev/null
 	-@cd sphinx && rm -f $(GENERATED_RST) 2> /dev/null
-	-@rm -f $(GENERATED_PLANTUML)         2> /dev/null
 	-@rm -f *.svg                         2> /dev/null
 	-@rm -f sphinx/*.svg                  2> /dev/null
 	-@$(MAKE) -C sphinx clean
 
-# SVG images are handy
-svg: $(GENERATED_PLANTUML)
-	@$(PLANTUML) -tsvg *.plantuml
-
-sphinx: $(GENERATED_RST) svg
+sphinx: $(GENERATED_RST)
 	mv $(GENERATED_RST) sphinx/
-	mv *.svg sphinx
 	$(MAKE) -C sphinx html
 

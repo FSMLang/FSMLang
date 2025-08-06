@@ -1496,7 +1496,7 @@ static bool print_sequence_node_html(pLIST_ELEMENT pelem, void *data)
 			break;
 		case tn_state_mismatch:
 			fprintf(pih->fout
-					, "<li class=\"transition_warning\">The EVENT_SEQUENCE indicated in the sequence does not match the FSM."
+					, "<li class=\"transition_warning\">The transition indicated in the sequence does not match the FSM."
 					);
 			break;
 		case tn_fn_mismatch:
