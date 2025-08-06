@@ -60,5 +60,5 @@ test_multiple_files: test
 y.tab.h: parser.o
 
 clean::
-	-@rm -f *.[hc] > /dev/null
+	-@rm -f *.[hcd] > /dev/null
 

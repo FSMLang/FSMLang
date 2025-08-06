@@ -1,3 +1,9 @@
+.plantuml {
+	max-width: 100%;
+	padding  : 20px;
+	margin   : 20px;
+}
+
 .machine {
 	border-collapse: collapse;
 	border-style   : solid;

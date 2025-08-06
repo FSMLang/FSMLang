@@ -1,0 +1,41 @@
+machine test_fsm
+{
+	event e1, e2, e3, e4;
+	state s1, s2, s3;
+
+	action a1[e1, s1];
+
+	action a2[e2, s1] transition s2;
+	transition [e2, s2] s1;
+
+	action a3[e3, s2] transition tf1;
+
+	action a4[e4, (s1, s2)];
+
+	a1 returns e4, noEvent;
+	a2 returns e4, noEvent;
+
+	a3 returns noEvent;
+
+	a4 returns e1;
+
+	tf1 returns s1, s2;
+
+	/** This is the happy path. */
+	sequence e1, e2, e4;
+
+	/**
+		This, too is
+		a happy path.
+	*/
+	sequence e2, e2;
+	sequence e2, e3;
+	sequence e2, e3 transition s1;
+	sequence e2, e3 transition s2;
+	sequence e2, e3 transition s3;
+	sequence e3, e2;
+	sequence e2, e2 transition s3;
+	sequence eight start s2 e2, e2;
+
+}
+

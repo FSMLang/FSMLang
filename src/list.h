@@ -35,8 +35,8 @@
 
 #include <stdbool.h>
 
-typedef struct _list_		         LIST, *pLIST;
-typedef struct _list_element_	   LIST_ELEMENT, *pLIST_ELEMENT;
+typedef struct _list_         LIST, *pLIST;
+typedef struct _list_element_ LIST_ELEMENT, *pLIST_ELEMENT;
 
 typedef bool (*LIST_ITERATOR_FN)(pLIST_ELEMENT,void*);
 
@@ -49,6 +49,7 @@ struct _list_ {
 struct _list_element_ {
   void  		    *mbr;
   pLIST_ELEMENT      next;
+  pLIST_ELEMENT      prev;
   unsigned           ordinal;
 };
 
@@ -73,6 +74,7 @@ struct _list_element_ {
 pLIST init_list(void);
 
 pLIST_ELEMENT iterate_list(pLIST, LIST_ITERATOR_FN, void *);
+pLIST_ELEMENT reverse_iterate_list(pLIST, LIST_ITERATOR_FN, void *);
 
 void free_list(pLIST);
 pLIST copy_list(pLIST, pLIST);
@@ -84,7 +86,12 @@ pLIST move_list_unique(pLIST, pLIST);
 
 pLIST_ELEMENT add_to_list(pLIST,void*);
 pLIST_ELEMENT add_unique_to_list(pLIST,void*);
+
+void remove_from_list(pLIST,void*);
+void remove_nth_list_member(pLIST,unsigned);
+
 void *find_nth_list_member(pLIST, unsigned);
+bool member_is_in_list(pLIST,void*);
 
 #define FIRST_LIST_MEMBER(A) ((A)->head->mbr)
 #define LAST_LIST_MEMBER(A) ((A)->tail->mbr)

@@ -21,6 +21,8 @@ override CFLAGS += -I../          \
 
 override FSM_FLAGS += -ts --generate-weak-fns=false
 
+FSM_RST_FLAGS=--include-svg-img
+
 SPHINX_DIR ?= sphinx
 
 FSM_SRC = $(shell find . -maxdepth 1 -name "*.fsm" -printf "%P ")
@@ -64,6 +66,8 @@ clean:: clean_sphinx
 clean_sphinx:
 	@$(MAKE) -C $(SPHINX_DIR) clean
 	@cd $(SPHINX_DIR) && rm -f $(GENERATED_RST) $(GENERATED_PLANTUML) 2> /dev/null
+	@cd $(SPHINX_DIR) && rm -f *.svg 2> /dev/null
+	@cd $(SPHINX_DIR)/_static && rm -f *.svg 2> /dev/null
 
 stats.txt: $(FSM_SRC)
 

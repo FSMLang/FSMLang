@@ -15,6 +15,10 @@ endif
 
 FSM ?= fsm
 
+ifndef FSM_SRC
+FSM_SRC=$(wildcard *.fsm)
+endif
+
 ifeq ($(TARGET),fsm_fail_is_pass)
 CALL_FSM_FAILURE_A_SUCCESS = ; if [ $$? -ne 0 ]; then echo "expected fsm failure; test passes"; true; else echo "did not find an expected fsm failure; test fails"; false; fi
 endif
@@ -23,6 +27,14 @@ GENERATED_SRC = $(shell $(FSM) -M $(FSM_FLAGS) $(FSM_SRC))
 GENERATED_HDR = $(shell $(FSM) -Mh $(FSM_FLAGS) $(FSM_SRC))
 GENERATED_RST = $(shell $(FSM) -M -tr $(FSM_SRC))
 GENERATED_PLANTUML = $(shell $(FSM) -M -tp $(FSM_SRC))
+
+ifdef FSM_PLANTUML_FLAGS
+GENERATED_PLANTUML = $(shell $(FSM) -tp -M $(FSM_PLANTUML_FLAGS) $(FSM_SRC))
+endif
+
+ifdef FSM_HTML_FLAGS
+GENERATED_HTML = $(shell $(FSM) -th -M $(FSM_HTML_FLAGS) $(FSM_SRC))
+endif
 
 cleanfsm:
 	@-rm -f $(GENERATED_SRC) 2> /dev/null
@@ -61,8 +73,20 @@ $(SRC): $(FSM_SRC:.fsm=.h)
 %.fsmd: %.fsm
 	@set -e; $(FSM) -Md $(FSM_FLAGS) $< > $@
 
+%.fsmdp: %.fsm
+	@set -e; $(FSM) -tp -Md $(FSM_PLANTUML_FLAGS) $< > $@
+
+%.fsmdh: %.fsm
+	@set -e; $(FSM) -th -Md $(FSM_HTML_FLAGS) $< > $@
+
 ifneq ($(TARGET),fsm_fail_is_pass)
 ifneq ($(MAKECMDGOALS),clean)
+ifdef FSM_PLANTUML_FLAGS
+-include $(FSM_SRC:.fsm=.fsmdp)
+else ifdef FSM_HTML_FLAGS
+-include $(FSM_SRC:.fsm=.fsmdh)
+else
 -include $(FSM_SRC:.fsm=.fsmd)
+endif
 endif
 endif

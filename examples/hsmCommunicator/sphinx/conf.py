@@ -47,6 +47,12 @@ html_css_files = [
 	, 'fsmlang.css'
 ]
 
+
+# -- Options for PLANTUML output -------------------------------------------------
+# https://github.com/sphinx-contrib/plantuml
+
+#plantuml_output_format = "svg_img"
+
 def setup(sphinx):
 	sys.path.insert(0, os.path.abspath('./_pygments'))
 	from fsmlang import FSMLangLexer

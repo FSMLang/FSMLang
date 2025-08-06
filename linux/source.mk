@@ -15,5 +15,6 @@ SRC =	lexer.c                  \
 			fsm_c_pid_xref.c      \
 			fsm_c_event_table.c   \
 			fsm_rst.c             \
-			usage.c
+			usage.c               \
+			event_sequences.c
 

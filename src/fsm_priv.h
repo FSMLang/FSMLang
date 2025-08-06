@@ -50,6 +50,9 @@ if (!(A))                 \
 	return;               \
 }                         \
 
+#define NO_EVENT      -1   //this is used as the "order" of noEvent.
+#define NO_TRANSITION -1   //this is used as the "order" of noTransition.
+
 
 /**
 	These flags track the modifiers
@@ -128,9 +131,25 @@ typedef struct _data_type_struct_        DATA_TYPE_STRUCT,        *pDATA_TYPE_ST
 typedef struct _data_field_name_         DATA_FIELD_NAME,         *pDATA_FIELD_NAME;
 typedef struct _user_event_data_         USER_EVENT_DATA,         *pUSER_EVENT_DATA;
 typedef struct _native_info_             NATIVE_INFO,             *pNATIVE_INFO;
-
+typedef struct _event_sequence_node_     EVENT_SEQUENCE_NODE,     *pEVENT_SEQUENCE_NODE;
+typedef struct _event_sequence_          EVENT_SEQUENCE,          *pEVENT_SEQUENCE;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
+
+struct _event_sequence_node_
+{
+	pID_INFO pevent;
+	pID_INFO pnew_state;
+};
+
+struct _event_sequence_
+{
+   pID_INFO name;
+   char     *docCmt;
+   pID_INFO initial_state;
+   pID_INFO final_state;
+   pLIST    sequence;
+};
 
 struct _user_event_data_
 {
@@ -251,6 +270,7 @@ struct _statement_decl_list_
    pLIST                    data;
    pSTATE_AND_EVENT_DECLS   pstate_and_event_decls;
    pACTIONS_AND_TRANSITIONS pactions_and_transitions;
+   pLIST                    sequences;
 };
 
 struct _state_and_event_decls_
@@ -262,7 +282,7 @@ struct _state_and_event_decls_
 struct _id_info_ {
   char           *name;
   int             type;
-  unsigned        order;
+  int             order;
   pID_INFO        nextID;
   char           *docCmnt;
   PID_TYPE_DATA   type_data;
@@ -343,6 +363,7 @@ struct _machine_info_ {
   unsigned      states_with_no_way_out;
   unsigned      average_state_event_density_pct;
   unsigned      average_event_state_density_pct;
+  pLIST         sequences;
 };
 
 /* lexer id list handlers */
@@ -367,6 +388,7 @@ char *stateNameByIndex(pMACHINE_INFO,int);
 pID_INFO statePidByIndex(pMACHINE_INFO,int);
 pID_INFO transitionPidByIndex(pMACHINE_INFO,int);
 int  allocateActionArray(pMACHINE_INFO);
+int  allocateActionArray2(pACTION_INFO***,unsigned,unsigned);
 char *getFileNameNoDir(const char *);
 void enumerate_pid_list(pLIST);
 void count_external_declarations(pLIST,unsigned*);
@@ -401,6 +423,7 @@ void parser_debug_print_action_list_deep(pLIST,pMACHINE_INFO,FILE*);
 void parser_debug_print_transition_list(pLIST,FILE*);
 void parser_debug_print_transition_fn_list(pLIST,FILE*);
 void parser_debug_print_data_block(pLIST,FILE*);
+void parser_debug_print_event_sequences(pMACHINE_INFO,FILE*);
 #endif
 
 /* general use data */
@@ -490,7 +513,12 @@ bool print_sub_machine_component_name(pLIST_ELEMENT,void*);
 bool print_sub_machine_events(pLIST_ELEMENT,void*);
 bool print_sub_machine_event_names(pLIST_ELEMENT,void*);
 bool print_data_field(pLIST_ELEMENT,void*);
+bool print_event_sequence(pLIST_ELEMENT,void*);
+bool print_event_sequence_event(pLIST_ELEMENT,void*);
 char *create_string_from_file(FILE*,unsigned long*);
+pID_INFO get_transition(pMACHINE_INFO,unsigned,unsigned);
+pID_INFO get_action(pMACHINE_INFO,unsigned,unsigned);
+char *create_sequence_name(unsigned);
 
 
 #endif /* ----------- nothing below this line ---------------- */

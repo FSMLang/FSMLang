@@ -109,7 +109,10 @@ static void writeMachineStatistics(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    FSMLANG_MAYBE_UNUSED(pfsmog);
    LIST_ELEMENT elem = { .mbr = pmi , .next = NULL };
 
-   (void) write_machine_statistics(&elem, NULL);
+   if (!(output_generated_file_names_only))
+   {
+	   (void)write_machine_statistics(&elem, NULL);
+   }
 
 }
 

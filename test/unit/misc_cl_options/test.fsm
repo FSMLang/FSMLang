@@ -10,6 +10,8 @@ machine top
 
 		action a1 [e1, s1];
 
+		sequence start s1 e1 end s1;
+
 	}
 
 	machine sub2
@@ -31,5 +33,7 @@ machine top
 	}
 
 	action a1 [e1, s1];
+
+	sequence start s1 e1 end s1;
 
 }

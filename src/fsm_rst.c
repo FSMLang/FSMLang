@@ -35,6 +35,7 @@
 
 #include "fsm_rst.h"
 #include "y.tab.h"
+#include "event_sequences.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 	#include <stdio.h>
@@ -86,12 +87,18 @@ static void print_nchar(FILE*,char,size_t);
 static void print_reference_anchor(FILE*,char*,pRSTMachineData);
 static void print_machine_statistics(pFSMRSTOutputGenerator);
 static void print_transition_fns(pFSMRSTOutputGenerator);
+static void print_event_sequences(pFSMRSTOutputGenerator);
 static void eat_spaces(FILE*,char*);
 static bool print_pid_as_reference_in_list(pLIST_ELEMENT,void*);
 static bool print_pmi_in_list(pLIST_ELEMENT,void*);
+static bool print_sequence_svg(pLIST_ELEMENT,void*);
+static bool print_sequence(pLIST_ELEMENT,void*);
+static bool print_sequence_node_rst(pLIST_ELEMENT,void*);
 
 static char * fqMachineName(pRSTMachineData);
 static char * fqMachineNamePMI(pMACHINE_INFO);
+static void   stream_multiline(FILE*,unsigned,char*);
+static void   pad(FILE*,unsigned);
 
 struct _rst_machine_data_ {
 
@@ -289,8 +296,9 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	if (include_svg_img)
 	{
 		fprintf(FOUT(pfsmrstog)
-				, ".. image:: %s.svg\n%s:alt: PlantUML diagram separately generated.\n\n"
+				, ".. image:: %s.svg\n%s:alt: PlantUML diagram separately generated.\n%s:class: plantuml\n\n"
 				, pfsmrstog->pmd->baseName
+				, indent
 				, indent
 			   );
 	}
@@ -320,6 +328,11 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	if (pmi->transition_fn_list->count)
 	{
 		print_transition_fns(pfsmrstog);
+	}
+
+	if (pmi->sequences)
+	{
+		print_event_sequences(pfsmrstog);
 	}
 
 
@@ -419,6 +432,43 @@ static void print_transition_fns(pFSMRSTOutputGenerator pfsmrstog)
 
 	iterate_list(PMI(pfsmrstog)->transition_fn_list
 				 , print_transition_fn_data
+				 , pfsmrstog
+				 );
+}
+
+static void print_event_sequences(pFSMRSTOutputGenerator pfsmrstog)
+{
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nEvent Sequences\n---------------------\n"
+			);
+
+	if (!include_svg_img)
+	{
+
+		fprintf(FOUT(pfsmrstog)
+				, "\n.. list-table::\n%s:align: left\n%s:header-rows: 1\n%s:stub-columns: 1\n"
+				, indent
+				, indent
+				, indent
+				);
+
+		fprintf(FOUT(pfsmrstog)
+				, "\n%s* - Name\n%s  - Comment\n%s  - Initial State\n"
+				, indent
+				, indent
+				, indent
+				);
+
+		fprintf(FOUT(pfsmrstog)
+				, "%s  - Sequence\n%s  - Final State\n"
+				, indent
+				, indent
+				);
+
+	}
+
+	iterate_list(PMI(pfsmrstog)->sequences
+				 , include_svg_img ? print_sequence_svg : print_sequence
 				 , pfsmrstog
 				 );
 }
@@ -1127,6 +1177,248 @@ static bool print_pmi_in_list(pLIST_ELEMENT pelem, void *data)
 			, "* %s\n"
 			, pmi->name->name
 			);
+
+	return false;
+}
+
+static bool print_sequence_svg(pLIST_ELEMENT pelem, void *data)
+{
+	pEVENT_SEQUENCE        psequence = (pEVENT_SEQUENCE) pelem->mbr;
+	pFSMRSTOutputGenerator pfsmrstog = (pFSMRSTOutputGenerator) data;
+	char                   *fn;
+
+	fprintf(FOUT(pfsmrstog)
+			, "\n.. image:: %s.svg\n%s:class: plantuml\n\n"
+			, (fn = generate_sequence_file_name(psequence, PMI(pfsmrstog))) ? fn : ""
+			, indent
+			);
+
+	CHECK_AND_FREE(fn);
+
+	return false;
+}
+
+static bool print_sequence(pLIST_ELEMENT pelem, void *data)
+{
+	pEVENT_SEQUENCE          psequence = (pEVENT_SEQUENCE) pelem->mbr;
+	pFSMRSTOutputGenerator   pfsmrstog = (pFSMRSTOutputGenerator) data;
+	SEQUENCE_ITERATOR_HELPER sih       = {0};
+
+	sih.ih.fout        = FOUT(pfsmrstog);
+	sih.ih.pmi         = PMI(pfsmrstog);
+	sih.ih.first       = true;
+	sih.st.pcurr_state = psequence->initial_state;
+
+	fprintf(FOUT(pfsmrstog)
+			,"%s* - %s\n"
+			, indent
+			, psequence->name->name
+			);
+
+  	fprintf(FOUT(pfsmrstog)
+  			, "%s  - "
+  			, indent
+  			);
+
+	if (psequence->docCmt)
+	{
+		stream_multiline(FOUT(pfsmrstog), 4, psequence->docCmt);
+	}
+
+	fprintf(FOUT(pfsmrstog)
+			, "\n"
+			);
+
+	fprintf(FOUT(pfsmrstog)
+			, "%s  - %s\n%s  - "
+			, indent
+			, psequence->initial_state->name
+			, indent
+			);
+
+	iterate_list(psequence->sequence
+				 , print_sequence_node_rst
+				 , &sih
+				 );
+
+	fprintf(FOUT(pfsmrstog)
+			, "\n"
+			);
+
+	fprintf(FOUT(pfsmrstog)
+			, "%s  - Traced: %s\n"
+			, indent
+			, sih.st.pcurr_state->name
+			);
+
+	return false;
+}
+
+/**
+ * Pad the given number of columns with spaces.  Start with
+ * indent.
+ * 
+ * @author Steven Stanton (8/3/2025)
+ * 
+ * @param fout   Output stream
+ * @param cols   Number of columns to pad after indent.
+ */
+static void pad(FILE *fout, unsigned cols)
+{
+	fputs(indent, fout);
+	for (unsigned col = 0; col < cols; col++)
+	{
+		fputc(' ', fout);
+	}
+}
+
+/**
+ * Write the given string to the given stream.  After any
+ * newline, pad the given number of columns, and insert
+ * the line continuation string.
+ * 
+ * @author Steven Stanton (8/3/2025)
+ * 
+ * @param fout   Output stream.
+ * @param cols   Number of columns to pad.
+ * @param string String to stream.
+ */
+static void stream_multiline(FILE *fout, unsigned cols, char *string)
+{
+	enum {normal, padding} state = normal;
+
+	for (char *cp = string; *cp; cp++)
+	{
+		printf("0x%02x %s\n"
+			   , *cp
+			   , state == normal ? "normal" : "padding"
+			   );
+		switch (state)
+		{
+		case normal:
+			switch (*cp)
+			{
+			case '\n':
+			case '\r':
+				fputc('\n', fout);
+				pad(fout,cols);
+				state = padding;
+				break;
+			default:
+				fputc(*cp, fout);
+				break;
+			}
+			break;
+		case padding:
+			switch (*cp)
+			{
+			case '\t':
+			case '\n':
+			case '\r':
+				break;
+			default:
+				fputc('|', fout);
+				fputc(' ', fout);
+				fputc(*cp, fout);
+				state = normal;
+				break;
+			}
+			break;
+		}
+	}
+}
+
+static bool print_sequence_node_rst(pLIST_ELEMENT pelem, void *data)
+{
+	pEVENT_SEQUENCE_NODE      pesn  = (pEVENT_SEQUENCE_NODE) pelem->mbr;
+	pITERATOR_HELPER          pih   = (pITERATOR_HELPER) data;
+	pSEQUENCE_ITERATOR_HELPER psih  = (pSEQUENCE_ITERATOR_HELPER) data;
+
+	//Grab the current action before moving to the next state.
+	pID_INFO paction = get_action(pih->pmi
+								  , pesn->pevent->order
+								  , psih->st.pcurr_state->order
+								  );
+	if (!pih->first)
+	{
+		pad(pih->fout, 4);
+	}
+	else
+	{
+		pih->first = false;
+	}
+
+	fprintf(pih->fout
+			,"* %s: %s ->"
+			, pesn->pevent->name
+			, psih->st.pcurr_state->name
+			);
+
+	TRANSITION_NOTE tn = determine_next_state(pih->pmi, pesn, &psih->st);
+
+	fprintf(pih->fout
+			, "%s (%s)"
+			, psih->st.pcurr_state->name
+			, paction ? paction->name : "No Action"
+			);
+
+	if (tn != tn_none)
+	{
+		fprintf(pih->fout, "\n");
+
+		pad(pih->fout, 7);
+
+		switch (tn)
+		{
+		case tn_no_fsm_transition:
+			fprintf(pih->fout
+					, "* The sequence indicates a EVENT_SEQUENCE, but none is given in the FSM."
+					);
+			break;
+		case tn_state_mismatch:
+			fprintf(pih->fout
+					, "* The transition indicated in the sequence does not match the FSM."
+					);
+			break;
+		case tn_fn_mismatch:
+		case tn_fn_match:
+			fprintf(pih->fout
+					, "* | State machine indicates transition is via function %s.\n"
+					, psih->st.pcurr_transition->name
+					);
+			fprintf(pih->fout
+					, "            | \n            | The transition given in the sequence is %s"
+					, tn == tn_fn_match ? "" : "not "
+					);
+			fprintf(pih->fout
+					, "found in the function's return declaration."
+					);
+			break;
+		case tn_first_return:
+			fprintf(pih->fout
+					, "* | State machine indicates transition is via function %s and no transition was indicated in the sequence."
+					, psih->st.pcurr_transition->name
+					);
+			fprintf(pih->fout
+					, "\n            | \n            | The first indicated return value was chosen."
+					);
+			break;
+		case tn_no_fn_return_list:
+			fprintf(pih->fout
+					, "* State machine indicates transition is via function %s and no transition was indicated in the sequence."
+					, psih->st.pcurr_transition->name
+					);
+			fprintf(pih->fout
+					, "\n          | \n          | Furthermore, no return list was given for the function."
+					);
+			break;
+		default:
+			break;
+		}
+		fprintf(pih->fout, "\n");
+	}
+
+	fprintf(pih->fout, "\n");
 
 	return false;
 }

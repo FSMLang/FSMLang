@@ -402,6 +402,32 @@ struct {
 					#endif
 				}
 
+sequence {
+					#ifndef LEX_DEBUG
+                    yylval.charData = currDocCmnt ? currDocCmnt : NULL;
+					currDocCmnt = NULL;
+					return SEQUENCE_KEY;
+					#else
+					printf("%s\n",strings[SEQUENCE_KEY]);
+					#endif
+				}
+
+start {
+					#ifndef LEX_DEBUG
+					return START_KEY;
+					#else
+					printf("%s\n",strings[START_KEY]);
+					#endif
+				}
+
+end {
+					#ifndef LEX_DEBUG
+					return END_KEY;
+					#else
+					printf("%s\n",strings[END_KEY]);
+					#endif
+				}
+
 union {
 					#ifndef LEX_DEBUG
 					return UNION_KEY;

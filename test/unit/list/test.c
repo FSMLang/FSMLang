@@ -7,31 +7,51 @@
 #include "fsm_priv.h"
 
 typedef struct _comparitor_helper_ COMPARITOR_HELPER, *pCOMPARITOR_HELPER;
+typedef enum _direction_
+{
+	fwd
+	, rev
+} DIRECTION;
+
 struct _comparitor_helper_ 
 {
-   pID_INFO id_infos;
-   unsigned num_id_infos;
-   unsigned which;
-   bool     identical;
+   pID_INFO  id_infos;
+   unsigned  num_id_infos;
+   unsigned  which;
+   bool      identical;
+	DIRECTION direction;
 };
 
 bool comparitor         (pLIST_ELEMENT,void*);
 bool print_id_info_name (pLIST_ELEMENT,void*);
 
-bool add_to_list_test(void);
-bool join_lists      (void);
-bool finder_test_0   (void);
-bool finder_test_1   (void);
-bool finder_test_2   (void);
-bool finder_test_3   (void);
-bool finder_test_4   (void);
-bool finder_test_5   (void);
-bool copy_test_1     (void);
-bool copy_test_2     (void);
-bool copy_test_3     (void);
-bool copy_test_4     (void);
-bool copy_test_5     (void);
-bool copy_test_6     (void);
+bool add_to_list_test  (void);
+bool join_lists        (void);
+bool finder_test_0     (void);
+bool finder_test_1     (void);
+bool finder_test_2     (void);
+bool finder_test_3     (void);
+bool finder_test_4     (void);
+bool finder_test_5     (void);
+bool copy_test_1       (void);
+bool copy_test_2       (void);
+bool copy_test_3       (void);
+bool copy_test_4       (void);
+bool copy_test_5       (void);
+bool copy_test_6       (void);
+bool remove_head       (void);
+bool remove_tail       (void);
+bool remove_middle     (void);
+bool remove_first      (void);
+bool remove_last       (void);
+bool remove_second     (void);
+bool remove_too_many   (void);
+bool reverse_iterate   (void);
+bool reverse_find_tl   (void);
+bool reverse_find_hd   (void);
+bool reverse_find_mid  (void);
+bool find_member       (void);
+bool do_not_find_member(void);
 
 TEST_FN tests[] = {
 	add_to_list_test
@@ -48,6 +68,16 @@ TEST_FN tests[] = {
 	, copy_test_4
 	, copy_test_5
 	, copy_test_6
+	, remove_head
+	, remove_tail
+	, remove_middle
+	, remove_first
+   , remove_last
+	, remove_second
+	, remove_too_many
+	, reverse_iterate
+	, find_member
+	, do_not_find_member
 	, NULL
 };
 
@@ -101,6 +131,24 @@ bool comparitor(pLIST_ELEMENT pelem, void *data)
    }
 
    return pch->identical;
+}
+
+bool anti_comparitor(pLIST_ELEMENT pelem, void *data)
+{
+   pCOMPARITOR_HELPER pch = (pCOMPARITOR_HELPER) data;
+
+   pch->identical = false;
+   if (pelem->mbr == &pch->id_infos[pch->which])
+   {
+      pch->identical = true;
+   }
+
+	if (pch->direction == fwd)
+		pch->which++;
+	else
+		pch->which--;
+
+   return !pch->identical;
 }
 
 bool add_to_list_test()
@@ -830,6 +878,279 @@ bool copy_test_6(void)
           && (pdest->count == (id_info_count_0 + id_info_count_1 - 1))
           ;
    
+}
+
+bool remove_head(void)
+{
+   pLIST ptst = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+	remove_from_list(ptst, &id_infos_0[0]);
+
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	return ( (ptst->count == 2)
+            && (ptst->head->mbr == &id_infos_0[1])
+            && (ptst->tail->mbr == &id_infos_0[2])
+				&& (ptst->head->next == ptst->tail)
+				&& (ptst->tail->prev == ptst->head)
+				&& (ptst->head->prev == NULL)
+				&& (ptst->tail->next == NULL)
+				);
+}
+
+bool remove_tail(void)
+{
+   pLIST ptst = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+	remove_from_list(ptst, &id_infos_0[2]);
+
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	return ( (ptst->count == 2)
+            && (ptst->head->mbr == &id_infos_0[0])
+            && (ptst->tail->mbr == &id_infos_0[1])
+				&& (ptst->head->next == ptst->tail)
+				&& (ptst->tail->prev == ptst->head)
+				&& (ptst->head->prev == NULL)
+				&& (ptst->tail->next == NULL)
+				);
+}
+
+bool remove_middle(void)
+{
+   pLIST ptst = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+	remove_from_list(ptst, &id_infos_0[1]);
+
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	return ( (ptst->count == 2)
+            && (ptst->head->mbr == &id_infos_0[0])
+            && (ptst->tail->mbr == &id_infos_0[2])
+				&& (ptst->head->next == ptst->tail)
+				&& (ptst->tail->prev == ptst->head)
+				&& (ptst->head->prev == NULL)
+				&& (ptst->tail->next == NULL)
+				);
+}
+
+bool remove_first(void)
+{
+   pLIST ptst = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+	remove_nth_list_member(ptst, 0);
+
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	return ( (ptst->count == 2)
+            && (ptst->head->mbr == &id_infos_0[1])
+            && (ptst->tail->mbr == &id_infos_0[2])
+				&& (ptst->head->next == ptst->tail)
+				&& (ptst->tail->prev == ptst->head)
+				&& (ptst->head->prev == NULL)
+				&& (ptst->tail->next == NULL)
+				);
+}
+
+bool remove_last(void)
+{
+   pLIST ptst = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+	remove_nth_list_member(ptst, 2);
+
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	return ( (ptst->count == 2)
+            && (ptst->head->mbr == &id_infos_0[0])
+            && (ptst->tail->mbr == &id_infos_0[1])
+				&& (ptst->head->next == ptst->tail)
+				&& (ptst->tail->prev == ptst->head)
+				&& (ptst->head->prev == NULL)
+				&& (ptst->tail->next == NULL)
+				);
+}
+
+bool remove_second(void)
+{
+   pLIST ptst = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+	remove_nth_list_member(ptst, 1);
+
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	return ( (ptst->count == 2)
+            && (ptst->head->mbr == &id_infos_0[0])
+            && (ptst->tail->mbr == &id_infos_0[2])
+				&& (ptst->head->next == ptst->tail)
+				&& (ptst->tail->prev == ptst->head)
+				&& (ptst->head->prev == NULL)
+				&& (ptst->tail->next == NULL)
+				);
+}
+
+bool remove_too_many(void)
+{
+   pLIST ptst = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+	remove_nth_list_member(ptst, 0);
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	remove_nth_list_member(ptst, 0);
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	remove_nth_list_member(ptst, 0);
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	remove_nth_list_member(ptst, 0);
+
+	iterate_list(ptst, print_id_info_name, NULL);
+
+	return ( (ptst->count == 0)
+				&& (ptst->head == NULL)
+				&& (ptst->tail == NULL)
+				);
+}
+
+bool reverse_iterate(void)
+{
+   pLIST             ptst = init_list();
+	pLIST_ELEMENT     pelem;
+	COMPARITOR_HELPER ch;
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+   ch.id_infos     = id_infos_0;
+   ch.num_id_infos = id_info_count_0;
+   ch.which        = id_info_count_0 - 1;
+   ch.identical    = false;
+	ch.direction    = rev;
+
+	pelem = reverse_iterate_list(ptst, anti_comparitor, &ch);
+
+	return pelem == NULL;
+
+}
+
+bool find_member(void)
+{
+   pLIST             ptst = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+	return member_is_in_list(ptst, &id_infos_0[id_info_count_0-1]);
+}
+
+bool do_not_find_member(void)
+{
+   pLIST             ptst = init_list();
+
+   printf("\n%s\n", __func__);
+
+   /* load up the list */
+   for (unsigned id_info_counter_0 = 0;
+         id_info_counter_0 < id_info_count_0;
+         id_info_counter_0++
+       )
+   {
+     add_to_list(ptst, &id_infos_0[id_info_counter_0]);
+   }
+
+	return !member_is_in_list(ptst, &id_infos_0[id_info_count_0]);
 }
 
 int main(void)

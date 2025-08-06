@@ -60,31 +60,35 @@ void yyerror(char *);
 %}
 
 %union {
-	pID_INFO				         pid_info;
-	pACTION_SE_INFO	         se_info;
-	pACTION_INFO		         action_info;
-	pMATRIX_INFO		         matrix_info;
-	char *					         charData;
+	pID_INFO				        pid_info;
+	pACTION_SE_INFO	        se_info;
+	pACTION_INFO		        action_info;
+	pMATRIX_INFO		        matrix_info;
+	char *					        charData;
  MOD_FLAGS                mod_flags;
  pMACHINE_INFO            pmachineInfo;
  pLIST                    plist;
  pSTATE_AND_EVENT_DECLS   pstate_and_event_decls;
  pSTATEMENT_DECL_LIST     pstatement_decl_list;
  pACTIONS_AND_TRANSITIONS pactions_and_transitions;
- pACTION_DECL						 paction_decl;
+ pACTION_DECL						  paction_decl;
  pMACHINE_QUALIFIER       pmachine_qualifier;
  pMACHINE_PREFIX          pmachine_prefix;
  pDATA_FIELD              pdata_field;
  pDATA_TYPE_STRUCT        pdata_type_struct;
  pUSER_EVENT_DATA         puser_event_data;
  pNATIVE_INFO             pnative_info;
+ pEVENT_SEQUENCE          psequence;
+ pEVENT_SEQUENCE_NODE     pevent_sequence_node;
 }
 
 %token ON NAMESPACE STATE_KEY EVENT_KEY PROLOGUE_KEY EPILOGUE_KEY
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
+%token START_KEY EVENT_SEQ END_KEY
 
+%token <charData> SEQUENCE_KEY
 %token <charData> ACTION_KEY 
 %token <charData> TRANSITION_KEY 
 
@@ -145,6 +149,11 @@ void yyerror(char *);
 %type <pid_info>                 state
 %type <charData>                 parent_namespace
 %type <pdata_type_struct>        data_type
+%type <psequence>                sequence
+%type <psequence>                sequence_start
+%type <plist>                    sequences
+%type <pevent_sequence_node>     sequence_node
+%type <plist>                    sequence_nodes
 
 %%
 
@@ -157,8 +166,7 @@ fsmlang: machine
 						#else
 
 						/* write the machine */
-						(*pfsmog->writeMachine)(pfsmog,$1);
-
+            (*pfsmog->writeMachine)(pfsmog,$1);
 						#endif
 
 						/* get ready for the next machine */
@@ -175,7 +183,7 @@ fsmlang: machine
 						#else
 
 						/* write the machine */
-						(*pfsmog->writeMachine)(pfsmog,$2);
+            (*pfsmog->writeMachine)(pfsmog,$2);
 
 						#endif
 
@@ -225,12 +233,14 @@ machine:	machine_prefix ID machine_qualifier
               */
    						add_id(id_list, EVENT,"noEvent",&pid_event);
               pid_event->powningMachine = pmachineInfo;
+							pid_event->order          = NO_EVENT; // This makes it easier to detect.
             }
 
 						/* as with 'noEvent', we need this to support return decls */
 						pID_INFO pid_state;
 						add_id(id_list, STATE, "noTransition",&pid_state);
 						pid_state->powningMachine = pmachineInfo;
+						pid_state->order          = NO_TRANSITION;  // This makes it easier to detect.
 
          } 
         '{' statement_decl_list '}'
@@ -238,11 +248,11 @@ machine:	machine_prefix ID machine_qualifier
 
 						$$                     = $1->pmachineInfo;
 
-				        $$->name               = $2;
- 			            $$->modFlags          |= $3->modFlags;
- 			            $$->machineTransition  = $3->machineTransition;
-                        $$->native_impl_prologue = $3->native_impl_prologue;
-                        $$->native_impl_epilogue = $3->native_impl_epilogue;
+				    $$->name               = $2;
+ 			      $$->modFlags          |= $3->modFlags;
+ 			      $$->machineTransition  = $3->machineTransition;
+            $$->native_impl_prologue = $3->native_impl_prologue;
+            $$->native_impl_epilogue = $3->native_impl_epilogue;
 
 
 						/* harvest the lists */
@@ -254,6 +264,7 @@ machine:	machine_prefix ID machine_qualifier
  					$$->transition_list    = $6->pactions_and_transitions->transition_list;
  					$$->transition_fn_list = $6->pactions_and_transitions->transition_fn_list;
  					$$->machine_list       = $6->pactions_and_transitions->machine_list;
+					$$->sequences          = $6->sequences;
 
 						count_external_declarations     ($$->event_list,&($$->external_event_designation_count));
 						count_parent_event_referenced   ($$->event_list,&($$->parent_event_reference_count));
@@ -388,6 +399,19 @@ machine:	machine_prefix ID machine_qualifier
                       ,"%d events reference the parent machine.\n"
                       , $$->parent_event_reference_count);
            }
+
+					 if ($$->sequences)
+					 {
+						 fprintf(yyout
+										 , "There %s %d event sequence%s given:\n"
+										 , $$->sequences->count == 1 ? "is" : "are"
+										 , $$->sequences->count
+										 , $$->sequences->count == 1 ? "" : "s"
+										 );
+
+						 parser_debug_print_event_sequences($$, yyout);
+
+					 }
 
 						fprintf(yyout,"The actions :\n");
  					parser_debug_print_action_list_deep($$->action_list,$$,yyout);
@@ -542,6 +566,9 @@ statement_decl_list:	state_and_event_decls actions_and_transitions
    
     	$$->pstate_and_event_decls   = $1;
     	$$->pactions_and_transitions = $2;
+
+			/* This allows the event sequence parser to set the proper default for the initial state. */
+			pmachineInfo->state_list = $1->state_decls;
    
    	}
  | machine_data state_and_event_decls actions_and_transitions
@@ -553,8 +580,162 @@ statement_decl_list:	state_and_event_decls actions_and_transitions
     	$$->pstate_and_event_decls   = $2;
     	$$->pactions_and_transitions = $3;
    
+			/* This allows the event sequence parser to set the proper default for the initial state. */
+			pmachineInfo->state_list = $2->state_decls;
    	}
+ | statement_decl_list sequences
+ {
+	#ifdef PARSER_DEBUG
+	fprintf(yyout
+					,"Found %d sequence%s.\n"
+					, $2->count
+					, $2->count == 1 ? "" : "s"
+					);
+	#endif
+
+	$$ = $1;
+	$$->sequences = $2;
+
+ }
 	;
+
+sequence_start : SEQUENCE_KEY 
+	{
+		#ifdef PARSER_DEBUG
+		fprintf(yyout, "Starting an event sequence\n");
+		if ($$)
+		{
+			fprintf(yyout, "Comment: %s\n", $1);
+		}
+		#endif
+
+    if (NULL == ($$ = (pEVENT_SEQUENCE)calloc(1, sizeof(EVENT_SEQUENCE))))
+    	yyerror("Out of memory");
+
+		$$->initial_state = statePidByIndex(pmachineInfo, 0);
+		$$->docCmt = $1;
+
+	}
+	| sequence_start ID
+	{
+		$$ = $1;
+		set_id_type($2,EVENT_SEQ);
+		$$->name = $2;
+		$$->initial_state = statePidByIndex(pmachineInfo, 0);
+	}
+	| sequence_start ID START_KEY STATE
+	{
+		$$ = $1;
+		set_id_type($2,EVENT_SEQ);
+		$$->name = $2;
+		$$->initial_state = $4;
+	}
+	| sequence_start START_KEY STATE
+	{
+		$$ = $1;
+		$$->initial_state = $3;
+	}
+	;
+
+sequence_node:
+  EVENT
+  {
+    if (($$ = (pEVENT_SEQUENCE_NODE) calloc(1, sizeof(EVENT_SEQUENCE_NODE))) == NULL)
+    {
+      yyerror("out of memory");
+    }
+
+    $$->pevent = $1;
+  }
+  | EVENT TRANSITION_KEY STATE
+  {
+    if (($$ = (pEVENT_SEQUENCE_NODE) calloc(1, sizeof(EVENT_SEQUENCE_NODE))) == NULL)
+    {
+      yyerror("out of memory");
+    }
+
+    $$->pevent = $1;
+    $$->pnew_state = $3;
+  }
+  ;
+
+sequence_nodes:
+  sequence_node
+  {
+    if (($$ = init_list()) == NULL)
+    {
+      yyerror("out of memory");
+    }
+
+    add_to_list($$, $1);
+
+  }
+  | sequence_nodes ',' sequence_node
+  {
+    add_to_list($1, $3);
+    $$ = $1;
+  }
+  ;
+
+sequence: sequence_start sequence_nodes ';'
+	{
+		#ifdef PARSER_DEBUG
+		fprintf(yyout, "Found an event sequence\n");
+		#endif
+
+		$$ = $1;
+		$$->sequence = $2;
+
+	}
+	| sequence_start sequence_nodes END_KEY STATE ';'
+	{
+		#ifdef PARSER_DEBUG
+		fprintf(yyout, "Found an event sequence indicating an end state\n");
+		#endif
+
+		$$ = $1;
+		$$->sequence    = $2;
+		$$->final_state = $4;
+
+	}
+	;
+
+sequences: 
+	sequence 
+	{
+		if (($$ = init_list()) == NULL)
+    		yyerror("Out of memory");
+
+		add_to_list($$, $1);
+
+		if ($1->name == NULL)
+		{
+				//this is the first sequence in the list
+				char *sn;
+				add_id(id_list, ID,sn = create_sequence_name(0),&$1->name);
+				CHECK_AND_FREE(sn);
+		}
+	}
+	| sequences sequence
+	{
+		#ifdef PARSER_DEBUG
+		fprintf(yyout, "Found another event sequence\n");
+		#endif
+
+		add_to_list($1, $2);
+
+		if ($2->name == NULL)
+		{
+				char *sn;
+				add_id(id_list, ID,sn = create_sequence_name($1->count-1),&$2->name);
+				CHECK_AND_FREE(sn);
+		}
+
+		$$ = $1;
+
+	}
+	;
+
 
 machine_list:
     machine
@@ -2463,9 +2644,6 @@ int main(int argc, char **argv)
  						add_plantuml_title = true;
  					 break;
  			   case lo_add_plantuml_legend:
- 				   printf("adding plantuml legend: %s\n"
- 									, optarg ? optarg : " with no arguments"
- 									);
  					 if (!optarg)
 						 {
  					    add_plantuml_legend = true;
@@ -2747,12 +2925,12 @@ void yyerror(char *s)
   fprintf(stderr,"%s: %s\n",me,s);
   fprintf(stderr,"\tline %d : %s\n",lineno,yytext);
 
-    #ifndef PARSER_DEBUG
-	good = 0;
-	#else
+  #ifdef PARSER_DEBUG
 	//always return good so that the makefile can pick up stderr
 	//the makefile will detect differences between actual and expected outcome;
 	good = 1;
+	#else
+	good = 0;
 	#endif
 
 }
