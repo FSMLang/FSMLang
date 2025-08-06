@@ -343,7 +343,9 @@ Event Sequences
        * e2: s1 ->s2 (a2)
        * e4: s2 ->s2 (a4)
 
-     - Traced: s2
+     - | Traced: s2
+       | 
+       | s2 was given in the sequence.
    * - Sequence_1
      - 
        | This, too is
@@ -353,7 +355,9 @@ Event Sequences
      - * e2: s1 ->s2 (a2)
        * e2: s2 ->s1 (No Action)
 
-     - Traced: s1
+     - | Traced: s1
+       | 
+       | s2 was given in the sequence; this does not match the traced state.
    * - Sequence_2
      - 
      - s1
