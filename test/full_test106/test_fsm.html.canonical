@@ -668,7 +668,7 @@ s1</td>
 <li>e2: s1 &rarr; s2 (a2)</li>
 <li>e2: s2 &rarr; s3 (No Action)
 <ul class="transition_note">
-<li class="transition_warning">The EVENT_SEQUENCE indicated in the sequence does not match the FSM.
+<li class="transition_warning">The transition indicated in the sequence does not match the FSM.
 </li>
 </ul>
 </li>
