@@ -1246,11 +1246,29 @@ static bool print_sequence(pLIST_ELEMENT pelem, void *data)
 			);
 
 	fprintf(FOUT(pfsmrstog)
-			, "%s  - Traced: %s\n"
+			, "%s  - %sTraced: %s\n"
 			, indent
+			, psequence->final_state ? "| " : ""
 			, sih.st.pcurr_state->name
 			);
 
+	if (psequence->final_state)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "%s    | \n"
+				, indent
+				);
+
+		fprintf(FOUT(pfsmrstog)
+				, "%s    | %s was given in the sequence%s.\n"
+				, indent
+				, psequence->final_state->name
+				, psequence->final_state != sih.st.pcurr_state
+				  ? "; this does not match the traced state"
+				  : ""
+				);
+
+	}
 	return false;
 }
 
