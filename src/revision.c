@@ -451,5 +451,16 @@
 	has been added to preserve the previous behavior, which was to share events.
 
 */
-const char rev_string[] = "1.46";
+
+/*
+	Revision 1.47
+
+	Implement event sequence declarations.  These sequences do not affect C code
+	generation, but they are made part of the HTML, PlantUML and RST documentation.
+	
+	The goal is to provide an additional analysis aid for the understanding of 
+	the state machine under construction.
+
+*/
+const char rev_string[] = "1.47";
 
