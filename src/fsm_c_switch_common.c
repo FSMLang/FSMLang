@@ -224,13 +224,14 @@ void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator pfsmcog)
            );
    fprintf(pcmd->cFile
            , "\t\tpfsm->event = %s;\n\n"
-           , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+		   , (pmi->data_block_count == 0) ? "event" : "e"
            );
 
    if (pmi->machine_list)
    {
       fprintf(pcmd->cFile
-              , "\t\tif (e < %s_noEvent)\n\t\t{\n"
+              , "\t\tif (%s < %s_noEvent)\n\t\t{\n"
+			  , (pmi->data_block_count == 0) ? "event" : "e"
               , pmi->name->name
               );
       tabstr = "\t\t";

@@ -1323,6 +1323,13 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
               , pmi->data_block_count ? "->event" : ""
              );
    }
+   else if (pmi->data_block_count != 0)
+   {
+	   fprintf(pcmd->cFile
+			   , "\t%s_EVENT_ENUM e = event->event;\n\n"
+			   , ucfqMachineName(pcmd)
+			   );
+   }
 
    if (add_profiling_macros)
    {
@@ -1370,8 +1377,9 @@ static void writeEventTableFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *ta
 	if (pmi->modFlags & mfActionsReturnVoid)
 	{
 	   fprintf(pcmd->cFile
-			   , "%s\t((* (*pfsm->eventsArray)[event])(pfsm));\n"
+			   , "%s\t((* (*pfsm->eventsArray)[%s])(pfsm));\n"
 			   , tabstr
+			   , (pmi->data_block_count == 0) ? "event" : "e"
 			   );
 	}
 	else
@@ -1436,15 +1444,23 @@ static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
              : ""
            );
 
+   fprintf(pcmd->cFile
+		   , "\n#ifdef %s_DEBUG\n"
+		   , fsmType(pcmd)
+		   );
    fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
    fprintf(pcmd->cFile
-           , "%s_EVENT_NAMES[event]\n\t\t,"
+           , "%s_EVENT_NAMES[%s]\n\t\t,"
            , ucfqMachineName(pcmd)
+		   , pmi->data_block_count ? "e" : "event"
            );
    fprintf(pcmd->cFile
            , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n\n"
            , ucnfMachineName(pcmd)
            );
+   fprintf(pcmd->cFile
+		   , "\n#endif\n"
+		   );
 
    if (pmi->data_block_count)
    {
@@ -1461,8 +1477,9 @@ static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
    }
 
    fprintf(pcmd->cFile
-           , "\t%ss = ((* (*pfsm->eventsArray)[event])(pfsm));\n\n"
+           , "\t%ss = ((* (*pfsm->eventsArray)[%s])(pfsm));\n\n"
            , tabstr
+		   , pmi->data_block_count ? "e" : "event"
            );
 
    if (add_profiling_macros)
@@ -1516,11 +1533,18 @@ static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
            , "\t\tpfsm->state = s;\n\t}\n\n"
           );
 
+   fprintf(pcmd->cFile
+		   , "\n#ifdef %s_DEBUG\n"
+		   , fsmType(pcmd)
+		   );
    fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
    fprintf(pcmd->cFile
            , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
            , ucnfMachineName(pcmd)
            );
+   fprintf(pcmd->cFile
+		   , "\n#endif\n"
+		   );
 
 }
 

@@ -494,6 +494,14 @@ static void writeOriginalFSMArv(pFSMCOutputGenerator pfsmcog)
 
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s */\n", __func__);
 
+	if (ultimateAncestor(pmi)->data_block_count)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s e = event->event;\n"
+				, eventType(pcmd)
+			   );
+	}
+
 	if (pmi->executes_fns_on_state_transitions)
 	{
 		fprintf(pcmd->cFile
@@ -585,19 +593,35 @@ static void writeActionsReturnStateFSM(pFSMCOutputGenerator pfsmcog)
 			, stateType(pcmd)
 			);
 
+	if (pmi->data_block_count)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s e = event->event;\n"
+				, eventType(pcmd)
+				);
+	}
+
 	if (add_profiling_macros)
 	{
 		fprintf(pcmd->cFile, "\n\tFSM_ENTRY(pfsm);\n\n");
 	}
 
+	fprintf(pcmd->cFile
+			, "\n#ifdef %s_DEBUG\n"
+			, fsmType(pcmd)
+			);
 	fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
 	fprintf(pcmd->cFile
-			, "%s_EVENT_NAMES[event]\n\t\t,"
+			, "%s_EVENT_NAMES[%s]\n\t\t,"
 			, ucMachineName(pcmd)
+			, pmi->data_block_count ? "e" : "event"
 			);
 	fprintf(pcmd->cFile
 			, "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
 			, ucMachineName(pcmd)
+			);
+	fprintf(pcmd->cFile
+			, "\n#endif\n\n"
 			);
 
 	if (pmi->data_block_count)
@@ -608,11 +632,12 @@ static void writeActionsReturnStateFSM(pFSMCOutputGenerator pfsmcog)
 	}
 
 	fprintf(pcmd->cFile
-			, "\n\ts = (*(*pfsm->actionArray)[event][pfsm->state])(pfsm);\n\n"
+			, "\n\ts = (*(*pfsm->actionArray)[%s][pfsm->state])(pfsm);\n\n"
+			, pmi->data_block_count ? "e" : "event"
 		   );
 
 	fprintf(pcmd->cFile
-			, "\tif (s != THIS(noTransition))\n\t{\n"
+			, "\tif (s != STATE(noTransition))\n\t{\n"
 			);
 
 	if (pmi->executes_fns_on_state_transitions)
@@ -655,10 +680,17 @@ static void writeActionsReturnStateFSM(pFSMCOutputGenerator pfsmcog)
 			, "\t\tpfsm->state = s;\n\t}\n\n"
 		   );
 
+	fprintf(pcmd->cFile
+			, "\n#ifdef %s_DEBUG\n"
+			, fsmType(pcmd)
+			);
 	fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
 	fprintf(pcmd->cFile
 			, "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
 			, ucMachineName(pcmd)
+			);
+	fprintf(pcmd->cFile
+			, "\n#endif\n\n"
 			);
 
 	if (add_profiling_macros)
@@ -719,15 +751,17 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, c
 		if (compacting(pmi))
 		{
 			fprintf(pcmd->cFile
-					, "%s(*THIS(action_fns)[(*pfsm->actionArray)[event][pfsm->state].action])(pfsm);\n\n"
+					, "%s(*THIS(action_fns)[(*pfsm->actionArray)[%s][pfsm->state].action])(pfsm);\n\n"
 					, tabstr
+					, (pmi->data_block_count == 0) ? "event" : "e"
 				   );
 		}
 		else
 		{
 			fprintf(pcmd->cFile
-					, "%s((* (*pfsm->actionArray)[event][pfsm->state].action)(pfsm));\n\n"
+					, "%s((* (*pfsm->actionArray)[%s][pfsm->state].action)(pfsm));\n\n"
 					, tabstr
+					, (pmi->data_block_count == 0) ? "event" : "e"
 				   );
 		}
 
@@ -748,7 +782,9 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, c
 				, tabstr
 				, pmi->executes_fns_on_state_transitions 
 				? "new_s" : "pfsm->state"
-				, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+				, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+				  ? "event" 
+				  : "e"
 			   );
 	}
 	else
@@ -763,16 +799,24 @@ static void writeOriginalFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi, c
 		{
 			fprintf(pcmd->cFile
 					, "*THIS(transition_fns)[(*pfsm->actionArray)[%s][pfsm->state].transition])(pfsm,%s);\n\n"
-					, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-					, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+					, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+					  ? "event" 
+					  : "e"
+					, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+					  ? "event" 
+					  : "e"
 					);
 		}
 		else
 		{
 			fprintf(pcmd->cFile
 					, "(* (*pfsm->actionArray)[%s][pfsm->state].transition)(pfsm,%s));\n\n"
-					, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-					, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+					, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+					  ? "event" 
+					  : "e"
+					, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+					  ? "event" 
+					  : "e"
 				   );
 		}
 	}
@@ -869,16 +913,22 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 		if (compacting(pmi))
 		{
 			fprintf(pcmd->cFile
-					, "%s(*THIS(action_fns)[(*pfsm->actionArray)[event - THIS(%s)][pfsm->state].action])(pfsm);\n\n"
+					, "%s(*THIS(action_fns)[(*pfsm->actionArray)[%s - THIS(%s)][pfsm->state].action])(pfsm);\n\n"
 					, tabstr
+					, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+					  ? "event" 
+					  : "e"
 					, eventNameByIndex(pmi, 0)
 				   );
 		}
 		else
 		{
 			fprintf(pcmd->cFile
-					, "%s((* (*pfsm->actionArray)[event - THIS(%s)][pfsm->state].action)(pfsm));\n\n"
+					, "%s((* (*pfsm->actionArray)[%s - THIS(%s)][pfsm->state].action)(pfsm));\n\n"
 					, tabstr
+					, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+					  ? "event" 
+					  : "e"
 					, eventNameByIndex(pmi, 0)
 				   );
 		}
@@ -898,7 +948,7 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 				, tabstr
 				, pmi->executes_fns_on_state_transitions
 				  ? "new_s" : "pfsm->state"
-				, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+				, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 				, eventNameByIndex(pmi, 0)
 			   );
 	}
@@ -911,9 +961,9 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 					, tabstr
 					, pmi->executes_fns_on_state_transitions
 					  ? "new_s" : "pfsm->state"
-					, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+					, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 					, eventNameByIndex(pmi, 0)
-					, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+					, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 				   );
 		}
 		else
@@ -923,9 +973,9 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 					, tabstr
 					, pmi->executes_fns_on_state_transitions
 					  ? "new_s" : "pfsm->state"
-					, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+					, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 					, eventNameByIndex(pmi, 0)
-					, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+					, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 				   );
 		}
 	}
@@ -1020,7 +1070,9 @@ static void writeOriginalFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	fprintf(pcmd->cFile
 			, "\t\tpfsm->event = %s;\n\n"
-			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+			  ? "event" 
+			  : "e"
 		   );
 
 	if (pmi->machine_list)

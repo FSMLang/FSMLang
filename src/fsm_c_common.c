@@ -3295,7 +3295,9 @@ void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 
     fprintf(pcmd->cFile
             , "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
-            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+			  ? "event" 
+			  : "e"
             );
     if (short_dbg_names && add_machine_name)
     {
@@ -3311,7 +3313,9 @@ void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
     fprintf(pcmd->cFile
             , "%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n#endif\n\n"
 			, ucMachineName(pcmd)
-            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+			  ? "event" 
+			  : "e"
 			, ucMachineName(pcmd)
            );
 
@@ -3325,12 +3329,12 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 			);
 	fprintf(pcmd->cFile
 			, "if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n"
-			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 			);
 	fprintf(pcmd->cFile
 			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(noEvent))\n   )\n{\n"
-			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 			);
 
     fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");
@@ -3347,7 +3351,7 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
     fprintf(pcmd->cFile
 			, "%s_EVENT_NAMES[%s - THIS(firstEvent)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n#endif\n\n"
 			, ucMachineName(pcmd)
-			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 			, ucMachineName(pcmd)
 			);
 

@@ -129,15 +129,31 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
            , stateType(pcmd)
            );
 
+   if (pmi->data_block_count)
+   {
+	   fprintf(pcmd->cFile
+			   , "\t%s e = event->event;\n"
+			   , eventType(pcmd)
+			   );
+   }
+
+   fprintf(pcmd->cFile
+		   , "\n#ifdef %s_DEBUG\n"
+		   , fsmType(pcmd)
+		   );
    fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
    fprintf(pcmd->cFile
-           , "%s_EVENT_NAMES[event]\n\t\t,"
+           , "%s_EVENT_NAMES[%s]\n\t\t,"
            , ucfqMachineName(pcmd)
+		   , (pmi->data_block_count == 0) ? "event" : "e"
            );
    fprintf(pcmd->cFile
            , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n\n"
            , ucnfMachineName(pcmd)
            );
+   fprintf(pcmd->cFile
+		   , "\n#endif\n"
+		   );
 
    if (pmi->data_block_count)
    {
@@ -149,14 +165,16 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
    if (pmi->has_single_pai_events)
    {
       fprintf(pcmd->cFile
-              , "\t\tif (eventIsNotHandledInAllStates(pfsm,event))\n\t\t{\n"
+              , "\t\tif (eventIsNotHandledInAllStates(pfsm,%s))\n\t\t{\n"
+			  , (pmi->data_block_count == 0) ? "event" : "e"
               );
       tabstr = "\t";
    }
 
    fprintf(pcmd->cFile
-           , "\t\t%ss = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n\n"
+           , "\t\t%ss = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,%s));\n\n"
            , tabstr
+		   , (pmi->data_block_count == 0) ? "event" : "e"
            );
 
    fprintf(pcmd->cFile
@@ -217,11 +235,18 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
                );
    }
 
+   fprintf(pcmd->cFile
+		   , "\n#ifdef %s_DEBUG\n"
+		   , fsmType(pcmd)
+		   );
    fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
    fprintf(pcmd->cFile
            , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
            , ucnfMachineName(pcmd)
            );
+   fprintf(pcmd->cFile
+		   , "\n#endif\n"
+		   );
 
 }
 
@@ -981,6 +1006,13 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     fprintf(pich->pcmd->cFile, "\t}\n");
 
+    if (!pich->counter)
+    {
+        fprintf(pich->pcmd->cFile
+                , "/* we only just now know we did not use this */\n\t(void) pfsm;\n"
+                );
+    }
+
     print_state_fn_epilogue(pich->pcmd, pich->ih.pmi, pstate, true);
 
     return false;
@@ -1309,7 +1341,9 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
          fprintf(pcmd->cFile
                  , "%s\tif (eventIsNotHandledInAllStates(pfsm,%s))\n"
                  , tabstr
-                 , pmi->modFlags & mfActionsReturnVoid ? "event" : "e"
+				 , ((pmi->modFlags & mfActionsReturnVoid) && (pmi->data_block_count == 0))
+				   ? "event" 
+				   : "e"
                  );
       }
       else
@@ -1325,9 +1359,10 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
    if (pmi->modFlags & mfActionsReturnVoid)
    {
       fprintf(pcmd->cFile
-              , "%s%s\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n"
+              , "%s%s\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,%s));\n"
               , tabstr
               , local_tabstr
+			  , (pmi->data_block_count == 0) ? "event" : "e"
               );
    }
    else
@@ -1413,6 +1448,17 @@ static void writeOriginalSwitchFSMAre(pFSMCOutputGenerator pfsmcog)
 
 static void writeOriginalSwitchFSMArv(pFSMCOutputGenerator pfsmcog)
 {
+    pCMachineData pcmd = pfsmcog->pcmd;
+    pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	if (pmi->data_block_count != 0)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s_EVENT_ENUM e = event->event;\n\n"
+				, ucfqMachineName(pcmd)
+			   );
+	}
+
     writeOriginalSwitchFSMLoopArv(pfsmcog);
 }
 
