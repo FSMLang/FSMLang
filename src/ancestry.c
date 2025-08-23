@@ -197,13 +197,19 @@ char* actionReturnType(pCMachineData pcmd)
 			}
 			else
 			{
-				printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self | ai_stop_at_parent);
 				if (pcmd->pmi->modFlags & mfActionsReturnStates)
 				{
+					streamStrCaseAware(tmp, pcmd->pmi->name->name, alc_upper);
 					fprintf(tmp, "_STATE");
 				}
 				else
 				{
+					printAncestry(pcmd->pmi
+								  , tmp
+								  , "_"
+								  , alc_upper
+								  , ai_include_self | ai_stop_at_parent
+								  );
 					fprintf(tmp
 							,"_EVENT%s"
 							, pcmd->pmi->data_block_count ? "_ENUM" : ""
@@ -452,11 +458,67 @@ char* fsmFnEventType(pCMachineData pcmd)
 			{
 				pcmd->sub_fsm_if_format_width = str_len + 2;
 			}
-
 		}
 	}
 
 	return pcmd->fsm_fn_event_type;
+}
+
+char* subFsmFnEventType(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long str_len;
+
+	/* only create the string once */
+	if (!pcmd->sub_fsm_fn_event_type)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			fprintf(tmp
+					,"_EVENT%s"
+					, pcmd->pmi->data_block_count ? "_ENUM" : ""
+					);
+
+			pcmd->sub_fsm_fn_event_type = create_string_from_file(tmp, &str_len);
+
+		}
+	}
+
+	return pcmd->sub_fsm_fn_event_type;
+}
+
+char* subFsmFnReturnType(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long str_len;
+
+	/* only create the string once */
+	if (!pcmd->sub_fsm_fn_return_type)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			if (pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS)
+			{
+				fprintf(tmp, "void");
+			}
+			else
+			{
+				streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+				fprintf(tmp
+						,"_EVENT%s"
+						, pcmd->pmi->data_block_count ? "_ENUM" : ""
+						);
+			}
+
+			pcmd->sub_fsm_fn_return_type = create_string_from_file(tmp, &str_len);
+
+		}
+	}
+
+	return pcmd->sub_fsm_fn_return_type;
 }
 
 char* subFsmIfType(pCMachineData pcmd)

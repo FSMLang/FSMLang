@@ -142,21 +142,21 @@ static TOP_LEVEL_EVENT s3_stateFn(pSUB_MACHINE2 pfsm,TOP_LEVEL_EVENT e)
 }
 
 
-TOP_LEVEL_EVENT __attribute__((weak)) UFMN(a1)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE __attribute__((weak)) UFMN(a1)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
 	(void) pfsm;
 	return THIS(noEvent);
 }
 
-TOP_LEVEL_EVENT __attribute__((weak)) UFMN(a2)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE __attribute__((weak)) UFMN(a2)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
 	(void) pfsm;
 	return THIS(noEvent);
 }
 
-TOP_LEVEL_EVENT __attribute__((weak)) UFMN(a3)(FSM_TYPE_PTR pfsm)
+ACTION_RETURN_TYPE __attribute__((weak)) UFMN(a3)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("weak: %s", __func__);
 	(void) pfsm;

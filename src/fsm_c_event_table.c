@@ -68,6 +68,7 @@ static void writeOriginalEventTableFSMArv(pFSMCOutputGenerator);
 static void writeOriginalEventTableSubFSMAre(pFSMCOutputGenerator);
 static void writeOriginalEventTableSubFSMArv(pFSMCOutputGenerator);
 static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator);
+static void writeActionsReturnStateEventTableSubFSM(pFSMCOutputGenerator);
 static void writeEventTableFSMLoopInnards(pFSMCOutputGenerator,char*);
 static void writeEventTableSubFSMLoopInnards(pFSMCOutputGenerator,char*);
 static int  writeCEventTableSubMachineInternal(pFSMCOutputGenerator);
@@ -142,7 +143,10 @@ static void chooseWorkerFunctions(pFSMCSwitchOutputGenerator pfsmcswog)
 		pfsmcswog->pethsc    = print_event_table_handler_state_case_arv;
 		break;
 	case mfActionsReturnStates:
-		pfsmcswog->fsmcog.wfsm      = writeActionsReturnStateEventTableFSM;
+		pfsmcswog->fsmcog.wfsm      = pfsmcswog->fsmcog.pcmd->pmi->parent
+			                          ? writeActionsReturnStateEventTableSubFSM
+			                          : writeActionsReturnStateEventTableFSM
+			                          ;
 		pfsmcswog->pethbsspe = print_event_table_handler_body_for_single_state_or_pai_events_ars;
 		pfsmcswog->pethbmse  = print_event_table_handler_body_for_multiple_state_events_ars; 
 		pfsmcswog->pethsc    = print_event_table_handler_state_case_ars;
@@ -270,7 +274,15 @@ static void writeCEventTableSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 	pFSMCSwitchOutputGenerator pfsmcswog = (pFSMCSwitchOutputGenerator) pfsmog;
 
 	pfsmcswog->fsmcog.pcmd->pmi = pmi;
-	pfsmcswog->fsmcog.pcmd->action_return_type = pfsmcswog->fsmcog.parent_fsmcog->pcmd->action_return_type;
+	if (!(pmi->modFlags & mfActionsReturnStates))
+	{
+		pfsmcswog->fsmcog.pcmd->action_return_type = pfsmcswog->fsmcog.parent_fsmcog->pcmd->action_return_type;
+	}
+	pfsmcswog->fsmcog.pcmd->fsm_fn_event_type       = pfsmcswog->fsmcog.parent_fsmcog->pcmd->event_type;
+	pfsmcswog->fsmcog.pcmd->sub_fsm_fn_return_type  = pfsmcswog->fsmcog.parent_fsmcog->pcmd->sub_fsm_fn_return_type;
+	pfsmcswog->fsmcog.pcmd->event_type              = pfsmcswog->fsmcog.parent_fsmcog->pcmd->event_type;
+	pfsmcswog->fsmcog.pcmd->sub_fsm_fn_event_type   = pfsmcswog->fsmcog.parent_fsmcog->pcmd->sub_fsm_fn_event_type;
+
 	pfsmcswog->fsmcog.cfsmliw = writeEventTableSubFSMLoopInnards;
 
 	chooseWorkerFunctions(pfsmcswog);
@@ -465,7 +477,7 @@ static void defineCEventTableMachineStruct(pCMachineData pcmd)
    fprintf(pcmd->hFile
 		   , "\t%-*s event;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
-		   , eventType(pcmd)
+		   , subFsmFnEventType(pcmd)
 		  );
 
    fprintf(pcmd->hFile
@@ -1286,6 +1298,8 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pcmd->pmi;
 
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    fprintf(pcmd->cFile, "\n");
 
    fprintf(pcmd->cFile
@@ -1345,7 +1359,10 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
 
    writeReentrantEpilogue(pcmd);
 
-   fprintf(pcmd->cFile, "\n}\n\n");
+   fprintf(pcmd->cFile
+		   , "\n}\n\n"
+		   );
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s: %u */\n", __FILE__, __LINE__);
 
 }
 
@@ -1390,14 +1407,6 @@ static void writeEventTableFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *ta
 			   );
 	}
 
-	if (!(pmi->modFlags & mfActionsReturnVoid))
-	{
-	   fprintf(pcmd->cFile
-			   , "%s}\n"
-			   , tabstr
-			   );
-	}
-
 }
 
 static void writeEventTableSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
@@ -1407,10 +1416,12 @@ static void writeEventTableSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char 
 	pMACHINE_INFO pmi  = pcmd->pmi;
 
 	fprintf(pcmd->cFile
-			, "\t\tif ((e >= THIS(firstEvent))\n\t\t    && (e < THIS(noEvent))\n\t\t\t)\n\t\t{\n"
+			, "\t\tif ((%s >= THIS(firstEvent))\n\t\t    && (%s < THIS(noEvent))\n\t\t\t)\n\t\t{\n"
+			, pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
+			, pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
 			);
 
-	if (pmi->modFlags & mfActionsReturnVoid)
+	if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
 	{
 	   fprintf(pcmd->cFile
 			   , "\t\t((* (*pfsm->eventsArray)[event - THIS(firstEvent)])(pfsm));\n"
@@ -1431,121 +1442,328 @@ static void writeEventTableSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char 
 
 static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
 {
+	unsigned tab_level = 0;
+
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pcmd->pmi;
 
-   char *tabstr = "";
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   fprintf(pcmd->cFile
-           , "\t%s s%s;\n"
-           , stateType(pcmd)
-		   , pmi->executes_fns_on_state_transitions
-             ? " = UFMN(noTransition)" 
-             : ""
-           );
+	fprintf(pcmd->cFile
+			, "\t%s s = STATE(noTransition);\n"
+			, stateType(pcmd)
+			);
 
-   fprintf(pcmd->cFile
-		   , "\n#ifdef %s_DEBUG\n"
-		   , fsmType(pcmd)
-		   );
-   fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
-   fprintf(pcmd->cFile
-           , "%s_EVENT_NAMES[%s]\n\t\t,"
-           , ucfqMachineName(pcmd)
-		   , pmi->data_block_count ? "e" : "event"
-           );
-   fprintf(pcmd->cFile
-           , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n\n"
-           , ucnfMachineName(pcmd)
-           );
-   fprintf(pcmd->cFile
-		   , "\n#endif\n"
-		   );
+	fprintf(pcmd->cFile
+			, "\n#ifdef %s_DEBUG\n"
+			, fsmType(pcmd)
+			);
+	fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
+	fprintf(pcmd->cFile
+			, "%s_EVENT_NAMES[%s]\n\t\t,"
+			, ucfqMachineName(pcmd)
+			, (pmi->data_block_count == 0) ? "event" : "e"
+			);
+	fprintf(pcmd->cFile
+			, "%s_STATE_NAMES[pfsm->state]\n\t\t);\n\n"
+			, ucnfMachineName(pcmd)
+			);
+	fprintf(pcmd->cFile
+			, "\n#endif\n"
+			);
 
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
-
-   if (add_profiling_macros)
-   {
+	if (pmi->data_block_count)
+	{
 	   fprintf(pcmd->cFile
-			   , "\tACTION_ENTRY(pfsm);\n"
-			  );
-   }
+			   , "\ttranslateEventData(&pfsm->data, event);\n\n"
+			   );
+	}
 
-   fprintf(pcmd->cFile
-           , "\t%ss = ((* (*pfsm->eventsArray)[%s])(pfsm));\n\n"
-           , tabstr
-		   , pmi->data_block_count ? "e" : "event"
-           );
-
-   if (add_profiling_macros)
-   {
+	if (pmi->machine_list)
+	{
 	   fprintf(pcmd->cFile
-			   , "\tACTION_EXIT(pfsm);\n"
+			   , "\tif (%s < THIS(%s))\n\t{\n"
+			   , (pmi->data_block_count == 0) ? "event" : "e"
+			   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "numEvents" : "noEvent"
+			   );
+	   tab_level++;
+	}
+
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\ts = ((* (*pfsm->eventsArray)[%s])(pfsm));\n\n"
+			, (pmi->data_block_count == 0) ? "event" : "e"
+			);
+
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\tif (s != STATE(noTransition))\n"
+			);
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\t{\n"
+			);
+
+	if (pmi->executes_fns_on_state_transitions)
+	{
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t\tif (s != pfsm->state)\n"
 			  );
-   }
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t\t{\n"
+			   );
 
-   fprintf(pcmd->cFile
-           , "\tif (s != UFMN(noTransition))\n\t{\n"
-           );
+	   if (pmi->machineTransition)
+	   {
+		  print_tab_levels(pcmd->cFile,tab_level);
+		  fprintf(pcmd->cFile
+				  , "\t\t\tUFMN(%s)(pfsm,s);\n"
+				  , pmi->machineTransition->name
+				  );
+	   }
 
-   if (pmi->executes_fns_on_state_transitions)
-   {
-      fprintf(pcmd->cFile
-              , "\t\tif (s != pfsm->state)\n\t\t{\n"
-             );
+	   if (pmi->states_with_exit_fns_count)
+	   {
+		  print_tab_levels(pcmd->cFile,tab_level);
+		  fprintf(pcmd->cFile
+				  ,"\t\t\trunAppropriateExitFunction(%spfsm->state);\n"
+				  , pmi->data ? "&pfsm->data, " : ""
+				  );
+	   }
 
-      if (pmi->machineTransition)
-      {
-         fprintf(pcmd->cFile
-                 , "\t\t\tUFMN(%s)(pfsm,s);\n"
-                     , pmi->machineTransition->name
-                 );
-      }
+	   if (pmi->states_with_entry_fns_count)
+	   {
+		  print_tab_levels(pcmd->cFile,tab_level);
+		  fprintf(pcmd->cFile
+				  ,"\t\t\trunAppropriateEntryFunction(%ss);\n"
+				  , pmi->data ? "&pfsm->data, " : ""
+				  );
+	   }
 
-      if (pmi->states_with_exit_fns_count)
-      {
-         fprintf(pcmd->cFile
-                 ,"\t\t\trunAppropriateExitFunction(%spfsm->state);\n"
-                 , pmi->data ? "&pfsm->data, " : ""
-                 );
-      }
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t\t}\n"
+			   );
 
-      if (pmi->states_with_entry_fns_count)
-      {
-         fprintf(pcmd->cFile
-                 ,"\t\t\trunAppropriateEntryFunction(%ss);\n"
-                 , pmi->data ? "&pfsm->data, " : ""
-                 );
-      }
+	}
 
-      fprintf(pcmd->cFile
-              , "\t\t}\n"
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\t\tpfsm->state = s;\n"
+		   );
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\t}\n\n"
+			);
+
+	if (pmi->machine_list)
+	{
+	   tab_level--;
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t}\n"
+			   );
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\telse\n"
+			   );
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t{\n"
+			   );
+
+	   if (pmi->submachine_inhibitor_count)
+	   {
+		  print_tab_levels(pcmd->cFile,tab_level);
+		  fprintf(pcmd->cFile
+				  , "\t\tif (doNotInhibitSubMachines(pfsm->state))\n"
+				  );
+		  tab_level++;
+	   }
+
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t\tfindAndRunSubMachine(pfsm, e);\n"
+			   );
+	   if (pmi->submachine_inhibitor_count)
+	   {
+		   tab_level--;
+	   }
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t}"
+			   );
+	}
+
+	fprintf(pcmd->cFile
+			, "\n#ifdef %s_DEBUG\n"
+			, fsmType(pcmd)
+			);
+	fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
+	fprintf(pcmd->cFile
+			, "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+			, ucnfMachineName(pcmd)
+			);
+	fprintf(pcmd->cFile
+			, "\n#endif\n"
+			);
+
+}
+
+static void writeActionsReturnStateEventTableSubFSM(pFSMCOutputGenerator pfsmcog)
+{
+	unsigned tab_level = 0;
+
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	fprintf(pcmd->cFile
+			, "\t%s s = STATE(noTransition);\n"
+			, stateType(pcmd)
+			);
+
+	fprintf(pcmd->cFile
+			, "\n#ifdef %s_DEBUG\n"
+			, fsmType(pcmd)
+			);
+	fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
+	fprintf(pcmd->cFile
+			, "%s_EVENT_NAMES[%s - THIS(firstEvent)]\n\t\t,"
+			, ucfqMachineName(pcmd)
+			, (pmi->data_block_count == 0) ? "event" : "e"
+			);
+	fprintf(pcmd->cFile
+			, "%s_STATE_NAMES[pfsm->state]\n\t\t);\n\n"
+			, ucnfMachineName(pcmd)
+			);
+	fprintf(pcmd->cFile
+			, "\n#endif\n"
+			);
+
+	if (pmi->machine_list)
+	{
+	   fprintf(pcmd->cFile
+			   , "\tif (event < THIS(numEvents))\n\t\t{\n"
+			   );
+	   tab_level++;
+	}
+
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\ts = ((* (*pfsm->eventsArray)[event - THIS(firstEvent)])(pfsm));\n\n"
+			);
+
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\tif (s != STATE(noTransition))\n"
+			);
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\t{\n"
+			);
+
+	if (pmi->executes_fns_on_state_transitions)
+	{
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\tif (s != pfsm->state)\n"
 			  );
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t{\n"
+			   );
 
-   }
+	   if (pmi->machineTransition)
+	   {
+		  print_tab_levels(pcmd->cFile,tab_level);
+		  fprintf(pcmd->cFile
+				  , "\t\tUFMN(%s)(pfsm,s);\n"
+				  , pmi->machineTransition->name
+				  );
+	   }
 
-   fprintf(pcmd->cFile
-           , "\t\tpfsm->state = s;\n\t}\n\n"
-          );
+	   if (pmi->states_with_exit_fns_count)
+	   {
+		  print_tab_levels(pcmd->cFile,tab_level);
+		  fprintf(pcmd->cFile
+				  ,"\t\trunAppropriateExitFunction(%spfsm->state);\n"
+				  , pmi->data ? "&pfsm->data, " : ""
+				  );
+	   }
 
-   fprintf(pcmd->cFile
-		   , "\n#ifdef %s_DEBUG\n"
-		   , fsmType(pcmd)
+	   if (pmi->states_with_entry_fns_count)
+	   {
+		  print_tab_levels(pcmd->cFile,tab_level);
+		  fprintf(pcmd->cFile
+				  ,"\t\trunAppropriateEntryFunction(%ss);\n"
+				  , pmi->data ? "&pfsm->data, " : ""
+				  );
+	   }
+
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t}\n"
+			   );
+
+	}
+
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\t\tpfsm->state = s;\n"
 		   );
-   fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
-   fprintf(pcmd->cFile
-           , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
-           , ucnfMachineName(pcmd)
-           );
-   fprintf(pcmd->cFile
-		   , "\n#endif\n"
-		   );
+	print_tab_levels(pcmd->cFile,tab_level);
+	fprintf(pcmd->cFile
+			, "\t}\n\n"
+			);
 
+	if (pmi->machine_list)
+	{
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t}\n\t\telse\n"
+			   );
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t\t{\n"
+			   );
+
+	   if (pmi->submachine_inhibitor_count)
+	   {
+		  print_tab_levels(pcmd->cFile,tab_level);
+		  fprintf(pcmd->cFile
+				  , "\tif (doNotInhibitSubMachines(pfsm->state))\n\t"
+				  );
+	   }
+
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\tfindAndRunSubMachine(pfsm, e);\n"
+			   );
+	   print_tab_levels(pcmd->cFile,tab_level);
+	   fprintf(pcmd->cFile
+			   , "\t}"
+			   );
+	   tab_level--;
+	}
+
+	fprintf(pcmd->cFile
+			, "\n#ifdef %s_DEBUG\n"
+			, fsmType(pcmd)
+			);
+	fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
+	fprintf(pcmd->cFile
+			, "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+			, ucnfMachineName(pcmd)
+			);
+	fprintf(pcmd->cFile
+			, "\n#endif\n"
+			);
+
+	fprintf(pcmd->cFile, "}\n\n");
 }
 
 static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
@@ -1571,13 +1789,13 @@ static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 
 	fprintf(pcmd->cFile
 			, "%s %sFSM(p%s pfsm, %s event)\n{\n"
-			, eventType(pcmd)
+			, subFsmFnReturnType(pcmd)
 			, machineName(pcmd)
 			, fsmType(pcmd)
-			, eventType(pcmd)
+			, fsmFnEventType(pcmd)
 		   );
 
-	if (!(pmi->modFlags & mfActionsReturnVoid))
+	if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
 	{
 		fprintf(pcmd->cFile
 				, "\t%s e = event;\n\n"
@@ -1601,7 +1819,10 @@ static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 			   );
 	}
 
-	fprintf(pcmd->cFile, "\n}\n\n");
+	if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+	{
+		fprintf(pcmd->cFile, "\n}\n\n");
+	}
 
 }
 

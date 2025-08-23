@@ -111,6 +111,8 @@ struct _c_machine_data_
 	   , *fsm_fn_type
 	   , *event_type
 	   , *fsm_fn_event_type
+	   , *sub_fsm_fn_event_type
+	   , *sub_fsm_fn_return_type
 	   , *state_type
 	   , *sub_fsm_if_type
 	   , *sub_machine_fn_type
