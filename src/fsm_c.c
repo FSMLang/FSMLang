@@ -1172,10 +1172,6 @@ static void writeOriginalSubFSMLoopInnards(pCMachineData pcmd, pMACHINE_INFO pmi
 				, tabstr
 			   );
 
-		fprintf(pcmd->cFile
-				, "%s} "
-				, tabstr
-			   );
 	}
 }
 
@@ -1330,6 +1326,10 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 		fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
 	}
 
+	if (!(pmi->modFlags & mfActionsReturnVoid))
+	{
+		fprintf(pcmd->cFile, "\n\t}\n");
+	}
 }
 
 static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
