@@ -297,11 +297,6 @@ int initCSubMachine(pFSMOutputGenerator pfsmog, char *fileName)
 	  */
 	  pfsmcog->parent_fsmcog->pcmd->a_sub_machine_was_encountered = true;
 
-	  /* for sub machines, some output strings are taken from the parent */
-	  pfsmcog->pcmd->action_return_type = pfsmcog->parent_fsmcog->pcmd->action_return_type;
-	  pfsmcog->pcmd->fsm_fn_event_type  = pfsmcog->parent_fsmcog->pcmd->action_return_type;
-	  pfsmcog->pcmd->event_type         = pfsmcog->parent_fsmcog->pcmd->event_type;
-
 	 /* Put the call to the top-level header file into the header. */
 	 fprintf(pfsmcog->pcmd->hFile
 			 , "#include \"%s\"\n\n"
@@ -515,10 +510,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    iterate_list(pmi->event_list, print_event_enum_member, &ich);
    ich.ih.fout = pcmd->hFile;
 
-   if (
-       !(pmi->modFlags & mfActionsReturnStates)
-       && !(pmi->modFlags & mfActionsReturnVoid)
-      )
+   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
    {
       fprintf(pcmd->eventsHFile
 			  , "\t, %s_noEvent\n"
@@ -972,7 +964,10 @@ void defineWeakActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
    ich.pcmd      = pcmd;
    ich.ih.pmi       = pmi;
 
-   iterate_list(pmi->action_list, define_weak_action_function, &ich);
+   iterate_list(pmi->action_list
+				, define_weak_action_function
+				, &ich
+				);
 }
 
 void defineWeakNoActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
@@ -1471,10 +1466,7 @@ static bool print_sub_machine_event_cross_reference(pLIST_ELEMENT pelem, void *d
    pich->ih.pmi = pmi;
    iterate_list(pmi->event_list, print_event_cross_reference, pich);
 
-   if (
-       !(pmi->modFlags & mfActionsReturnStates)
-       && !(pmi->modFlags & mfActionsReturnVoid)
-      )
+   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
    {
       print_event_cross_reference_entry("noEvent", pich);
    }
@@ -1670,7 +1662,7 @@ static void declare_parent_event_reference_data_structures(pCMachineData pcmd, p
 
    fprintf(pcmd->subMachineHFile
 		   , "extern %s %s_pass_shared_event(%s%s%sp%s[]);\n\n"
-		   , eventType(pcmd)
+		   , subFsmFnReturnType(pcmd)
 		   , machineName(pcmd)
 		   , pmi->data ? "p" : ""
 		   , pmi->data ? fsmType(pcmd) : ""
@@ -1780,7 +1772,7 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
    /* passing function */
    fprintf(pcmd->cFile
 		   , "%s %s_pass_shared_event(%s%s%sp%s sharer_list[])\n{\n"
-		   , eventType(pcmd)
+		   , subFsmFnReturnType(pcmd)
 		   , machineName(pcmd)
 		   , pmi->data ? "p" : ""
 		   , pmi->data ? fsmType(pcmd) : ""
@@ -1788,22 +1780,27 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
 		   , sharedEventStrType(pcmd)
            );
 
-   fprintf(pcmd->cFile
-		   , "\t%s return_event = THIS(noEvent);\n\n"
-		   , eventType(pcmd)
-           );
+   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+   {
+	   fprintf(pcmd->cFile
+			   , "\t%s return_event = THIS(noEvent);\n\n"
+			   , eventType(pcmd)
+			   );
+   }
 
    if (pmi->submachine_inhibitor_count && !inhibiting_states_share_events)
    {
 	   fprintf(pcmd->cFile
-			   , "\tif (!doNotInhibitSubMachines(pfsm->state))\n\t\treturn return_event;\n\n"
+			   , "\tif (!doNotInhibitSubMachines(pfsm->state))\n\t\treturn %s;\n\n"
+			   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return_event"
 			   );
    }
 
    fprintf(pcmd->cFile, "\tfor (p");
    streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
    fprintf(pcmd->cFile
-		   , "_SHARED_EVENT_STR *pcurrent_sharer = sharer_list;\n\t     *pcurrent_sharer && return_event == THIS(noEvent);\n\t     pcurrent_sharer++)\n\t{\n"
+		   , "_SHARED_EVENT_STR *pcurrent_sharer = sharer_list;\n\t     *pcurrent_sharer%s;\n\t     pcurrent_sharer++)\n\t{\n"
+		   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : " && return_event == THIS(noEvent)"
            );
 
    if (pmi->data)
@@ -1818,17 +1815,24 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
    }
 
    fprintf(pcmd->cFile
-           , "\t\treturn_event = (*(*pcurrent_sharer)->psub_fsm_if->subFSM)((*pcurrent_sharer)->event);\n"
+           , "\t\t%s(*(*pcurrent_sharer)->psub_fsm_if->subFSM)((*pcurrent_sharer)->event);\n"
+		   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return_event = "
            );
 
    fprintf(pcmd->cFile
            , "\t}\n\n"
            );
 
-   fprintf(pcmd->cFile
-           , "\treturn return_event;\n}\n\n"
-           );
+   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+   {
+	   fprintf(pcmd->cFile
+			   , "\treturn return_event;\n"
+			  );
+   }
 
+   fprintf(pcmd->cFile
+		   , "}\n\n"
+		   );
 }
 
 bool declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT pelem, void *data)
@@ -2169,6 +2173,9 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 	(void) arrayName;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
+   FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    ich.ih.fout      = pcmd->hFile;
    ich.ih.pmi       = pmi;
 
@@ -2235,6 +2242,11 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    fprintf(pcmd->hFile
 		   , "#undef STATE\n#define STATE(A) %s_##A\n"
 		   , machineName(pcmd)
+		   );
+
+   fprintf(pcmd->pubHFile
+		   , "#undef ACTION_RETURN_TYPE\n#define ACTION_RETURN_TYPE %s\n"
+		   , actionReturnType(pcmd)
 		   );
 
    fprintf(pcmd->hFile
@@ -2353,14 +2365,14 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    /* typedef the FSM function */
    fprintf(pcmd->hFile
 		   , "typedef %s (*%s_FSM)(FSM_TYPE_PTR,%s);\n\n"
-		   , actionReturnType(pcmd)
+		   , subFsmFnReturnType(pcmd)
 		   , fsmType(pcmd)
 		   , fsmFnEventType(pcmd)
 		   );
 
    fprintf(pcmd->cFile
            , "static %s %sFSM(FSM_TYPE_PTR,%s);\n\n"
-		   , actionReturnType(pcmd)
+		   , subFsmFnReturnType(pcmd)
 		   , machineName(pcmd)
 		   , fsmFnEventType(pcmd)
            );
@@ -2495,12 +2507,13 @@ void defineSubMachineIF (pCMachineData pcmd)
 
    fprintf(pcmd->cFile
            , "%s THIS(sub_machine_fn)(%s e)\n{\n"
-		   , eventType(pcmd)
-		   , eventType(pcmd)
+		   , subFsmFnReturnType(pcmd)
+		   , fsmFnEventType(pcmd)
  		  );
 
    fprintf(pcmd->cFile
-		   , "\treturn %sFSM(p%s,e);\n}\n\n"
+		   , "\t%s%sFSM(p%s,e);\n}\n\n"
+		   , pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
 		   , machineName(pcmd)
 		   , machineName(pcmd)
 		   );
@@ -2608,8 +2621,7 @@ bool print_sub_machine_if(pLIST_ELEMENT pelem, void *data)
 void print_weak_action_function_body_omitting_return_statement(pCMachineData pcmd, char *name)
 {
 	fprintf(pcmd->cFile
-			, "%s __attribute__((weak)) UFMN(%s)(FSM_TYPE_PTR pfsm)\n{\n"
-			, actionReturnType(pcmd)
+			, "ACTION_RETURN_TYPE __attribute__((weak)) UFMN(%s)(FSM_TYPE_PTR pfsm)\n{\n"
 			, name
 		   );
 
@@ -2698,7 +2710,9 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
       {
          fprintf(pich->pcmd->cFile
                  , "%s UFMN(%s)(p%s pfsm)\n{\n"
-				 , eventType(pich->pcmd)
+				 , pich->pcmd->pmi->modFlags & mfActionsReturnStates
+				   ? actionReturnType(pich->pcmd)
+				   : subFsmFnReturnType(pich->pcmd)
 				 , pid_info->name
 				 , fsmType(pich->pcmd)
                 );
@@ -2717,11 +2731,15 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 		 }
 
          fprintf(pich->pcmd->cFile
-                 , "\treturn %s_pass_shared_event(%ssharing_%s_%s);\n}\n\n"
+                 , "\t%s%s_pass_shared_event(%ssharing_%s_%s);\n%s}\n\n"
+				 , pich->pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
                  , machineName(pich->pcmd)
 				 , pich->ih.pmi->data ? "pfsm, " : ""
                  , machineName(pich->pcmd)
                  , pevent->name
+				 , pich->pcmd->pmi->modFlags & mfActionsReturnStates
+				   ? "\treturn STATE(noTransition);\n"
+				   : ""
                  );
       }
 
@@ -2826,7 +2844,7 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    fprintf(pcmd->cFile
            , "\nstatic %s findAndRunSubMachine(p%s pfsm, %s e)\n{\n"
-		   , eventType(pcmd)
+		   , subFsmFnReturnType(pcmd)
 		   , fsmType(pcmd)
 		   , eventType(pcmd)
           );
@@ -2849,7 +2867,8 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
            );
 
    fprintf(pcmd->cFile
-           , "\t\t\t\treturn ((*(*pfsm->subMachineArray)[machineIterator]->subFSM)(e));\n"
+           , "\t\t\t\t%s((*(*pfsm->subMachineArray)[machineIterator]->subFSM)(e));\n"
+		   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
           );
 
    fprintf(pcmd->cFile
@@ -2857,7 +2876,8 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
            );
 
    fprintf(pcmd->cFile
-		   , "\t}\n\n\treturn THIS(noEvent);\n\n}\n\n"
+		   , "\t}\n\n%s\n\n}\n\n"
+		   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "\treturn THIS(noEvent);"
 		   );
 }
 
@@ -3000,7 +3020,7 @@ void declareSubMachineManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    fprintf(pcmd->cFile
 		   , "static %s findAndRunSubMachine(p%s,%s);\n"
-		   , eventType(pcmd)
+		   , subFsmFnReturnType(pcmd)
 		   , fsmType(pcmd)
 		   , eventType(pcmd)
 		  );
@@ -3234,9 +3254,9 @@ void printSubMachinesDeclarations(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	fprintf(pcmd->subMachineHFile
 			, "typedef %s (*%s)(%s);\n"
-			, actionReturnType(pcmd)
+			, subFsmFnReturnType(pcmd)
 			, subMachineFnType(pcmd)
-			, actionReturnType(pcmd)
+			, subFsmFnEventType(pcmd)
 			);
 
 	fprintf(pcmd->subMachineHFile
@@ -3295,7 +3315,9 @@ void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 
     fprintf(pcmd->cFile
             , "if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n{\n"
-            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+			  ? "event" 
+			  : "e"
             );
     if (short_dbg_names && add_machine_name)
     {
@@ -3311,7 +3333,9 @@ void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
     fprintf(pcmd->cFile
             , "%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n#endif\n\n"
 			, ucMachineName(pcmd)
-            , (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
+			  ? "event" 
+			  : "e"
 			, ucMachineName(pcmd)
            );
 
@@ -3325,12 +3349,13 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 			);
 	fprintf(pcmd->cFile
 			, "if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(%s))\n"
-			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 			);
 	fprintf(pcmd->cFile
-			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(noEvent))\n   )\n{\n"
-			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
-			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(%s))\n   )\n{\n"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "numEvents" : "noEvent"
 			);
 
     fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");
@@ -3347,7 +3372,7 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
     fprintf(pcmd->cFile
 			, "%s_EVENT_NAMES[%s - THIS(firstEvent)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n#endif\n\n"
 			, ucMachineName(pcmd)
-			, (pmi->modFlags & mfActionsReturnVoid) ? "event" : "e"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 			, ucMachineName(pcmd)
 			);
 

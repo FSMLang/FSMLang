@@ -117,7 +117,7 @@ void print_tab_levels(FILE *output, unsigned levels)
 {
    for (unsigned level = 0; level < levels; level++)
    {
-      fprintf(output, "\t");
+      fputs("\t", output);
    }
 }
 

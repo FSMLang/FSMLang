@@ -53,6 +53,8 @@ char * ucMachineName(pCMachineData);
 char * ucfqMachineName(pCMachineData);
 char * fsmDataType(pCMachineData);
 char * fsmFnEventType(pCMachineData);
+char * subFsmFnEventType(pCMachineData);
+char * subFsmFnReturnType(pCMachineData);
 char * fsmFnType(pCMachineData);
 char * fsmType(pCMachineData);
 char * hungarianToUnderbarCaps(char *);
