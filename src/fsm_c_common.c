@@ -510,10 +510,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    iterate_list(pmi->event_list, print_event_enum_member, &ich);
    ich.ih.fout = pcmd->hFile;
 
-   if (
-       !(pmi->modFlags & mfActionsReturnStates)
-       && !(pmi->modFlags & mfActionsReturnVoid)
-      )
+   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
    {
       fprintf(pcmd->eventsHFile
 			  , "\t, %s_noEvent\n"
@@ -1469,10 +1466,7 @@ static bool print_sub_machine_event_cross_reference(pLIST_ELEMENT pelem, void *d
    pich->ih.pmi = pmi;
    iterate_list(pmi->event_list, print_event_cross_reference, pich);
 
-   if (
-       !(pmi->modFlags & mfActionsReturnStates)
-       && !(pmi->modFlags & mfActionsReturnVoid)
-      )
+   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
    {
       print_event_cross_reference_entry("noEvent", pich);
    }
@@ -3358,9 +3352,10 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 			);
 	fprintf(pcmd->cFile
-			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(noEvent))\n   )\n{\n"
+			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(%s))\n   )\n{\n"
 			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
 			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e"
+			, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "numEvents" : "noEvent"
 			);
 
     fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");

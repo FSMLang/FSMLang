@@ -349,7 +349,7 @@ static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
    if (pmi->machine_list)
    {
       fprintf(pcmd->cFile
-              , "\tif (event < THIS(numEvents))\n\t\t{\n"
+              , "\tif (event < THIS(noEvent))\n\t\t{\n"
               );
 	  tab_level++;
    }
@@ -465,7 +465,7 @@ static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
 
 	  print_tab_levels(pcmd->cFile,tab_level);
       fprintf(pcmd->cFile
-              , "\tfindAndRunSubMachine(pfsm, e);\n"
+              , "\tfindAndRunSubMachine(pfsm, event);\n"
               );
 	  print_tab_levels(pcmd->cFile,tab_level);
       fprintf(pcmd->cFile

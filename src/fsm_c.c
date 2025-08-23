@@ -757,7 +757,7 @@ static void writeActionsReturnStateSubFSM(pFSMCOutputGenerator pfsmcog)
 	if (pmi->machine_list)
 	{
 		fprintf(pcmd->cFile
-				, "\tif (event < THIS(numEvents))\n\t{"
+				, "\tif (event < THIS(noEvent))\n\t{"
 			   );
 		tabstr = "\t\t";
 	}
@@ -1221,8 +1221,7 @@ static void writeOriginalFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (pmi->machine_list)
 	{
 		fprintf(pcmd->cFile
-				, "\t\tif (e < %s_%s)\n\t\t{\n\n"
-				, pmi->name->name
+				, "\t\tif (e < THIS(%s))\n\t\t{\n\n"
 				, pmi->modFlags & ACTIONS_RETURN_FLAGS ? "numEvents" : "noEvent"
 			   );
 		FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* if %s: %u */\n", __FILE__, __LINE__);
@@ -1299,7 +1298,8 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (pmi->machine_list)
 	{
 		fprintf(pcmd->cFile
-				, "\t\tif (e < THIS(noEvent))\n\t\t{\n\n"
+				, "\t\tif (%s < THIS(noEvent))\n\t\t{\n\n"
+				, pmi->modFlags & mfActionsReturnVoid ? "event" : "e"
 			   );
 		tabstr = "\t\t";
 	}
@@ -1309,7 +1309,7 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (pmi->machine_list)
 	{
 		fprintf(pcmd->cFile
-				, "\n\t\telse\n\t\t{\n"
+				, "\n\t\t}\n\t\telse\n\t\t{\n"
 			   );
 
 		if (pmi->submachine_inhibitor_count)
@@ -1319,7 +1319,9 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 				   );
 		}
 		fprintf(pcmd->cFile
-				, "\t\t\te = findAndRunSubMachine(pfsm, e);\n\t\t}\n\n\t}"
+				, "\t\t\t%sfindAndRunSubMachine(pfsm, %s);\n\t\t}\n"
+				, pmi->modFlags & mfActionsReturnVoid ? "" : "e = "
+				, pmi->modFlags & mfActionsReturnVoid ? "event" : "e"
 			   );
 	}
 

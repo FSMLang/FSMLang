@@ -448,7 +448,7 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
               );
 
 	   fprintf(pcmd->cFile
-			   , "%sfindAndRunSubMachine(pfsm, e);\n\t\t}\n"
+			   , "%sfindAndRunSubMachine(pfsm, event);\n\t\t}\n"
 			   , pmi->submachine_inhibitor_count ? "if (doNotInhibitSubMachines(pfsm->state))\n\t\t\t\t  " : ""
 			   );
    }
