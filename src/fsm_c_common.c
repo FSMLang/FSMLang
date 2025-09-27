@@ -1304,7 +1304,7 @@ pCMachineData	newCMachineData(char *baseFileName)
 
    pCMachineData	pcmd;
 
-   if ((pcmd = calloc(sizeof(CMachineData), 1)) != NULL)
+   if ((pcmd = calloc(1, sizeof(CMachineData))) != NULL)
    {
 
       if (!baseFileName)
