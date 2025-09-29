@@ -115,7 +115,7 @@ static bool declare_action_enum_member(pLIST_ELEMENT pelem, void *data)
 	if (pid_info->name && strlen(pid_info->name))
 	{
 
-		fprintf(pich->pcmd->hFile
+		fprintf(pich->ih.fout
 				, "%sTHIS(%s_e)\n"
 				, pich->ih.first ? (pich->ih.first = false, "\t") : "\t, "
 				, pid_info->name
@@ -154,7 +154,7 @@ static bool declare_transition_fn_enum_member(pLIST_ELEMENT pelem, void *data)
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->hFile , "/* %s */\n", __func__ );
 
-	fprintf(pich->pcmd->hFile
+	fprintf(pich->ih.fout
 			, "%sTHIS(%s_e)\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
 			, pid_info->name
@@ -170,7 +170,7 @@ static bool declare_transition_enum_member(pLIST_ELEMENT pelem, void *data)
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->hFile , "/* %s */\n", __func__ );
 
-	fprintf(pich->pcmd->hFile
+	fprintf(pich->ih.fout
 			, "%sTHIS(transitionTo%s_e)\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
 			, pid_info->name
@@ -353,11 +353,11 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 	if (generate_instance)
 	{
 		generateInstance(pcmd, pmi, "action");
-	}
 
-	if (generate_run_function)
-	{
-		generateRunFunction(pcmd, pmi);
+		if (generate_run_function)
+		{
+			generateRunFunction(pcmd, pmi);
+		}
 	}
 
 	defineCMachineFSM(pfsmcog);
@@ -1337,6 +1337,8 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile , "/* %s */\n", __func__ );
 
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+
 	/*
 	  Actions which return events or void have state transitions
 		stored in a struct with the function pointer.
@@ -1346,7 +1348,7 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (pmi->modFlags & mfActionsReturnStates)
 	{
 		/* publish the array */
-		fprintf(pcmd->hFile
+		fprintf(fout
 				, "extern const %s %s_ACTION_ARRAY[%s_numEvents][%s_numStates];\n\n"
 				, actionFnType(pcmd)
 				, fsmType(pcmd)
@@ -1373,37 +1375,39 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 		}
 
 		/* now do the action/transition array */
-		fprintf(pcmd->hFile
+		fprintf(fout
 				, "typedef struct _%s_action_trans_struct_ {\n\t"
 				, fqMachineName(pcmd)
 				);
 
-		fprintf(pcmd->hFile
+		fprintf(fout
 				, "%s%s\taction;\n\t"
 				, actionFnType(pcmd)
 				, compacting(pmi) ? "_E" : ""
 			   );
 
-		fprintf(pcmd->hFile
+		fprintf(fout
 				, "%s%s\ttransition;\n} "
 				, pmi->transition_fn_list->count 
 				  ? transitionFnType(pcmd)
 				  : stateType(pcmd)
 				, (pmi->transition_fn_list->count && compacting(pmi)) ? "_E" : ""
 			   );
-		fprintf(pcmd->hFile
+		fprintf(fout
 				, "%s, *p%s;\n\n"
 				, actionTransType(pcmd)
 				, actionTransType(pcmd)
 				);
 
-		/* publish the array 
-		fprintf(pcmd->hFile
-				, "extern const %s THIS(action_array)[THIS(numEvents)][%s_numStates];\n\n"
-				, actionTransType(pcmd)
-				, machineName(pcmd)
-				);
-				*/
+		/* publish the array, if not generating a machine instance */
+		if (!generate_instance)
+		{
+			fprintf(pcmd->pubHFile
+					, "extern const %s THIS(action_array)[THIS(numEvents)][%s_numStates];\n\n"
+					, actionTransType(pcmd)
+					, machineName(pcmd)
+					);
+		}
 	}
 
 }
@@ -1412,14 +1416,17 @@ static void declareCMachineActionFnEnum(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile , "/* %s */\n", __func__ );
 
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+
 	ITERATOR_CALLBACK_HELPER ich = { 0 };
 
 	ich.ih.first = true;
-	ich.pcmd  = pcmd;
+	ich.pcmd     = pcmd;
 	ich.ih.pmi   = pmi;
+	ich.ih.fout  = fout;
 
 	/* enum */
-	fprintf(pcmd->hFile
+	fprintf(fout
 			, "typedef enum\n{\n"
 		   );
 
@@ -1427,17 +1434,17 @@ static void declareCMachineActionFnEnum(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	if (empty_cell_fn)
 	{
-		fprintf(pcmd->hFile
+		fprintf(fout
 				, "\t, THIS(%s_e)\n"
 				, empty_cell_fn
 				);
 	}
 
 	/* declare the dummy, or no op action */
-	fprintf(pcmd->hFile, "\t, THIS(noAction_e)\n");
+	fprintf(fout, "\t, THIS(noAction_e)\n");
 
-	fprintf(pcmd->hFile, "} __attribute__((__packed__)) ");
-	fprintf(pcmd->hFile
+	fprintf(fout, "} __attribute__((__packed__)) ");
+	fprintf(fout
 			, "%s_E;\n\n"
 			, actionFnType(pcmd)
 			);
@@ -1457,7 +1464,8 @@ static void defineCMachineActionFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	/* open the array */
 	fprintf(pcmd->cFile
-			, "static const %s THIS(action_fns)[] =\n{\n"
+			, "%sconst %s THIS(action_fns)[] =\n{\n"
+			, generate_instance ? "static " : ""
 			, actionFnType(pcmd)
 			);
 
@@ -1483,14 +1491,17 @@ static void declareCMachineTransitionFnEnum(pCMachineData pcmd, pMACHINE_INFO pm
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile , "/* %s */\n", __func__ );
 
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+
 	ITERATOR_CALLBACK_HELPER ich = { 0 };
 
 	ich.ih.first = true;
-	ich.pcmd  = pcmd;
+	ich.ih.fout  = fout;
+	ich.pcmd     = pcmd;
 	ich.ih.pmi   = pmi;
 
 	/* enum */
-	fprintf(pcmd->hFile
+	fprintf(fout
 			, "typedef enum\n{\n"
 		   );
 
@@ -1503,12 +1514,12 @@ static void declareCMachineTransitionFnEnum(pCMachineData pcmd, pMACHINE_INFO pm
 				 , &ich
 				 );
 
-	fprintf(pcmd->hFile
+	fprintf(fout
 			, ", THIS(noTransition_e)\n"
 			);
 
-	fprintf(pcmd->hFile, "} __attribute__ (( __packed__ )) ");
-	fprintf(pcmd->hFile
+	fprintf(fout, "} __attribute__ (( __packed__ )) ");
+	fprintf(fout
 			, "%s_E;\n\n"
 			, transitionFnType(pcmd)
 			);
@@ -1528,7 +1539,8 @@ static void defineCMachineTransitionFnArray(pCMachineData pcmd, pMACHINE_INFO pm
 
 	/* open the array */
 	fprintf(pcmd->cFile
-			, "static const %s UFMN(transition_fns)[] =\n{\n"
+			, "%sconst %s UFMN(transition_fns)[] =\n{\n"
+			, generate_instance ? "static " : ""
 			, transitionFnType(pcmd)
 			);
 
@@ -1557,34 +1569,36 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile , "/* %s */\n", __func__ );
 
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+
 	/* put the machine structure definition into the header */
-	fprintf(pcmd->hFile
+	fprintf(fout
 			, "struct _%s_struct_ {\n"
 			, machineName(pcmd)
 			);
 
 	if (pmi->data)
 	{
-		fprintf(pcmd->hFile
+		fprintf(fout
 				, "\t%-*s data;\n"
 				, (int) pcmd->c_machine_struct_format_width
 				, fsmDataType(pcmd)
 				);
 	}
 
-	fprintf(pcmd->hFile
+	fprintf(fout
 			, "\t%-*s state;\n"
 			, (int) pcmd->c_machine_struct_format_width
 			, stateType(pcmd)
 			);
 
-	fprintf(pcmd->hFile
+	fprintf(fout
 			, "\t%-*s event;\n"
 			, (int) pcmd->c_machine_struct_format_width
 			, eventType(pcmd)
 			);
 
-	fprintf(pcmd->hFile
+	fprintf(fout
 			, "\t%-*s const\t(*actionArray)[THIS(numEvents)][%s_numStates];\n"
 			, (int) pcmd->c_machine_struct_format_width
 			, (pmi->modFlags & mfActionsReturnStates)
@@ -1595,7 +1609,7 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	if (pmi->machine_list)
 	{
-		fprintf(pcmd->hFile
+		fprintf(fout
 				, "\tp%-*s const\t(*subMachineArray)[%s_numSubMachines];\n"
 				, (int) pcmd->c_machine_struct_format_width
 				, subFsmIfType(pcmd)
@@ -1603,7 +1617,7 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 				);
 	}
 
-	fprintf(pcmd->hFile
+	fprintf(fout
 			, "\t%-*sfsm;\n};\n\n"
 			, (int) pcmd->c_machine_struct_format_width
 			, fsmFnType(pcmd)
@@ -1630,7 +1644,8 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 	}
 
 	fprintf(pcmd->cFile
-			, "static const %s %s_action_array[THIS(numEvents)][%s_numStates] =\n{\n"
+			, "%sconst %s %s_action_array[THIS(numEvents)][%s_numStates] =\n{\n"
+			, generate_instance ? "static " : ""
 			, (pmi->modFlags & mfActionsReturnStates) 
 			  ? actionFnType(pcmd)
 			  : actionTransType(pcmd)

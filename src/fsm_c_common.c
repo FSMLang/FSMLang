@@ -397,6 +397,10 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_CAL
 
 void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, bool add_numStates)
 {
+	FILE *fout;
+
+	fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+	
 	//TODO: remove from signature
 	(void) arrayName;
 
@@ -590,7 +594,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 	  ich.ih.fout = pcmd->hFile;
    }
 
-   if (generate_run_function)
+   if (generate_instance && generate_run_function)
    {
       fprintf(pcmd->pubHFile, "\nvoid run_%s(%s);\n\n"
 			  , machineName(pcmd)
@@ -613,14 +617,17 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    fprintf(pcmd->hFile, "#endif\n\n");
 
    /* put the state enum into the header file */
-   fprintf(pcmd->hFile
+   fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
            , "typedef enum {\n"
           );
 
    ich.ih.first = true;
    ich.ih.pmi   = pmi;
+   ich.ih.fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+
    iterate_list(pmi->state_list, write_state_enum_member, &ich);
-   
+
+   ich.ih.fout = pcmd->hFile;
 
    /*
      Though not a state, this needs have a value
@@ -630,7 +637,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    */
    if (pmi->modFlags & mfActionsReturnStates)
    {
-      fprintf(pcmd->hFile
+	  fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
               , "\t, %s_noTransition\n"
 			  , machineName(pcmd)
              );
@@ -638,13 +645,13 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 
    if (add_numStates)
    {
-	   fprintf(pcmd->hFile
+	   fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
 			   , "\t, %s_numStates\n"
 			   , machineName(pcmd)
 			   );
    }
 
-   fprintf(pcmd->hFile
+   fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
            , "}%s %s;\n\n"
            , compacting(pmi) ? " __attribute__((__packed__))" : " "
 		   , stateType(pcmd)
@@ -653,31 +660,40 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    /* Put the data struct typedef into the header file. */
    if (pmi->data)
    {
-	   /* Which header depends on whether we have sub-machines. */
-      fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
+	   fprintf(pmi->machine_list ? pcmd->subMachineHFile : fout
               , "typedef struct _%s_data_struct_ %s, *p%s;\n"
 			  , machineName(pcmd)
 			  , fsmDataType(pcmd)
 			  , fsmDataType(pcmd)
 			 );
-
    }
 
-   /* forward declare the machine type */
-   fprintf(pcmd->pubHFile
-		   , "typedef struct _%s_struct_ *p%s;\n"
-		   , machineName(pcmd)
-		   , fsmType(pcmd)
-		  );
-
    /* put the machine struct typedef into the header */
-   fprintf(pcmd->hFile
-		   , "typedef struct _%s_struct_ %s;\n"
-		   , machineName(pcmd)
-		   , fsmType(pcmd)
-		  );
+   if (generate_instance)
+   {
+	   fprintf(pcmd->pubHFile
+			   , "typedef struct _%s_struct_ *p%s;\n"
+			   , machineName(pcmd)
+			   , fsmType(pcmd)
+			  );
 
-   fprintf(pcmd->hFile
+	   fprintf(pcmd->hFile
+			   , "typedef struct _%s_struct_ %s;\n"
+			   , machineName(pcmd)
+			   , fsmType(pcmd)
+			  );
+   }
+   else
+   {
+	   fprintf(pcmd->pubHFile
+			   , "typedef struct _%s_struct_ %s, *p%s;\n"
+			   , machineName(pcmd)
+			   , fsmType(pcmd)
+			   , fsmType(pcmd)
+			  );
+   }
+
+   fprintf(fout
 		   , "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
 		   , fsmType(pcmd)
 		   );
@@ -699,7 +715,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    }
 
    /* put the action function typedef into the header */
-   fprintf(pcmd->hFile
+   fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
 		   , "typedef %s (*%s)(FSM_TYPE_PTR);\n\n"
 		   , actionReturnType(pcmd)
 		   , actionFnType(pcmd)
@@ -708,7 +724,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    /* typedef transition functions, if we have any */
    if (pmi->transition_fn_list->count)
    {
-	   fprintf(pcmd->hFile
+	   fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
 			   , "typedef %s (*%s)(FSM_TYPE_PTR,%s);\n\n"
 			   , stateType(pcmd)
 			   , transitionFnType(pcmd)
@@ -717,14 +733,14 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    }
 
    /* typedef the FSM function */
-   fprintf(pcmd->hFile
+   fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
 		   , "typedef void (*%s_FSM)(FSM_TYPE_PTR,%s);\n\n"
 		   , fsmType(pcmd)
 		   , fsmFnEventType(pcmd)
 		   );
 
    /* declare the fsm function */
-   fprintf(pcmd->hFile
+   fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
            , "void %sFSM(FSM_TYPE_PTR,%s);\n\n"
 		   , machineName(pcmd)
 		   , fsmFnEventType(pcmd)
@@ -745,16 +761,16 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    if (pmi->data)
    {
 	   /* Which header depends on whether we have sub-machines. */
-      fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
+      fprintf(pmi->machine_list ? pcmd->subMachineHFile : fout
               , "struct _%s_data_struct_ {\n"
 			  , machineName(pcmd)
               );
 
       ich.ih.tab_level = 1; 
-	  ich.ih.fout      = pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile;
+	  ich.ih.fout      = pmi->machine_list ? pcmd->subMachineHFile : fout;
       iterate_list(pmi->data, print_data_field, &ich);
 
-      fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
+      fprintf(pmi->machine_list ? pcmd->subMachineHFile : fout
               , "};\n\n"
               );
    }
@@ -2380,16 +2396,28 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    /* put the data structure definition into the header */
    if (pmi->data)
    {
-	  fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
+
+	  FILE *fout;
+
+	  if (generate_instance)
+	  {
+		  fout = pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile; 
+	  }
+	  else
+	  {
+		  fout = pcmd->pubHFile;
+	  }
+
+	  fprintf(fout
 			  , "struct _%s_data_struct_ {\n"
 			  , machineName(pcmd)
 			  );
 
       ich.ih.tab_level = 1;
-	  ich.ih.fout      = pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile;
+	  ich.ih.fout      = fout;
       iterate_list(pmi->data, print_data_field, &ich);
 
-      fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
+      fprintf(fout
               , "};\n\n"
               );
    }

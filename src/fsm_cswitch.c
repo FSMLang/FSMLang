@@ -598,11 +598,11 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
    if (generate_instance)
    {
       generateInstance(pcmd, pmi, "state_fn");
-   }
 
-   if (generate_run_function)
-   {
-      generateRunFunction(pcmd, pmi);
+	  if (generate_run_function)
+	  {
+		 generateRunFunction(pcmd, pmi);
+	  }
    }
 
    defineCSwitchMachineFSM(pfsmcog);
@@ -799,34 +799,36 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+
    /* put the machine structure definition into the header file */
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "struct _%s_struct_ {\n"
 		   , machineName(pcmd)
 		   );
 
    if (pmi->data)
    {
-      fprintf(pcmd->hFile
+      fprintf(fout
 			  , "\t%-*s data;\n"
 			  , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 			  , fsmDataType(pcmd)
 			 );
    }
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s state;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , stateType(pcmd)
 		   );
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s event;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , eventType(pcmd)
 		  );
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s const (*statesArray)[%s_numStates];\n"
 		   , (int)pcmd->sub_machine_struct_format_width
 		   , stateFnType(pcmd)
@@ -835,7 +837,7 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    if (pmi->machine_list)
    {
-      fprintf(pcmd->hFile
+      fprintf(fout
 			  , "\tp%-*s const (*subMachineArray)[%s_numSubMachines];\n"
 			  , (int)pcmd->sub_machine_struct_format_width
 			  , subFsmIfType(pcmd)
@@ -843,7 +845,7 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 			 );
    }
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s fsm;\n};\n\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , fsmFnType(pcmd)
