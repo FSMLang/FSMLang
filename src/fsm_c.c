@@ -359,6 +359,10 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 			generateRunFunction(pcmd, pmi);
 		}
 	}
+	else
+	{
+		generateInstanceMacro(pcmd, pmi, "actionArray", "action");
+	}
 
 	defineCMachineFSM(pfsmcog);
 

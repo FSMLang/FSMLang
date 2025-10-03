@@ -169,6 +169,7 @@ void commonHeaderStart(pCMachineData,pMACHINE_INFO,char*,bool);
 void addEventCrossReference(pCMachineData,pMACHINE_INFO,pITERATOR_CALLBACK_HELPER);
 void commonHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
 void generateInstance(pCMachineData,pMACHINE_INFO,char*);
+void generateInstanceMacro(pCMachineData,pMACHINE_INFO,char*,char*);
 void generateRunFunction(pCMachineData,pMACHINE_INFO);
 void defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO);
 void defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO);

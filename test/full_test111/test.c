@@ -1,14 +1,8 @@
 #include "test_fsm.h"
 
-static TEST_FSM test_fsm =
-{
-	.data = {.e1_count = 0}
-	, .state = test_fsm_s1
-	, .actionArray = &THIS(action_array)
-	, .fsm         = test_fsmFSM
-};
+#define INIT_INSTANCE_DATA {.e1_count = 0}
 
-static pTEST_FSM ptest_fsm = &test_fsm;
+TEST_FSM_INSTANCE(test_fsm,INIT_INSTANCE_DATA);
 
 static void run_test_fsm(pTEST_FSM_EVENT pevent)
 {

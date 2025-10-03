@@ -57,6 +57,7 @@ typedef struct _cevent_table_machine_data_     CEventTableMachineData
 static void writeCEventTableMachine(pFSMOutputGenerator,pMACHINE_INFO); 
 static void writeCEventTableSubMachine(pFSMOutputGenerator,pMACHINE_INFO); 
 static void writeCEventTableMachineInternal(pFSMCOutputGenerator);
+static void declareCEventTableMachineEventTable(pCMachineData);
 static void declareCEventTableMachineEventTableSize(pCMachineData);
 static void defineCEventTableMachineStruct(pCMachineData);
 static void defineEventFnArray(pCMachineData);
@@ -345,7 +346,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	commonHeaderStart(pcmd, pmi, "event_fn", false);
 
-	declareCEventTableMachineEventTableSize(pcmd);
+	declareCEventTableMachineEventTable(pcmd);
 
 	defineCEventTableMachineStruct(pcmd);
 
@@ -390,6 +391,10 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 		   generateRunFunction(pcmd, pmi);
 		}
 
+	}
+	else
+	{
+		generateInstanceMacro(pcmd, pmi, "eventsArray", "event_fn");
 	}
 
 	defineCEventTableMachineFSM(pfsmcog);
@@ -439,11 +444,29 @@ static void declareCEventTableMachineEventTableSize(pCMachineData pcmd)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-	fprintf(pcmd->hFile
+	fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
 			, "#define %s_numMachineEvents %u\n"
 			, machineName(pcmd)
 			, pcmd->pmi->event_list->count
 			);
+
+}
+
+static void declareCEventTableMachineEventTable(pCMachineData pcmd)
+{
+	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	declareCEventTableMachineEventTableSize(pcmd);
+
+	if (!generate_instance)
+	{
+		fprintf(pcmd->pubHFile
+				, "extern const %s %s_event_fn_array[%s_numMachineEvents];\n"
+				, actionFnType(pcmd)
+				, machineName(pcmd)
+				, machineName(pcmd)
+				);
+	}
 
 }
 
@@ -533,7 +556,8 @@ static void defineEventFnArray(pCMachineData pcmd)
 	};
 
 	fprintf(pcmd->cFile
-			, "\nstatic const %s %s_event_fn_array[%s_numMachineEvents] =\n{\n"
+			, "\n%sconst %s %s_event_fn_array[%s_numMachineEvents] =\n{\n"
+			, generate_instance ? "static " : ""
 			, actionFnType(pcmd)
 			, machineName(pcmd)
 			, machineName(pcmd)

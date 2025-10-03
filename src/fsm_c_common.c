@@ -973,6 +973,75 @@ void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName)
 
 }
 
+/**
+ * Write a macro which will instantiate a machine.
+ * 
+ * @author Steven Stanton (10/1/2025)
+ * 
+ * @param pcmd      Pointer to the writer's data.
+ * @param pmi       Pointer to the machine's data.
+ * @param arrayName The name of the array.
+ */
+void generateInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldName, char *arrayName)
+{
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   fprintf(pcmd->pubHFile
+		   , "#define %s_INSTANCE(A%s) static "
+		   , ucMachineName(pcmd)
+		   , pmi->data ? ", B" : ""
+		   );
+   fprintf(pcmd->pubHFile
+		   , "%s A = {\\\n"
+		   , fsmType(pcmd)
+		   );
+   fprintf(pcmd->pubHFile
+		   , "\t.state = %s_%s\\\n"
+		   , machineName(pcmd)
+		   , stateNameByIndex(pmi, 0)
+           );
+
+   fprintf(pcmd->pubHFile
+		   , "\t, .event = THIS(%s)\\\n"
+           , eventNameByIndex(pmi, 0)
+          );
+
+   fprintf(pcmd->pubHFile
+		   , "\t, .%s = &%s_%s_array\\\n"
+		   , arrayFieldName
+		   , machineName(pcmd)
+           , arrayName
+          );
+
+   fprintf(pcmd->pubHFile
+		   , "\t, .fsm = %sFSM\\\n"
+		   , machineName(pcmd)
+		   );
+
+   if (pmi->machine_list)
+   {
+      fprintf(pcmd->pubHFile
+			  , "\t, .subMachineArray = &%s_sub_fsm_if_array,\\\n"
+			  , machineName(pcmd)
+			  );
+   }
+
+   if (pmi->data)
+   {
+	   fprintf(pcmd->pubHFile
+			   , "\t, .data = B\\\n"
+			   );
+   }
+
+   fprintf(pcmd->pubHFile
+		   , "};\\\n\\\n"
+		   );
+   fprintf(pcmd->pubHFile
+		   , "static p%s p##A = &(A)\n"
+		   , fsmType(pcmd)
+		   );
+}
+
 void defineWeakActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
    ITERATOR_CALLBACK_HELPER ich = { 0 };

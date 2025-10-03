@@ -604,6 +604,10 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
 		 generateRunFunction(pcmd, pmi);
 	  }
    }
+   else
+   {
+	   generateInstanceMacro(pcmd, pmi, "statesArray", "state_fn");
+   }
 
    defineCSwitchMachineFSM(pfsmcog);
 
@@ -779,19 +783,22 @@ static void declareCSwitchMachineStateFnArray(pCMachineData pcmd)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   fprintf(pcmd->hFile
-		   , "typedef ACTION_RETURN_TYPE (*%s)(p%s,%s);\n\n"
-		   , stateFnType(pcmd)
-		   , fsmType(pcmd)
-		   , eventType(pcmd)
-		   );
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
 
-   fprintf(pcmd->hFile
-		   , "static const %s %s_state_fn_array[%s_numStates];\n\n"
-		   , stateFnType(pcmd)
-		   , machineName(pcmd)
-		   , machineName(pcmd)
-		   );
+	fprintf(fout
+			, "typedef ACTION_RETURN_TYPE (*%s)(p%s,%s);\n\n"
+			, stateFnType(pcmd)
+			, fsmType(pcmd)
+			, eventType(pcmd)
+			);
+
+	fprintf(fout
+			, "%sconst %s %s_state_fn_array[%s_numStates];\n\n"
+			, generate_instance ? "static " : "extern "
+			, stateFnType(pcmd)
+			, machineName(pcmd)
+			, machineName(pcmd)
+			);
 
 }
 
@@ -1741,6 +1748,7 @@ static bool print_state_fn_name(pLIST_ELEMENT pelem, void *data)
 
 static void defineStateFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
+
     ITERATOR_CALLBACK_HELPER ich = {
 		. ih = {
 			.pmi     = pmi
@@ -1750,7 +1758,8 @@ static void defineStateFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
     };
 
    fprintf(pcmd->cFile
-		   , "static const %s %s_state_fn_array[%s_numStates] = \n{\n"
+		   , "%sconst %s %s_state_fn_array[%s_numStates] = \n{\n"
+		   , generate_instance ? "static " : ""
 		   , stateFnType(pcmd)
 		   , machineName(pcmd)
 		   , machineName(pcmd)
