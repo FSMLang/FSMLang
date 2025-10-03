@@ -1349,18 +1349,7 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
   
 	  Actions which return states do not.
 	*/
-	if (pmi->modFlags & mfActionsReturnStates)
-	{
-		/* publish the array */
-		fprintf(fout
-				, "extern const %s %s_ACTION_ARRAY[%s_numEvents][%s_numStates];\n\n"
-				, actionFnType(pcmd)
-				, fsmType(pcmd)
-				, fqMachineName(pcmd)
-				, machineName(pcmd)
-				);
-	}
-	else
+	if (!(pmi->modFlags & mfActionsReturnStates))
 	{
 
 		/* build the structure for the action array */
@@ -1403,17 +1392,18 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 				, actionTransType(pcmd)
 				);
 
-		/* publish the array, if not generating a machine instance */
-		if (!generate_instance)
-		{
-			fprintf(pcmd->pubHFile
-					, "extern const %s THIS(action_array)[THIS(numEvents)][%s_numStates];\n\n"
-					, actionTransType(pcmd)
-					, machineName(pcmd)
-					);
-		}
 	}
 
+	/* publish the array, if not generating a machine instance */
+	if (!generate_instance)
+	{
+		fprintf(pcmd->pubHFile
+				, "extern const %s THIS(action_array)[THIS(numEvents)][STATE(numStates)];\n\n"
+				, pmi->modFlags & mfActionsReturnStates
+				  ? actionFnType(pcmd) 
+				  : actionTransType(pcmd)
+				);
+	}
 }
 
 static void declareCMachineActionFnEnum(pCMachineData pcmd, pMACHINE_INFO pmi)
