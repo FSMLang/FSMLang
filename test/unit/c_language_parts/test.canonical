@@ -43,6 +43,14 @@ nf_machine_name_pmi:
 initial: child
 subsequent: grandParent_child
 
+fq_machine_name_pmi:
+initial: grandChild
+subsequent: grandParent_child_grandChild
+
+ucfq_machine_name_pmi:
+initial: grandChild
+subsequent: GRAND_PARENT_CHILD_GRAND_CHILD
+
 uc_machine_name:
 initial: grandChild
 subsequent: GRAND_CHILD

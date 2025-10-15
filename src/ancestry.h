@@ -62,6 +62,8 @@ char * machineName(pCMachineData);
 char * nfMachineName(pCMachineData);
 char * ucnfMachineName(pCMachineData);
 char * nfMachineNamePmi(pMACHINE_INFO,char**);
+char * fqMachineNamePmi(pMACHINE_INFO,char**);
+char * ucfqMachineNamePmi(pMACHINE_INFO,char**);
 char * sharedEventStrType(pCMachineData);
 char * stateFnType(pCMachineData);
 char * stateType(pCMachineData);
@@ -69,6 +71,7 @@ void   streamHungarianToUnderbarCaps(FILE*,char *);
 char * subFsmIfType(pCMachineData);
 char * subMachineFnType(pCMachineData);
 char * transitionFnType(pCMachineData);
+char * instanceType(pCMachineData);
 
 #endif
 

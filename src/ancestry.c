@@ -908,4 +908,96 @@ char *nfMachineNamePmi(pMACHINE_INFO pmi, char **pcp)
 
 }
 
+/**
+ * Returns a string composed of the fully-qualified machine
+ * name.
+ *
+ * Memory will be allocated for the string; this must be freed
+ * by the caller.
+ * 
+ * @author Steven Stanton (12/18/2023)
+ * 
+ * @param pmi    The machine to name
+ * @param pcp    pointer to a character pointer; this will point
+ *  			 to the allocated memory
+ * 
+ * @return char* *pcp.
+ */
+char *fqMachineNamePmi(pMACHINE_INFO pmi, char **pcp)
+{
+	FILE          *tmp;
+
+	*pcp = NULL;
+
+	/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+	if (NULL != (tmp = tmpfile()))
+	{
+		printAncestry(pmi, tmp, "_", alc_lower, ai_include_self);
+
+		*pcp = create_string_from_file(tmp, NULL);
+
+	}
+
+	return *pcp;
+
+}
+
+/**
+ * Returns an upper-case string composed of the
+ * fully-qualified machine name.
+ *
+ * Memory will be allocated for the string; this must be freed
+ * by the caller.
+ * 
+ * @author Steven Stanton (12/18/2023)
+ * 
+ * @param pmi    The machine to name
+ * @param pcp    pointer to a character pointer; this will point
+ *  			 to the allocated memory
+ * 
+ * @return char* *pcp.
+ */
+char *ucfqMachineNamePmi(pMACHINE_INFO pmi, char **pcp)
+{
+	FILE          *tmp;
+
+	*pcp = NULL;
+
+	/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+	if (NULL != (tmp = tmpfile()))
+	{
+		printAncestry(pmi, tmp, "_", alc_upper, ai_include_self);
+
+		*pcp = create_string_from_file(tmp, NULL);
+
+	}
+
+	return *pcp;
+
+}
+
+
+char * instanceType(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long str_len;
+
+	/* only create the string once */
+	if (!pcmd->instance_type)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			fprintf(tmp
+					,"_INSTANCE"
+					);
+
+			pcmd->instance_type = create_string_from_file(tmp, &str_len);
+
+		}
+	}
+
+	return pcmd->instance_type;
+}
 
