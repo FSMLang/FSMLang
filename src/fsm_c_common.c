@@ -984,9 +984,16 @@ void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldNam
    {
 	   if (pmi->data)
 	   {
+		   snprintf(instance_str
+					, sizeof(instance_str)
+					, "_%*u"
+					, (int)(sizeof(instance_str) - 2)
+					, instance
+					);
+
 		   fprintf(pcmd->cFile
 				   , "#ifndef INIT_FSM_DATA%s\n#error INIT_FSM_DATA%s must be defined\n#endif\n\n"
-				   , num_instances > 1 ? (snprintf(instance_str,sizeof(instance_str), "_%u", instance), instance_str) : ""
+				   , num_instances > 1 ? instance_str : ""
 				   , num_instances > 1 ? instance_str : ""
 				   );
 	   }
