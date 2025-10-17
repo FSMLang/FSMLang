@@ -70,6 +70,7 @@ char * stateType(pCMachineData);
 void   streamHungarianToUnderbarCaps(FILE*,char *);
 char * subFsmIfType(pCMachineData);
 char * subMachineFnType(pCMachineData);
+char * subMachineEnumType(pCMachineData);
 char * transitionFnType(pCMachineData);
 char * instanceType(pCMachineData);
 

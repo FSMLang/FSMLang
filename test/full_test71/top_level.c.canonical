@@ -29,7 +29,7 @@ static const TOP_LEVEL_STATE_FN top_level_state_fn_array[top_level_numStates] =
 };
 
 
-const pTOP_LEVEL_SUB_FSM_IF top_level_sub_fsm_if_array[THIS(numSubMachines)] =
+static const pTOP_LEVEL_SUB_FSM_IF top_level_sub_fsm_if_array[THIS(numSubMachines)] =
 {
 	&top_level_sub_machine1_sub_fsm_if
 	, &top_level_sub_machine2_sub_fsm_if
@@ -37,12 +37,13 @@ const pTOP_LEVEL_SUB_FSM_IF top_level_sub_fsm_if_array[THIS(numSubMachines)] =
 };
 
 TOP_LEVEL top_level = {
-	top_level_s1,
-	THIS(e1),
-	&top_level_state_fn_array,
-	&top_level_sub_fsm_if_array,
-	top_levelFSM
-};
+	.state = top_level_s1
+	, .event = THIS(e1)
+	, .statesArray = &top_level_state_fn_array
+	, .subMachineArray = &top_level_sub_fsm_if_array
+	, .fsm = top_levelFSM
+}
+;
 
 pTOP_LEVEL ptop_level = &top_level;
 

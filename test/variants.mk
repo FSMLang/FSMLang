@@ -2,6 +2,8 @@ VARIANTS ?= c s e cc
 
 .PHONY: runtest test clean clean_generated $(VARIANTS)
 
+.SUFFIXES: .e
+
 #e e.size e_run: FSM_FLAGS=-te
 e e.size e_run: FSM_FLAGS+=-te --generate-weak-fns=false --force-generation-of-event-passing-actions
 e e.size e_run: CFLAGS+=-DFSM_VARIANT_E
@@ -39,6 +41,7 @@ $(addsuffix _run, $(VARIANTS)):
 clean:
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
 	-@rm -f sizes $(VARIANTS) $(addsuffix .size, $(VARIANTS)) 2> /dev/null
+	-@rm -f *.e 2> /dev/null
 
 clean_generated:
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
@@ -49,3 +52,5 @@ $(VARIANTS):
 stats.txt:
 	$(MAKE) -f ../create_target.mk $@
 
+.c.e:
+	$(CC) -E $(CFLAGS) -o $@ $<

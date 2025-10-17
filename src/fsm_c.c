@@ -116,8 +116,9 @@ static bool declare_action_enum_member(pLIST_ELEMENT pelem, void *data)
 	{
 
 		fprintf(pich->ih.fout
-				, "%sTHIS(%s_e)\n"
+				, "%s%s_%s_e\n"
 				, pich->ih.first ? (pich->ih.first = false, "\t") : "\t, "
+				, fqMachineName(pich->pcmd)
 				, pid_info->name
 			   );
 
@@ -152,11 +153,12 @@ static bool declare_transition_fn_enum_member(pLIST_ELEMENT pelem, void *data)
 	pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
 	pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
-	FSMLANG_DEVELOP_PRINTF(pich->pcmd->hFile , "/* %s */\n", __func__ );
+	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* %s */\n", __func__ );
 
 	fprintf(pich->ih.fout
-			, "%sTHIS(%s_e)\n"
+			, "%s%s_%s_e\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
+			, fqMachineName(pich->pcmd)
 			, pid_info->name
 		   );
 
@@ -168,11 +170,12 @@ static bool declare_transition_enum_member(pLIST_ELEMENT pelem, void *data)
 	pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
 	pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
-	FSMLANG_DEVELOP_PRINTF(pich->pcmd->hFile , "/* %s */\n", __func__ );
+	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* %s */\n", __func__ );
 
 	fprintf(pich->ih.fout
-			, "%sTHIS(transitionTo%s_e)\n"
+			, "%s%s_transitionTo%s_e\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
+			, fqMachineName(pich->pcmd)
 			, pid_info->name
 		   );
 
@@ -263,7 +266,11 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (generate_instance)
 	{
-		generateInstance(pcmd, pmi, "action");
+		generateInstance(pcmd, pmi, "actionArray", "action");
+	}
+	else
+	{
+		generateSubMachineInstanceMacro(pcmd, pmi, "actionArray", "action");
 	}
 
 	defineCSubMachineFSM(pfsmcog);
@@ -352,7 +359,7 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (generate_instance)
 	{
-		generateInstance(pcmd, pmi, "action");
+		generateInstance(pcmd, pmi, "actionArray", "action");
 
 		if (generate_run_function)
 		{
@@ -433,6 +440,7 @@ static void writeCSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	pfsmcog->pcmd->sub_fsm_fn_event_type   = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_event_type;
 	pfsmcog->pcmd->sub_fsm_fn_return_type  = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_return_type;
 	pfsmcog->pcmd->event_type              = pfsmcog->parent_fsmcog->pcmd->event_type;
+	pfsmcog->pcmd->instance_type           = pfsmcog->parent_fsmcog->pcmd->instance_type;
 
 	chooseWorkerFunctions(pfsmcog);
 
@@ -1398,10 +1406,13 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (!generate_instance)
 	{
 		fprintf(pcmd->pubHFile
-				, "extern const %s THIS(action_array)[THIS(numEvents)][STATE(numStates)];\n\n"
+				, "extern const %s %s_action_array[%s_numEvents][%s_numStates];\n\n"
 				, pmi->modFlags & mfActionsReturnStates
 				  ? actionFnType(pcmd) 
 				  : actionTransType(pcmd)
+				, machineName(pcmd)
+				, fqMachineName(pcmd)
+				, machineName(pcmd)
 				);
 	}
 }
@@ -1429,7 +1440,8 @@ static void declareCMachineActionFnEnum(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (empty_cell_fn)
 	{
 		fprintf(fout
-				, "\t, THIS(%s_e)\n"
+				, "\t, %s_%s_e\n"
+				, fqMachineName(pcmd)
 				, empty_cell_fn
 				);
 	}
@@ -1509,7 +1521,8 @@ static void declareCMachineTransitionFnEnum(pCMachineData pcmd, pMACHINE_INFO pm
 				 );
 
 	fprintf(fout
-			, ", THIS(noTransition_e)\n"
+			, ", %s_noTransition_e\n"
+			, fqMachineName(pcmd)
 			);
 
 	fprintf(fout, "} __attribute__ (( __packed__ )) ");
@@ -1571,6 +1584,15 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, machineName(pcmd)
 			);
 
+	if (num_instances > 0)
+	{
+		fprintf(fout
+				, "\t%-*s instance;\n"
+				, (int) pcmd->c_machine_struct_format_width
+				, "unsigned"
+				);
+	}
+
 	if (pmi->data)
 	{
 		fprintf(fout
@@ -1593,11 +1615,12 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 			);
 
 	fprintf(fout
-			, "\t%-*s const\t(*actionArray)[THIS(numEvents)][%s_numStates];\n"
+			, "\t%-*s const\t(*actionArray)[%s_numEvents][%s_numStates];\n"
 			, (int) pcmd->c_machine_struct_format_width
 			, (pmi->modFlags & mfActionsReturnStates)
 			  ? actionFnType(pcmd)
 			  : actionTransType(pcmd)
+			, fqMachineName(pcmd)
 			, machineName(pcmd)
 		   );
 
@@ -1609,6 +1632,16 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 				, subFsmIfType(pcmd)
 				, fqMachineName(pcmd)
 				);
+
+		if (!generate_instance)
+		{
+			fprintf(fout
+					, "\t%-*s* const\t(*subMachines)[%s_numSubMachines];\n"
+					, (int) pcmd->c_machine_struct_format_width
+					, "void"
+					, fqMachineName(pcmd)
+					);
+		}
 	}
 
 	fprintf(fout
@@ -1877,7 +1910,8 @@ static void defineCSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 		   );
 
 	fprintf(pcmd->cFile
-			, "static %s %sFSM(p%s pfsm, %s event)\n{\n"
+			, "%s%s %sFSM(p%s pfsm, %s event)\n{\n"
+			, generate_instance ? "static " : ""
 			, subFsmFnReturnType(pcmd)
 			, machineName(pcmd)
 			, fsmType(pcmd)

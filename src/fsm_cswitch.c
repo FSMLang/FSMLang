@@ -523,6 +523,7 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    pfsmcog->pcmd->sub_fsm_fn_event_type   = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_event_type;
    pfsmcog->pcmd->sub_fsm_fn_return_type  = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_return_type;
    pfsmcog->pcmd->event_type              = pfsmcog->parent_fsmcog->pcmd->event_type;
+   pfsmcog->pcmd->instance_type           = pfsmcog->parent_fsmcog->pcmd->instance_type;
 
    chooseWorkerFunctions(pfsmcog);
 
@@ -597,7 +598,7 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (generate_instance)
    {
-      generateInstance(pcmd, pmi, "state_fn");
+      generateInstance(pcmd, pmi, "statesArray", "state_fn");
 
 	  if (generate_run_function)
 	  {
@@ -736,7 +737,11 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (generate_instance)
    {
-      generateInstance(pcmd, pmi, "state_fn");
+      generateInstance(pcmd, pmi, "statesArray", "state_fn");
+   }
+   else
+   {
+	   generateSubMachineInstanceMacro(pcmd, pmi, "statesArray", "state_fn");
    }
 
    defineCSwitchSubMachineFSM(pfsmcog);
@@ -781,12 +786,14 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 static void declareCSwitchMachineStateFnArray(pCMachineData pcmd)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
-
 	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
 
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+
 	fprintf(fout
-			, "typedef ACTION_RETURN_TYPE (*%s)(p%s,%s);\n\n"
+			, "typedef %s (*%s)(p%s,%s);\n\n"
+			, actionReturnType(pcmd)
 			, stateFnType(pcmd)
 			, fsmType(pcmd)
 			, eventType(pcmd)
@@ -850,6 +857,15 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 			  , subFsmIfType(pcmd)
 			   , fqMachineName(pcmd)
 			 );
+	  if (!generate_instance)
+	  {
+		  fprintf(fout
+				  , "\t%-*s* const\t(*subMachines)[%s_numSubMachines];\n"
+				  , (int) pcmd->c_machine_struct_format_width
+				  , "void"
+				  , fqMachineName(pcmd)
+				  );
+	  }
    }
 
    fprintf(fout

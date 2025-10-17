@@ -2793,6 +2793,10 @@ int main(int argc, char **argv)
 			{
 				generate_instance = false;
 			}
+      else
+      {
+          num_instances = atoi(optarg);
+      }
 			break;
 
      case 'c':

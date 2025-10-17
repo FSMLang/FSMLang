@@ -12,7 +12,7 @@
 #define DBG_PRINTF(...)
 #endif
 
-static TOP_LEVEL_EVENT sub_machine2FSM(FSM_TYPE_PTR,TOP_LEVEL_EVENT);
+static TOP_LEVEL_EVENT sub_machine2FSM(pSUB_MACHINE2,TOP_LEVEL_EVENT);
 
 static TOP_LEVEL_EVENT s1_stateFn(pSUB_MACHINE2,TOP_LEVEL_EVENT);
 static TOP_LEVEL_EVENT s2_stateFn(pSUB_MACHINE2,TOP_LEVEL_EVENT);
@@ -25,6 +25,7 @@ static const SUB_MACHINE2_STATE_FN sub_machine2_state_fn_array[sub_machine2_numS
 	, s3_stateFn
 };
 
+
 TOP_LEVEL_EVENT THIS(sub_machine_fn)(TOP_LEVEL_EVENT e)
 {
 	return sub_machine2FSM(psub_machine2,e);
@@ -32,17 +33,19 @@ TOP_LEVEL_EVENT THIS(sub_machine_fn)(TOP_LEVEL_EVENT e)
 
 TOP_LEVEL_SUB_FSM_IF top_level_sub_machine2_sub_fsm_if =
 {
-		.subFSM = THIS(sub_machine_fn)
+	  .subFSM = THIS(sub_machine_fn)
+	, .index = sub_machine2_e
 	, .first_event = THIS(firstEvent)
 	, .last_event = THIS(noEvent)
 };
 
 SUB_MACHINE2 sub_machine2 = {
-	sub_machine2_s1,
-	THIS(e1),
-	&sub_machine2_state_fn_array,
-	sub_machine2FSM
-};
+	.state = sub_machine2_s1
+	, .event = THIS(e1)
+	, .statesArray = &sub_machine2_state_fn_array
+	, .fsm = sub_machine2FSM
+}
+;
 
 pSUB_MACHINE2 psub_machine2 = &sub_machine2;
 

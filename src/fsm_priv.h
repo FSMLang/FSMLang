@@ -430,6 +430,7 @@ void parser_debug_print_event_sequences(pMACHINE_INFO,FILE*);
 extern char                 *me;	/* main will set this to the program name (argv[0]) */
 extern char                 *inputFileName;
 extern bool                 generate_instance;
+extern unsigned             num_instances;
 extern bool                 compact_action_array;
 extern bool                 generate_weak_fns;
 extern bool                 force_generation_of_event_passing_actions;

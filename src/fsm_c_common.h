@@ -84,21 +84,24 @@ typedef enum CREATED_FILES
 	, cf_pubH
 	, cf_subMachineH
     , cf_eventsH
+	, cf_instanceMacrosH
 	, cf_numCreatedFiles
 } CREATED_FILES;
 
 /* These macros allow existing code to remain.*/
-#define cFile           file_array[cf_c]
-#define hFile           file_array[cf_h]
-#define pubHFile        file_array[cf_pubH]
-#define subMachineHFile file_array[cf_subMachineH]
-#define eventsHFile     file_array[cf_eventsH]
+#define cFile               file_array[cf_c]
+#define hFile               file_array[cf_h]
+#define pubHFile            file_array[cf_pubH]
+#define subMachineHFile     file_array[cf_subMachineH]
+#define eventsHFile         file_array[cf_eventsH]
+#define instanceMacrosHFile file_array[cf_instanceMacrosH]
 
-#define cName           file_name_array[cf_c]
-#define hName           file_name_array[cf_h]
-#define pubHName        file_name_array[cf_pubH]
-#define subMachineHName file_name_array[cf_subMachineH]
-#define eventsHName     file_name_array[cf_eventsH]
+#define cName               file_name_array[cf_c]
+#define hName               file_name_array[cf_h]
+#define pubHName            file_name_array[cf_pubH]
+#define subMachineHName     file_name_array[cf_subMachineH]
+#define eventsHName         file_name_array[cf_eventsH]
+#define instanceMacrosHName file_name_array[cf_instanceMacrosH]
 
 struct _c_machine_data_
 {
@@ -116,6 +119,7 @@ struct _c_machine_data_
 	   , *state_type
 	   , *sub_fsm_if_type
 	   , *sub_machine_fn_type
+	   , *sub_machine_enum_type
 	   , *sub_fsm_data_handler_if_stem
 	   , *data_translation_fn_type
 	   , *shared_event_str_type
@@ -130,6 +134,7 @@ struct _c_machine_data_
        , *uc_machine_name
        , *ucfq_machine_name
 	   , *uf_machine_name
+	   , *instance_type
       ;
 
    unsigned long sub_fsm_if_format_width
@@ -168,8 +173,9 @@ void closeCMachineFN(pFSMOutputGenerator,int);
 void commonHeaderStart(pCMachineData,pMACHINE_INFO,char*,bool);
 void addEventCrossReference(pCMachineData,pMACHINE_INFO,pITERATOR_CALLBACK_HELPER);
 void commonHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
-void generateInstance(pCMachineData,pMACHINE_INFO,char*);
+void generateInstance(pCMachineData,pMACHINE_INFO,char*,char*);
 void generateInstanceMacro(pCMachineData,pMACHINE_INFO,char*,char*);
+void generateSubMachineInstanceMacro(pCMachineData,pMACHINE_INFO,char*,char*);
 void generateRunFunction(pCMachineData,pMACHINE_INFO);
 void defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO);
 void defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO);

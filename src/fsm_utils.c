@@ -96,22 +96,23 @@ static bool print_sharing_sub_machine(pLIST_ELEMENT,void*);
 #endif
 
 /* the general use data */
-char  *me = "I don't know who I am, but I'm";
-char  *inputFileName = "";
-bool  generate_instance                         = true;
-bool  compact_action_array                      = false;
-bool  short_dbg_names                           = false;
-bool  force_generation_of_event_passing_actions = false;
-bool  add_machine_name                          = false;
-bool  generate_run_function                     = true;
-bool  add_event_cross_reference                 = false;
-pLIST pplantuml_prefix_strings_list             = NULL;
-pLIST pplantuml_prefix_files_list               = NULL;
-bool  output_generated_file_names_only          = false;
-bool  output_header_files                       = false;
-bool  output_make_recipe                        = false;
-bool  short_user_fn_names                       = false;
-char  *empty_cell_fn                            = NULL;
+char     *me = "I don't know who I am, but I'm";
+char     *inputFileName = "";
+bool     generate_instance                         = true;
+unsigned num_instances                             = 1;
+bool     compact_action_array                      = false;
+bool     short_dbg_names                           = false;
+bool     force_generation_of_event_passing_actions = false;
+bool     add_machine_name                          = false;
+bool     generate_run_function                     = true;
+bool     add_event_cross_reference                 = false;
+pLIST    pplantuml_prefix_strings_list             = NULL;
+pLIST    pplantuml_prefix_files_list               = NULL;
+bool     output_generated_file_names_only          = false;
+bool     output_header_files                       = false;
+bool     output_make_recipe                        = false;
+bool     short_user_fn_names                       = false;
+char     *empty_cell_fn                            = NULL;
 
 void print_tab_levels(FILE *output, unsigned levels)
 {

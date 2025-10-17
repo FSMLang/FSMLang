@@ -79,3 +79,4 @@ ifdef VARIANTS
 $(VARIANTS): $(FSM_SRC)
 	@cp fsmout $@
 endif
+
