@@ -992,7 +992,9 @@ void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldNam
 					, instance
 					)
 			> sizeof(instance_str)
-		   );
+		   )
+		   {
+		   }
 
 		   fprintf(pcmd->cFile
 				   , "#ifndef INIT_FSM_DATA%s\n#error INIT_FSM_DATA%s must be defined\n#endif\n\n"
