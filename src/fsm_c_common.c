@@ -991,7 +991,7 @@ void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldNam
 					, (int)(sizeof(instance_str) - 2)
 					, instance
 					)
-			> sizeof(instance_str)
+			> (int) sizeof(instance_str)
 		   )
 		   {
 		   }
