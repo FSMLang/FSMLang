@@ -79,3 +79,11 @@ uf_machine_name_two_generation_restricted:
 initial: child
 subsequent: child
 
+state_type:
+initial: grandChild
+subsequent: GRAND_CHILD_STATE
+
+no_instance_state_type:
+initial: grandChild
+subsequent: GRAND_PARENT_CHILD_GRAND_CHILD_STATE
+

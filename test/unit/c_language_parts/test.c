@@ -65,6 +65,8 @@ static void uc_fq_machine_name(void);
 static void uc_nf_machine_name(void);
 static void uf_machine_name_two_generation(void);
 static void uf_machine_name_two_generation_restricted(void);
+static void state_type(void);
+static void no_instance_state_type(void);
 
 
 VOID_TEST_FN tests[] = {
@@ -88,6 +90,8 @@ VOID_TEST_FN tests[] = {
 	uc_nf_machine_name,
 	uf_machine_name_two_generation,
 	uf_machine_name_two_generation_restricted,
+	state_type,
+	no_instance_state_type,
 	NULL
 };
 
@@ -292,6 +296,28 @@ static void uf_machine_name_two_generation_restricted(void)
 	printf("%s:\n", __func__);
 	printf("initial: %s\n",   cmd.pmi->name->name);
 	printf("subsequent: %s\n", ufMachineName(&cmd));
+}
+
+static void state_type(void)
+{
+	generate_instance = true;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", stateType(&cmd));
+}
+
+static void no_instance_state_type(void)
+{
+	generate_instance = false;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", stateType(&cmd));
 }
 
 int main(int argc, char **argv)
