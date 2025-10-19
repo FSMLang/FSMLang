@@ -12,9 +12,6 @@
 #define DBG_PRINTF(...)
 #endif
 
-extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine1_sub_fsm_if;
-extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine2_sub_fsm_if;
-extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine3_sub_fsm_if;
 
 static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
 static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
@@ -29,7 +26,7 @@ static const TOP_LEVEL_STATE_FN top_level_state_fn_array[top_level_numStates] =
 };
 
 
-static const pTOP_LEVEL_SUB_FSM_IF top_level_sub_fsm_if_array[THIS(numSubMachines)] =
+static const pTOP_LEVEL_SUB_FSM_IF top_level_sub_fsm_if_array[top_level_numSubMachines] =
 {
 	&top_level_sub_machine1_sub_fsm_if
 	, &top_level_sub_machine2_sub_fsm_if
