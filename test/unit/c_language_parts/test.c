@@ -55,9 +55,11 @@ static void event_type_ultimate(void);
 static void event_type_ultimate_enum(void);
 static void fq_machine_name(void);
 static void nf_machine_name(void);
+static void nu_machine_name(void);
 static void nf_machine_name_pmi(void);
 static void fq_machine_name_pmi(void);
 static void ucfq_machine_name_pmi(void);
+static void nu_machine_name_pmi(void);
 static void uc_machine_name(void);
 static void uc_fq_machine_name(void);
 static void uc_nf_machine_name(void);
@@ -76,9 +78,11 @@ VOID_TEST_FN tests[] = {
 	event_type_ultimate_enum,
 	fq_machine_name,
 	nf_machine_name,
+	nu_machine_name,
 	nf_machine_name_pmi,
 	fq_machine_name_pmi,
 	ucfq_machine_name_pmi,
+	nu_machine_name_pmi,
 	uc_machine_name,
 	uc_fq_machine_name,
 	uc_nf_machine_name,
@@ -184,6 +188,15 @@ static void nf_machine_name()
 	printf("subsequent: %s\n", nfMachineName(&cmd));
 }
 
+static void nu_machine_name()
+{
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", nuMachineName(&cmd));
+}
+
 static void nf_machine_name_pmi()
 {
 	char *cp;
@@ -216,6 +229,18 @@ static void ucfq_machine_name_pmi()
 	printf("%s:\n", __func__);
 	printf("initial: %s\n",   pmi->name->name);
 	printf("subsequent: %s\n", ucfqMachineNamePmi(pmi, &cp));
+
+	if (cp) free(cp);
+}
+
+static void nu_machine_name_pmi()
+{
+	char *cp;
+	pMACHINE_INFO pmi = &grand_child;
+
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   pmi->name->name);
+	printf("subsequent: %s\n", nuMachineNamePmi(pmi, &cp));
 
 	if (cp) free(cp);
 }

@@ -126,6 +126,7 @@ struct _c_machine_data_
 	   , *state_fn_type
 	   , *event_fn_type
 	   , *fq_machine_name              //!< fully qualified name
+	   , *nu_machine_name              //!< fully qualified name, but not the ultimate
 	   , *nf_machine_name              //!< "nuclear family" - parent and child.
 	   , *uc_nf_machine_name           
 	   , *action_fn_type

@@ -1291,6 +1291,7 @@ static bool recursePrintAncestry(pMACHINE_INFO pmi, FILE *fout, char *separator,
 	   if ((something_was_printed = recursePrintAncestry(pmi->parent, fout, separator, alc, ai))) 
 		   fputs(separator, fout);
 	   streamStrCaseAware(fout, pmi->name->name, alc);
+	   something_was_printed = true;
    }
    else
    {

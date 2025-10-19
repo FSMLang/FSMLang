@@ -754,6 +754,36 @@ char *fqMachineName(pCMachineData pcmd)
 }
 
 /**
+ * Returns the "fully qualified" machine name. "Fully qualified"
+ * means that the full ancestry is prepended to the name.
+ * 
+ * @author Steven Stanton (12/14/2023)
+ * 
+ * @param pcmd   
+ * 
+ * @return char* 
+ */
+char *nuMachineName(pCMachineData pcmd)
+{
+	FILE          *tmp;
+
+	if (!pcmd->nu_machine_name)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			printAncestry(pcmd->pmi, tmp, "_", alc_lower, ai_include_self | ai_omit_ultimate);
+
+			pcmd->nu_machine_name = create_string_from_file(tmp, NULL);
+
+		}
+	}
+
+	return pcmd->nu_machine_name;
+
+}
+
+/**
  * This function returns a name suitable for use with user
  * defined functions.  If the command line argument
  * --short-user-fn-names was set <i>true</i>, then this is
@@ -926,6 +956,41 @@ char *nfMachineNamePmi(pMACHINE_INFO pmi, char **pcp)
 	if (NULL != (tmp = tmpfile()))
 	{
 		printAncestry(pmi, tmp, "_", alc_lower, ai_include_self | ai_stop_at_parent);
+
+		*pcp = create_string_from_file(tmp, NULL);
+
+	}
+
+	return *pcp;
+
+}
+
+/**
+ * Returns a string composed of the machine name, fully
+ * qualified, save that the ulitmate parent is
+ * omitted.
+ *
+ * Memory will be allocated for the string; this must be freed
+ * by the caller.
+ * 
+ * @author Steven Stanton (12/18/2023)
+ * 
+ * @param pmi    The machine to name
+ * @param pcp    pointer to a character pointer; this will point
+ *  			 to the allocated memory
+ * 
+ * @return char* *pcp.
+ */
+char *nuMachineNamePmi(pMACHINE_INFO pmi, char **pcp)
+{
+	FILE          *tmp;
+
+	*pcp = NULL;
+
+	/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+	if (NULL != (tmp = tmpfile()))
+	{
+		printAncestry(pmi, tmp, "_", alc_lower, ai_include_self | ai_omit_ultimate);
 
 		*pcp = create_string_from_file(tmp, NULL);
 

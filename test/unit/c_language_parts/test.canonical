@@ -39,6 +39,10 @@ nf_machine_name:
 initial: grandChild
 subsequent: child_grandChild
 
+nu_machine_name:
+initial: grandChild
+subsequent: child_grandChild
+
 nf_machine_name_pmi:
 initial: child
 subsequent: grandParent_child
@@ -50,6 +54,10 @@ subsequent: grandParent_child_grandChild
 ucfq_machine_name_pmi:
 initial: grandChild
 subsequent: GRAND_PARENT_CHILD_GRAND_CHILD
+
+nu_machine_name_pmi:
+initial: grandChild
+subsequent: child_grandChild
 
 uc_machine_name:
 initial: grandChild
