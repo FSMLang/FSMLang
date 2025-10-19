@@ -553,6 +553,37 @@ char* subFsmIfType(pCMachineData pcmd)
 	return pcmd->sub_fsm_if_type;
 }
 
+char* stateEnumMemberPmi(char *state_name, pMACHINE_INFO pmi, char **pcp)
+{
+	FILE          *tmp;
+
+	*pcp = NULL;
+
+	/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+	if (NULL != (tmp = tmpfile()))
+	{
+		if (generate_instance)
+		{
+			fprintf(tmp, "%s", pmi->name->name);
+		}
+		else
+		{
+			printAncestry(pmi, tmp, "_", alc_lower, ai_include_self);
+		}
+
+		fprintf(tmp
+				, "_%s"
+				, state_name
+				);
+
+		*pcp = create_string_from_file(tmp, NULL);
+
+	}
+
+	return *pcp;
+
+}
+
 char* stateType(pCMachineData pcmd)
 {
 	FILE          *tmp;

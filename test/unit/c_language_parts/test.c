@@ -67,6 +67,8 @@ static void uf_machine_name_two_generation(void);
 static void uf_machine_name_two_generation_restricted(void);
 static void state_type(void);
 static void no_instance_state_type(void);
+static void state_enum_member(void);
+static void no_instance_state_enum_member(void);
 
 
 VOID_TEST_FN tests[] = {
@@ -92,6 +94,8 @@ VOID_TEST_FN tests[] = {
 	uf_machine_name_two_generation_restricted,
 	state_type,
 	no_instance_state_type,
+	state_enum_member,
+	no_instance_state_enum_member,
 	NULL
 };
 
@@ -318,6 +322,28 @@ static void no_instance_state_type(void)
 	printf("%s:\n", __func__);
 	printf("initial: %s\n",   cmd.pmi->name->name);
 	printf("subsequent: %s\n", stateType(&cmd));
+}
+
+static void state_enum_member(void)
+{
+	char *cp;
+
+	generate_instance = true;
+
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   grand_child.name->name);
+	printf("subsequent: %s\n", stateEnumMemberPmi("numStates", &grand_child, &cp));
+}
+
+static void no_instance_state_enum_member(void)
+{
+	char *cp;
+
+	generate_instance = false;
+
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   grand_child.name->name);
+	printf("subsequent: %s\n", stateEnumMemberPmi("numStates", &grand_child, &cp));
 }
 
 int main(int argc, char **argv)

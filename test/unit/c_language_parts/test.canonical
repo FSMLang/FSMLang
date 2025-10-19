@@ -87,3 +87,11 @@ no_instance_state_type:
 initial: grandChild
 subsequent: GRAND_PARENT_CHILD_GRAND_CHILD_STATE
 
+state_enum_member:
+initial: grandChild
+subsequent: grandChild_numStates
+
+no_instance_state_enum_member:
+initial: grandChild
+subsequent: grandParent_child_grandChild_numStates
+

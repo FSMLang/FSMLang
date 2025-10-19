@@ -66,6 +66,7 @@ char * nfMachineNamePmi(pMACHINE_INFO,char**);
 char * fqMachineNamePmi(pMACHINE_INFO,char**);
 char * ucfqMachineNamePmi(pMACHINE_INFO,char**);
 char * nuMachineNamePmi(pMACHINE_INFO,char**);
+char * stateEnumMemberPmi(char*,pMACHINE_INFO,char**);
 char * sharedEventStrType(pCMachineData);
 char * stateFnType(pCMachineData);
 char * stateType(pCMachineData);
