@@ -69,6 +69,8 @@ static void state_type(void);
 static void no_instance_state_type(void);
 static void state_enum_member(void);
 static void no_instance_state_enum_member(void);
+static void fsm_data_type(void);
+static void no_instance_fsm_data_type(void);
 
 
 VOID_TEST_FN tests[] = {
@@ -96,6 +98,8 @@ VOID_TEST_FN tests[] = {
 	no_instance_state_type,
 	state_enum_member,
 	no_instance_state_enum_member,
+	fsm_data_type,
+	no_instance_fsm_data_type,
 	NULL
 };
 
@@ -344,6 +348,30 @@ static void no_instance_state_enum_member(void)
 	printf("%s:\n", __func__);
 	printf("initial: %s\n",   grand_child.name->name);
 	printf("subsequent: %s\n", stateEnumMemberPmi("numStates", &grand_child, &cp));
+}
+
+static void fsm_data_type(void)
+{
+	generate_instance = true;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", fsmDataType(&cmd));
+}
+
+static void no_instance_fsm_data_type(void)
+{
+	generate_instance = false;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", fsmDataType(&cmd));
 }
 
 int main(int argc, char **argv)

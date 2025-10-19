@@ -334,7 +334,14 @@ char* fsmDataType(pCMachineData pcmd)
 		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
 		if (NULL != (tmp = tmpfile()))
 		{
-			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			if (generate_instance)
+			{
+				streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			}
+			else
+			{
+				printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self);
+			}
 			fprintf(tmp,"_DATA");
 
 			pcmd->fsm_data_type = create_string_from_file(tmp, &str_len);
