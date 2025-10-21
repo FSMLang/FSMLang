@@ -23,6 +23,38 @@ fsm_type_child:
 initial: child
 subsequent: CHILD
 
+fsm_type_grand_child:
+initial: grandChild
+subsequent: GRAND_CHILD
+
+no_instance_fsm_type_grand_child:
+initial: grandChild
+subsequent: GRAND_PARENT_CHILD_GRAND_CHILD
+
+action_fn_type_grand_child:
+initial: grandChild
+subsequent: GRAND_CHILD_ACTION_FN
+
+no_instance_action_fn_type_grand_child:
+initial: grandChild
+subsequent: GRAND_PARENT_CHILD_GRAND_CHILD_ACTION_FN
+
+action_trans_type_grand_child:
+initial: grandChild
+subsequent: GRAND_CHILD_ACTION_TRANS
+
+no_instance_action_trans_type_grand_child:
+initial: grandChild
+subsequent: GRAND_PARENT_CHILD_GRAND_CHILD_ACTION_TRANS
+
+fsm_fn_type_grand_child:
+initial: grandChild
+subsequent: GRAND_CHILD_FSM
+
+no_instance_fsm_fn_type_grand_child:
+initial: grandChild
+subsequent: GRAND_PARENT_CHILD_GRAND_CHILD_FSM
+
 event_type_ultimate:
 initial: grandParent
 subsequent: GRAND_PARENT_EVENT
@@ -94,4 +126,20 @@ subsequent: grandChild_numStates
 no_instance_state_enum_member:
 initial: grandChild
 subsequent: grandParent_child_grandChild_numStates
+
+fsm_data_type:
+initial: grandChild
+subsequent: GRAND_CHILD_DATA
+
+no_instance_fsm_data_type:
+initial: grandChild
+subsequent: GRAND_PARENT_CHILD_GRAND_CHILD_DATA
+
+sub_machine_enum_type:
+initial: grandChild
+subsequent: GRAND_CHILD_SUB_MACHINES
+
+no_instance_sub_machine_enum_type:
+initial: grandChild
+subsequent: GRAND_PARENT_CHILD_GRAND_CHILD_SUB_MACHINES
 

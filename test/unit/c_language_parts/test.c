@@ -51,6 +51,14 @@ static void action_return_type_state(void);
 static void action_return_type_void(void);
 static void fsm_type_ultimate(void);
 static void fsm_type_child(void);
+static void fsm_type_grand_child(void);
+static void no_instance_fsm_type_grand_child(void);
+static void action_fn_type_grand_child(void);
+static void no_instance_action_fn_type_grand_child(void);
+static void action_trans_type_grand_child(void);
+static void no_instance_action_trans_type_grand_child(void);
+static void fsm_fn_type_grand_child(void);
+static void no_instance_fsm_fn_type_grand_child(void);
 static void event_type_ultimate(void);
 static void event_type_ultimate_enum(void);
 static void fq_machine_name(void);
@@ -71,6 +79,8 @@ static void state_enum_member(void);
 static void no_instance_state_enum_member(void);
 static void fsm_data_type(void);
 static void no_instance_fsm_data_type(void);
+static void sub_machine_enum_type(void);
+static void no_instance_sub_machine_enum_type(void);
 
 
 VOID_TEST_FN tests[] = {
@@ -80,6 +90,14 @@ VOID_TEST_FN tests[] = {
 	action_return_type_void,
 	fsm_type_ultimate,
 	fsm_type_child,
+	fsm_type_grand_child,
+	no_instance_fsm_type_grand_child,
+	action_fn_type_grand_child,
+	no_instance_action_fn_type_grand_child,
+	action_trans_type_grand_child,
+	no_instance_action_trans_type_grand_child,
+	fsm_fn_type_grand_child,
+	no_instance_fsm_fn_type_grand_child,
 	event_type_ultimate,
 	event_type_ultimate_enum,
 	fq_machine_name,
@@ -100,6 +118,8 @@ VOID_TEST_FN tests[] = {
 	no_instance_state_enum_member,
 	fsm_data_type,
 	no_instance_fsm_data_type,
+	sub_machine_enum_type,
+	no_instance_sub_machine_enum_type,
 	NULL
 };
 
@@ -180,6 +200,94 @@ static void fsm_type_child()
 	printf("%s:\n", __func__);
 	printf("initial: %s\n",   cmd.pmi->name->name);
 	printf("subsequent: %s\n",fsmType(&cmd));
+}
+
+static void fsm_type_grand_child()
+{
+	generate_instance = true;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n",fsmType(&cmd));
+}
+
+static void no_instance_fsm_type_grand_child()
+{
+	generate_instance = false;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n",fsmType(&cmd));
+}
+
+static void action_fn_type_grand_child()
+{
+	generate_instance = true;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n",actionFnType(&cmd));
+}
+
+static void no_instance_action_fn_type_grand_child()
+{
+	generate_instance = false;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n",actionFnType(&cmd));
+}
+
+static void action_trans_type_grand_child()
+{
+	generate_instance = true;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n",actionTransType(&cmd));
+}
+
+static void no_instance_action_trans_type_grand_child()
+{
+	generate_instance = false;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n",actionTransType(&cmd));
+}
+
+static void fsm_fn_type_grand_child()
+{
+	generate_instance = true;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n",fsmFnType(&cmd));
+}
+
+static void no_instance_fsm_fn_type_grand_child()
+{
+	generate_instance = false;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n",fsmFnType(&cmd));
 }
 
 static void fq_machine_name()
@@ -372,6 +480,30 @@ static void no_instance_fsm_data_type(void)
 	printf("%s:\n", __func__);
 	printf("initial: %s\n",   cmd.pmi->name->name);
 	printf("subsequent: %s\n", fsmDataType(&cmd));
+}
+
+static void sub_machine_enum_type(void)
+{
+	generate_instance = true;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", subMachineEnumType(&cmd));
+}
+
+static void no_instance_sub_machine_enum_type(void)
+{
+	generate_instance = false;
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.pmi = &grand_child;
+
+	printf("%s:\n", __func__);
+	printf("initial: %s\n",   cmd.pmi->name->name);
+	printf("subsequent: %s\n", subMachineEnumType(&cmd));
 }
 
 int main(int argc, char **argv)

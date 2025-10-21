@@ -234,7 +234,14 @@ char* fsmType(pCMachineData pcmd)
 		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
 		if (NULL != (tmp = tmpfile()))
 		{
-			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			if (generate_instance)
+			{
+				streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			}
+			else
+			{
+				printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self);
+			}
 			pcmd->fsm_type = create_string_from_file(tmp, NULL);
 		}
 	}
@@ -253,7 +260,14 @@ char* actionFnType(pCMachineData pcmd)
 		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
 		if (NULL != (tmp = tmpfile()))
 		{
-			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			if (generate_instance)
+			{
+				streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			}
+			else
+			{
+				printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self);
+			}
 			fprintf(tmp, "_ACTION_FN");
 
 			pcmd->action_fn_type = create_string_from_file(tmp, &str_len);
@@ -280,7 +294,14 @@ char* actionTransType(pCMachineData pcmd)
 		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
 		if (NULL != (tmp = tmpfile()))
 		{
-			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			if (generate_instance)
+			{
+				streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			}
+			else
+			{
+				printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self);
+			}
 			fprintf(tmp, "_ACTION_TRANS");
 
 			pcmd->action_trans_type = create_string_from_file(tmp, &str_len);
@@ -373,7 +394,14 @@ char* fsmFnType(pCMachineData pcmd)
 		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
 		if (NULL != (tmp = tmpfile()))
 		{
-			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			if (generate_instance)
+			{
+				streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			}
+			else
+			{
+				printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self);
+			}
 			fprintf(tmp,"_FSM");
 
 			pcmd->fsm_fn_type = create_string_from_file(tmp, &str_len);
@@ -695,7 +723,14 @@ char* subMachineEnumType(pCMachineData pcmd)
 		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
 		if (NULL != (tmp = tmpfile()))
 		{
-			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			if (generate_instance)
+			{
+				streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			}
+			else
+			{
+				printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self);
+			}
 			fprintf(tmp ,"_SUB_MACHINES");
 
 			pcmd->sub_machine_enum_type = create_string_from_file(tmp, &str_len);
@@ -766,6 +801,11 @@ char* sharedEventStrType(pCMachineData pcmd)
 char *machineName(pCMachineData pcmd)
 {
 	return pcmd->pmi->name->name;
+}
+
+char *machineNamePmi(pMACHINE_INFO pmi)
+{
+	return pmi->name->name;
 }
 
 /**

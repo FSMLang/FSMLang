@@ -60,6 +60,7 @@ char * fsmFnType(pCMachineData);
 char * fsmType(pCMachineData);
 char * hungarianToUnderbarCaps(char *);
 char * machineName(pCMachineData);
+char * machineNamePmi(pMACHINE_INFO);
 char * nfMachineName(pCMachineData);
 char * ucnfMachineName(pCMachineData);
 char * nfMachineNamePmi(pMACHINE_INFO,char**);
