@@ -21,6 +21,9 @@ cc cc.size cc_run: CFLAGS+=-DFSM_VARIANT_CC
 runtest: $(addsuffix _run, $(VARIANTS))
 	@echo "all tests successful"
 
+recordtest: clean runtest
+	@echo $(notdir $(shell pwd)) >> ../done
+
 test: sizes
 
 sizes: $(addsuffix .size, $(VARIANTS))
