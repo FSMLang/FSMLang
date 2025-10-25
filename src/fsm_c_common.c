@@ -103,7 +103,7 @@ static void print_transition_fn_declaration_for_when_actions_return_events      
 static void print_state_only_transition_fn_declaration_for_when_actions_return_events(pCMachineData,FILE*,char*);
 static bool print_event_enum_member                                                  (pLIST_ELEMENT,void*);
 static bool write_state_enum_member                                                  (pLIST_ELEMENT,void*);
-static void print_plain_enum_member                                                  (char*,pITERATOR_CALLBACK_HELPER);
+static void print_state_enum_member                                                  (char*,pITERATOR_CALLBACK_HELPER);
 static void print_shared_event_data_block_signature                                  (FILE*,pCMachineData,pMACHINE_INFO,char*,bool);
 static char *createHeaderCompilationGuard                                            (char*);
 static void writeHeaderPreamble                                                      (char*,FILE*);
@@ -677,8 +677,6 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 
    iterate_list(pmi->state_list, write_state_enum_member, &ich);
 
-   ich.ih.fout = pcmd->hFile;
-
    /*
      Though not a state, this needs have a value
        different from any state. Moreover, it could
@@ -687,19 +685,16 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    */
    if (pmi->modFlags & mfActionsReturnStates)
    {
-	  fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
-              , "\t, %s_noTransition\n"
-			  , machineName(pcmd)
-             );
+	   print_state_enum_member("noTransition", &ich);
    }
 
    if (add_numStates)
    {
-	   fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
-			   , "\t, %s_numStates\n"
-			   , machineName(pcmd)
-			   );
+	   print_state_enum_member("numStates", &ich);
    }
+
+   ich.ih.fout = pcmd->hFile;
+
 
    fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
            , "}%s %s;\n\n"
@@ -716,10 +711,10 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 			      : fout
 				  )
 			    : fout
-              , "typedef struct _%s_data_struct_ %s, *p%s;\n"
-			  , machineName(pcmd)
-			  , fsmDataType(pcmd)
-			  , fsmDataType(pcmd)
+			   , "typedef struct _%s_data_struct_ %s, *p%s;\n"
+			   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+			   , fsmDataType(pcmd)
+			   , fsmDataType(pcmd)
 			 );
    }
 
@@ -728,13 +723,13 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    {
 	   fprintf(pcmd->pubHFile
 			   , "typedef struct _%s_struct_ *p%s;\n"
-			   , machineName(pcmd)
+			   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			   , fsmType(pcmd)
 			  );
 
 	   fprintf(pcmd->hFile
 			   , "typedef struct _%s_struct_ %s;\n"
-			   , machineName(pcmd)
+			   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			   , fsmType(pcmd)
 			  );
    }
@@ -742,7 +737,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    {
 	   fprintf(pcmd->pubHFile
 			   , "typedef struct _%s_struct_ %s, *p%s;\n"
-			   , machineName(pcmd)
+			   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			   , fsmType(pcmd)
 			   , fsmType(pcmd)
 			  );
@@ -795,7 +790,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
    /* declare the fsm function */
    fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
            , "void %sFSM(p%s,%s);\n\n"
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   , fsmType(pcmd)
 		   , fsmFnEventType(pcmd)
            );
@@ -819,7 +814,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 				? generate_instance ? pcmd->subMachineHFile : fout
 				: fout
               , "struct _%s_data_struct_ {\n"
-			  , machineName(pcmd)
+			  , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
               );
 
       ich.ih.tab_level = 1; 
@@ -1104,6 +1099,8 @@ void generateInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFie
 {
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
+   char *cp;
+
    if (pmi->machine_list)
    {
 	   fprintf(pcmd->pubHFile
@@ -1114,7 +1111,7 @@ void generateInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFie
 
    fprintf(pcmd->pubHFile
 		   , "#define %s_INSTANCE(A%s"
-		   , ucMachineName(pcmd)
+		   , ucfqMachineName(pcmd)
 		   , pmi->data ? ", B" : ""
 		   );
 
@@ -1159,10 +1156,10 @@ void generateInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFie
 		   , fsmType(pcmd)
 		   );
    fprintf(pcmd->pubHFile
-		   , "\t.state = %s_%s\\\n"
-		   , machineName(pcmd)
-		   , stateNameByIndex(pmi, 0)
+		   , "\t.state = %s\\\n"
+		   , stateEnumMemberPmi(stateNameByIndex(pmi, 0), pmi, &cp)
            );
+   CHECK_AND_FREE(cp);
 
    fprintf(pcmd->pubHFile
 		   , "\t, .event = %s_%s\\\n"
@@ -1173,13 +1170,13 @@ void generateInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFie
    fprintf(pcmd->pubHFile
 		   , "\t, .%s = &%s_%s_array\\\n"
 		   , arrayFieldName
-		   , machineName(pcmd)
+		   , fqMachineName(pcmd)
            , arrayName
           );
 
    fprintf(pcmd->pubHFile
 		   , "\t, .fsm = %sFSM\\\n"
-		   , machineName(pcmd)
+		   , fqMachineName(pcmd)
 		   );
 
    if (pmi->machine_list)
@@ -1223,6 +1220,8 @@ void generateInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFie
 void generateSubMachineInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldName, char *arrayName)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->parent_pcmd->instanceMacrosHFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	char *cp;
 
 	if (pmi->machine_list)
 	{
@@ -1285,10 +1284,10 @@ void generateSubMachineInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char
 		   , nuMachineName(pcmd)
 		   );
    fprintf(pcmd->parent_pcmd->instanceMacrosHFile
-		   , "\t.state = %s_%s\\\n"
-		   , machineName(pcmd)
-		   , stateNameByIndex(pmi, 0)
+		   , "\t.state = %s\\\n"
+		   , stateEnumMemberPmi(stateNameByIndex(pmi, 0), pmi, &cp)
            );
+   CHECK_AND_FREE(cp);
 
    fprintf(pcmd->parent_pcmd->instanceMacrosHFile
 		   , "\t, .event = %s_%s\\\n"
@@ -1299,13 +1298,13 @@ void generateSubMachineInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char
    fprintf(pcmd->parent_pcmd->instanceMacrosHFile
 		   , "\t, .%s = &%s_%s_array\\\n"
 		   , arrayFieldName
-		   , machineName(pcmd)
+		   , fqMachineName(pcmd)
            , arrayName
           );
 
    fprintf(pcmd->parent_pcmd->instanceMacrosHFile
 		   , "\t, .fsm = %sFSM\\\n"
-		   , machineName(pcmd)
+		   , fqMachineName(pcmd)
 		   );
 
    if (pmi->machine_list)
@@ -1807,22 +1806,28 @@ bool assignExternalEventValues(pMACHINE_INFO pmi)
 
 }
 
-static void print_plain_enum_member(char *name, pITERATOR_CALLBACK_HELPER pich)
+static void print_state_enum_member(char *name, pITERATOR_CALLBACK_HELPER pich)
 {
+	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	char                      *machine_name = NULL;
+
 	fprintf(pich->ih.fout
-			, "\t%s%s_%s\n"
+			, "\t%s%s\n"
 			, pich->ih.first ? (pich->ih.first = false, "") : ", "
-			, pich->ih.pmi->name->name
-			, name
+			, stateEnumMemberPmi(name, pich->ih.pmi, &machine_name)
 			);
+
+	CHECK_AND_FREE(machine_name);
+
 }
 
 static bool write_state_enum_member(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO state       = (pID_INFO)         pelem->mbr;
-	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+	pID_INFO                  state         = (pID_INFO) pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich          = (pITERATOR_CALLBACK_HELPER) data;
 
-	print_plain_enum_member(state->name, pich);
+	print_state_enum_member(state->name, pich);
 
 	return false;
 }
@@ -1847,6 +1852,7 @@ static bool print_event_enum_member(pLIST_ELEMENT pelem, void *data)
 		   );
 	return false;
 }
+
 static bool print_event_cross_reference(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO event       = (pID_INFO)         pelem->mbr;
@@ -1958,14 +1964,16 @@ static bool declare_event_user_data_structs(pLIST_ELEMENT pelem, void *data)
 
 static bool print_sub_machine_as_enum_member(pLIST_ELEMENT pelem, void *data)
 {
-   pMACHINE_INFO pmi    = (pMACHINE_INFO) pelem->mbr;
+   pMACHINE_INFO             pmi  = (pMACHINE_INFO) pelem->mbr;
    pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+   char                      *cp  = NULL;
 
    fprintf(pich->ih.fout
 		   , "\t%s %s_e\n"
            , pich->ih.first ? "" : ", "
-		   , pmi->name->name
+		   , generate_instance ? machineNamePmi(pmi) : fqMachineNamePmi(pmi, &cp)
 		   );
+   CHECK_AND_FREE(cp);
 
    if (pich->ih.first)
    {
@@ -1974,8 +1982,9 @@ static bool print_sub_machine_as_enum_member(pLIST_ELEMENT pelem, void *data)
       fprintf(pich->ih.fout
 			  , "\t, %s_firstSubMachine = %s_e\n"
 			  , fqMachineName(pich->pcmd)
-			  , pmi->name->name
+			  , generate_instance ? machineNamePmi(pmi) : fqMachineNamePmi(pmi, &cp)
 			  );
+	  CHECK_AND_FREE(cp);
    }
 
    return false;
@@ -2218,9 +2227,10 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
 			   , "\t\t\t(*(*pcurrent_sharer)->data_translation_fn)"
 			  );
 	   fprintf(pcmd->cFile
-			   , "(&pfsm->data%s%s);\n"
-			   , generate_instance ? "" : ", "
-			   , generate_instance ? "" : "(*pfsm->subMachines)[(*pcurrent_sharer)->psub_fsm_if->index]"
+			   , "(&pfsm->data%s);\n"
+			   , generate_instance 
+				 ? ""
+			     : ", (*pfsm->subMachines)[(*pcurrent_sharer)->psub_fsm_if->index]" 
 			   );
    }
 
@@ -2230,9 +2240,10 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
            );
 
    fprintf(pcmd->cFile
-		   , "((*pcurrent_sharer)->event%s%s);\n"
-		   , generate_instance ? "" : ", "
-		   , generate_instance ? "" : "(*pfsm->subMachines)[(*pcurrent_sharer)->psub_fsm_if->index]"
+		   , "((*pcurrent_sharer)->event%s);\n"
+		   , generate_instance 
+		     ? ""
+		     : ", (*pfsm->subMachines)[(*pcurrent_sharer)->psub_fsm_if->index]" 
            );
 
    fprintf(pcmd->cFile
@@ -2593,6 +2604,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 {
 	(void) arrayName;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
+   char *cp = NULL;
 
    FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
@@ -2656,6 +2668,14 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 		   , fqMachineName(pcmd->parent_pcmd)
 		   );
 
+   if (pmi->data)
+   {
+	   fprintf(pcmd->hFile
+			   , "#undef PARENT_DATA_TYPE_PTR\n#define PARENT_DATA_TYPE_PTR p%s\n"
+			   , fsmDataType(pcmd->parent_pcmd)
+			   );
+   }
+
    fprintf(pcmd->hFile
 		   , "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
 		   , fsmType(pcmd)
@@ -2667,9 +2687,10 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 		   );
 
    fprintf(pcmd->hFile
-		   , "#undef STATE\n#define STATE(A) %s_##A\n"
-		   , machineName(pcmd)
+		   , "#undef STATE\n#define STATE(A) %s\n"
+		   , stateEnumMemberPmi("##A", pmi, &cp)
 		   );
+   CHECK_AND_FREE(cp);
 
    // This closes the NO_CONVENIENCE_MACROS block
    fprintf(pcmd->hFile
@@ -2712,12 +2733,12 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    */
    if (pmi->modFlags & mfActionsReturnStates)
    {
-	   print_plain_enum_member("noTransition", &ich);
+	   print_state_enum_member("noTransition", &ich);
    }
 
    if (add_num_states)
    {
-	   print_plain_enum_member("numStates", &ich);
+	   print_state_enum_member("numStates", &ich);
    }
 
    fprintf(fout_state_enum
@@ -2733,7 +2754,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    {
 	  fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
 			  , "typedef struct _%s_data_struct_ %s, *p%s;\n"
-			  , pmi->name->name
+			  , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			  , fsmDataType(pcmd)
 			  , fsmDataType(pcmd)
 			  );
@@ -2743,7 +2764,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    /* put the machine struct typedef into the header */
    fprintf(pmi->machine_list ? pcmd->subMachineHFile : pcmd->hFile
 		   , "typedef struct _%s_struct_ %s, *p%s;\n"
-		   , pmi->name->name
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   , fsmType(pcmd)
 		   , fsmType(pcmd)
 		   );
@@ -2807,7 +2828,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
            , "%s %s %sFSM(p%s,%s);\n\n"
 		   , generate_instance ? "static" : "extern"
 		   , subFsmFnReturnType(pcmd)
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   , fsmType(pcmd)
 		   , fsmFnEventType(pcmd)
            );
@@ -2838,7 +2859,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 
 	  fprintf(fout
 			  , "struct _%s_data_struct_ {\n"
-			  , machineName(pcmd)
+			  , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			  );
 
       ich.ih.tab_level = 1;
@@ -3005,7 +3026,7 @@ void defineSubMachineIF (pCMachineData pcmd)
 	   fprintf(pcmd->cFile
 			   , "\t%s%sFSM(pfsm,e);\n}\n\n"
 			   , pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
-			   , machineName(pcmd)
+			   , fqMachineName(pcmd)
 			   );
    }
 
@@ -3021,7 +3042,7 @@ void defineSubMachineIF (pCMachineData pcmd)
 
   fprintf(pcmd->cFile
 		  , "\t, .index = %s_e\n"
-		  , pcmd->pmi->name->name
+		  , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		  );
 
   fprintf(pcmd->cFile

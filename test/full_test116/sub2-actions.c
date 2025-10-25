@@ -18,7 +18,7 @@ ACTION_RETURN_TYPE UFMN(grab_parent_e1_data)(pTEST_FSM_DATA pdata, const void *p
 {
 	DBG_PRINTF("%s", __func__);
 
-	const pSUB2 psub2 = (const pSUB2) pparent_fsm;
+	const FSM_TYPE_PTR psub2 = (const FSM_TYPE_PTR) pparent_fsm;
 
 	psub2->data.sub2_e1_count += pdata->e1_count;
 

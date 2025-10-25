@@ -787,6 +787,7 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 static void declareCSwitchMachineStateFnArray(pCMachineData pcmd)
 {
 	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+	char *cp
 
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -800,12 +801,14 @@ static void declareCSwitchMachineStateFnArray(pCMachineData pcmd)
 			);
 
 	fprintf(fout
-			, "%sconst %s %s_state_fn_array[%s_numStates];\n\n"
+			, "%sconst %s %s_state_fn_array[%s];\n\n"
 			, generate_instance ? "static " : "extern "
 			, stateFnType(pcmd)
-			, machineName(pcmd)
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+			, stateEnumMemberPmi("numStates", pcmd->pmi, &cp)
 			);
+
+	CHECK_AND_FREE(cp);
 
 }
 
@@ -814,11 +817,12 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+	char *cp;
 
    /* put the machine structure definition into the header file */
    fprintf(fout
 		   , "struct _%s_struct_ {\n"
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   );
 
    if (pmi->data)
@@ -843,11 +847,12 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 		  );
 
    fprintf(fout
-		   , "\t%-*s const (*statesArray)[%s_numStates];\n"
+		   , "\t%-*s const (*statesArray)[%s];\n"
 		   , (int)pcmd->sub_machine_struct_format_width
 		   , stateFnType(pcmd)
-		   , machineName(pcmd)
+		   , stateEnumMemberPmi("numStates", pcmd->pmi, &cp)
 		   );
+   CHECK_AND_FREE(cp);
 
    if (pmi->machine_list)
    {
@@ -873,6 +878,7 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , fsmFnType(pcmd)
 		   );
+
 }
 
 static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_INFO pmi, DECLARE_OR_DEFINE dod)
@@ -912,7 +918,6 @@ static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_IN
 static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
 	pCMachineData pcmd = pfsmcog->pcmd;
-	pMACHINE_INFO pmi  = pcmd->pmi;
 
    fprintf(pcmd->cFile, "\n");
 
@@ -929,16 +934,11 @@ static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
            );
 
    fprintf(pcmd->cFile
-           , "void %sFSM(p"
-           , pmi->name->name
-           );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile
-           , " pfsm, %s"
-           , pmi->data_block_count ? "p"  : ""
-          );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile, "_EVENT event)\n{\n");
+		   , "void %sFSM(p%s pfsm, %s event)\n{\n"
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+		   , fsmType(pcmd)
+		   , fsmFnEventType(pcmd)
+		   );
 
    writeReentrantPrologue(pcmd);
 
@@ -987,12 +987,13 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
    }
 
    fprintf(pcmd->cFile
-           , "%s %sFSM(p%s pfsm, %s event)\n{\n"
+		   , "%s%s %sFSM(p%s pfsm, %s event)\n{\n"
+		   , generate_instance ? "static " : ""
 		   , subFsmFnReturnType(pcmd)
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   , fsmType(pcmd)
-		   , eventType(pcmd)
-          );
+		   , fsmFnEventType(pcmd)
+		  );
 
    if (add_profiling_macros && profile_sub_fsms)
    {
@@ -1773,18 +1774,22 @@ static void defineStateFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
         , .pcmd  = pcmd
     };
 
+	char *cp;
+
    fprintf(pcmd->cFile
-		   , "%sconst %s %s_state_fn_array[%s_numStates] = \n{\n"
+		   , "%sconst %s %s_state_fn_array[%s] = \n{\n"
 		   , generate_instance ? "static " : ""
 		   , stateFnType(pcmd)
-		   , machineName(pcmd)
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+		   , stateEnumMemberPmi("numStates", pcmd->pmi, &cp)
 		   );
+   CHECK_AND_FREE(cp);
 
    /* declare state fns */
    iterate_list(pmi->state_list, print_state_fn_name, &ich);
 
    fprintf(pcmd->cFile, "};\n\n");
+
 }
 
 static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEMENT pelem, void *data)

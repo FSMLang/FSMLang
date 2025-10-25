@@ -1,0 +1,60 @@
+test_fsm_grab_e1_data
+e1 accumulator: 1
+test_fsm_handle_e1
+test_fsm_sub_grab_parent_e1_data
+sub e1 accumulator: 1
+test_fsm_sub_do_nothing
+test_fsm_sub_subSub_grab_parent_e1_data
+subSub e1 accumulator: 1
+test_fsm_sub_subSub_do_nothing
+test_fsm_sub2_grab_parent_e1_data
+sub2 e1 accumulator: 1
+test_fsm_sub2_do_nothing
+test_fsm_sub2_subSub_grab_parent_e1_data
+subSub e1 accumulator: 1
+test_fsm_sub2_subSub_do_nothing
+test_fsm_grab_e1_data
+e1 accumulator: 2
+test_fsm_handle_e1
+test_fsm_sub_grab_parent_e1_data
+sub e1 accumulator: 3
+test_fsm_sub_do_nothing
+test_fsm_sub_subSub_grab_parent_e1_data
+subSub e1 accumulator: 4
+test_fsm_sub_subSub_do_nothing
+test_fsm_sub2_grab_parent_e1_data
+sub2 e1 accumulator: 3
+test_fsm_sub2_do_nothing
+test_fsm_sub2_subSub_grab_parent_e1_data
+subSub e1 accumulator: 4
+test_fsm_sub2_subSub_do_nothing
+test_fsm_grab_e1_data
+e1 accumulator: 3
+test_fsm_handle_e1
+test_fsm_sub_grab_parent_e1_data
+sub e1 accumulator: 6
+test_fsm_sub_do_nothing
+test_fsm_sub_subSub_grab_parent_e1_data
+subSub e1 accumulator: 10
+test_fsm_sub_subSub_do_nothing
+test_fsm_sub2_grab_parent_e1_data
+sub2 e1 accumulator: 6
+test_fsm_sub2_do_nothing
+test_fsm_sub2_subSub_grab_parent_e1_data
+subSub e1 accumulator: 10
+test_fsm_sub2_subSub_do_nothing
+test_fsm_grab_e1_data
+e1 accumulator: 4
+test_fsm_handle_e1
+test_fsm_sub_grab_parent_e1_data
+sub e1 accumulator: 10
+test_fsm_sub_do_nothing
+test_fsm_sub_subSub_grab_parent_e1_data
+subSub e1 accumulator: 20
+test_fsm_sub_subSub_do_nothing
+test_fsm_sub2_grab_parent_e1_data
+sub2 e1 accumulator: 10
+test_fsm_sub2_do_nothing
+test_fsm_sub2_subSub_grab_parent_e1_data
+subSub e1 accumulator: 20
+test_fsm_sub2_subSub_do_nothing

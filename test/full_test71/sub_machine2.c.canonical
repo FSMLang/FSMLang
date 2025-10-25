@@ -53,7 +53,7 @@ pSUB_MACHINE2 psub_machine2 = &sub_machine2;
 #ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG
 #define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e == e)
 #endif
-TOP_LEVEL_EVENT sub_machine2FSM(pSUB_MACHINE2 pfsm, TOP_LEVEL_EVENT event)
+static TOP_LEVEL_EVENT sub_machine2FSM(pSUB_MACHINE2 pfsm, TOP_LEVEL_EVENT event)
 {
 	TOP_LEVEL_EVENT e = event;
 

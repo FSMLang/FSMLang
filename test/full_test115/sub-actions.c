@@ -18,7 +18,7 @@ ACTION_RETURN_TYPE test_fsm_sub_grab_parent_e1_data(pTEST_FSM_DATA pdata, const 
 {
 	DBG_PRINTF("%s", __func__);
 
-	const pSUB psub = (const pSUB) pparent_fsm;
+	const FSM_TYPE_PTR psub = (const FSM_TYPE_PTR) pparent_fsm;
 
 	psub->data.sub_e1_count += pdata->e1_count;
 

@@ -1013,15 +1013,17 @@ static bool write_machine(pLIST_ELEMENT pelem, void *data)
 {
    pFSMOutputGeneratorFactoryStr pfsmogf = (pFSMOutputGeneratorFactoryStr) data;
    pMACHINE_INFO                 pmi     = (pMACHINE_INFO) pelem->mbr;
+   char                          *name;
 
    pFSMOutputGenerator pfsmog = pfsmogf->fsmogf(pfsmogf->parent_fsmog);
    if (pfsmog)
    {
-	   pfsmog->initOutput(pfsmog, pmi->name->name);
+	   pfsmog->initOutput(pfsmog, nuMachineNamePmi(pmi, &name));
 	   pfsmog->writeMachine(pfsmog, pmi);
 	   pfsmog->closeOutput(pfsmog,1);
 
 	   free(pfsmog);
+       CHECK_AND_FREE(name);
    }
 
    return false;

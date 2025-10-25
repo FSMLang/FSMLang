@@ -1405,15 +1405,17 @@ static void declareCMachineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 	/* publish the array, if not generating a machine instance */
 	if (!generate_instance)
 	{
+		char *cp;
 		fprintf(pcmd->pubHFile
-				, "extern const %s %s_action_array[%s_numEvents][%s_numStates];\n\n"
+				, "extern const %s %s_action_array[%s_numEvents][%s];\n\n"
 				, pmi->modFlags & mfActionsReturnStates
 				  ? actionFnType(pcmd) 
 				  : actionTransType(pcmd)
-				, machineName(pcmd)
+				, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 				, fqMachineName(pcmd)
-				, machineName(pcmd)
+				, stateEnumMemberPmi("numStates", pcmd->pmi, &cp)
 				);
+		CHECK_AND_FREE(cp);
 	}
 }
 
@@ -1577,11 +1579,12 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile , "/* %s */\n", __func__ );
 
 	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+	char *cp;
 
 	/* put the machine structure definition into the header */
 	fprintf(fout
 			, "struct _%s_struct_ {\n"
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			);
 
 	if (num_instances > 0)
@@ -1615,14 +1618,15 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 			);
 
 	fprintf(fout
-			, "\t%-*s const\t(*actionArray)[%s_numEvents][%s_numStates];\n"
+			, "\t%-*s const\t(*actionArray)[%s_numEvents][%s];\n"
 			, (int) pcmd->c_machine_struct_format_width
 			, (pmi->modFlags & mfActionsReturnStates)
 			  ? actionFnType(pcmd)
 			  : actionTransType(pcmd)
 			, fqMachineName(pcmd)
-			, machineName(pcmd)
+			, stateEnumMemberPmi("numStates", pcmd->pmi, &cp)
 		   );
+	CHECK_AND_FREE(cp);
 
 	if (pmi->machine_list)
 	{
@@ -1657,6 +1661,8 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
+	char *cp;
+
 	/* 
 	   if compacting, we will use an array for the action functions,
 	   and the transition functions, should they exist
@@ -1671,14 +1677,15 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 	}
 
 	fprintf(pcmd->cFile
-			, "%sconst %s %s_action_array[THIS(numEvents)][%s_numStates] =\n{\n"
+			, "%sconst %s %s_action_array[THIS(numEvents)][%s] =\n{\n"
 			, generate_instance ? "static " : ""
 			, (pmi->modFlags & mfActionsReturnStates) 
 			  ? actionFnType(pcmd)
 			  : actionTransType(pcmd)
-			, machineName(pcmd)
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+			, stateEnumMemberPmi("numStates", pcmd->pmi, &cp)
 			);
+	CHECK_AND_FREE(cp);
 
 	for (unsigned i = 0; i < pmi->event_list->count; i++)
 	{
@@ -1711,10 +1718,11 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 					{
 						fprintf(pcmd->cFile
 								, (pmi->actionArray[i][j]->transition->type == STATE)
-								? "UFMN(transitionTo%s)\n"
-								: "UFMN(%s)\n"
+									? "UFMN(transitionTo%s)\n"
+									: "UFMN(%s)\n"
 								, pmi->actionArray[i][j]->transition->name
 							   );
+						CHECK_AND_FREE(cp);
 					}
 				}
 				else //if (pmi->modFlags & mfActionsReturnStates)
@@ -1765,19 +1773,18 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 						if (pmi->actionArray[i][j]->transition)
 						{
 							fprintf(pcmd->cFile
-									, "%s_%s"
-									, machineName(pcmd)
-									, pmi->actionArray[i][j]->transition->name
+									, "%s"
+									, stateEnumMemberPmi(pmi->actionArray[i][j]->transition->name, pmi, &cp)
 									);
 						}
 						else
 						{
 							fprintf(pcmd->cFile
-									, "%s_%s"
-									, machineName(pcmd)
-									, stateNameByIndex(pmi, j)
+									, "%s"
+									, stateEnumMemberPmi(stateNameByIndex(pmi, j), pmi, &cp)
 									);
 						}
+						CHECK_AND_FREE(cp);
 					}
 
 					fprintf(pcmd->cFile, "}\n");
@@ -1818,9 +1825,8 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 					if (pmi->transition_fn_list->count == 0)
 					{
 						fprintf(pcmd->cFile
-								, "%s_%s"
-								, machineName(pcmd)
-								, stateNameByIndex(pmi, j)
+								, "%s"
+								, stateEnumMemberPmi(stateNameByIndex(pmi, j), pmi, &cp)
 								);
 					}
 					else
@@ -1866,7 +1872,7 @@ static void defineCMachineFSM(pFSMCOutputGenerator pfsmcog)
 
 	fprintf(pcmd->cFile
 			, "void %sFSM(p%s pfsm, %s event)\n{\n"
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			, fsmType(pcmd)
 			, fsmFnEventType(pcmd)
 			);
@@ -1913,7 +1919,7 @@ static void defineCSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 			, "%s%s %sFSM(p%s pfsm, %s event)\n{\n"
 			, generate_instance ? "static " : ""
 			, subFsmFnReturnType(pcmd)
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			, fsmType(pcmd)
 			, fsmFnEventType(pcmd)
 		   );

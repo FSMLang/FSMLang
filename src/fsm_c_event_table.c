@@ -453,7 +453,7 @@ static void declareCEventTableMachineEventTableSize(pCMachineData pcmd)
 
 	fprintf(fout
 			, "#define %s_numMachineEvents %u\n"
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			, pcmd->pmi->event_list->count
 			);
 
@@ -470,8 +470,8 @@ static void declareCEventTableMachineEventTable(pCMachineData pcmd)
 		fprintf(pcmd->pubHFile
 				, "extern const %s %s_event_fn_array[%s_numMachineEvents];\n"
 				, actionFnType(pcmd)
-				, machineName(pcmd)
-				, machineName(pcmd)
+				, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+				, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 				);
 	}
 
@@ -489,7 +489,7 @@ static void defineCEventTableMachineStruct(pCMachineData pcmd)
    /* put the machine structure definition into the header file */
    fprintf(fout
 		   , "struct _%s_struct_ {\n"
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   );
 
    if (pmi->data)
@@ -517,7 +517,7 @@ static void defineCEventTableMachineStruct(pCMachineData pcmd)
 		   , "\t%-*s const (*eventsArray)[%s_numMachineEvents];\n"
 		   , (int)pcmd->sub_machine_struct_format_width
 		   , actionFnType(pcmd)
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   );
 
    if (pmi->machine_list)
@@ -576,8 +576,8 @@ static void defineEventFnArray(pCMachineData pcmd)
 			, "\n%sconst %s %s_event_fn_array[%s_numMachineEvents] =\n{\n"
 			, generate_instance ? "static " : ""
 			, actionFnType(pcmd)
-			, machineName(pcmd)
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			);
 
 	ich.ih.first = true;
@@ -1834,7 +1834,7 @@ static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 	fprintf(pcmd->cFile
 			, "%s %sFSM(p%s pfsm, %s event)\n{\n"
 			, subFsmFnReturnType(pcmd)
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			, fsmType(pcmd)
 			, fsmFnEventType(pcmd)
 		   );
