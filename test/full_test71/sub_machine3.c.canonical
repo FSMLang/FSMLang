@@ -14,6 +14,7 @@
 
 static TOP_LEVEL_EVENT sub_machine3FSM(pSUB_MACHINE3,TOP_LEVEL_EVENT);
 
+static void * const sub_machine3_INSTANCES[top_level_numInstances];
 static TOP_LEVEL_EVENT s1_stateFn(pSUB_MACHINE3,TOP_LEVEL_EVENT);
 static TOP_LEVEL_EVENT s2_stateFn(pSUB_MACHINE3,TOP_LEVEL_EVENT);
 static TOP_LEVEL_EVENT s3_stateFn(pSUB_MACHINE3,TOP_LEVEL_EVENT);
@@ -26,29 +27,29 @@ static const SUB_MACHINE3_STATE_FN sub_machine3_state_fn_array[sub_machine3_numS
 };
 
 
-TOP_LEVEL_EVENT THIS(sub_machine_fn)(TOP_LEVEL_EVENT e)
+TOP_LEVEL_EVENT THIS(sub_machine_fn)(const void *pfsm, TOP_LEVEL_EVENT e)
 {
-	return sub_machine3FSM(psub_machine3,e);
+	return ((FSM_TYPE_PTR)pfsm)->fsm((FSM_TYPE_PTR)pfsm,e);
 }
 
 TOP_LEVEL_SUB_FSM_IF top_level_sub_machine3_sub_fsm_if =
 {
 	  .subFSM = THIS(sub_machine_fn)
-	, .index = sub_machine3_e
+	, .instanceArray = &sub_machine3_INSTANCES
 	, .first_event = THIS(firstEvent)
 	, .last_event = THIS(noEvent)
 };
 
-SUB_MACHINE3 sub_machine3 = {
+static SUB_MACHINE3 sub_machine3_INSTANCE0 = {
 	.state = sub_machine3_s1
 	, .event = THIS(e1)
 	, .statesArray = &sub_machine3_state_fn_array
+	, .instance = 0
 	, .fsm = sub_machine3FSM
-}
-;
-
-pSUB_MACHINE3 psub_machine3 = &sub_machine3;
-
+	};
+static void * const sub_machine3_INSTANCES[top_level_numInstances] = {
+	  &sub_machine3_INSTANCE0
+};
 
 #ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG
 #define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e == e)

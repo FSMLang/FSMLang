@@ -805,6 +805,38 @@ char* sharedEventStrType(pCMachineData pcmd)
 	return pcmd->shared_event_str_type;
 }
 
+/**
+ * Return a string containing the name of the ultimate ancester
+ * of the machine indicated.
+ * 
+ * @author Steven Stanton (10/26/2025)
+ * 
+ * @param pcmd   The data of the current machine.
+ * 
+ * @return char* Pointer to string containing the name of the
+ *  	   machine's ultimate ancester.
+ */
+char* uaMachineName(pCMachineData pcmd)
+{
+
+	FILE          *tmp;
+
+	/* only create the string once */
+	if (!pcmd->ultimate_ancestor)
+	{
+		pMACHINE_INFO pua = ultimateAncestor(pcmd->pmi);
+
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			fprintf(tmp, "%s", pua->name->name);
+			pcmd->ultimate_ancestor = create_string_from_file(tmp, NULL);
+		}
+	}
+
+	return pcmd->ultimate_ancestor;
+}
+
 char *machineName(pCMachineData pcmd)
 {
 	return pcmd->pmi->name->name;

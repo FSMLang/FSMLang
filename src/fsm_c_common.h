@@ -136,6 +136,7 @@ struct _c_machine_data_
        , *ucfq_machine_name
 	   , *uf_machine_name
 	   , *instance_type
+	   , *ultimate_ancestor
       ;
 
    unsigned long sub_fsm_if_format_width

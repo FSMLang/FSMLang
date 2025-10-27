@@ -1,12 +1,6 @@
 
 #include "sub_priv.h"
 
-ACTION_RETURN_TYPE UFMN(do_nothing)(FSM_TYPE_PTR pfsm)
-{
-	DBG_PRINTF("%s", __func__);
-	(void) pfsm;
-}
-
 ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
@@ -14,11 +8,11 @@ ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
 
 }
 
-ACTION_RETURN_TYPE test_fsm_sub_grab_parent_e1_data(pTEST_FSM_DATA pdata, const void *pfsm)
+ACTION_RETURN_TYPE UFMN(grab_parent_e1_data)(PARENT_DATA_TYPE_PTR pdata, const void *pthis_fsm)
 {
 	DBG_PRINTF("%s", __func__);
 
-	DECLARE_INSTANCE(psub);
+	FSM_TYPE_PTR psub = (FSM_TYPE_PTR) pthis_fsm;
 
 	psub->data.sub_e1_count += pdata->e1_count;
 

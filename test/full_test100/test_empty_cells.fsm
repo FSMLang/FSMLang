@@ -1,6 +1,8 @@
 native
 {
+
 #include "test.h"
+
 extern void set_sub_state_s1(void);
 extern void set_sub_state_s2(void);
 extern void set_sub_state_s3(void);
@@ -31,18 +33,21 @@ machine test_empty_cells
 	machine sub
 	native impl epilogue
 	{
-		void set_sub_state_s1()
+		void set_sub_state_s1(void)
       {
+			pSUB psub = &sub_INSTANCE0;
 			psub->state = STATE(s1);
 		}
 
-		void set_sub_state_s2()
+		void set_sub_state_s2(void)
       {
+			pSUB psub = &sub_INSTANCE0;
 			psub->state = STATE(s2);
 		}
 
-		void set_sub_state_s3()
+		void set_sub_state_s3(void)
       {
+			pSUB psub = &sub_INSTANCE0;
 			psub->state = STATE(s3);
 		}
 

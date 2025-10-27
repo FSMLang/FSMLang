@@ -24,9 +24,12 @@ NEW_MACHINE_EVENT_ENUM  UFMN(noAction)(pSUB_MACHINE1 pfsm)
 	return PARENT(noEvent);
 }
 
-void  UFMN(eShared_dt)(pNEW_MACHINE_DATA pfsm_data)
+void  UFMN(eShared_dt)(pNEW_MACHINE_DATA pfsm_data, const void *pfsm)
 {
 	DBG_PRINTF("%s\n", __func__);
+
+	DECLARE_INSTANCE(psubMachine1);
+
 	psubMachine1->data.cp = pfsm_data->u.bop;
 	print_machine_data(&psubMachine1->data);
 }

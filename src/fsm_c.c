@@ -1587,14 +1587,11 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			);
 
-	if (num_instances > 0)
-	{
-		fprintf(fout
-				, "\t%-*s instance;\n"
-				, (int) pcmd->c_machine_struct_format_width
-				, "unsigned"
-				);
-	}
+	fprintf(fout
+			, "\t%-*s instance;\n"
+			, (int) pcmd->c_machine_struct_format_width
+			, "unsigned"
+			);
 
 	if (pmi->data)
 	{

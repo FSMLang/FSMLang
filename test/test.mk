@@ -30,6 +30,7 @@ runtest: $(TARGET)
 
 recordtest: clean runtest
 	@echo $(notdir $(shell pwd)) >> ../done
+
 endif
 
 do_runtest: test
