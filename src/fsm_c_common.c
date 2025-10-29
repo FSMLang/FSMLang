@@ -652,10 +652,25 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 
    if (generate_instance && generate_run_function)
    {
-      fprintf(pcmd->pubHFile, "\nvoid run_%s(%s);\n\n"
-			  , machineName(pcmd)
-			  , fsmFnEventType(pcmd)
-             );
+	   if (num_instances == 1)
+	   {
+		   fprintf(pcmd->pubHFile, "\nvoid run_%s(%s);\n\n"
+				   , machineName(pcmd)
+				   , fsmFnEventType(pcmd)
+				  );
+	   }
+	   else
+	   {
+		   for (unsigned instance = 0; instance < num_instances; instance++)
+		   {
+			   fprintf(pcmd->pubHFile, "\nvoid run_%s_instance%u(%s);\n"
+					   , machineName(pcmd)
+					   , instance
+					   , fsmFnEventType(pcmd)
+					  );
+		   }
+		   fprintf(pcmd->pubHFile, "\n");
+	   }
    }
 
    fprintf(pcmd->hFile
@@ -954,49 +969,69 @@ void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
 
 void generateRunFunction(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
-   fprintf(pcmd->cFile
-           ,"void run_%s(%s e)\n{\n"
-           , pmi->name->name
-		   , fsmFnEventType(pcmd)
-           );
+	if (num_instances == 1)
+	{
+		fprintf(pcmd->cFile
+			   ,"void run_%s(%s e)\n{\n"
+			   , pmi->name->name
+			   , fsmFnEventType(pcmd)
+			   );
 
-   fprintf(pcmd->cFile
-           , "\tif (p%s)\n\t{\n\t\tp%s->fsm(p%s,e);\n\t}\n}\n\n"
-           , pmi->name->name
-           , pmi->name->name
-           , pmi->name->name
-           );
+		fprintf(pcmd->cFile
+				, "\tif (p%s)\n\t{\n\t\tp%s->fsm(p%s,e);\n\t}\n}\n\n"
+				, pmi->name->name
+				, pmi->name->name
+				, pmi->name->name
+				);
+	}
+	else
+	{
+		for (unsigned instance = 0; instance < num_instances; instance++)
+		{
+			fprintf(pcmd->cFile
+					,"void run_%s_instance%u(%s e)\n{\n"
+					, pmi->name->name
+					, instance
+					, fsmFnEventType(pcmd)
+				   );
+
+			fprintf(pcmd->cFile
+					, "\tp%s p%s = &%s_INSTANCE%u;\n\t\tp%s->fsm(p%s,e);\n}\n\n"
+					, fsmType(pcmd)
+					, pmi->name->name
+					, pmi->name->name
+					, instance
+					, pmi->name->name
+					, pmi->name->name
+					);
+		}
+	}
 }
 
 void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldName, char *arrayName)
 {
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   char     instance_str[8];
    unsigned instance;
 
    for (instance = 0; instance < num_instances; instance++)
    {
 	   if (pmi->data)
 	   {
-		   // This quiets a warning
-		   if (
-			   snprintf(instance_str
-						, sizeof(instance_str)
-						, "_%*u"
-						, (int)(sizeof(instance_str) - 2)
-						, instance
-						)
-				> (int) sizeof(instance_str)
-			   )
+		   if (num_instances > 1)
 		   {
+			   fprintf(pcmd->cFile
+					   , "#ifndef INIT_FSM_DATA%u\n#error INIT_FSM_DATA%u must be defined\n#endif\n\n"
+					   , instance
+					   , instance
+					   );
 		   }
-
-		   fprintf(pcmd->cFile
-				   , "#ifndef INIT_FSM_DATA%s\n#error INIT_FSM_DATA%s must be defined\n#endif\n\n"
-				   , num_instances > 1 ? instance_str : ""
-				   , num_instances > 1 ? instance_str : ""
-				   );
+		   else
+		   {
+			   fprintf(pcmd->cFile
+					   , "#ifndef INIT_FSM_DATA\n#error INIT_FSM_DATA must be defined\n#endif\n\n"
+					   );
+		   }
 	   }
 
    }
@@ -1043,10 +1078,19 @@ void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldNam
 
 	   if (pmi->data)
 	   {
-		   fprintf(pcmd->cFile
-				   , "\t, .data = INIT_FSM_DATA%s\n"
-				   , num_instances > 1 ? instance_str : ""
-				   );
+		   if (num_instances > 1)
+		   {
+			   fprintf(pcmd->cFile
+					   , "\t, .data = INIT_FSM_DATA%u\n"
+					   , instance
+					   );
+		   }
+		   else
+		   {
+			   fprintf(pcmd->cFile
+					   , "\t, .data = INIT_FSM_DATA\n"
+					   );
+		   }
 	   }
 
 	   fprintf(pcmd->cFile
