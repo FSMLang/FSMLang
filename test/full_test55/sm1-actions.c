@@ -5,28 +5,31 @@ static void print_machine_data(pSUB_MACHINE1_DATA);
 
 NEW_MACHINE_EVENT_ENUM  UFMN(aa1)(pSUB_MACHINE1 pfsm)
 {
-	DBG_PRINTF("%s", __func__);
 	(void) pfsm;
+	DBG_PRINTF("%s", __func__);
 	return THIS(noEvent);
 }
 
 NEW_MACHINE_EVENT_ENUM  UFMN(aa2)(pSUB_MACHINE1 pfsm)
 {
-	DBG_PRINTF("%s", __func__);
 	(void) pfsm;
+	DBG_PRINTF("%s", __func__);
 	return THIS(noEvent);
 }
 
 NEW_MACHINE_EVENT_ENUM  UFMN(noAction)(pSUB_MACHINE1 pfsm)
 {
-	(void) pfsm;
 	DBG_PRINTF("%s", __func__);
+	(void) pfsm;
 	return PARENT(noEvent);
 }
 
-void  UFMN(eShared_dt)(pNEW_MACHINE_DATA pfsm_data)
+void  UFMN(eShared_dt)(pNEW_MACHINE_DATA pfsm_data, const void *pfsm)
 {
 	DBG_PRINTF("%s", __func__);
+
+	DECLARE_INSTANCE(psubMachine1);
+
 	psubMachine1->data.cp = pfsm_data->u.bop;
 	print_machine_data(&psubMachine1->data);
 }

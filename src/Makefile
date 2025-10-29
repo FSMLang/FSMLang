@@ -3,7 +3,7 @@
 
 .SECONDEXPANSION:
 
-override CFLAGS += -I ../src -I . 
+override CFLAGS += -I ../src -I . -Wall
 
 ARCHITECTURES=Cygwin \
 	Mingw        \

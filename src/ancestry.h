@@ -48,6 +48,7 @@ char * createAncestryFileName(pMACHINE_INFO);
 char * dataTranslationFnType(pCMachineData);
 char * eventType(pCMachineData);
 char * fqMachineName(pCMachineData);
+char * nuMachineName(pCMachineData);
 char * ufMachineName(pCMachineData);
 char * ucMachineName(pCMachineData);
 char * ucfqMachineName(pCMachineData);
@@ -59,16 +60,24 @@ char * fsmFnType(pCMachineData);
 char * fsmType(pCMachineData);
 char * hungarianToUnderbarCaps(char *);
 char * machineName(pCMachineData);
+char * machineNamePmi(pMACHINE_INFO);
 char * nfMachineName(pCMachineData);
+char * uaMachineName(pCMachineData);
 char * ucnfMachineName(pCMachineData);
 char * nfMachineNamePmi(pMACHINE_INFO,char**);
+char * fqMachineNamePmi(pMACHINE_INFO,char**);
+char * ucfqMachineNamePmi(pMACHINE_INFO,char**);
+char * nuMachineNamePmi(pMACHINE_INFO,char**);
+char * stateEnumMemberPmi(char*,pMACHINE_INFO,char**);
 char * sharedEventStrType(pCMachineData);
 char * stateFnType(pCMachineData);
 char * stateType(pCMachineData);
 void   streamHungarianToUnderbarCaps(FILE*,char *);
 char * subFsmIfType(pCMachineData);
 char * subMachineFnType(pCMachineData);
+char * subMachineEnumType(pCMachineData);
 char * transitionFnType(pCMachineData);
+char * instanceType(pCMachineData);
 
 #endif
 

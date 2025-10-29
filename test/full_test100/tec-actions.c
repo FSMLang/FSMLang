@@ -11,8 +11,7 @@ ACTION_RETURN_TYPE UFMN(a1)(FSM_TYPE_PTR pfsm)
 TEST_EMPTY_CELLS_EVENT UFMN(share)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
-	(void) pfsm;
-	return test_empty_cells_pass_shared_event(sharing_test_empty_cells_e3);
+	return test_empty_cells_pass_shared_event(pfsm, sharing_test_empty_cells_e3);
 }
 #endif
 

@@ -28,9 +28,10 @@ ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
-void compact_sub_compact_grab_e1_data(pCOMPACT_DATA pdata)
+void compact_sub_compact_grab_e1_data(pCOMPACT_DATA pdata, const void *pfsm)
 {
 	DBG_PRINTF(__func__);
+	DECLARE_INSTANCE(psub_compact);
 	psub_compact->data.e1_payload = pdata->e1_payload;
 }
 

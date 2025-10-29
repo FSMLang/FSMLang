@@ -1,4 +1,4 @@
-#include "sub_sub_compact_priv.h"
+#include "sub_compact_sub_sub_compact_priv.h"
 
 ACTION_RETURN_TYPE UFMN(a1)(FSM_TYPE_PTR pfsm)
 {

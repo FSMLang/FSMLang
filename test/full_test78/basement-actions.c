@@ -1,5 +1,5 @@
 
-#include "basement_priv.h"
+#include "sub_basement_priv.h"
 
 ACTION_RETURN_TYPE UFMN(do_nothing)(FSM_TYPE_PTR pfsm)
 {
@@ -13,9 +13,11 @@ ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
     (void) pfsm;
 }
 
-void UFMN(grab_parent_e1_data)(pSUB_DATA pdata)
+void UFMN(grab_parent_e1_data)(pSUB_DATA pdata, const void *pfsm)
 {
     DBG_PRINTF("%s", __func__);
+
+	 DECLARE_INSTANCE(pbasement);
 
     pbasement->data.basement_e1_count += pdata->sub_e1_count;
 

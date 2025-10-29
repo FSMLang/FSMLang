@@ -6,6 +6,7 @@ native
 #endif
 
 #define INIT_FSM_DATA {.field1 = 0, .field2 = {0}}
+
 }
 
 /**

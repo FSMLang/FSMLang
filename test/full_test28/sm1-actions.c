@@ -50,9 +50,11 @@ SUB_MACHINE1_STATE UFMN(checkTransition)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
    return sub_machine1_s3;
 }
 
-void UFMN(translate_e7_data)(pTOP_LEVEL_DATA pfsm_data)
+void UFMN(translate_e7_data)(pTOP_LEVEL_DATA pfsm_data, const void *pfsm)
 {
 	DBG_PRINTF("%s\n", __func__);
+
+	DECLARE_INSTANCE(psub_machine1);
 
 	psub_machine1->data.field1 = pfsm_data->field1;
 	memcpy(psub_machine1->data.field2,pfsm_data->field2, sizeof(psub_machine1->data.field2));
