@@ -91,6 +91,7 @@ void yyerror(char *);
 %token <charData> SEQUENCE_KEY
 %token <charData> ACTION_KEY 
 %token <charData> TRANSITION_KEY 
+%token <charData> GUARD_KEY 
 
 %token <charData>	PARENT
 %token <charData> NATIVE_KEY
@@ -993,6 +994,50 @@ transition_matrix_start: matrix TRANSITION_KEY
 						pid_info->type_data.action_data.actionInfo = $$;
 
         }
+    | matrix GUARD_KEY
+        {
+						pID_INFO pid_info;
+
+						//first, we have to add an id_info struct to the id list
+						//we treat it as a "null action"
+						add_id(id_list, ACTION,"",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
+
+						//second, we grab a struct to hold the info
+						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->matrix     = $1;
+						$$->action     = pid_info;
+ 					$$->docCmnt    = $2;
+
+						$$->nextAction = pid_info->type_data.action_data.actionInfo;
+						pid_info->type_data.action_data.actionInfo = $$;
+
+        }
+    | GUARD_KEY matrix
+        {
+						pID_INFO pid_info;
+
+						//first, we have to add an id_info struct to the id list
+						//we treat it as a "null action"
+						add_id(id_list, ACTION,"",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
+
+						//second, we grab a struct to hold the info
+						if (($$ = (pACTION_INFO)calloc(1,sizeof(ACTION_INFO))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->matrix     = $2;
+						$$->action     = pid_info;
+ 					$$->docCmnt    = $1;
+
+						$$->nextAction = pid_info->type_data.action_data.actionInfo;
+						pid_info->type_data.action_data.actionInfo = $$;
+
+        }
     ;
 
 transition_matrix:	transition_matrix_start STATE ';'
@@ -1181,6 +1226,27 @@ transition: TRANSITION_KEY STATE
 
 					}
   | TRANSITION_KEY TRANSITION_FN
+					{
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition with known function\n");
+						#endif
+
+						$$ = $2;
+
+					}
+  | GUARD_KEY ID
+					{
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition with new function\n");
+						#endif
+
+           set_id_type($2,TRANSITION_FN);
+						$$ = $2;
+
+					}
+  | GUARD_KEY TRANSITION_FN
 					{
 
 						#ifdef PARSER_DEBUG
