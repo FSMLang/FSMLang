@@ -20,8 +20,8 @@ machine newMachine
 	/**
 		A Document Comment
 	*/
-	action a2[e1,(s2,s3)] transition transitionFn;
-	transition[(e2,e3),(s1,s2,s3)] transitionFn1;
+	action a2[e1,(s2,s3)] guard transitionFn;
+	guard[(e2,e3),(s1,s2,s3)] transitionFn1;
 
 	transitionFn  returns s1,s2;
 	transitionFn1 returns s2,s3;
