@@ -300,6 +300,16 @@ transition	{
 							#endif
 						}
 
+guard	{ 
+							#ifndef LEX_DEBUG
+             yylval.charData = currDocCmnt ? currDocCmnt : NULL;
+             currDocCmnt     = NULL;
+							return GUARD_KEY;
+							#else
+							printf("%s\n",strings[GUARD_KEY]);
+							#endif
+						}
+
 action	{ 
 					#ifndef LEX_DEBUG
          yylval.charData = currDocCmnt ? currDocCmnt : NULL;
