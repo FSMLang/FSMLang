@@ -262,7 +262,7 @@ void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator pfsmcog)
               , "\t\t\tfindAndRunSubMachine(pfsm, e);"
               );
       fprintf(pcmd->cFile
-              , "\n\t\t}"
+              , "\n\t\t}\n"
               );
    }
 
@@ -420,6 +420,10 @@ void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator pfsmcog)
            , "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"
            );
 
+   fprintf(pcmd->cFile
+		   , "\n\t}"
+		   );
+
 }
 
 void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
@@ -458,7 +462,6 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
 	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
    }
 
-   fprintf(pcmd->cFile, "\n\t}\n");
-
+   FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: End %s */\n", __func__);
 }
 

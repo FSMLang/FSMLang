@@ -199,7 +199,14 @@ char* actionReturnType(pCMachineData pcmd)
 			{
 				if (pcmd->pmi->modFlags & mfActionsReturnStates)
 				{
-					streamStrCaseAware(tmp, pcmd->pmi->name->name, alc_upper);
+					if (generate_instance)
+					{
+						streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+					}
+					else
+					{
+						printAncestry(pcmd->pmi, tmp, "_", alc_upper, ai_include_self);
+					}
 					fprintf(tmp, "_STATE");
 				}
 				else

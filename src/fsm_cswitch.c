@@ -787,7 +787,7 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 static void declareCSwitchMachineStateFnArray(pCMachineData pcmd)
 {
 	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
-	char *cp
+	char *cp;
 
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -1239,9 +1239,8 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     //do the body
     fprintf(pich->pcmd->cFile
-            , "\t%s retVal = %s_noTransition;\n"
+            , "\t%s retVal = THIS(noTransition);\n"
             , stateType(pich->pcmd)
-            , machineName(pich->pcmd)
            );
 
     if (pich->pcmd->pmi->executes_fns_on_state_transitions)

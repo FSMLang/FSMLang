@@ -1365,16 +1365,11 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
            );
 
    fprintf(pcmd->cFile
-           , "void %sFSM(p"
+           , "void %sFSM(p%s pfsm, %s event)\n{\n"
            , pmi->name->name
+		   , ucMachineName(pcmd)
+		   , fsmFnEventType(pcmd)
            );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile
-           , " pfsm, %s"
-           , pmi->data_block_count ? "p"  : ""
-          );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile, "_EVENT event)\n{\n");
 
    writeReentrantPrologue(pcmd);
 
@@ -1412,7 +1407,7 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
    fprintf(pcmd->cFile
 		   , "\n}\n\n"
 		   );
-   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s: %u */\n", __FILE__, __LINE__);
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* EXIT %s */\n", __func__);
 
 }
 
@@ -1434,6 +1429,8 @@ static void writeOriginalEventTableSubFSMAre(pFSMCOutputGenerator pfsmcog)
 static void writeOriginalEventTableSubFSMArv(pFSMCOutputGenerator pfsmcog)
 {
 	writeOriginalSwitchSubFSMLoopArv(pfsmcog);
+
+	FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* Exit %s */\n", __FUNCTION__);
 }
 
 static void writeEventTableFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
@@ -1813,7 +1810,6 @@ static void writeActionsReturnStateEventTableSubFSM(pFSMCOutputGenerator pfsmcog
 			, "\n#endif\n"
 			);
 
-	fprintf(pcmd->cFile, "}\n\n");
 }
 
 static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
@@ -1869,10 +1865,7 @@ static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 			   );
 	}
 
-	if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
-	{
-		fprintf(pcmd->cFile, "\n}\n\n");
-	}
+	fprintf(pcmd->cFile, "\n}\n\n");
 
 }
 
