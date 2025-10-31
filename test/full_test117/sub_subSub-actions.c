@@ -13,7 +13,7 @@ ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
 
 }
 
-ACTION_RETURN_TYPE UFMN(grab_parent_e1_data)(pTEST_FSM_SUB_DATA pdata, const void *pparent_fsm)
+void UFMN(grab_parent_e1_data)(pTEST_FSM_SUB_DATA pdata, const void *pparent_fsm)
 {
 	DBG_PRINTF("%s", __func__);
 
