@@ -1619,18 +1619,20 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
       if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
       {
          fprintf(pcmd->cFile
-                 , "%s\tif (eventIsNotHandledInAllStates(pfsm,%s))\n"
+                 , "%s\tif (eventIsNotHandledInAllStates(pfsm,%s))\n%s{\n"
                  , tabstr
 				 , ((pmi->modFlags & mfActionsReturnVoid) && (pmi->data_block_count == 0))
 				   ? "event" 
 				   : "e"
+                 , tabstr
                  );
       }
       else
       {
          fprintf(pcmd->cFile
-                 , "%s\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n"
+                 , "%s\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n%s{\n"
                  , tabstr
+				 , tabstr
                  );
       }
       local_tabstr = "\t";
@@ -1654,6 +1656,11 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
               );
    }
 
+   fprintf(pcmd->cFile
+		   , "%s}\n"
+		   , tabstr
+		   );
+
 }
 
 static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
@@ -1674,7 +1681,7 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
       else
       {
          fprintf(pcmd->cFile
-                 , "\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n"
+                 , "\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n\t{"
                  );
       }
    }
@@ -1700,6 +1707,10 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
 
    fprintf(pcmd->cFile
            , "\t\t}\n"
+           );
+
+   fprintf(pcmd->cFile
+           , "\t}\n"
            );
 
 }
