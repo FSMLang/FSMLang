@@ -1,0 +1,95 @@
+/*
+	Here are some comments
+*/
+native prologue
+{
+Copy this to the header file.
+DEFINE INIT_FSM_DATA {{0,0}, 1}
+}
+
+native epilogue
+{
+Copy this to the header file at the end.
+}
+
+machine newMachine
+ on transition baz;
+ native impl prologue { copy this to the source file; }
+ native impl epilogue { copy this to the source file at the end; }
+{
+data
+{
+
+ union
+ {
+  struct 
+  {
+  	int a;
+  } str_int foo;
+  
+  struct
+  {
+   float f;
+  } str_float beep;
+ 
+  int  bop;
+ };
+
+}
+
+	state s1, s2, s3, s4 inhibits submachines on entry;
+	event e1, e2, e3;
+  event e4 = BAR;
+
+
+	/** a sub machine */
+  machine subMachine1 {
+		state ss1 on entry foo on exit bar
+           , ss2 on entry on exit
+           , ss3 on entry foo1
+           , ss4 on exit bar1
+           ;
+		event ee1, ee2, ee3;
+
+		/** a sub-sub machine */
+		machine subSubMachine1 {
+			state z1, z2;
+			event y1, y2;
+
+			action x1[y1,z1];
+			action x2[y2, (all)] transition z1;
+		}
+
+		action aa1[ee1,ss1] transition ss2;
+		action aa2[ee2, ss1] transition ss3;
+	}
+
+	/** a second sub machine */
+  machine subMachine2 {
+		state sss1, sss2, sss3;
+		event eee1, eee2, eee3;
+
+		action aaa1[ee1,sss1] transition sss2;
+		action aaa2[eee2, sss1] transition sss3;
+	}
+
+	//This is a one-line comment
+	action a1[e1,s1] transition s1;
+
+	/**
+		A Document Comment
+	*/
+	action a2[e1,(s2,s3)] guard guardFn;
+	guard [(e2,e3),(s1,s2,s3)] guardFn1;
+
+	action doNothing[(all), s4];
+
+	guardFn  returns s1,s2;
+	guardFn1 returns s2,s3;
+
+	a2 returns noEvent;
+
+	sequence one start s2 e1, e3, e4 end s1;
+
+}
+
