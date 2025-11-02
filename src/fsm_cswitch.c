@@ -1239,7 +1239,7 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     //do the body
     fprintf(pich->pcmd->cFile
-            , "\t%s retVal = THIS(noTransition);\n"
+            , "\t%s retVal = STATE(noTransition);\n"
             , stateType(pich->pcmd)
            );
 
@@ -1655,10 +1655,13 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
               );
    }
 
-   fprintf(pcmd->cFile
-		   , "%s}\n"
-		   , tabstr
-		   );
+   if (pmi->has_single_pai_events)
+   {
+	   fprintf(pcmd->cFile
+			   , "%s}\n"
+			   , tabstr
+			  );
+   }
 
 }
 
@@ -1708,9 +1711,12 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
            , "\t\t}\n"
            );
 
-   fprintf(pcmd->cFile
-           , "\t}\n"
-           );
+   if (pmi->has_single_pai_events)
+   {
+	   fprintf(pcmd->cFile
+			   , "\t}\n"
+			   );
+   }
 
 }
 
