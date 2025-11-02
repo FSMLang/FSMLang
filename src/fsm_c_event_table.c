@@ -57,6 +57,7 @@ typedef struct _cevent_table_machine_data_     CEventTableMachineData
 static void writeCEventTableMachine(pFSMOutputGenerator,pMACHINE_INFO); 
 static void writeCEventTableSubMachine(pFSMOutputGenerator,pMACHINE_INFO); 
 static void writeCEventTableMachineInternal(pFSMCOutputGenerator);
+static void declareCEventTableMachineEventTable(pCMachineData);
 static void declareCEventTableMachineEventTableSize(pCMachineData);
 static void defineCEventTableMachineStruct(pCMachineData);
 static void defineEventFnArray(pCMachineData);
@@ -193,7 +194,7 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    subMachineHeaderStart(pcmd, pmi, "event_fn", false);
 
-   declareCEventTableMachineEventTableSize(pcmd);
+   declareCEventTableMachineEventTable(pcmd);
 
    defineCEventTableMachineStruct(pcmd);
 
@@ -230,7 +231,11 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (generate_instance)
    {
-      generateInstance(pcmd, pmi, "event_fn");
+      generateInstance(pcmd, pmi, "eventsArray", "event_fn");
+   }
+   else
+   {
+	   generateSubMachineInstanceMacro(pcmd, pmi, "eventsArray", "event_fn");
    }
 
    defineCEventTableSubMachineFSM(pfsmcog);
@@ -281,6 +286,7 @@ static void writeCEventTableSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 	pfsmcswog->fsmcog.pcmd->fsm_fn_event_type       = pfsmcswog->fsmcog.parent_fsmcog->pcmd->event_type;
 	pfsmcswog->fsmcog.pcmd->sub_fsm_fn_return_type  = pfsmcswog->fsmcog.parent_fsmcog->pcmd->sub_fsm_fn_return_type;
 	pfsmcswog->fsmcog.pcmd->event_type              = pfsmcswog->fsmcog.parent_fsmcog->pcmd->event_type;
+	pfsmcswog->fsmcog.pcmd->instance_type           = pfsmcswog->fsmcog.parent_fsmcog->pcmd->instance_type;
 	pfsmcswog->fsmcog.pcmd->sub_fsm_fn_event_type   = pfsmcswog->fsmcog.parent_fsmcog->pcmd->sub_fsm_fn_event_type;
 
 	pfsmcswog->fsmcog.cfsmliw = writeEventTableSubFSMLoopInnards;
@@ -345,7 +351,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	commonHeaderStart(pcmd, pmi, "event_fn", false);
 
-	declareCEventTableMachineEventTableSize(pcmd);
+	declareCEventTableMachineEventTable(pcmd);
 
 	defineCEventTableMachineStruct(pcmd);
 
@@ -383,12 +389,17 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (generate_instance)
 	{
-		generateInstance(pcmd, pmi, "event_fn");
-	}
+		generateInstance(pcmd, pmi, "eventsArray", "event_fn");
 
-	if (generate_run_function)
+		if (generate_run_function)
+		{
+		   generateRunFunction(pcmd, pmi);
+		}
+
+	}
+	else
 	{
-	   generateRunFunction(pcmd, pmi);
+		generateInstanceMacro(pcmd, pmi, "eventsArray", "event_fn");
 	}
 
 	defineCEventTableMachineFSM(pfsmcog);
@@ -436,13 +447,33 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 static void declareCEventTableMachineEventTableSize(pCMachineData pcmd)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
 
-	fprintf(pcmd->hFile
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	fprintf(fout
 			, "#define %s_numMachineEvents %u\n"
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			, pcmd->pmi->event_list->count
 			);
+
+}
+
+static void declareCEventTableMachineEventTable(pCMachineData pcmd)
+{
+	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	declareCEventTableMachineEventTableSize(pcmd);
+
+	if (!generate_instance)
+	{
+		fprintf(pcmd->pubHFile
+				, "extern const %s %s_event_fn_array[%s_numMachineEvents];\n"
+				, actionFnType(pcmd)
+				, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+				, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+				);
+	}
 
 }
 
@@ -451,53 +482,71 @@ static void defineCEventTableMachineStruct(pCMachineData pcmd)
 {
 	pMACHINE_INFO pmi = pcmd->pmi;
 
-	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    /* put the machine structure definition into the header file */
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "struct _%s_struct_ {\n"
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+		   );
+
+   fprintf(fout
+		   , "\t%-*s instance;\n"
+		   , (int) pcmd->sub_machine_struct_format_width
+		   , "unsigned"
 		   );
 
    if (pmi->data)
    {
-      fprintf(pcmd->hFile
+      fprintf(fout
 			  , "\t%-*s data;\n"
 			  , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 			  , fsmDataType(pcmd)
 			 );
    }
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s state;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , stateType(pcmd)
 		   );
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s event;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , subFsmFnEventType(pcmd)
 		  );
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s const (*eventsArray)[%s_numMachineEvents];\n"
 		   , (int)pcmd->sub_machine_struct_format_width
 		   , actionFnType(pcmd)
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   );
 
    if (pmi->machine_list)
    {
-      fprintf(pcmd->hFile
+      fprintf(fout
 			  , "\tp%-*s const (*subMachineArray)[%s_numSubMachines];\n"
 			  , (int)pcmd->sub_machine_struct_format_width
 			  , subFsmIfType(pcmd)
 			   , fqMachineName(pcmd)
 			 );
+
+	  if (!generate_instance)
+	  {
+		  fprintf(fout
+				  , "\t%-*s* const\t(*subMachines)[%s_numSubMachines];\n"
+				  , (int) pcmd->c_machine_struct_format_width
+				  , "void"
+				  , fqMachineName(pcmd)
+				  );
+	  }
    }
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s fsm;\n};\n\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , fsmFnType(pcmd)
@@ -530,10 +579,11 @@ static void defineEventFnArray(pCMachineData pcmd)
 	};
 
 	fprintf(pcmd->cFile
-			, "\nstatic const %s %s_event_fn_array[%s_numMachineEvents] =\n{\n"
+			, "\n%sconst %s %s_event_fn_array[%s_numMachineEvents] =\n{\n"
+			, generate_instance ? "static " : ""
 			, actionFnType(pcmd)
-			, machineName(pcmd)
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			);
 
 	ich.ih.first = true;
@@ -1315,16 +1365,11 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
            );
 
    fprintf(pcmd->cFile
-           , "void %sFSM(p"
+           , "void %sFSM(p%s pfsm, %s event)\n{\n"
            , pmi->name->name
+		   , ucMachineName(pcmd)
+		   , fsmFnEventType(pcmd)
            );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile
-           , " pfsm, %s"
-           , pmi->data_block_count ? "p"  : ""
-          );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile, "_EVENT event)\n{\n");
 
    writeReentrantPrologue(pcmd);
 
@@ -1362,7 +1407,7 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
    fprintf(pcmd->cFile
 		   , "\n}\n\n"
 		   );
-   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s: %u */\n", __FILE__, __LINE__);
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* EXIT %s */\n", __func__);
 
 }
 
@@ -1384,6 +1429,8 @@ static void writeOriginalEventTableSubFSMAre(pFSMCOutputGenerator pfsmcog)
 static void writeOriginalEventTableSubFSMArv(pFSMCOutputGenerator pfsmcog)
 {
 	writeOriginalSwitchSubFSMLoopArv(pfsmcog);
+
+	FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* Exit %s */\n", __FUNCTION__);
 }
 
 static void writeEventTableFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
@@ -1763,7 +1810,6 @@ static void writeActionsReturnStateEventTableSubFSM(pFSMCOutputGenerator pfsmcog
 			, "\n#endif\n"
 			);
 
-	fprintf(pcmd->cFile, "}\n\n");
 }
 
 static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
@@ -1790,7 +1836,7 @@ static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 	fprintf(pcmd->cFile
 			, "%s %sFSM(p%s pfsm, %s event)\n{\n"
 			, subFsmFnReturnType(pcmd)
-			, machineName(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			, fsmType(pcmd)
 			, fsmFnEventType(pcmd)
 		   );
@@ -1819,10 +1865,7 @@ static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 			   );
 	}
 
-	if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
-	{
-		fprintf(pcmd->cFile, "\n}\n\n");
-	}
+	fprintf(pcmd->cFile, "\n}\n\n");
 
 }
 

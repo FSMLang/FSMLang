@@ -1,0 +1,26 @@
+native
+{
+#include "test.h"
+}
+
+machine test_fsm
+	actions return void;
+	native impl
+   {
+	#define INIT_FSM_DATA { .e1_count = 0 }
+	}
+{
+	data
+	{
+		int e1_count;
+	}
+
+	event e1 data translator grab_e1_data {int i;};
+
+	state s1;
+
+
+	action handle_e1[e1, s1];
+
+}
+

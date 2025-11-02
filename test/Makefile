@@ -30,7 +30,7 @@ $(SUITES):
 	@echo -n "$@ " >> done
 
 $(CLEAN_SUITES):
-	$(MAKE) -C $(basename $@) OUTPUT_DIR="$(OUTPUT_DIR)" clean
+	$(MAKE) -j -C $(basename $@) OUTPUT_DIR="$(OUTPUT_DIR)" clean
 
 $(STAT_FULL_TESTS):
 	-@$(MAKE) -C $(basename $@) stats.txt > /dev/null

@@ -9,7 +9,7 @@ native{
 
 typedef char flashPage[128];
 
-#define INIT_FSM_DATA .data = {{0}, 0, 0}
+#define INIT_FSM_DATA {{0}, 0, 0}
 	
 }
 /**

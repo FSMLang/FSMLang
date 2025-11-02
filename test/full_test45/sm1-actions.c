@@ -23,9 +23,10 @@ NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(noAction)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
-void newMachine_subMachine1_ee1_dt(pNEW_MACHINE_DATA pdata)
+void newMachine_subMachine1_ee1_dt(pNEW_MACHINE_DATA pdata, const void *pfsm)
 {
 	(void) pdata;
+	(void) pfsm;
 
 	DBG_PRINTF("weak: %s", __func__);
 }

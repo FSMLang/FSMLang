@@ -12,9 +12,6 @@
 #define DBG_PRINTF(...)
 #endif
 
-extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine1_sub_fsm_if;
-extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine2_sub_fsm_if;
-extern TOP_LEVEL_SUB_FSM_IF top_level_sub_machine3_sub_fsm_if;
 
 static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
 static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL,TOP_LEVEL_EVENT);
@@ -29,22 +26,23 @@ static const TOP_LEVEL_STATE_FN top_level_state_fn_array[top_level_numStates] =
 };
 
 
-const pTOP_LEVEL_SUB_FSM_IF top_level_sub_fsm_if_array[THIS(numSubMachines)] =
+static const pTOP_LEVEL_SUB_FSM_IF top_level_sub_fsm_if_array[top_level_numSubMachines] =
 {
 	&top_level_sub_machine1_sub_fsm_if
 	, &top_level_sub_machine2_sub_fsm_if
 	, &top_level_sub_machine3_sub_fsm_if
 };
 
-TOP_LEVEL top_level = {
-	top_level_s1,
-	THIS(e1),
-	&top_level_state_fn_array,
-	&top_level_sub_fsm_if_array,
-	top_levelFSM
-};
+static TOP_LEVEL top_level_INSTANCE0 = {
+	.state = top_level_s1
+	, .event = THIS(e1)
+	, .statesArray = &top_level_state_fn_array
+	, .subMachineArray = &top_level_sub_fsm_if_array
+	, .instance = 0
+	, .fsm = top_levelFSM
+	};
 
-pTOP_LEVEL ptop_level = &top_level;
+pTOP_LEVEL ptop_level = (pTOP_LEVEL) &top_level_INSTANCE0;
 
 void run_top_level(TOP_LEVEL_EVENT e)
 {
@@ -103,7 +101,8 @@ static TOP_LEVEL_EVENT findAndRunSubMachine(pTOP_LEVEL pfsm, TOP_LEVEL_EVENT e)
 			   && ((*pfsm->subMachineArray)[machineIterator]->last_event > e)
 			    )
 			{
-				return ((*(*pfsm->subMachineArray)[machineIterator]->subFSM)(e));
+				const void * pinstance =  (*((*pfsm->subMachineArray)[machineIterator])->instanceArray)[pfsm->instance];
+				return ((*(*pfsm->subMachineArray)[machineIterator]->subFSM)(pinstance, e));
 			}
 	}
 

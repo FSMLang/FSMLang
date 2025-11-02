@@ -27,6 +27,10 @@ CALL_FAILURE_A_SUCCESS = ; if [ $$? -ne 0 ]; then echo "expected failure; test p
 ifndef NO_RUNTEST
 runtest: $(TARGET)
 	@echo "Test successful"
+
+recordtest: clean runtest
+	@echo $(notdir $(shell pwd)) >> ../done
+
 endif
 
 do_runtest: test
@@ -79,3 +83,4 @@ ifdef VARIANTS
 $(VARIANTS): $(FSM_SRC)
 	@cp fsmout $@
 endif
+

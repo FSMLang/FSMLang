@@ -523,6 +523,7 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    pfsmcog->pcmd->sub_fsm_fn_event_type   = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_event_type;
    pfsmcog->pcmd->sub_fsm_fn_return_type  = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_return_type;
    pfsmcog->pcmd->event_type              = pfsmcog->parent_fsmcog->pcmd->event_type;
+   pfsmcog->pcmd->instance_type           = pfsmcog->parent_fsmcog->pcmd->instance_type;
 
    chooseWorkerFunctions(pfsmcog);
 
@@ -597,12 +598,16 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (generate_instance)
    {
-      generateInstance(pcmd, pmi, "state_fn");
-   }
+      generateInstance(pcmd, pmi, "statesArray", "state_fn");
 
-   if (generate_run_function)
+	  if (generate_run_function)
+	  {
+		 generateRunFunction(pcmd, pmi);
+	  }
+   }
+   else
    {
-      generateRunFunction(pcmd, pmi);
+	   generateInstanceMacro(pcmd, pmi, "statesArray", "state_fn");
    }
 
    defineCSwitchMachineFSM(pfsmcog);
@@ -732,7 +737,11 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (generate_instance)
    {
-      generateInstance(pcmd, pmi, "state_fn");
+      generateInstance(pcmd, pmi, "statesArray", "state_fn");
+   }
+   else
+   {
+	   generateSubMachineInstanceMacro(pcmd, pmi, "statesArray", "state_fn");
    }
 
    defineCSwitchSubMachineFSM(pfsmcog);
@@ -777,21 +786,29 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 static void declareCSwitchMachineStateFnArray(pCMachineData pcmd)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+	char *cp;
 
-   fprintf(pcmd->hFile
-		   , "typedef ACTION_RETURN_TYPE (*%s)(p%s,%s);\n\n"
-		   , stateFnType(pcmd)
-		   , fsmType(pcmd)
-		   , eventType(pcmd)
-		   );
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   fprintf(pcmd->hFile
-		   , "static const %s %s_state_fn_array[%s_numStates];\n\n"
-		   , stateFnType(pcmd)
-		   , machineName(pcmd)
-		   , machineName(pcmd)
-		   );
+
+	fprintf(fout
+			, "typedef %s (*%s)(p%s,%s);\n\n"
+			, actionReturnType(pcmd)
+			, stateFnType(pcmd)
+			, fsmType(pcmd)
+			, eventType(pcmd)
+			);
+
+	fprintf(fout
+			, "%sconst %s %s_state_fn_array[%s];\n\n"
+			, generate_instance ? "static " : "extern "
+			, stateFnType(pcmd)
+			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+			, stateEnumMemberPmi("numStates", pcmd->pmi, &cp)
+			);
+
+	CHECK_AND_FREE(cp);
 
 }
 
@@ -799,55 +816,75 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+	char *cp;
+
    /* put the machine structure definition into the header file */
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "struct _%s_struct_ {\n"
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   );
 
+   fprintf(fout
+		   , "\t%-*s instance;\n"
+		   , (int) pcmd->sub_machine_struct_format_width
+		   , "unsigned"
+		   );
+   
    if (pmi->data)
    {
-      fprintf(pcmd->hFile
+      fprintf(fout
 			  , "\t%-*s data;\n"
 			  , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 			  , fsmDataType(pcmd)
 			 );
    }
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s state;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , stateType(pcmd)
 		   );
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s event;\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , eventType(pcmd)
 		  );
 
-   fprintf(pcmd->hFile
-		   , "\t%-*s const (*statesArray)[%s_numStates];\n"
+   fprintf(fout
+		   , "\t%-*s const (*statesArray)[%s];\n"
 		   , (int)pcmd->sub_machine_struct_format_width
 		   , stateFnType(pcmd)
-		   , machineName(pcmd)
+		   , stateEnumMemberPmi("numStates", pcmd->pmi, &cp)
 		   );
+   CHECK_AND_FREE(cp);
 
    if (pmi->machine_list)
    {
-      fprintf(pcmd->hFile
+      fprintf(fout
 			  , "\tp%-*s const (*subMachineArray)[%s_numSubMachines];\n"
 			  , (int)pcmd->sub_machine_struct_format_width
 			  , subFsmIfType(pcmd)
 			   , fqMachineName(pcmd)
 			 );
+	  if (!generate_instance)
+	  {
+		  fprintf(fout
+				  , "\t%-*s* const\t(*subMachines)[%s_numSubMachines];\n"
+				  , (int) pcmd->c_machine_struct_format_width
+				  , "void"
+				  , fqMachineName(pcmd)
+				  );
+	  }
    }
 
-   fprintf(pcmd->hFile
+   fprintf(fout
 		   , "\t%-*s fsm;\n};\n\n"
 		   , (int)pcmd->sub_machine_struct_format_width + 6 /* for the "const " */
 		   , fsmFnType(pcmd)
 		   );
+
 }
 
 static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_INFO pmi, DECLARE_OR_DEFINE dod)
@@ -887,7 +924,6 @@ static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_IN
 static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
 {
 	pCMachineData pcmd = pfsmcog->pcmd;
-	pMACHINE_INFO pmi  = pcmd->pmi;
 
    fprintf(pcmd->cFile, "\n");
 
@@ -904,16 +940,11 @@ static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
            );
 
    fprintf(pcmd->cFile
-           , "void %sFSM(p"
-           , pmi->name->name
-           );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile
-           , " pfsm, %s"
-           , pmi->data_block_count ? "p"  : ""
-          );
-   streamHungarianToUnderbarCaps(pcmd->cFile, pmi->name->name);
-   fprintf(pcmd->cFile, "_EVENT event)\n{\n");
+		   , "void %sFSM(p%s pfsm, %s event)\n{\n"
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+		   , fsmType(pcmd)
+		   , fsmFnEventType(pcmd)
+		   );
 
    writeReentrantPrologue(pcmd);
 
@@ -962,12 +993,13 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
    }
 
    fprintf(pcmd->cFile
-           , "%s %sFSM(p%s pfsm, %s event)\n{\n"
+		   , "%s%s %sFSM(p%s pfsm, %s event)\n{\n"
+		   , generate_instance ? "static " : ""
 		   , subFsmFnReturnType(pcmd)
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   , fsmType(pcmd)
-		   , eventType(pcmd)
-          );
+		   , fsmFnEventType(pcmd)
+		  );
 
    if (add_profiling_macros && profile_sub_fsms)
    {
@@ -1207,9 +1239,8 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
     //do the body
     fprintf(pich->pcmd->cFile
-            , "\t%s retVal = %s_noTransition;\n"
+            , "\t%s retVal = STATE(noTransition);\n"
             , stateType(pich->pcmd)
-            , machineName(pich->pcmd)
            );
 
     if (pich->pcmd->pmi->executes_fns_on_state_transitions)
@@ -1587,18 +1618,20 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
       if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
       {
          fprintf(pcmd->cFile
-                 , "%s\tif (eventIsNotHandledInAllStates(pfsm,%s))\n"
+                 , "%s\tif (eventIsNotHandledInAllStates(pfsm,%s))\n%s{\n"
                  , tabstr
 				 , ((pmi->modFlags & mfActionsReturnVoid) && (pmi->data_block_count == 0))
 				   ? "event" 
 				   : "e"
+                 , tabstr
                  );
       }
       else
       {
          fprintf(pcmd->cFile
-                 , "%s\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n"
+                 , "%s\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n%s{\n"
                  , tabstr
+				 , tabstr
                  );
       }
       local_tabstr = "\t";
@@ -1622,6 +1655,14 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
               );
    }
 
+   if (pmi->has_single_pai_events)
+   {
+	   fprintf(pcmd->cFile
+			   , "%s}\n"
+			   , tabstr
+			  );
+   }
+
 }
 
 static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
@@ -1642,7 +1683,7 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
       else
       {
          fprintf(pcmd->cFile
-                 , "\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n"
+                 , "\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n\t{\n"
                  );
       }
    }
@@ -1656,19 +1697,26 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
    if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
    {
       fprintf(pcmd->cFile
-              , "\t\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n"
+              , "\t\t\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n"
               );
    }
    else
    {
       fprintf(pcmd->cFile
-              , "\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
+              , "\t\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
               );
    }
 
    fprintf(pcmd->cFile
            , "\t\t}\n"
            );
+
+   if (pmi->has_single_pai_events)
+   {
+	   fprintf(pcmd->cFile
+			   , "\t}\n"
+			   );
+   }
 
 }
 
@@ -1739,6 +1787,7 @@ static bool print_state_fn_name(pLIST_ELEMENT pelem, void *data)
 
 static void defineStateFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
+
     ITERATOR_CALLBACK_HELPER ich = {
 		. ih = {
 			.pmi     = pmi
@@ -1747,17 +1796,22 @@ static void defineStateFnArray(pCMachineData pcmd, pMACHINE_INFO pmi)
         , .pcmd  = pcmd
     };
 
+	char *cp;
+
    fprintf(pcmd->cFile
-		   , "static const %s %s_state_fn_array[%s_numStates] = \n{\n"
+		   , "%sconst %s %s_state_fn_array[%s] = \n{\n"
+		   , generate_instance ? "static " : ""
 		   , stateFnType(pcmd)
-		   , machineName(pcmd)
-		   , machineName(pcmd)
+		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
+		   , stateEnumMemberPmi("numStates", pcmd->pmi, &cp)
 		   );
+   CHECK_AND_FREE(cp);
 
    /* declare state fns */
    iterate_list(pmi->state_list, print_state_fn_name, &ich);
 
    fprintf(pcmd->cFile, "};\n\n");
+
 }
 
 static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEMENT pelem, void *data)

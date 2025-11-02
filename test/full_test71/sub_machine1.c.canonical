@@ -12,8 +12,9 @@
 #define DBG_PRINTF(...)
 #endif
 
-static TOP_LEVEL_EVENT sub_machine1FSM(FSM_TYPE_PTR,TOP_LEVEL_EVENT);
+static TOP_LEVEL_EVENT sub_machine1FSM(pSUB_MACHINE1,TOP_LEVEL_EVENT);
 
+static void * const sub_machine1_INSTANCES[top_level_numInstances];
 static TOP_LEVEL_EVENT s1_stateFn(pSUB_MACHINE1,TOP_LEVEL_EVENT);
 static TOP_LEVEL_EVENT s2_stateFn(pSUB_MACHINE1,TOP_LEVEL_EVENT);
 static TOP_LEVEL_EVENT s3_stateFn(pSUB_MACHINE1,TOP_LEVEL_EVENT);
@@ -25,32 +26,35 @@ static const SUB_MACHINE1_STATE_FN sub_machine1_state_fn_array[sub_machine1_numS
 	, s3_stateFn
 };
 
-TOP_LEVEL_EVENT THIS(sub_machine_fn)(TOP_LEVEL_EVENT e)
+
+TOP_LEVEL_EVENT THIS(sub_machine_fn)(const void *pfsm, TOP_LEVEL_EVENT e)
 {
-	return sub_machine1FSM(psub_machine1,e);
+	return ((FSM_TYPE_PTR)pfsm)->fsm((FSM_TYPE_PTR)pfsm,e);
 }
 
 TOP_LEVEL_SUB_FSM_IF top_level_sub_machine1_sub_fsm_if =
 {
-		.subFSM = THIS(sub_machine_fn)
+	  .subFSM = THIS(sub_machine_fn)
+	, .instanceArray = &sub_machine1_INSTANCES
 	, .first_event = THIS(firstEvent)
 	, .last_event = THIS(noEvent)
 };
 
-SUB_MACHINE1 sub_machine1 = {
-	sub_machine1_s1,
-	THIS(e1),
-	&sub_machine1_state_fn_array,
-	sub_machine1FSM
+static SUB_MACHINE1 sub_machine1_INSTANCE0 = {
+	.state = sub_machine1_s1
+	, .event = THIS(e1)
+	, .statesArray = &sub_machine1_state_fn_array
+	, .instance = 0
+	, .fsm = sub_machine1FSM
+	};
+static void * const sub_machine1_INSTANCES[top_level_numInstances] = {
+	  &sub_machine1_INSTANCE0
 };
-
-pSUB_MACHINE1 psub_machine1 = &sub_machine1;
-
 
 #ifndef EVENT_IS_NOT_EXCLUDED_FROM_LOG
 #define EVENT_IS_NOT_EXCLUDED_FROM_LOG(e) (e == e)
 #endif
-TOP_LEVEL_EVENT sub_machine1FSM(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT event)
+static TOP_LEVEL_EVENT sub_machine1FSM(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT event)
 {
 	TOP_LEVEL_EVENT e = event;
 
@@ -79,7 +83,7 @@ if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 		    && (e < THIS(noEvent))
 			)
 		{
-		e = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));
+			e = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));
 		}
 
 	}
