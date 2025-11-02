@@ -83,9 +83,8 @@ if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 		    && (e < THIS(noEvent))
 			)
 		{
-		e = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));
+			e = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));
 		}
-
 	}
 
 	return e == THIS(noEvent) ? PARENT(noEvent) : e;
