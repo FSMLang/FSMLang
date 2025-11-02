@@ -1680,7 +1680,7 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
       else
       {
          fprintf(pcmd->cFile
-                 , "\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n\t{"
+                 , "\tif ((e = checkWhetherEventIsHandledInAllStates(pfsm,e)) != THIS(noEvent))\n\t{\n"
                  );
       }
    }
@@ -1694,13 +1694,13 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
    if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
    {
       fprintf(pcmd->cFile
-              , "\t\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n"
+              , "\t\t\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n"
               );
    }
    else
    {
       fprintf(pcmd->cFile
-              , "\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
+              , "\t\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
               );
    }
 

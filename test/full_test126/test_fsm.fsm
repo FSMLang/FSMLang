@@ -1,0 +1,93 @@
+native
+{
+#include "test.h"
+}
+
+machine test_fsm
+	native impl
+	{
+	#define INIT_FSM_DATA { .e1_count = 0, .name = "test_fsm" }
+	}
+{
+	data
+	{
+		int e1_count;
+		char *name;
+	}
+
+	event e1 data translator grab_e1_data {int i;};
+
+	state s1;
+
+	machine sub
+		native impl
+		{
+		#define INIT_FSM_DATA { .sub_e1_count = 0 }
+		}
+	{
+		data
+		{
+			int sub_e1_count;
+		}
+
+		event parent::e1 data translator grab_parent_e1_data;
+		state s1;
+
+		machine subSub
+			native impl
+			{
+			#define INIT_FSM_DATA { .sub_e1_count = 0 }
+			}
+		{
+			data
+			{
+				int subSub_e1_count;
+			}
+	
+			event parent::e1 data translator grab_parent_e1_data;
+			state s1;
+	
+			action do_nothing[e1, s1];
+		}
+
+		action do_nothing[e1, s1];
+	}
+
+	machine sub2
+		native impl
+		{
+		#define INIT_FSM_DATA { .sub2_e1_count = 0 }
+		}
+	{
+		data
+		{
+			int sub2_e1_count;
+		}
+
+		event parent::e1 data translator grab_parent_e1_data;
+		state s1;
+
+		machine subSub
+			native impl
+			{
+			#define INIT_FSM_DATA { .sub_e1_count = 0 }
+			}
+		{
+			data
+			{
+				int subSub_e1_count;
+			}
+	
+			event parent::e1 data translator grab_parent_e1_data;
+			state s1;
+	
+			action do_nothing[e1, s1];
+		}
+
+		action do_nothing[e1, s1];
+	}
+
+	action handle_e1[e1, s1];
+
+}
+

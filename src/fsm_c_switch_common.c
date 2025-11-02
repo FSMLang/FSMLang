@@ -420,10 +420,6 @@ void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator pfsmcog)
            , "\n\treturn e == THIS(noEvent) ? PARENT(noEvent) : e;"
            );
 
-   fprintf(pcmd->cFile
-		   , "\n\t}"
-		   );
-
 }
 
 void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
