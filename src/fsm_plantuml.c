@@ -743,15 +743,15 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
               }
               else
               {
-                 /* first, declare the choice */
+                 /* first, declare the choice or guard */
                  fprintf(pfsmpumlog->pmd->pumlFile
                          , "state %s <<choice>>\n"
                          , pai->transition->name
                          );
 
-                 /* then the state that transitions via the choice */
+                 /* then the state that transitions via the guard */
                  fprintf(pfsmpumlog->pmd->pumlFile
-                         , "%s --> %s : **Event:** %s\\n**Action:** %s\\n**Choice:** %s\n"
+                         , "%s --> %s : **Event:** %s\\n**Action:** %s\\n**Guard:** %s\n"
                          , stateNameByIndex(pmi, s)
                          , pai->transition->name
                          , eventNameByIndex(pmi, e)
