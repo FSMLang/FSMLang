@@ -768,7 +768,7 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                  else
                  {
                     fprintf(stderr
-                            , "**transition function:** %s\n"
+                            , "**guard function:** %s\n"
                             , pai->transition->name
                             );
                     yyerror("It is required to declare what the transition function returns.");
