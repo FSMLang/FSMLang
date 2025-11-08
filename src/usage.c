@@ -275,8 +275,11 @@ void usage(void)
 		  , list_item_end
 		  );
 	fprintf(stdout
-			,"%s--css-content-internal=true%sputs the CSS directly into the html.%s"
+			,"%s--css-content-internal=%s%strue|false%s%sputs the CSS directly into the html.%s"
 			, item_start
+			, lt
+			, dflt
+			, gt
       , expl_start
 			, item_end
 			);
