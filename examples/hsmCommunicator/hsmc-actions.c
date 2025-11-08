@@ -45,14 +45,14 @@ HSM_COMMUNICATOR_EVENT  UFMN(completeSessionStart)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
 	(void) pfsm;
-	return hsmCommunicator_pass_shared_event(sharing_hsmCommunicator_SEND_MESSAGE);
+	return hsmCommunicator_pass_shared_event(pfsm, sharing_hsmCommunicator_SEND_MESSAGE);
 }
 
 HSM_COMMUNICATOR_EVENT  UFMN(passMessageReceived)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
 	(void) pfsm;
-	return hsmCommunicator_pass_shared_event(sharing_hsmCommunicator_MESSAGE_RECEIVED);
+	return hsmCommunicator_pass_shared_event(pfsm, sharing_hsmCommunicator_MESSAGE_RECEIVED);
 }
 
 HSM_COMMUNICATOR_EVENT  UFMN(queueMessage)(FSM_TYPE_PTR pfsm)
@@ -72,7 +72,7 @@ HSM_COMMUNICATOR_EVENT  UFMN(requestMessageTransmission)(FSM_TYPE_PTR pfsm)
 
 	queue_count++;
 
-	return hsmCommunicator_pass_shared_event(sharing_hsmCommunicator_SEND_MESSAGE);
+	return hsmCommunicator_pass_shared_event(pfsm, sharing_hsmCommunicator_SEND_MESSAGE);
 }
 
 HSM_COMMUNICATOR_EVENT  UFMN(noAction)(FSM_TYPE_PTR pfsm)
