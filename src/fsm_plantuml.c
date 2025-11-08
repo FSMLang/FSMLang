@@ -327,6 +327,19 @@ static bool print_state_name(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static bool print_guard_name(pLIST_ELEMENT pelem, void *data)
+{
+   pID_INFO pid                           = ((pID_INFO)pelem->mbr);
+   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
+
+   fprintf(pfsmpumlog->pmd->pumlFile
+		   , "state %s <<choice>>\n"
+		   , pid->name
+		   );
+
+   return false;
+}
+
 static bool print_state_docCmnt(pLIST_ELEMENT pelem, void *data)
 {
    pID_INFO pid                           = ((pID_INFO)pelem->mbr);
@@ -428,7 +441,7 @@ static bool print_transition_options(pLIST_ELEMENT pelem, void *data)
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
    fprintf(pih->fout
-           , "%s --> %s\n"
+           , "%s -[#blue]-> %s\n"
            , pih->pid->name
            , pid->name
            );
@@ -675,6 +688,8 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
   iterate_list(pmi->state_list, print_state_exit_fn, pfsmpumlog);
   iterate_list(pmi->state_list, print_state_inhibitions, pfsmpumlog);
 
+  iterate_list(pmi->transition_fn_list, print_guard_name, pfsmpumlog);
+
   /* show the initial state */
   fprintf(pfsmpumlog->pmd->pumlFile
          , "\n[*] --> %s\n"
@@ -694,73 +709,52 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
            if (pai->transition)
            {
-              if (pai->transition->type == STATE)
+			   fprintf(pfsmpumlog->pmd->pumlFile
+					   , pevent->type_data.event_data.shared_with_parent
+						 ? "%s --> %s : **Event:** (%s::) %s\\n**Action:** %s"
+						 : "%s --> %s : **Event:** %s%s\\n**Action:** %s"
+					   , stateNameByIndex(pmi, s)
+					   , pai->transition->name
+					   , pevent->type_data.event_data.shared_with_parent
+						 ? pmi->parent->name->name
+						 : ""
+					   , pevent->name
+					   , strlen(pai->action->name)
+						   ? pai->action->name
+						   : "none"
+					   );
+
+			   if (pevent->type_data.event_data.psharing_sub_machines)
+			   {
+				  fprintf(pfsmpumlog->pmd->pumlFile
+						  , "\\n**Event shared with:**\\n"
+						  );
+
+				  iterate_list(pevent->type_data.event_data.psharing_sub_machines
+							   , print_sharing_machines
+							   , pfsmpumlog
+							   );
+
+				  fprintf(pfsmpumlog->pmd->pumlFile
+						  , "\n"
+						  );
+
+			   }
+
+			   fprintf(pfsmpumlog->pmd->pumlFile
+					   , "\n"
+					   );
+
+			   if (pai->docCmnt)
+			   {
+				  fprintf(pfsmpumlog->pmd->pumlFile
+						  , "note on link\n%s\nend note\n"
+						  , pai->docCmnt
+						  );
+			   }
+
+              if (pai->transition->type != STATE)
               {
-                 /* simple state transition */
-                 fprintf(pfsmpumlog->pmd->pumlFile
-                         , pevent->type_data.event_data.shared_with_parent
-                           ? "%s --> %s : **Event:** (%s::) %s\\n**Action:** %s"
-                           : "%s --> %s : **Event:** %s%s\\n**Action:** %s"
-                         , stateNameByIndex(pmi, s)
-                         , pai->transition->name
-                         , pevent->type_data.event_data.shared_with_parent
-                           ? pmi->parent->name->name
-                           : ""
-                         , pevent->name
-                         , strlen(pai->action->name)
-                             ? pai->action->name
-                             : "none"
-                         );
-
-                 if (pevent->type_data.event_data.psharing_sub_machines)
-                 {
-                    fprintf(pfsmpumlog->pmd->pumlFile
-                            , "\\n**Event shared with:**\\n"
-                            );
-
-                    iterate_list(pevent->type_data.event_data.psharing_sub_machines
-                                 , print_sharing_machines
-                                 , pfsmpumlog
-                                 );
-
-                    fprintf(pfsmpumlog->pmd->pumlFile
-                            , "\n"
-                            );
-
-                 }
-
-                 fprintf(pfsmpumlog->pmd->pumlFile
-                         , "\n"
-                         );
-
-                 if (pai->docCmnt)
-                 {
-                    fprintf(pfsmpumlog->pmd->pumlFile
-                            , "note on link\n%s\nend note\n"
-                            , pai->docCmnt
-                            );
-                 }
-              }
-              else
-              {
-                 /* first, declare the choice */
-                 fprintf(pfsmpumlog->pmd->pumlFile
-                         , "state %s <<choice>>\n"
-                         , pai->transition->name
-                         );
-
-                 /* then the state that transitions via the choice */
-                 fprintf(pfsmpumlog->pmd->pumlFile
-                         , "%s --> %s : **Event:** %s\\n**Action:** %s\\n**Choice:** %s\n"
-                         , stateNameByIndex(pmi, s)
-                         , pai->transition->name
-                         , eventNameByIndex(pmi, e)
-                         , pai->action
-                             ? pai->action->name
-                             : ""
-                         , pai->transition->name
-                         );
-
                  if (pai->transition->transition_fn_returns_decl)
                  {
                     ih.pid = pai->transition;
@@ -774,7 +768,7 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                  else
                  {
                     fprintf(stderr
-                            , "**transition function:** %s\n"
+                            , "**guard function:** %s\n"
                             , pai->transition->name
                             );
                     yyerror("It is required to declare what the transition function returns.");

@@ -267,7 +267,7 @@ code {
 	<ul class="return_decl">
 		<li>noEvent</li>
 	</ul>
-<br/><b>transition</b> : t_fn<br/>returns:
+<br/><b>guard</b> : t_fn<br/>returns:
 	<ul class="return_decl">
 		<li>s2</li>
 		<li>s4</li>
@@ -508,7 +508,7 @@ code {
 </table>
 <table class="elements">
 <thead><tr>
-<th colspan=2 align=left>Transition Functions</th>
+<th colspan=2 align=left>Guard Functions</th>
 </tr>
 </thead>
 <tbody>

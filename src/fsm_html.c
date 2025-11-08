@@ -402,7 +402,7 @@ static void print_transition_fn_table(pFSMHTMLOutputGenerator pfsmhtmlog)
 	fprintf(pfsmhtmlog->pmd->htmlFile,"<table class=\"elements\">\n");
 
 	fprintf(pfsmhtmlog->pmd->htmlFile,"<thead><tr>\n");
-	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Transition Functions</th>\n");
+	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Guard Functions</th>\n");
 	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n</thead>\n<tbody>\n");
 	
 	iterate_list(pfsmhtmlog->pmd->pmi->transition_fn_list, print_transition_fn_table_transition_fn_row, &ih);
@@ -504,49 +504,135 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 	fprintf(pih->fout
 			,"\t\t<td class="
 			);
-		   if (pmi->modFlags & mfActionsReturnStates) {
 
-			   fprintf(pih->fout
-			 ,"%s>%s"
-			 ,	pai ?
-								(strlen(pai->action->name) 
-				   ? "action" : "noAction") 
-				   : "nullAction"
-			 ,	pai 
-				   ? (strlen(pai->action->name) 
-					  ? pai->action->name 
-					  : "transition") 
-				   : "Not Defined"
-			 );
+	if (pmi->modFlags & mfActionsReturnStates) {
 
-	 if (
-		 pai
-		&& pai->action->type_data.action_data.action_returns_decl
-		 )
-	 {
 		fprintf(pih->fout
-				,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
-				);
-		iterate_list(pai->action->type_data.action_data.action_returns_decl
-					 , print_id_info_as_html_list_element
-					 , pih
-					 );
-		fprintf(pih->fout
-				, "\t</ul>\n"
-				);
-	 }
-
-	 if (
-		 pai
-		&& pai->transition
-		 )
-	 {
-		fprintf(pih->fout
-				, "<br/>%s"
-				, pai->transition->name
+				, "%s>%s"
+				, pai
+				  ? (strlen(pai->action->name) 
+			        ? "action" : "noAction") 
+			      : "nullAction"
+				, pai 
+			      ? (strlen(pai->action->name) 
+			        ? pai->action->name 
+			        : "transition") 
+			      : "Not Defined"
 				);
 
-		if (pai->transition->transition_fn_returns_decl)
+		if (
+			pai
+		   && pai->action->type_data.action_data.action_returns_decl
+			)
+		{
+		   fprintf(pih->fout
+				   ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+				   );
+		   iterate_list(pai->action->type_data.action_data.action_returns_decl
+						, print_id_info_as_html_list_element
+						, pih
+						);
+		   fprintf(pih->fout
+				   , "\t</ul>\n"
+				   );
+		}
+
+		if (
+			pai
+		   && pai->transition
+			)
+		{
+		   fprintf(pih->fout
+				   , "<br/>%s"
+				   , pai->transition->name
+				   );
+
+		   if (pai->transition->transition_fn_returns_decl)
+		   {
+			  fprintf(pih->fout
+					  ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+					  );
+			  iterate_list(pai->transition->transition_fn_returns_decl
+						   , print_id_info_as_html_list_element
+						   , pih
+						   );
+			  fprintf(pih->fout
+					  , "\t</ul>\n"
+					  );
+		   }
+		}
+
+	}
+	else {
+
+		fprintf(pih->fout
+				, "%s>%s"
+				, pai 
+				  ? (strlen(pai->action->name) 
+					? "action" 
+			        : "noAction") 
+				  : "nullAction"
+				, pai 
+				  ? (strlen(pai->action->name) 
+			        ? pai->action->name 
+			        : "noAction") 
+		          : ""
+				);
+
+		if (
+			pai
+			)
+		{
+		   /* if this action is associated with a shared event, it will have exactly one event */
+		   pID_INFO paction = pai->action;
+		   pID_INFO pevent = (pID_INFO)find_nth_list_member(paction->type_data.action_data.actionInfo->matrix->event_list,0);
+
+		   /* and, that event will have a list of sharing machines */
+		   if (pevent->type_data.event_data.psharing_sub_machines)
+		   {
+			  fprintf(pih->fout
+					  ,"<br/>shares event with:\n\t<ul class=\"return_decl\">\n"
+					  );
+			  iterate_list(pevent->type_data.event_data.psharing_sub_machines
+						   , print_machine_name_as_list_element
+						   , pih->fout
+						   );
+			  fprintf(pih->fout,"</ul>\n"
+					  );
+		   }
+		   else
+		   {
+			  if (paction->type_data.action_data.action_returns_decl)
+			  {
+				 fprintf(pih->fout
+						 ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
+						 );
+				 iterate_list(pai->action->type_data.action_data.action_returns_decl
+							  , print_id_info_as_html_list_element
+							  , pih
+							  );
+				 fprintf(pih->fout
+						 , "\t</ul>\n"
+						 );
+			  }
+		   }
+		}
+
+		fprintf(pih->fout
+				, "<br/><b>%s</b> : %s"
+				, pai && pai->transition && (pai->transition->type != STATE) 
+				    ? "guard"
+				    : "transition"
+				, pai && pai->transition
+				  ? pai->transition->name
+				  : "none"
+				);
+
+		if (
+			pai
+			&& pai->transition 
+			&& pai->transition->transition_fn_returns_decl
+			)
 		{
 		   fprintf(pih->fout
 				   ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
@@ -559,106 +645,23 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 				   , "\t</ul>\n"
 				   );
 		}
-	 }
 
-		   }
-		   else {
+	}
 
-			   fprintf(pih->fout
-			 ,"%s>%s"
-			 ,	pai 
-				? (strlen(pai->action->name) 
-				   ? "action" 
-				   : "noAction") 
-				: "nullAction"
-			 ,	pai 
-				? (strlen(pai->action->name) 
-				   ? pai->action->name 
-				   : "noAction") 
-				: ""
-			 );
+	if (
+		pai
+		&& pai->docCmnt
+		)
+	{
+	   fprintf(pih->fout
+			   ,"<p class=\"transition_comment\">%s</p>"
+			   , pai->docCmnt
+			   );
+	}
 
-	 if (
-		 pai
-		 )
-	 {
-		/* if this action is associated with a shared event, it will have exactly one event */
-		pID_INFO paction = pai->action;
-		pID_INFO pevent = (pID_INFO)find_nth_list_member(paction->type_data.action_data.actionInfo->matrix->event_list,0);
-
-		/* and, that event will have a list of sharing machines */
-		if (pevent->type_data.event_data.psharing_sub_machines)
-		{
-		   fprintf(pih->fout
-				   ,"<br/>shares event with:\n\t<ul class=\"return_decl\">\n"
-				   );
-		   iterate_list(pevent->type_data.event_data.psharing_sub_machines
-						, print_machine_name_as_list_element
-						, pih->fout
-						);
-		   fprintf(pih->fout,"</ul>\n"
-				   );
-		}
-		else
-		{
-		   if (paction->type_data.action_data.action_returns_decl)
-		   {
-			  fprintf(pih->fout
-					  ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
-					  );
-			  iterate_list(pai->action->type_data.action_data.action_returns_decl
-						   , print_id_info_as_html_list_element
-						   , pih
-						   );
-			  fprintf(pih->fout
-					  , "\t</ul>\n"
-					  );
-		   }
-		}
-	 }
-
-	 fprintf(pih->fout
-			 , "<br/><b>transition</b> : %s"
-			 , pai ? 
-			   (pai->transition ? 
-				 pai->transition->name : "none")
-			   : "none"
-			 );
-
-	 if (
-		 pai
-		 && pai->transition 
-		&& pai->transition->transition_fn_returns_decl
-		 )
-	 {
-		fprintf(pih->fout
-				,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
-				);
-		iterate_list(pai->transition->transition_fn_returns_decl
-					 , print_id_info_as_html_list_element
-					 , pih
-					 );
-		fprintf(pih->fout
-				, "\t</ul>\n"
-				);
-	 }
-
-		   }
-
-   if (
-	   pai
-	   && pai->docCmnt
-	   )
-   {
-	  fprintf(pih->fout
-			  ,"<p class=\"transition_comment\">%s</p>"
-			  , pai->docCmnt
-			  );
-   }
-
-   fprintf(pih->fout
-		   , "</td>\n"
-		   );
+	fprintf(pih->fout
+			, "</td>\n"
+			);
 
 	return false;
 

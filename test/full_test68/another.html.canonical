@@ -46,13 +46,13 @@
 <li>anotherSubMachine1</li>
 </ul>
 <br/><b>transition</b> : s1</td>
-		<td class=noAction>noAction<br/><b>transition</b> : transitionFn1<br/>returns:
+		<td class=noAction>noAction<br/><b>guard</b> : transitionFn1<br/>returns:
 	<ul class="return_decl">
 		<li>s2</li>
 		<li>s3</li>
 	</ul>
 </td>
-		<td class=noAction>noAction<br/><b>transition</b> : transitionFn1<br/>returns:
+		<td class=noAction>noAction<br/><b>guard</b> : transitionFn1<br/>returns:
 	<ul class="return_decl">
 		<li>s2</li>
 		<li>s3</li>
@@ -66,7 +66,7 @@
 	<ul class="return_decl">
 <li>anotherSubMachine1</li>
 </ul>
-<br/><b>transition</b> : transitionFn<br/>returns:
+<br/><b>guard</b> : transitionFn<br/>returns:
 	<ul class="return_decl">
 		<li>s1</li>
 		<li>s2</li>
@@ -74,13 +74,13 @@
 <p class="transition_comment">
 		A Document Comment
 	</p></td>
-		<td class=noAction>noAction<br/><b>transition</b> : transitionFn1<br/>returns:
+		<td class=noAction>noAction<br/><b>guard</b> : transitionFn1<br/>returns:
 	<ul class="return_decl">
 		<li>s2</li>
 		<li>s3</li>
 	</ul>
 </td>
-		<td class=noAction>noAction<br/><b>transition</b> : transitionFn1<br/>returns:
+		<td class=noAction>noAction<br/><b>guard</b> : transitionFn1<br/>returns:
 	<ul class="return_decl">
 		<li>s2</li>
 		<li>s3</li>
@@ -94,7 +94,7 @@
 	<ul class="return_decl">
 <li>anotherSubMachine1</li>
 </ul>
-<br/><b>transition</b> : transitionFn<br/>returns:
+<br/><b>guard</b> : transitionFn<br/>returns:
 	<ul class="return_decl">
 		<li>s1</li>
 		<li>s2</li>
@@ -102,13 +102,13 @@
 <p class="transition_comment">
 		A Document Comment
 	</p></td>
-		<td class=noAction>noAction<br/><b>transition</b> : transitionFn1<br/>returns:
+		<td class=noAction>noAction<br/><b>guard</b> : transitionFn1<br/>returns:
 	<ul class="return_decl">
 		<li>s2</li>
 		<li>s3</li>
 	</ul>
 </td>
-		<td class=noAction>noAction<br/><b>transition</b> : transitionFn1<br/>returns:
+		<td class=noAction>noAction<br/><b>guard</b> : transitionFn1<br/>returns:
 	<ul class="return_decl">
 		<li>s2</li>
 		<li>s3</li>
@@ -317,7 +317,7 @@
 </table>
 <table class="elements">
 <thead><tr>
-<th colspan=2 align=left>Transition Functions</th>
+<th colspan=2 align=left>Guard Functions</th>
 </tr>
 </thead>
 <tbody>

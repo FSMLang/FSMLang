@@ -2463,7 +2463,7 @@ const struct option longopts[] =
     }
     , {
         .name      = "css-content-internal"
-        , .has_arg = required_argument
+        , .has_arg = optional_argument
         , .flag    = &longval
         , .val     = lo_css_content_internal
     }
@@ -2673,7 +2673,7 @@ int main(int argc, char **argv)
                 break;
             case lo_css_content_internal:
                 css_content_internal
-                    = !strcmp(optarg,"true") ? true : false;
+                    = (!optarg || !strcmp(optarg,"true")) ? true : false;
                 break;
             case lo_short_dbg_names:
                 short_dbg_names = true;

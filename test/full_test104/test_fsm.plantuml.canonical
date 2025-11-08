@@ -11,6 +11,7 @@ title test_fsm
 state s1
 state s2
 state s3
+state tf1 <<choice>>
 
 [*] --> s1
 s1 --> s2 : **Event:** e2\n**Action:** a2
@@ -22,9 +23,8 @@ e1: a1
 e4: a4
 end note
 s2 --> s1 : **Event:** e2\n**Action:** none
-state tf1 <<choice>>
-s2 --> tf1 : **Event:** e3\n**Action:** a3\n**Choice:** tf1
-tf1 --> s1
-tf1 --> s2
+s2 --> tf1 : **Event:** e3\n**Action:** a3
+tf1 -[#blue]-> s1
+tf1 -[#blue]-> s2
 s2 --> s2 : **Event:** e4\n**Action:** a4
 @enduml
