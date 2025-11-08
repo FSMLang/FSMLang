@@ -43,6 +43,7 @@ $(addsuffix .test, $(ARCHITECTURES)): $$(basename $$@)
 
 $(addsuffix .testonly, $(ARCHITECTURES)): $$(basename $$@)
 	$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) testonly
+	$(MAKE) -C ../examples FSM="$(shell pwd)/$(OUT_DIR)/fsm"
 
 $(addsuffix .lexer, $(ARCHITECTURES)):
 	$(MAKE) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test lexer
