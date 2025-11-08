@@ -462,5 +462,23 @@
 	the state machine under construction.
 
 */
-const char rev_string[] = "1.47";
+
+/*
+	Revision 1.48
+
+	Correct behavior of machines with actions returning states and void
+	when machines have data.
+
+	Introduce new keyword, <i>guard</i>, synonymous to <i>transition</i>
+	when the transition is via a function.  This is consistent with UML
+	usage.  HTML and PlantUML use <i>guard</i> rather than <i>transition</i>
+	when the transition is via a function, regardless of the keyword used in
+	the source.
+
+	Fix -i.  -i0 correctly handles sub-machines. -ix where x > 1 (2 and
+	3 were tested) sets up additional run fuctions to specify which
+	instance should be executed.
+
+*/
+const char rev_string[] = "1.48";
 
