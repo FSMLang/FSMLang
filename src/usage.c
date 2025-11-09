@@ -155,18 +155,23 @@ void usage(void)
 			);
 
 	fprintf(stdout
-			,"%s-i0%sinhibits the creation of a machine instance%s"
+			,"%s-i0%sinhibits the creation of a machine instance;%s"
 			, item_start
       , expl_start
 			, list_start
 			);
 	fprintf(stdout
-			,"%sany other argument to 'i' allows the creation of an instance;%s"
+			,"%sany other unsigned argument to 'i' allows the creation%s"
 			, inner_item_start
 			, item_end
 			);
 	fprintf(stdout
-			,"%sthis is the default%s"
+			,"%sof that many instances;%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%screating one instance is the default%s"
 			, inner_item_start
 			, list_item_end
 			);
@@ -244,7 +249,7 @@ void usage(void)
 			, item_end
 			);
  fprintf(stdout
-		 ,"%s--generate-run-function%s=true|false%s%sthis option is deprecated.  The run function is always generated;%s"
+		 ,"%s--generate-run-function%s=true|false%s%sthis option is deprecated.  The run function is always generated when instances are created;%s"
 		 , item_start
      , lt
      , gt
@@ -253,6 +258,11 @@ void usage(void)
 		 );
 	fprintf(stdout
 			,"%sno RUN_STATE_MACHINE macro is provided.%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			,"%sWhen multiple instances are requested, a run function is created for each.%s"
 			, inner_item_start
 			, list_item_end
 			);
