@@ -1,5 +1,4 @@
 #include "test_fsm.h"
-#include "test_fsm_instance_macros.h"
 
 #define INIT_FSM_DATA { .e1_count = 0, .name="test_fsm" }
 #define INIT_FSM_DATA_SUB { .sub_e1_count = 0 }

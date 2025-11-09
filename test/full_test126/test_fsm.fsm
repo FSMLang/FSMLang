@@ -4,10 +4,6 @@ native
 }
 
 machine test_fsm
-	native impl
-	{
-	#define INIT_FSM_DATA { .e1_count = 0, .name = "test_fsm" }
-	}
 {
 	data
 	{
@@ -20,10 +16,6 @@ machine test_fsm
 	state s1;
 
 	machine sub
-		native impl
-		{
-		#define INIT_FSM_DATA { .sub_e1_count = 0 }
-		}
 	{
 		data
 		{
@@ -34,10 +26,6 @@ machine test_fsm
 		state s1;
 
 		machine subSub
-			native impl
-			{
-			#define INIT_FSM_DATA { .sub_e1_count = 0 }
-			}
 		{
 			data
 			{
@@ -54,10 +42,6 @@ machine test_fsm
 	}
 
 	machine sub2
-		native impl
-		{
-		#define INIT_FSM_DATA { .sub2_e1_count = 0 }
-		}
 	{
 		data
 		{
@@ -68,10 +52,6 @@ machine test_fsm
 		state s1;
 
 		machine subSub
-			native impl
-			{
-			#define INIT_FSM_DATA { .sub_e1_count = 0 }
-			}
 		{
 			data
 			{
