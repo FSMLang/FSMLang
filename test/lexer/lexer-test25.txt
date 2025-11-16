@@ -1,0 +1,3 @@
+  include foo.fsm
+  include "bar.fsm"
+  include baz.fsm		

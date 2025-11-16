@@ -1,0 +1,15 @@
+	machine sub2
+	{
+		data
+		{
+			int sub2_e1_count;
+		}
+
+		event parent::e1 data translator grab_parent_e1_data;
+		state s1;
+
+		include subSub.fsms
+
+		action do_nothing[e1, s1];
+	}
+

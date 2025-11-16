@@ -22,13 +22,27 @@ char *currDocCmnt = NULL;      /* points to the most recently seen document comm
 int	charOffset = 0;						/* the character offset */
 unsigned brace_cnt = 0;
 
+typedef struct _bufstack_ BUFSTACK, *pBUFSTACK;
+struct _bufstack_
+{
+	pBUFSTACK       prev;
+	YY_BUFFER_STATE bs;
+	int             lineno;
+	char            *filename;
+	FILE            *f;
+};
 
+pBUFSTACK curbs   = NULL;
+char *curfilename = NULL;
 
 #if defined (LEX_DEBUG) || defined (PARSER_DEBUG)
 
-#define YY_NO_INPUT
 #define YY_NO_UNPUT
 
+#endif
+
+#ifdef __cplusplus
+#error nasty
 #endif
 
 #if defined (LEX_DEBUG)
@@ -43,10 +57,13 @@ unsigned brace_cnt = 0;
 
 %}
 
+%option noyywrap yylineno
+
 %x CMNT
 %x DOCCMNT
 %x NATIVE
 %x NATIVE_BLCK
+%x INCLUDE
 
 %%
 
@@ -89,9 +106,30 @@ unsigned brace_cnt = 0;
 					;
 					#endif
 			}
-<CMNT>"*/"	BEGIN INITIAL;
+<CMNT>"*/"	{ BEGIN INITIAL; }
 
 \/\/.*	;
+
+include[ \t]*\"? { BEGIN INCLUDE; }
+
+<INCLUDE>[^ \t\n\"]+ {
+		{
+			int c;
+			while ((c = input()) && c != '\n');
+		}
+		#ifdef LEX_DEBUG
+		printf("include [%s]\n", yytext);
+		#else
+		lineno++;
+		#endif
+
+		if (!newfile(yytext))
+		{
+			yyterminate();
+		}
+
+		BEGIN INITIAL;
+	}
 
 data	{
 
@@ -528,26 +566,109 @@ union {
 			#endif
 		}
 
+<<EOF>> { if (!popfile()) yyterminate(); }
+
 		/* ignore anything else */
 <*>.	;
 
 %%
 
-#if defined (VS) || defined (MINGW) || defined (CYGWIN) || defined (LINUX)
-int yywrap(void)
+int newfile(char *filename)
 {
+	pBUFSTACK bs = (pBUFSTACK) malloc(sizeof(BUFSTACK));
+
+	if (!bs)
+	{
+		fprintf(stderr
+				, "%s: Failed to allocate BUFSTACK\n"
+				, me
+				);
+		return 0;
+	}
+
+	if (NULL == (bs->f = fopen(filename, "r")))
+	{
+		fprintf(stderr
+				 , "%s: Failed to open input file %s\n"
+				 , me
+				 , filename
+				);
+		return 0;
+	}
+
+	/* Remember current state. */
+	if (curbs)
+	{
+		curbs->lineno = yylineno;
+	}
+	bs -> prev = curbs;
+
+	/* Setup new entry. */
+	bs->bs       = yy_create_buffer(bs->f, YY_BUF_SIZE);
+	bs->filename = strdup(filename);
+	
+	yy_switch_to_buffer(bs->bs);
+
+	curbs        = bs;
+	yylineno     = 1;
+	curfilename  = bs->filename;
+
+	return 1;
+
+}
+
+int popfile(void)
+{
+	pBUFSTACK bs = curbs;
+	pBUFSTACK prevbs;
+
+	if (!bs)
+	{
+		return 0;
+	}
+
+	prevbs = curbs->prev;
+
+	/* Get rid of current entry. */
+	fclose(bs->f);
+	free(bs->filename);
+	yy_delete_buffer(bs->bs);
+	free(bs);
+
+	curbs = prevbs;
+	if (!prevbs)
+{
+	return 0;
+	}
+
+	yy_switch_to_buffer(prevbs->bs);
+	yylineno    = curbs->lineno;
+	curfilename = curbs->filename;
+
 	return 1;
 }
-#endif
 
 #if defined (LEX_DEBUG)
 
 pLIST id_list;
-int main ()
+int main (int argc, char **argv)
 {
+	me = argv[0];
+
+	if (argc != 2)
+	{
+		fprintf(stderr
+				, "%s: exactly one argument needed\n"
+				, me
+				);
+	}
+
     id_list = init_list();
 
+	if (newfile(argv[1]))
+	{
     yylex();
+	}
 
     return 0;
 }

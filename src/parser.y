@@ -2939,11 +2939,10 @@ int main(int argc, char **argv)
 
 		}
 
-		if ((yyin = openFile(argv[fnind],"r")) == NULL) {
-
-			return 1;
-
-		}
+    if (!newfile(argv[fnind]))
+    {
+      return 1;
+    }
 
 		/* get the base file name */
 		if (!outFileBase) {
@@ -2980,8 +2979,6 @@ int main(int argc, char **argv)
 
 		}
 		#endif
-
-		fclose(yyin);
 
 	}
 
