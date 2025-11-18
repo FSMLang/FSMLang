@@ -113,10 +113,6 @@ char *curfilename = NULL;
 include[ \t]*\"? { BEGIN INCLUDE; }
 
 <INCLUDE>[^ \t\n\"]+ {
-		{
-			int c;
-			while ((c = input()) && c != '\n');
-		}
 		#ifdef LEX_DEBUG
 		printf("include [%s]\n", yytext);
 		#else
@@ -575,7 +571,7 @@ union {
 
 int newfile(char *filename)
 {
-	pBUFSTACK bs = (pBUFSTACK) malloc(sizeof(BUFSTACK));
+	pBUFSTACK bs = (pBUFSTACK) calloc(1,sizeof(BUFSTACK));
 
 	if (!bs)
 	{
