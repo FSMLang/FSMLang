@@ -30,7 +30,7 @@ runtest: $(TESTS)
 	@echo "all lexer tests pass"
 
 $(TESTS): test
-	@./test < $@.txt > $@.out 2> $@.stderr
+	@./test $@.txt > $@.out 2> $@.stderr
 	@cat $@.stderr >> $@.out; rm -f $@.stderr
 	@$(DIFF) $@.out $@.canonical > $@.result
 	@echo $@ successful
