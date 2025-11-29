@@ -408,6 +408,7 @@ bool populate_action_array(pMACHINE_INFO,FILE*);
 int  copyFileContents(const FILE*,const char*);
 bool printAncestry(pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 void printNameWithAncestry(char*,pMACHINE_INFO,FILE*,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
+char *nameWithAncestry(char*,pMACHINE_INFO,char**,char*,ANCESTRY_LETTER_CASE,ANCESTRY_INCLUSION);
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO);
 unsigned maxDepth(pMACHINE_INFO);
 void print_tab_levels(FILE*,unsigned);

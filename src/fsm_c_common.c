@@ -416,10 +416,120 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_CAL
 
 }
 
-void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, bool add_numStates)
+void standardConvenienceMacros(pFSMCOutputGenerator pfsmcog)
 {
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
 	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+
+	ITERATOR_CALLBACK_HELPER   ich = {
+		.ih = {
+			.first     = false
+			, .fout    = pcmd->hFile
+			, .pmi     = pmi
+		}
+		, .pcmd    = pcmd
+	};
+
+	fprintf(convenience_macros_in_public_header
+			  ? pcmd->pubHFile
+			  : pcmd->hFile
+			, "#undef UFMN\n#define UFMN(A) %s_##A\n"
+			, ufMachineName(pcmd)
+			);
+
+	fprintf(convenience_macros_in_public_header
+			  ? pcmd->pubHFile
+			  : pcmd->hFile
+			, "#undef THIS\n#define THIS(A) %s_##A\n"
+			, fqMachineName(pcmd)
+			);
+
+	fprintf(pcmd->pubHFile
+			, "#undef STATE\n#define STATE(A) %s_##A\n"
+			, machineName(pcmd)
+			);
+
+	if (pmi->machine_list)
+	{
+	   fprintf(pcmd->pubHFile
+			   , "#undef %s\n#define %s(A) %s_##A\n"
+			   , fsmType(pcmd)
+			   , fsmType(pcmd)
+			   , machineName(pcmd)
+			   );
+
+	   ich.ih.fout = pcmd->pubHFile;
+	   iterate_list(pmi->machine_list, print_event_macro, &ich);
+	   ich.ih.fout = pcmd->hFile;
+
+	}
+
+	fprintf(pcmd->pubHFile
+			, "#undef ACTION_RETURN_TYPE\n#define ACTION_RETURN_TYPE %s\n"
+			, actionReturnType(pcmd)
+			);
+
+	fprintf(fout
+			, "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
+			, fsmType(pcmd)
+			);
+
+	fprintf(fout
+			, "#undef DECLARE_INSTANCE\n#define DECLARE_INSTANCE(A) FSM_TYPE_PTR A = (FSM_TYPE_PTR) pfsm\n"
+			);
+
+	fprintf(convenience_macros_in_public_header
+			  ? pcmd->pubHFile
+			  : pcmd->hFile
+			, "#undef DECLARE_TR_FN_RET_VAR\n#define DECLARE_TR_FN_RET_VAR(A, B)"
+			  " %s A = STATE(B)\n"
+			, stateType(pcmd)
+			);
+
+	fprintf(convenience_macros_in_public_header
+			  ? pcmd->pubHFile
+			  : pcmd->hFile
+			, "#undef RETURN_STATE\n#define RETURN_STATE(A, B) A = STATE(B)\n"
+			);
+
+	fprintf(convenience_macros_in_public_header
+			  ? pcmd->pubHFile
+			  : pcmd->hFile
+			, "#undef TR_FN_RETURN_TYPE\n#define TR_FN_RETURN_TYPE %s\n"
+			,  stateType(pcmd)
+			);
+
+}
+
+void standardTransitionFnTypedef(pFSMCOutputGenerator pfsmcog)
+{
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	if (pmi->transition_fn_list->count)
+	{
+		fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
+				, "typedef %s (*%s)(p%s,%s);\n\n"
+				, stateType(pcmd)
+				, transitionFnType(pcmd)
+				, fsmType(pcmd)
+				, eventType(pcmd)
+				);
+	}
+}
+
+void commonHeaderStart(pFSMCOutputGenerator pfsmcog
+					   , char *arrayName
+					   , bool add_numStates
+					   )
+{
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 	
+	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
+
 	//TODO: remove from signature
 	(void) arrayName;
 
@@ -464,53 +574,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 		   , "#ifndef NO_CONVENIENCE_MACROS\n"
 		   );
 
-   fprintf(convenience_macros_in_public_header
-		     ? pcmd->pubHFile
-		     : pcmd->hFile
-		   , "#undef UFMN\n#define UFMN(A) %s_##A\n"
-		   , ufMachineName(pcmd)
-		   );
-
-   fprintf(convenience_macros_in_public_header
-		     ? pcmd->pubHFile
-		     : pcmd->hFile
-		   , "#undef THIS\n#define THIS(A) %s_##A\n"
-		   , machineName(pcmd)
-		   );
-
-   fprintf(pcmd->pubHFile
-		   , "#undef STATE\n#define STATE(A) %s_##A\n"
-		   , machineName(pcmd)
-		   );
-
-   if (pmi->machine_list)
-   {
-      fprintf(pcmd->pubHFile
-			  , "#undef %s\n#define %s(A) %s_##A\n"
-			  , fsmType(pcmd)
-			  , fsmType(pcmd)
-			  , machineName(pcmd)
-			  );
-
-	  ich.ih.fout = pcmd->pubHFile;
-      iterate_list(pmi->machine_list, print_event_macro, &ich);
-	  ich.ih.fout = pcmd->hFile;
-
-   }
-
-   fprintf(pcmd->pubHFile
-		   , "#undef ACTION_RETURN_TYPE\n#define ACTION_RETURN_TYPE %s\n"
-		   , actionReturnType(pcmd)
-		   );
-
-   fprintf(fout
-		   , "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
-		   , fsmType(pcmd)
-		   );
-
-   fprintf(fout
-		   , "#undef DECLARE_INSTANCE\n#define DECLARE_INSTANCE(A) FSM_TYPE_PTR A = (FSM_TYPE_PTR) pfsm\n"
-		   );
+   pfsmcog->wconvenience_macros(pfsmcog);
 
    // This closes the NO_CONVENIENCE_MACROS block
    fprintf(convenience_macros_in_public_header
@@ -782,16 +846,7 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 		   );
 
    /* typedef transition functions, if we have any */
-   if (pmi->transition_fn_list->count)
-   {
-	   fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
-			   , "typedef %s (*%s)(p%s,%s);\n\n"
-			   , stateType(pcmd)
-			   , transitionFnType(pcmd)
-			   , fsmType(pcmd)
-			   , eventType(pcmd)
-			   );
-   }
+   pfsmcog->wtransition_fn_typedef(pfsmcog);
 
    /* typedef the FSM function */
    fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
@@ -847,15 +902,21 @@ void commonHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, b
 
 }
 
-void commonHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
+void commonHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmd      = pcmd;
    ich.ih.pmi       = pmi;
    ich.needNoOp  = needNoOp;
+
+   /* typedef transition functions, if we have any */
+   pfsmcog->wtransition_fn_typedef(pfsmcog);
 
    /* declare the action functions themselves */
    iterate_list(pmi->action_list, declare_action_function, &ich);
@@ -1008,7 +1069,12 @@ void generateRunFunction(pCMachineData pcmd, pMACHINE_INFO pmi)
 	}
 }
 
-void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldName, char *arrayName)
+void generateInstance(pCMachineData pcmd
+					  , pMACHINE_INFO pmi
+					  , char *arrayFieldName
+					  , char *arrayName
+					  , bool arrayFieldIsArray
+					  )
 {
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -1061,12 +1127,23 @@ void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldNam
 			   , eventNameByIndex(pmi, 0)
 			  );
 
-	   fprintf(pcmd->cFile
-			   , "\t, .%s = &%s_%s_array\n"
-			   , arrayFieldName
-			   , machineName(pcmd)
-			   , arrayName
-			  );
+	   if (arrayFieldIsArray)
+	   {
+		   fprintf(pcmd->cFile
+				   , "\t, .%s = &%s_%s_array\n"
+				   , arrayFieldName
+				   , machineName(pcmd)
+				   , arrayName
+				  );
+	   }
+	   else
+	   {
+		   fprintf(pcmd->cFile
+				   , "\t, .%s = %s_stateFn\n"
+				   , arrayFieldName
+				   , arrayName
+				  );
+	   }
 
 	   if (pmi->machine_list)
 	   {
@@ -1150,7 +1227,12 @@ void generateInstance(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldNam
  * @param arrayFieldName The name of the array field.
  * @param arrayName      The name of the array.
  */
-void generateInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldName, char *arrayName)
+void generateInstanceMacro(pCMachineData pcmd
+						   , pMACHINE_INFO pmi
+						   , char *arrayFieldName
+						   , char *arrayName
+						   , bool arrayFieldIsArray
+						   )
 {
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -1222,12 +1304,23 @@ void generateInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFie
            , eventNameByIndex(pmi, 0)
           );
 
-   fprintf(pcmd->pubHFile
-		   , "\t, .%s = &%s_%s_array\\\n"
-		   , arrayFieldName
-		   , fqMachineName(pcmd)
-           , arrayName
-          );
+   if (arrayFieldIsArray)
+   {
+	   fprintf(pcmd->pubHFile
+			   , "\t, .%s = &%s_%s_array\\\n"
+			   , arrayFieldName
+			   , fqMachineName(pcmd)
+			   , arrayName
+			  );
+   }
+   else
+   {
+	   fprintf(pcmd->pubHFile
+			   , "\t, .%s = %s_stateFn\\\n"
+			   , arrayFieldName
+			   , arrayName
+			  );
+   }
 
    fprintf(pcmd->pubHFile
 		   , "\t, .fsm = %sFSM\\\n"
@@ -1272,7 +1365,12 @@ void generateInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFie
  * @param arrayFieldName The name of the array field.
  * @param arrayName      The name of the array.
  */
-void generateSubMachineInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayFieldName, char *arrayName)
+void generateSubMachineInstanceMacro(pCMachineData pcmd
+									 , pMACHINE_INFO pmi
+									 , char *arrayFieldName
+									 , char *arrayName
+									 , bool arrayFieldIsArray
+									 )
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->parent_pcmd->instanceMacrosHFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -1350,12 +1448,23 @@ void generateSubMachineInstanceMacro(pCMachineData pcmd, pMACHINE_INFO pmi, char
            , eventNameByIndex(pmi, 0)
           );
 
-   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
-		   , "\t, .%s = &%s_%s_array\\\n"
-		   , arrayFieldName
-		   , fqMachineName(pcmd)
-           , arrayName
-          );
+   if (arrayFieldIsArray)
+   {
+	   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
+			   , "\t, .%s = &%s_%s_array\\\n"
+			   , arrayFieldName
+			   , fqMachineName(pcmd)
+			   , arrayName
+			  );
+   }
+   else
+   {
+	   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
+			   , "\t, .%s = %s_stateFn\\\n"
+			   , arrayFieldName
+			   , arrayName
+			  );
+   }
 
    fprintf(pcmd->parent_pcmd->instanceMacrosHFile
 		   , "\t, .fsm = %sFSM\\\n"
@@ -1443,8 +1552,7 @@ static void print_transition_function_signature(FILE *fout, pCMachineData pcmd, 
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "\n%s __attribute__((weak)) %s_%s%s(FSM_TYPE_PTR%s%s%s%s)%s\n"
-			, stateType(pcmd)
+			, "\nTR_FN_RETURN_TYPE __attribute__((weak)) %s_%s%s(FSM_TYPE_PTR%s%s%s%s)%s\n"
 			, fqMachineName(pcmd)
 			, name_prefix ? name_prefix : ""
 			, name
@@ -1461,10 +1569,11 @@ static void print_transition_function_body(FILE *fout, pCMachineData pcmd, char 
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n\treturn %s_%s;\n}\n"
+			, "%s\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n"
+			  "DECLARE_TR_FN_RET_VAR(trfnret, %s);\n"
+			  "\treturn trfnret;\n}\n"
 			, !(pcmd->pmi->modFlags & mfActionsReturnStates) ? "\t(void) e;\n" : ""
 			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-			, machineName(pcmd)
 			, name
 		   );
 }
@@ -2334,8 +2443,7 @@ static void print_transition_fn_declaration_for_when_actions_return_events(pCMac
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s %s_%s(p%s,%s);\n"
-			, stateType(pcmd)
+			, "TR_FN_RETURN_TYPE %s_%s(p%s,%s);\n"
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
@@ -2348,8 +2456,7 @@ static void print_state_only_transition_fn_declaration_for_when_actions_return_e
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s %s_transitionTo%s(p%s,%s);\n"
-			, stateType(pcmd)
+			, "TR_FN_RETURN_TYPE %s_transitionTo%s(p%s,%s);\n"
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
@@ -2639,8 +2746,14 @@ void print_native_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi)
 	}
 }
 
-void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayName, bool add_num_states)
+void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
+						   , char *arrayName
+						   , bool add_num_states
+						   )
 {
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
 	(void) arrayName;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
    char *cp = NULL;
@@ -2692,15 +2805,7 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
            , "#ifndef NO_CONVENIENCE_MACROS\n"
            );
 
-   fprintf(pcmd->hFile
-		   , "#undef UFMN\n#define UFMN(A) %s_##A\n"
-		   , ufMachineName(pcmd)
-		   );
-
-   fprintf(pcmd->hFile
-		   , "#undef THIS\n#define THIS(A) %s_##A\n"
-		   , fqMachineName(pcmd)
-		   );
+   pfsmcog->wconvenience_macros(pfsmcog);
 
    fprintf(pcmd->hFile
 		   , "#undef PARENT\n#define PARENT(A) %s_##A\n"
@@ -2715,25 +2820,6 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 			   );
 
    }
-
-   fprintf(pcmd->hFile
-		   , "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
-		   , fsmType(pcmd)
-		   );
-
-   fprintf(pcmd->pubHFile
-		   , "#undef ACTION_RETURN_TYPE\n#define ACTION_RETURN_TYPE %s\n"
-		   , actionReturnType(pcmd)
-		   );
-
-   fprintf(pcmd->hFile
-		   , "#undef STATE\n#define STATE(A) %s\n"
-		   , stateEnumMemberPmi("##A", pmi, &cp)
-		   );
-
-   fprintf(pcmd->hFile
-		   , "#undef DECLARE_INSTANCE\n#define DECLARE_INSTANCE(A) FSM_TYPE_PTR A = (FSM_TYPE_PTR) pfsm\n"
-		   );
 
    CHECK_AND_FREE(cp);
 
@@ -2840,18 +2926,6 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
 		   , fsmType(pcmd)
 		   );
 
-   /* typedef transition functions, if we have any */
-   if (pmi->transition_fn_list->count)
-   {
-	   fprintf(pcmd->hFile
-			   , "typedef %s (*%s)(p%s,%s);\n\n"
-			   , stateType(pcmd)
-			   , transitionFnType(pcmd)
-			   , fsmType(pcmd)
-			   , eventType(pcmd)
-			   );
-   }
-
    /* typedef the FSM function */
    fprintf(pcmd->hFile
 		   , "typedef %s (*%s_FSM)(p%s,%s);\n\n"
@@ -2913,7 +2987,6 @@ void subMachineHeaderStart(pCMachineData pcmd, pMACHINE_INFO pmi, char *arrayNam
    {
 	   printSubMachinesDeclarations(pcmd, pmi);
    }
-   
 
 }
 
@@ -2922,8 +2995,7 @@ void print_transition_fn_declaration_for_when_actions_return_states(pCMachineDat
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s %s_%s(p%s);\n"
-			, stateType(pcmd)
+			, "TR_FN_RETURN_TYPE %s_%s(p%s);\n"
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
@@ -2935,8 +3007,7 @@ static void print_state_only_transition_fn_declaration_for_when_actions_return_s
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s %s_transitionTo%s(p%s);\n"
-			, stateType(pcmd)
+			, "TR_FN_RETURN_TYPE %s_transitionTo%s(p%s);\n"
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)

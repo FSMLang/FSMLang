@@ -57,12 +57,12 @@ struct _fsm_c_switch_output_generator_
 };
 
 void writeCSwitchMachineFN(pFSMOutputGenerator,pMACHINE_INFO);
-void cswitchMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
+void cswitchMachineHeaderEnd(pFSMCOutputGenerator,bool);
 void writeOriginalSwitchFSMLoopAre(pFSMCOutputGenerator);
 void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator);
 void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator);
 void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator);
-void cswitchSubMachineHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
+void cswitchSubMachineHeaderEnd(pFSMCOutputGenerator,bool);
 
 #endif
 

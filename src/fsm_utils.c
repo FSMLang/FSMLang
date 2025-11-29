@@ -1347,6 +1347,26 @@ void printNameWithAncestry(char *name, pMACHINE_INFO pmi, FILE *fout, char *sepa
 	}
 }
 
+char *nameWithAncestry(char *name
+                            , pMACHINE_INFO pmi
+                            , char **pcp
+                            , char *separator
+                            , ANCESTRY_LETTER_CASE alc
+                            , ANCESTRY_INCLUSION ai
+                            )
+{
+    FILE *tmp;
+    *pcp = NULL;
+
+    if (NULL != (tmp = tmpfile()))
+    {
+        printNameWithAncestry(name, pmi, tmp, separator, alc, ai);
+        *pcp = create_string_from_file(tmp, NULL);
+    }
+
+    return *pcp;
+}
+
 pMACHINE_INFO ultimateAncestor(pMACHINE_INFO pmi)
 {
 	return !pmi->parent ? pmi : ultimateAncestor(pmi->parent);

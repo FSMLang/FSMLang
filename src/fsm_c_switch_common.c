@@ -48,13 +48,19 @@
 
 static bool            cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
 
-void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
+void cswitchMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 {
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
    ich.pcmd      = pcmd;
    ich.ih.pmi    = pmi;
    ich.needNoOp  = needNoOp;
+
+   /* typedef transition functions, if we have any */
+   pfsmcog->wtransition_fn_typedef(pfsmcog);
 
    /* declare the action functions themselves */
    iterate_list(pmi->action_list, declare_action_function, &ich);
@@ -85,10 +91,8 @@ void cswitchMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoO
       if (pmi->transition_fn_list->count)
       {
          fprintf(pcmd->hFile
-                 , "%s %s_noTransitionFn(p%s);\n"
-                 , stateType(pcmd)
+                 , "TR_FN_RETURN_TYPE %s_noTransitionFn(FSM_TYPE_PTR);\n"
                  , machineName(pcmd)
-                 , fsmType(pcmd)
                 );
 
          iterate_list(pmi->transition_fn_list
@@ -268,12 +272,18 @@ void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator pfsmcog)
 
 }
 
-void cswitchSubMachineHeaderEnd(pCMachineData pcmd, pMACHINE_INFO pmi, bool needNoOp)
+void cswitchSubMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 {
+   pCMachineData pcmd = pfsmcog->pcmd;
+   pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
    ITERATOR_CALLBACK_HELPER ich = { 0 };
    ich.pcmd      = pcmd;
    ich.ih.pmi       = pmi;
    ich.needNoOp  = needNoOp;
+
+   /* typedef transition functions, if we have any */
+   pfsmcog->wtransition_fn_typedef(pfsmcog);
 
    /* declare the action functions themselves */
    iterate_list(pmi->action_list, declare_action_function, &ich);
@@ -352,8 +362,7 @@ static bool cswitch_sub_machine_declare_transition_fn_for_when_actions_return_ev
    pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
 
    fprintf(pich->pcmd->hFile
-		   , "%s UFMN(%s)(p%s,%s);\n"
-		   , stateType(pich->pcmd)
+		   , "TR_FN_RETURN_TYPE UFMN(%s)(p%s,%s);\n"
 		   , pid_info->name
 		   , fsmType(pich->pcmd)
 		   , eventType(pich->pcmd)

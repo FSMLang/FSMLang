@@ -102,19 +102,21 @@ static bool find_transition(pLIST_ELEMENT,void*);
 #define print_event_table_handler_state_case ((pFSMCSwitchOutputGenerator)pfsmcog)->pethsc
 
 static FSMCSwitchOutputGenerator CEventTableMachineWriter = {
-	{
-	   {
+	.fsmcog = {
+	   .fsmog = {
 	      initCMachine
 	      , writeCEventTableMachine
 	      , closeCMachine
 		  , generateCEventTableMachineWriter
 	   }
-	   , NULL
-	   , NULL
-	   , NULL
-	   , NULL
-	   , NULL
-	   , NULL
+	   , .wfsm                   = NULL
+	   , .cfsmliw                = NULL
+	   , .wstate_chart           = NULL
+	   , .wconvenience_macros    = standardConvenienceMacros
+	   , .wtransition_fn_typedef = standardTransitionFnTypedef
+	   , .pcmd                   = NULL
+	   , .top_level_fsmcog       = NULL
+	   , .parent_fsmcog          = NULL
 	}
 	, NULL
 	, NULL
@@ -192,13 +194,13 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
    /* do this now, since some header stuff puts content into the source file.*/
    addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-   subMachineHeaderStart(pcmd, pmi, "event_fn", false);
+   subMachineHeaderStart(pfsmcog, "event_fn", false);
 
    declareCEventTableMachineEventTable(pcmd);
 
    defineCEventTableMachineStruct(pcmd);
 
-   cswitchSubMachineHeaderEnd(pcmd, pmi, empty_cell_fn != NULL);
+   cswitchSubMachineHeaderEnd(pfsmcog, empty_cell_fn != NULL);
 
    /*
      Source File
@@ -231,11 +233,11 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (generate_instance)
    {
-      generateInstance(pcmd, pmi, "eventsArray", "event_fn");
+      generateInstance(pcmd, pmi, "eventsArray", "event_fn", true);
    }
    else
    {
-	   generateSubMachineInstanceMacro(pcmd, pmi, "eventsArray", "event_fn");
+	   generateSubMachineInstanceMacro(pcmd, pmi, "eventsArray", "event_fn", true);
    }
 
    defineCEventTableSubMachineFSM(pfsmcog);
@@ -313,8 +315,10 @@ pFSMOutputGenerator generateCEventTableMachineWriter(pFSMOutputGenerator parent)
 		pfsmceventtableog->fsmcog.fsmog.closeOutput  = closeCMachine;
 		pfsmceventtableog->fsmcog.fsmog.fsmogFactory = generateCEventTableMachineWriter;
 
-		pfsmceventtableog->fsmcog.top_level_fsmcog = (pFSMCOutputGenerator)&CEventTableMachineWriter;
-		pfsmceventtableog->fsmcog.parent_fsmcog    = (pFSMCOutputGenerator) parent;
+		pfsmceventtableog->fsmcog.wconvenience_macros    = standardConvenienceMacros;
+		pfsmceventtableog->fsmcog.wtransition_fn_typedef = standardTransitionFnTypedef;
+		pfsmceventtableog->fsmcog.top_level_fsmcog       = (pFSMCOutputGenerator)&CEventTableMachineWriter;
+		pfsmceventtableog->fsmcog.parent_fsmcog          = (pFSMCOutputGenerator) parent;
 
 		pfsmog = (pFSMOutputGenerator)pfsmceventtableog;
 	}
@@ -349,13 +353,13 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 	/* do this now, since some header stuff puts content into the source file.*/
 	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-	commonHeaderStart(pcmd, pmi, "event_fn", false);
+	commonHeaderStart(pfsmcog, "event_fn", false);
 
 	declareCEventTableMachineEventTable(pcmd);
 
 	defineCEventTableMachineStruct(pcmd);
 
-	cswitchMachineHeaderEnd(pcmd, pmi, empty_cell_fn != NULL);
+	cswitchMachineHeaderEnd(pfsmcog, empty_cell_fn != NULL);
 
 	/*
 	    Source File
@@ -389,7 +393,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (generate_instance)
 	{
-		generateInstance(pcmd, pmi, "eventsArray", "event_fn");
+		generateInstance(pcmd, pmi, "eventsArray", "event_fn", true);
 
 		if (generate_run_function)
 		{
@@ -399,7 +403,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 	}
 	else
 	{
-		generateInstanceMacro(pcmd, pmi, "eventsArray", "event_fn");
+		generateInstanceMacro(pcmd, pmi, "eventsArray", "event_fn", true);
 	}
 
 	defineCEventTableMachineFSM(pfsmcog);

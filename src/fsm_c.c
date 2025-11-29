@@ -89,18 +89,20 @@ static void defineCSubMachineFSM(pFSMCOutputGenerator);
 #define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
 
 FSMCOutputGenerator CMachineWriter = {
-	{
+	.fsmog = {
 		initCMachine
 		, writeCMachine
 		, closeCMachine
 		, generateCMachineWriter
 	}
-	, NULL
-	, NULL
-	, NULL
-	, NULL
-	, NULL
-	, NULL
+	, .wfsm                   = NULL
+	, .cfsmliw                = NULL
+	, .wstate_chart           = NULL
+	, .wconvenience_macros    = standardConvenienceMacros
+	, .wtransition_fn_typedef = standardTransitionFnTypedef
+	, .pcmd                   = NULL
+	, .top_level_fsmcog       = NULL
+	, .parent_fsmcog          = NULL
 };
 
 /* list iteration callbacks */
@@ -223,7 +225,7 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 	/* do this now, since some header stuff puts content into the source file.*/
 	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-	subMachineHeaderStart(pcmd, pmi, "action", true);
+	subMachineHeaderStart(pfsmcog, "action", true);
 
 	/* we need our count of events */
 	fprintf(pcmd->hFile
@@ -240,7 +242,7 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	declareCMachineStruct(pcmd, pmi);
 
-	commonHeaderEnd(pcmd, pmi, true);
+	commonHeaderEnd(pfsmcog, true);
 
 	/*
 	  Source File
@@ -266,11 +268,11 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (generate_instance)
 	{
-		generateInstance(pcmd, pmi, "actionArray", "action");
+		generateInstance(pcmd, pmi, "actionArray", "action", true);
 	}
 	else
 	{
-		generateSubMachineInstanceMacro(pcmd, pmi, "actionArray", "action");
+		generateSubMachineInstanceMacro(pcmd, pmi, "actionArray", "action", true);
 	}
 
 	defineCSubMachineFSM(pfsmcog);
@@ -326,13 +328,13 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 	/* do this now, since some header stuff puts content into the source file.*/
 	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-	commonHeaderStart(pcmd, pmi, "action", true);
+	commonHeaderStart(pfsmcog, "action", true);
 
 	declareCMachineActionArray(pcmd, pmi);
 
 	declareCMachineStruct(pcmd, pmi);
 
-	commonHeaderEnd(pcmd, pmi, true);
+	commonHeaderEnd(pfsmcog, true);
 
 	/*
 	  Source File
@@ -359,7 +361,7 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (generate_instance)
 	{
-		generateInstance(pcmd, pmi, "actionArray", "action");
+		generateInstance(pcmd, pmi, "actionArray", "action", true);
 
 		if (generate_run_function)
 		{
@@ -368,7 +370,7 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 	}
 	else
 	{
-		generateInstanceMacro(pcmd, pmi, "actionArray", "action");
+		generateInstanceMacro(pcmd, pmi, "actionArray", "action", true);
 	}
 
 	defineCMachineFSM(pfsmcog);
@@ -1942,8 +1944,10 @@ pFSMOutputGenerator generateCMachineWriter(pFSMOutputGenerator parent)
 		pfsmcsmog->fsmog.closeOutput  = closeCMachine;
 		pfsmcsmog->fsmog.fsmogFactory = generateCMachineWriter;
 
-		pfsmcsmog->top_level_fsmcog = &CMachineWriter;
-		pfsmcsmog->parent_fsmcog    = (pFSMCOutputGenerator)parent;
+		pfsmcsmog->wconvenience_macros    = standardConvenienceMacros;
+		pfsmcsmog->wtransition_fn_typedef = standardTransitionFnTypedef;
+		pfsmcsmog->top_level_fsmcog       = &CMachineWriter;
+		pfsmcsmog->parent_fsmcog          = (pFSMCOutputGenerator)parent;
 
 		pfsmog =  (pFSMOutputGenerator)pfsmcsmog;
 	}
