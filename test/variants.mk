@@ -18,6 +18,9 @@ s s.size s_run: CFLAGS+=-DFSM_VARIANT_S
 cc cc.size cc_run: FSM_FLAGS+=-tc -c --generate-weak-fns=false
 cc cc.size cc_run: CFLAGS+=-DFSM_VARIANT_CC
 
+sc sc.size sc_run: FSM_FLAGS+=-ts -c --generate-weak-fns=false --force-generation-of-event-passing-actions
+sc sc.size sc_run: CFLAGS+=-DFSM_VARIANT_SC
+
 runtest: $(addsuffix _run, $(VARIANTS))
 	@echo "all tests successful"
 
