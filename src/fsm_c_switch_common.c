@@ -60,7 +60,7 @@ void cswitchMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
    ich.needNoOp  = needNoOp;
 
    /* typedef transition functions, if we have any */
-   pfsmcog->wtransition_fn_typedef(pfsmcog);
+   switchTransitionFnTypedef(pfsmcog);
 
    /* declare the action functions themselves */
    iterate_list(pmi->action_list, declare_action_function, &ich);
@@ -283,7 +283,7 @@ void cswitchSubMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
    ich.needNoOp  = needNoOp;
 
    /* typedef transition functions, if we have any */
-   pfsmcog->wtransition_fn_typedef(pfsmcog);
+   switchTransitionFnTypedef(pfsmcog);
 
    /* declare the action functions themselves */
    iterate_list(pmi->action_list, declare_action_function, &ich);
@@ -468,5 +468,38 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
    }
 
    FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: End %s */\n", __func__);
+}
+
+void switchTransitionFnTypedef(pFSMCOutputGenerator pfsmcog)
+{
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	if (pmi->transition_fn_list->count)
+	{
+		if (compact_action_array)
+		{
+			fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
+					, "typedef struct _transition_fn_return_ TRANSITION_FN_RETURN;\n"
+				   );
+			fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
+					, "struct _transition_fn_return_\n{\n\t%s s_enum;\n\t%s s_fn;\n};\n\n"
+					, stateType(pcmd)
+					, stateFnType(pcmd)
+				   );
+		}
+		fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
+				, "typedef %s (*%s)(p%s,%s);\n\n"
+				, compact_action_array ? "TRANSITION_FN_RETURN" : stateType(pcmd)
+				, transitionFnType(pcmd)
+				, fsmType(pcmd)
+				, eventType(pcmd)
+				);
+	}
+}
+
+void empty(pFSMCOutputGenerator pfsmcog)
+{
+	(void) pfsmcog;
 }
 

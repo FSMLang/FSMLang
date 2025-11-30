@@ -63,6 +63,8 @@ void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator);
 void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator);
 void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator);
 void cswitchSubMachineHeaderEnd(pFSMCOutputGenerator,bool);
+void switchTransitionFnTypedef(pFSMCOutputGenerator);
+void empty(pFSMCOutputGenerator);
 
 #endif
 

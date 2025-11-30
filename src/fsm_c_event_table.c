@@ -113,7 +113,7 @@ static FSMCSwitchOutputGenerator CEventTableMachineWriter = {
 	   , .cfsmliw                = NULL
 	   , .wstate_chart           = NULL
 	   , .wconvenience_macros    = standardConvenienceMacros
-	   , .wtransition_fn_typedef = standardTransitionFnTypedef
+	   , .wtransition_fn_typedef = empty //!< we call the switch-specific fn in ...HeaderEnd
 	   , .pcmd                   = NULL
 	   , .top_level_fsmcog       = NULL
 	   , .parent_fsmcog          = NULL
@@ -316,7 +316,7 @@ pFSMOutputGenerator generateCEventTableMachineWriter(pFSMOutputGenerator parent)
 		pfsmceventtableog->fsmcog.fsmog.fsmogFactory = generateCEventTableMachineWriter;
 
 		pfsmceventtableog->fsmcog.wconvenience_macros    = standardConvenienceMacros;
-		pfsmceventtableog->fsmcog.wtransition_fn_typedef = standardTransitionFnTypedef;
+		pfsmceventtableog->fsmcog.wtransition_fn_typedef = empty;
 		pfsmceventtableog->fsmcog.top_level_fsmcog       = (pFSMCOutputGenerator)&CEventTableMachineWriter;
 		pfsmceventtableog->fsmcog.parent_fsmcog          = (pFSMCOutputGenerator) parent;
 

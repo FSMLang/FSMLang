@@ -446,10 +446,12 @@ void standardConvenienceMacros(pFSMCOutputGenerator pfsmcog)
 			, fqMachineName(pcmd)
 			);
 
+	char *cp = NULL;
 	fprintf(pcmd->pubHFile
-			, "#undef STATE\n#define STATE(A) %s_##A\n"
-			, machineName(pcmd)
+			, "#undef STATE\n#define STATE(A) %s\n"
+			, stateEnumMemberPmi("##A", pmi, &cp)
 			);
+	CHECK_AND_FREE(cp);
 
 	if (pmi->machine_list)
 	{
@@ -914,9 +916,6 @@ void commonHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
    ich.pcmd      = pcmd;
    ich.ih.pmi       = pmi;
    ich.needNoOp  = needNoOp;
-
-   /* typedef transition functions, if we have any */
-   pfsmcog->wtransition_fn_typedef(pfsmcog);
 
    /* declare the action functions themselves */
    iterate_list(pmi->action_list, declare_action_function, &ich);
@@ -2925,6 +2924,9 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 		   , actionFnType(pcmd)
 		   , fsmType(pcmd)
 		   );
+
+   /* typedef transition functions, if we have any */
+   pfsmcog->wtransition_fn_typedef(pfsmcog);
 
    /* typedef the FSM function */
    fprintf(pcmd->hFile

@@ -91,7 +91,6 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT,void*);
 static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEMENT,void*);
 static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMENT,void*);
 static void switchConvenienceMacros(pFSMCOutputGenerator);
-static void switchTransitionFnTypedef(pFSMCOutputGenerator);
 
 
 #define writeFSMLoop(A) pfsmcog->wfsm((A))
@@ -109,7 +108,7 @@ static FSMCSwitchOutputGenerator CSwitchMachineWriter = {
 		, .cfsmliw                = NULL
 		, .wstate_chart           = NULL
 		, .wconvenience_macros    = switchConvenienceMacros
-		, .wtransition_fn_typedef = switchTransitionFnTypedef
+		, .wtransition_fn_typedef = empty //!< we will do this work in our own closing header fn
 		, .pcmd                   = NULL
 		, .top_level_fsmcog       = NULL
 		, .parent_fsmcog          = NULL
@@ -1549,9 +1548,13 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 								, pich->pcmd->pmi->executes_fns_on_state_transitions
 								  ? "new_s" 
 								  : "pfsm->state"
-								, fqMachineName(pich->pcmd)
+								, pai->transition->type == STATE
+								  ? machineName(pich->pcmd)
+								  : fqMachineName(pich->pcmd)
 								, pai->transition->name
-								, pai->transition->type == STATE ? "" : "(pfsm, e)"
+								, pai->transition->type == STATE
+								  ? ""
+								  : "(pfsm, e)"
 							   );
 					}
 
@@ -1692,7 +1695,9 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 							   , pich->pcmd->pmi->executes_fns_on_state_transitions
 								 ? "new_s" 
 								 : "pfsm->state"
-							   , fqMachineName(pich->pcmd)
+							   , pai->transition->type == STATE
+							     ? machineName(pich->pcmd)
+							     : fqMachineName(pich->pcmd)
 							   , pai->transition->name
 							   , pai->transition->type == STATE ? "" : "(pfsm, e)"
 							  );
@@ -2093,7 +2098,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 						 , pich->pcmd->pmi->executes_fns_on_state_transitions
 						   ? "new_s" 
 						   : "pfsm->state"
-						 , fqMachineName(pich->pcmd)
+						 , machineName(pich->pcmd)
 						 , ped->psingle_pai->transition->name
 						 , ped->psingle_pai->transition->type == STATE ? "" : "(pfsm, e)"
 						);
@@ -2153,9 +2158,12 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
           if (ped->psingle_pai->transition)
           {
              fprintf(pich->pcmd->cFile
-                     , "\t\t\t%s = UFMN(%s)%s;\n"
+                     , "\t\t\t%s = %s(%s)%s;\n"
                      , pich->pcmd->pmi->executes_fns_on_state_transitions
                        ? "new_s" : "pfsm->state"
+                     , ped->psingle_pai->transition->type == STATE
+					   ? "STATE"
+					   : "UFMN"
                      , ped->psingle_pai->transition->name
                      , ped->psingle_pai->transition->type == STATE
                         ? ""
@@ -2350,7 +2358,7 @@ pFSMOutputGenerator generateCSwitchMachineWriter(pFSMOutputGenerator parent)
 		pfsmcswitchog->fsmcog.fsmog.fsmogFactory = generateCSwitchMachineWriter;
 
 		pfsmcswitchog->fsmcog.wconvenience_macros    = switchConvenienceMacros;
-		pfsmcswitchog->fsmcog.wtransition_fn_typedef = switchTransitionFnTypedef;
+		pfsmcswitchog->fsmcog.wtransition_fn_typedef = empty;
 		pfsmcswitchog->fsmcog.top_level_fsmcog       = (pFSMCOutputGenerator)&CSwitchMachineWriter;
 		pfsmcswitchog->fsmcog.parent_fsmcog          = (pFSMCOutputGenerator) parent;
 
@@ -2446,33 +2454,5 @@ static void switchConvenienceMacros(pFSMCOutputGenerator pfsmcog)
 
 	}
 
-}
-
-static void switchTransitionFnTypedef(pFSMCOutputGenerator pfsmcog)
-{
-	pCMachineData pcmd = pfsmcog->pcmd;
-	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
-
-	if (pmi->transition_fn_list->count)
-	{
-		if (compact_action_array)
-		{
-			fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
-					, "typedef struct _transition_fn_return_ TRANSITION_FN_RETURN;\n"
-				   );
-			fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
-					, "struct _transition_fn_return_\n{\n\t%s s_enum;\n\t%s s_fn;\n};\n\n"
-					, stateType(pcmd)
-					, stateFnType(pcmd)
-				   );
-		}
-		fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
-				, "typedef %s (*%s)(p%s,%s);\n\n"
-				, compact_action_array ? "TRANSITION_FN_RETURN" : stateType(pcmd)
-				, transitionFnType(pcmd)
-				, fsmType(pcmd)
-				, eventType(pcmd)
-				);
-	}
 }
 
