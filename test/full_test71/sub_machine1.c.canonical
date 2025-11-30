@@ -117,7 +117,7 @@ static TOP_LEVEL_EVENT s2_stateFn(pSUB_MACHINE1 pfsm,TOP_LEVEL_EVENT e)
 	{
 	case THIS(e2):
 		retVal = UFMN(a2)(pfsm);
-		pfsm->state = UFMN(checkTransition)(pfsm,e);
+		pfsm->state = top_level_sub_machine1_checkTransition(pfsm, e);
 		break;
 	default:
 		DBG_PRINTF("sub_machine1_noAction");
