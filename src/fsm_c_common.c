@@ -681,7 +681,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 
    fprintf(pcmd->eventsHFile
            , "}%s %s;\n\n"
-           , compacting(pmi) ? "__attribute__((__packed__)) " : " "
+           , compact_action_array ? "__attribute__((__packed__)) " : " "
 		   , eventType(pcmd)
           );
 
@@ -785,7 +785,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 
    fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
            , "}%s %s;\n\n"
-           , compacting(pmi) ? " __attribute__((__packed__))" : " "
+           , compact_action_array ? " __attribute__((__packed__))" : " "
 		   , stateType(pcmd)
           );
 
@@ -906,10 +906,10 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 
 void commonHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 {
-	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
-
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->hFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
@@ -951,8 +951,6 @@ void commonHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
    /* declare any transition functions */
    if (pmi->modFlags & mfActionsReturnStates)
    {
-	   print_transition_fn_declaration_for_when_actions_return_states(pcmd,pcmd->hFile, "noTransitionFn");
-
       if (pmi->transition_fn_list->count)
       {
          iterate_list(pmi->transition_fn_list
@@ -964,6 +962,9 @@ void commonHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
                       , declare_state_only_transition_functions_for_when_actions_return_states 
                       , &ich
                       );
+
+		 print_transition_fn_declaration_for_when_actions_return_states(pcmd,pcmd->hFile, "noTransitionFn");
+
       }
 
       fprintf(pcmd->hFile, "\n");
@@ -982,18 +983,15 @@ void commonHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
                       , declare_state_only_transition_functions_for_when_actions_return_events
                       , &ich
                       );
-      }
+
+		 print_transition_fn_declaration_for_when_actions_return_events(pcmd
+																		, pcmd->hFile
+																		, "noTransitionFn"
+																		);
+	  }
 
       fprintf(pcmd->hFile, "\n");
 
-      if (pmi->transition_fn_list->count)
-      {
-		  print_transition_fn_declaration_for_when_actions_return_events(pcmd
-																		 , pcmd->hFile
-																		 , "noTransitionFn"
-																		 );
-		  fprintf(pcmd->cFile, "\n");
-      }
    }
 
    /* declare any entry or exit functions */
@@ -1964,7 +1962,7 @@ void destroyCMachineData(pCMachineData pcmd, int good)
 bool assignExternalEventValues(pMACHINE_INFO pmi)
 {
    return !( (pmi->event_list->count != pmi->external_event_designation_count)
-           || compacting(pmi)
+           || compact_action_array
           );
 
 }
@@ -2873,7 +2871,7 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 
    fprintf(fout_state_enum
            , "}%s %s;\n\n"
-           , compacting(pmi) ? " __attribute__((__packed__))" : " "
+           , compact_action_array ? " __attribute__((__packed__))" : " "
 		   , stateType(pcmd)
           );
 
@@ -2997,7 +2995,8 @@ void print_transition_fn_declaration_for_when_actions_return_states(pCMachineDat
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "TR_FN_RETURN_TYPE %s_%s(p%s);\n"
+			, "%s %s_%s(p%s);\n"
+			, stateType(pcmd)
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
@@ -4057,8 +4056,7 @@ void writeNoTransition(pCMachineData pcmd, pMACHINE_INFO pmi)
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
 
 	fprintf(pcmd->cFile
-			, "\n%s __attribute__((weak)) UFMN(noTransitionFn)(p%s pfsm"
-			, stateType(pcmd)
+			, "\nTR_FN_RETURN_TYPE __attribute__((weak)) UFMN(noTransitionFn)(p%s pfsm"
 			, fsmType(pcmd)
 			);
 	if (pmi->modFlags & mfActionsReturnStates)

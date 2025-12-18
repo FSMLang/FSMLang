@@ -91,7 +91,8 @@ void cswitchMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
       if (pmi->transition_fn_list->count)
       {
          fprintf(pcmd->hFile
-                 , "TR_FN_RETURN_TYPE %s_noTransitionFn(FSM_TYPE_PTR);\n"
+                 , "%s %s_noTransitionFn(FSM_TYPE_PTR);\n"
+				 , stateType(pcmd)
                  , machineName(pcmd)
                 );
 
@@ -474,6 +475,11 @@ void switchTransitionFnTypedef(pFSMCOutputGenerator pfsmcog)
 {
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(generate_instance ? pcmd->hFile : pcmd->pubHFile
+						   , "/* FSMLANG_DEVELOP: %s */\n"
+						   , __func__
+						   );
 
 	if (pmi->transition_fn_list->count)
 	{

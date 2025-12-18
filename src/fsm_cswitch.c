@@ -496,6 +496,9 @@ static void writeCSwitchMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
    pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
+   // Check propriety of compacting before continuing.
+   set_compacting(pmi, mfActionsReturnStates);
+
    pfsmcog->pcmd->pmi = pmi;
    pfsmcog->cfsmliw   = writeOriginalSwitchFSMLoopInnards;
    chooseWorkerFunctions(pfsmcog);
@@ -1112,21 +1115,19 @@ static bool define_void_returning_state_fn(pLIST_ELEMENT pelem, void *data)
        )
     {
         fprintf(pich->pcmd->cFile
-				,"\t%s new_s = %s_%s"
+				,"\t%s new_s = STATE(%s);\n"
 				, stateType(pich->pcmd)
-				, nfMachineName(pich->pcmd)
 				, pstate->name
 				);
 		if (compact_action_array)
 		{
 			fprintf(pich->pcmd->cFile
-					,"\t%s new_sfn = %s_%s_stateFn"
+					,"\t%s new_sfn = STATE_FN(%s);\n"
 					, stateFnType(pich->pcmd)
-					, fqMachineName(pich->pcmd)
 					, pstate->name
 					);
 		}
-		fprintf(pich->pcmd->cFile, ";\n");
+		fprintf(pich->pcmd->cFile, "\n");
     }
 
     fprintf(pich->pcmd->cFile, "\n\tswitch(e)\n\t{\n");
@@ -2077,9 +2078,11 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 				 else
 				 {
 					 fprintf(pich->pcmd->cFile
-							 , "\t\t{\n\t\t\tTR_FN_RETURN_TYPE tfr = %s_%s(pfsm, e);\n"
-							   "\t\t\t%s = tfr.s_enum;\n"
-							   "\t\t\t%s = tfr.s_fn;\n"
+							 , "\t\t\t{\n"
+							   "\t\t\t\tTR_FN_RETURN_TYPE tfr = %s_%s(pfsm, e);\n"
+							   "\t\t\t\t%s = tfr.s_enum;\n"
+							   "\t\t\t\t%s = tfr.s_fn;\n"
+							   "\t\t\t}\n"
 							 , fqMachineName(pich->pcmd)
 							 , ped->psingle_pai->transition->name
 							 , pich->pcmd->pmi->executes_fns_on_state_transitions
@@ -2155,20 +2158,64 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 						 );
 			 }
           }
+
           if (ped->psingle_pai->transition)
           {
-             fprintf(pich->pcmd->cFile
-                     , "\t\t\t%s = %s(%s)%s;\n"
-                     , pich->pcmd->pmi->executes_fns_on_state_transitions
-                       ? "new_s" : "pfsm->state"
-                     , ped->psingle_pai->transition->type == STATE
-					   ? "STATE"
-					   : "UFMN"
-                     , ped->psingle_pai->transition->name
-                     , ped->psingle_pai->transition->type == STATE
-                        ? ""
-                        : "(pfsm,e)"
-                     );
+			  if (compact_action_array)
+			  {
+				  if (ped->psingle_pai->transition->type == STATE)
+				  {
+					  fprintf(pich->pcmd->cFile
+							  , "\t\t%s = %s_%s_stateFn;\n"
+							  , pich->pcmd->pmi->executes_fns_on_state_transitions
+								? "new_sfn" 
+								: "pfsm->currentState"
+							  , fqMachineName(pich->pcmd)
+							  , ped->psingle_pai->transition->name
+							 );
+					  fprintf(pich->pcmd->cFile
+							  , "\t\t%s = %s_%s;\n"
+							  , pich->pcmd->pmi->executes_fns_on_state_transitions
+								? "new_s" 
+								: "pfsm->state"
+							  , machineName(pich->pcmd)
+							  , ped->psingle_pai->transition->name
+							 );
+				  }
+				  else
+				  {
+					  fprintf(pich->pcmd->cFile
+							  , "\t\t\t{\n"
+							    "\t\t\t\tTR_FN_RETURN_TYPE tfr = %s_%s(pfsm, e);\n"
+								"\t\t\t\t%s = tfr.s_enum;\n"
+								"\t\t\t\t%s = tfr.s_fn;\n"
+							    "\t\t\t}\n"
+							  , fqMachineName(pich->pcmd)
+							  , ped->psingle_pai->transition->name
+							  , pich->pcmd->pmi->executes_fns_on_state_transitions
+								? "new_s" 
+								: "pfsm->state"
+							  , pich->pcmd->pmi->executes_fns_on_state_transitions
+								? "new_sfn" 
+								: "pfsm->currentState"
+							  );
+				  }
+			  }
+			  else
+			  {
+				 fprintf(pich->pcmd->cFile
+						 , "\t\t\t%s = %s(%s)%s;\n"
+						 , pich->pcmd->pmi->executes_fns_on_state_transitions
+						   ? "new_s" : "pfsm->state"
+						 , ped->psingle_pai->transition->type == STATE
+						   ? "STATE"
+						   : "UFMN"
+						 , ped->psingle_pai->transition->name
+						 , ped->psingle_pai->transition->type == STATE
+							? ""
+							: "(pfsm,e)"
+						 );
+			  }
           }
 
 
@@ -2199,10 +2246,13 @@ static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMEN
 			  );
 
       fprintf(pich->pcmd->cFile
-              , "%s\t\t\tpfsm->state = UFMN(%s)(pfsm);\n%s"
+              , "%s\t\t\t%s = UFMN(%s)(pfsm);\n%s"
               , event->type_data.event_data.psingle_pai->transition
                 ? ""
                 : add_profiling_macros ? "\t\t\tACTION_ENTRY(pfsm);\n" : ""
+			  , compact_action_array
+			    ? "pfsm->currentState"
+			    : "pfsm->state"
               , event->type_data.event_data.psingle_pai->transition
                 ? event->type_data.event_data.psingle_pai->transition->name
                 : event->type_data.event_data.psingle_pai->action->name
@@ -2251,9 +2301,19 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
    if (pmi->executes_fns_on_state_transitions && !(pmi->modFlags & mfActionsReturnStates))
    {
       fprintf(pcmd->cFile
-			  , "\t%s new_s = pfsm->state;\n\n"
+			  , "\t%s new_s = pfsm->state;\n"
 			  , stateType(pcmd)
 			  );
+
+	   if (compact_action_array)
+	   {
+		   fprintf(pcmd->cFile
+				   , "\t%s new_sfn = pfsm->currentState;\n"
+				   , stateFnType(pcmd)
+				   );
+	   }
+
+	   fprintf(pcmd->cFile, "\n");
    }
 
    fprintf(pcmd->cFile
@@ -2323,6 +2383,13 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
       fprintf(pcmd->cFile
               , "\t\tpfsm->state = new_s;\n"
              );
+
+	  if (compact_action_array)
+	  {
+		  fprintf(pcmd->cFile
+				  , "\t\tpfsm->currentState = new_sfn;\n"
+				 );
+	  }
 
       fprintf(pcmd->cFile
               , "\t}\n\n"
@@ -2450,6 +2517,13 @@ static void switchConvenienceMacros(pFSMCOutputGenerator pfsmcog)
 				? pcmd->pubHFile
 				: pcmd->hFile
 				, "/* End redefinition. */\n\n"
+				);
+
+		fprintf(convenience_macros_in_public_header
+				? pcmd->pubHFile
+				: pcmd->hFile
+				, "#undef STATE_FN\n#define STATE_FN(A) %s_##A##_stateFn\n\n"
+				, fqMachineName(pcmd)
 				);
 
 	}

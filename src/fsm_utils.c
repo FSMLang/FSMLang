@@ -1559,30 +1559,26 @@ char *create_string_from_file(FILE *file, unsigned long *str_len)
 }
 
 /**
- * Allow compacting only when actions return events.  Set the
- * compacting request flag to false so that code generation will
- * proceed without compacting.
+ * Allow compacting only as indicated by the passed flags.  Set 
+ * the compacting request flag to false so that code generation 
+ * will proceed without compacting. 
  * 
  * @author Steven Stanton (2/2/2025)
  * 
- * @param pmi    
+ * @param pmi    The relevant machine.
+ * @param filter The desired action return type(s) to filter.  
  * 
- * @return bool	true iff compact structures are requested and
- *  	   allowed.
  */
-bool compacting(pMACHINE_INFO pmi)
+void set_compacting(pMACHINE_INFO pmi, unsigned filter)
 {
-	if (compact_action_array && (pmi->modFlags & ACTIONS_RETURN_FLAGS))
+	if (compact_action_array && (pmi->modFlags & filter))
 	{
 		fprintf(stderr
-				, "Warning: Ignoring compact array request because actions do not return events.\n"
+				, "Warning: Ignoring compact array request because actions do not return appropriately.\n"
 				);
 		compact_action_array = false;
 	}
 
-	return compact_action_array
-		   && !(pmi->modFlags & ACTIONS_RETURN_FLAGS)
-	       ;
 }
 
 pID_INFO get_transition(pMACHINE_INFO pmi, unsigned event, unsigned state)
