@@ -22,6 +22,7 @@ newMachine_translate_e2_data
 event: newMachine_e2; state: newMachine_s1
 newMachine_noAction
 newMachine_transitionFn1
+
 newMachine_baz: Event newMachine_e2 caused transition from newMachine_s1 to newMachine_s3
 
 newMachine_translate_e1_data
@@ -36,12 +37,14 @@ newMachine.data.u.e3_int: 0
 
 
 newMachine_transitionFn
+
 newMachine_baz: Event newMachine_e1 caused transition from newMachine_s3 to newMachine_s1
 
 newMachine_translate_e2_data
 event: newMachine_e2; state: newMachine_s1
 newMachine_noAction
 newMachine_transitionFn1
+
 newMachine_baz: Event newMachine_e2 caused transition from newMachine_s1 to newMachine_s3
 
 newMachine_translate_e2_data
@@ -49,10 +52,12 @@ event: newMachine_e2; state: newMachine_s3
 newMachine_noAction
 newMachine_transitionFn1
 
+
 newMachine_translate_e3_data
 event: newMachine_e3; state: newMachine_s3
 newMachine_noAction
 newMachine_transitionFn1
+
 
 event: newMachine_e4; state: newMachine_s3
 newMachine_noAction

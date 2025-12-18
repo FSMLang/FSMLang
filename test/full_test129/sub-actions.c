@@ -35,3 +35,9 @@ void UFMN(onExitFrom_s1)(pSUB_DATA pdata)
 	 (void) pdata;
 }
 
+TEST_FSM_EVENT_ENUM UFMN(do_nothing)(pSUB pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return sub_pass_shared_event(pfsm, sharing_sub_e1);
+}
+

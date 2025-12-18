@@ -37,3 +37,9 @@ TR_FN_RETURN_TYPE UFMN(toggle)(pSUB2 pfsm,TEST_FSM_EVENT_ENUM event)
 
 	return ret;
 }
+TEST_FSM_EVENT_ENUM UFMN(do_nothing)(pSUB2 pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return sub2_pass_shared_event(pfsm, sharing_sub2_e1);
+}
+

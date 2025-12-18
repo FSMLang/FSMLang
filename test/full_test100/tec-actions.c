@@ -7,7 +7,7 @@ ACTION_RETURN_TYPE UFMN(a1)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
-#if defined(FSM_VARIANT_CC)
+#if defined(FSM_VARIANT_CC) || defined(FSM_VARIANT_SC)
 TEST_EMPTY_CELLS_EVENT UFMN(share)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
@@ -34,26 +34,47 @@ int main(void)
 	run_test_empty_cells(THIS(e1));	//prints a1
 
 	ptest_empty_cells->state = test_empty_cells_s1;
+	#if defined(FSM_VARIANT_SC)
+	ptest_empty_cells->currentState = STATE_FN(s1);
+	#endif
 	run_test_empty_cells(THIS(e2));	//prints noAction
 
 	ptest_empty_cells->state = test_empty_cells_s1;
+	#if defined(FSM_VARIANT_SC)
+	ptest_empty_cells->currentState = STATE_FN(s1);
+	#endif
 	run_test_empty_cells(THIS(e3));	//prints SUB(a1)
 
 	ptest_empty_cells->state = test_empty_cells_s1;
+	#if defined(FSM_VARIANT_SC)
+	ptest_empty_cells->currentState = STATE_FN(s1);
+	#endif
 	set_sub_state_s2();
 	run_test_empty_cells(THIS(e3));	//prints SUB(noAction)
 
 	ptest_empty_cells->state = test_empty_cells_s1;
+	#if defined(FSM_VARIANT_SC)
+	ptest_empty_cells->currentState = STATE_FN(s1);
+	#endif
 	set_sub_state_s3();
 	run_test_empty_cells(THIS(e3));	//prints i_am_empty
 
 	ptest_empty_cells->state = test_empty_cells_s2;
+	#if defined(FSM_VARIANT_SC)
+	ptest_empty_cells->currentState = STATE_FN(s2);
+	#endif
 	run_test_empty_cells(THIS(e1));	//prints i_am_empty
 
 	ptest_empty_cells->state = test_empty_cells_s2;
+	#if defined(FSM_VARIANT_SC)
+	ptest_empty_cells->currentState = STATE_FN(s2);
+	#endif
 	run_test_empty_cells(THIS(e2));	//prints i_am_empty
 
 	ptest_empty_cells->state = test_empty_cells_s2;
+	#if defined(FSM_VARIANT_SC)
+	ptest_empty_cells->currentState = STATE_FN(s2);
+	#endif
 	run_test_empty_cells(THIS(e3));	//prints i_am_empty
 
 	return 0;

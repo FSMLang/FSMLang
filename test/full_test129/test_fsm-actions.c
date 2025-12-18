@@ -26,3 +26,9 @@ void UFMN(record)(pTEST_FSM pfsm, TEST_FSM_STATE new_s)
 	 (void) pfsm;
 	 (void) new_s;
 }
+TEST_FSM_EVENT_ENUM UFMN(handle_e1)(pTEST_FSM pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return test_fsm_pass_shared_event(pfsm, sharing_test_fsm_e1);
+}
+

@@ -34,30 +34,35 @@ void newMachine_baz(pNEW_MACHINE pfsm,NEW_MACHINE_STATE state)
 }
 
 
-NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm,NEW_MACHINE_EVENT e)
+TR_FN_RETURN_TYPE newMachine_transitionFn(pNEW_MACHINE pfsm,NEW_MACHINE_EVENT e)
 {
 	(void) pfsm;
 	(void) e;
 	printf("newMachine_transitionFn");
 
-	return newMachine_s1;
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+
+	return ret;
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm,NEW_MACHINE_EVENT e)
+TR_FN_RETURN_TYPE newMachine_transitionFn1(pNEW_MACHINE pfsm,NEW_MACHINE_EVENT e)
 {
 	(void) pfsm;
 	(void) e;
 	printf("newMachine_transitionFn1");
 
-	return newMachine_s2;
+	DECLARE_TR_FN_RET_VAR(ret, s2);
+
+	return ret;
 }
 
-NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos1(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT e)
+TR_FN_RETURN_TYPE __attribute__((weak)) newMachine_transitionTos1(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT e)
 {
 	(void) e;
 	(void) pfsm;
 
-	return newMachine_s1;
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+	return ret;
 }
 
 NEW_MACHINE_STATE UFMN(noTransitionFn)(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)

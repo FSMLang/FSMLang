@@ -32,35 +32,38 @@ TOP_LEVEL_EVENT UFMN(noAction)(pSUB_MACHINE1 pfsm)
    return THIS(noEvent);
 }
 
-SUB_MACHINE1_STATE UFMN(checkTransition)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
+TR_FN_RETURN_TYPE UFMN(checkTransition)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
 {
    (void) pfsm;
    (void) e;
 
-   return sub_machine1_s3;
+	DECLARE_TR_FN_RET_VAR(ret, s3);
+   return ret;
 }
 
-/* The next two are needed to prevent the weak functions, which will be
-generated in the -tc variant, from messing up the canonical output.
-*/
-SUB_MACHINE1_STATE UFMN(transitionTos1)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
+TR_FN_RETURN_TYPE UFMN(transitionTos1)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
 {
-   (void) pfsm;
-   (void) e;
+	(void) pfsm;
+	(void) e;
 
-	return sub_machine1_s1;
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+   return ret;
 }
 
-SUB_MACHINE1_STATE UFMN(transitionTos2)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
+TR_FN_RETURN_TYPE UFMN(transitionTos2)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
 {
-   (void) pfsm;
-   (void) e;
+	(void) pfsm;
+	(void) e;
 
-	return sub_machine1_s2;
+	DECLARE_TR_FN_RET_VAR(ret, s2);
+   return ret;
 }
 
-SUB_MACHINE1_STATE __attribute__((weak)) UFMN(noTransitionFn)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
+#if defined(FSM_VARIANT_C) || defined(FSM_VARIANT_CC)
+SUB_MACHINE1_STATE UFMN(noTransitionFn)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
 {
 	(void) e;
 	return pfsm->state;
 }
+#endif
+
