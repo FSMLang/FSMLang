@@ -1,0 +1,31 @@
+native
+{
+#include "test.h"
+}
+
+machine test_fsm
+	actions return void;
+	on transition record;
+	native impl
+	{
+	#define INIT_FSM_DATA { .e1_count = 0 }
+	}
+{
+	data
+	{
+		int e1_count;
+	}
+
+	event e1 data translator grab_e1_data {int i;};
+
+	state s1, s2;
+
+	include sub.fsms
+
+	include sub2.fsms
+
+	action handle_e1[e1, s1] transition s2;
+	action handle_e1[e1, s2] transition s1;
+
+}
+
