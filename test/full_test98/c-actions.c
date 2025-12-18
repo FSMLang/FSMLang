@@ -1,6 +1,6 @@
 #include "compact_priv.h"
 
-#if defined(FSM_VARIANT_CC) || defined(FSM_VARIANT_SC)
+#if defined(FSM_VARIANT_CC)
 ACTION_RETURN_TYPE UFMN(a1)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF(__func__);

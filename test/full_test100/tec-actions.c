@@ -7,7 +7,7 @@ ACTION_RETURN_TYPE UFMN(a1)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
-#if defined(FSM_VARIANT_CC) || defined(FSM_VARIANT_SC)
+#if defined(FSM_VARIANT_CC)
 TEST_EMPTY_CELLS_EVENT UFMN(share)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
