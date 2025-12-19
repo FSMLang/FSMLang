@@ -1,0 +1,21 @@
+	machine sub
+		actions return events;
+		native impl
+		{
+		#define INIT_FSM_DATA { .sub_e1_count = 0 }
+		}
+	{
+		data
+		{
+			int sub_e1_count;
+		}
+
+		event parent::e1 data translator grab_parent_e1_data;
+		state s1 on entry on exit;
+		state s2;
+
+		include subSub.fsms
+
+		action do_nothing[e1, s1] transition s2;
+		action do_nothing[e1, s2] transition s1;
+	}

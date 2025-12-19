@@ -157,9 +157,11 @@ struct _c_machine_data_
 struct _fsm_c_output_generator_
 {
    FSMOutputGenerator    fsmog;
-   COutputFn             wfsm;         //!< Allows the C machine flavors to tailor the fsm loop.
-   CFSMLoopInnardsWriter cfsmliw;      //!< Allows the C machine flavors to tailor the fsm loop innards.
-   COutputFn             wstate_chart; //!< Allows the C machine flavors to tailor the state chart
+   COutputFn             wfsm;                //!< Allows the C machine flavors to tailor the fsm loop.
+   CFSMLoopInnardsWriter cfsmliw;             //!< Allows the C machine flavors to tailor the fsm loop innards.
+   COutputFn             wstate_chart;        //!< Allows the C machine flavors to tailor the state chart
+   COutputFn             wconvenience_macros; //!< Allows the C machine flavors to tailor the convenience macros
+   COutputFn             wtransition_fn_typedef; //!< Allows the C machine flavors to tailor the transition fn typedef
    pCMachineData         pcmd;
    pFSMCOutputGenerator top_level_fsmcog;
    pFSMCOutputGenerator parent_fsmcog;
@@ -172,12 +174,14 @@ int  initCSubMachineFN(pFSMOutputGenerator,char*);
 void closeCMachine(pFSMOutputGenerator,int);
 void closeCMachineFN(pFSMOutputGenerator,int);
 
-void commonHeaderStart(pCMachineData,pMACHINE_INFO,char*,bool);
+void standardConvenienceMacros(pFSMCOutputGenerator);
+void standardTransitionFnTypedef(pFSMCOutputGenerator);
+void commonHeaderStart(pFSMCOutputGenerator,char*,bool);
 void addEventCrossReference(pCMachineData,pMACHINE_INFO,pITERATOR_CALLBACK_HELPER);
-void commonHeaderEnd(pCMachineData,pMACHINE_INFO,bool);
-void generateInstance(pCMachineData,pMACHINE_INFO,char*,char*);
-void generateInstanceMacro(pCMachineData,pMACHINE_INFO,char*,char*);
-void generateSubMachineInstanceMacro(pCMachineData,pMACHINE_INFO,char*,char*);
+void commonHeaderEnd(pFSMCOutputGenerator,bool);
+void generateInstance(pCMachineData,pMACHINE_INFO,char*,char*,bool);
+void generateInstanceMacro(pCMachineData,pMACHINE_INFO,char*,char*,bool);
+void generateSubMachineInstanceMacro(pCMachineData,pMACHINE_INFO,char*,char*,bool);
 void generateRunFunction(pCMachineData,pMACHINE_INFO);
 void defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO);
 void defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO);
@@ -198,7 +202,7 @@ bool sub_machine_declare_data_translator_functions(pLIST_ELEMENT,void*);
 bool define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 bool sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 
-void subMachineHeaderStart(pCMachineData,pMACHINE_INFO,char*,bool);
+void subMachineHeaderStart(pFSMCOutputGenerator,char*,bool);
 void defineSubMachineIF(pCMachineData);
 void possiblyDefineSubMachineSharedEventStructures(pCMachineData,pMACHINE_INFO);
 void defineSubMachineArray(pCMachineData,pMACHINE_INFO);

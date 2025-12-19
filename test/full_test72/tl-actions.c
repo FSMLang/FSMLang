@@ -31,26 +31,44 @@ void newMachine_translate_e3_data(pNEW_MACHINE_DATA pfsm_data, pNEW_MACHINE_E3_D
 	pfsm_data->u.e3_int = pevent_data->i;
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
+TR_FN_RETURN_TYPE newMachine_transitionFn(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) e;
 	DBG_PRINTF("%s", __func__);
-	return pfsm->data.u.foo.count_ints < NUM_INTS ?  THIS(s1) : THIS(s2);
+
+	DECLARE_TR_FN_RET_VAR(ret, s2);
+
+	if (pfsm->data.u.foo.count_ints < NUM_INTS)
+	{
+		RETURN_STATE(ret, s1);
+	}
+
+	return ret;
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
+TR_FN_RETURN_TYPE newMachine_transitionFn1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) e;
 	DBG_PRINTF("%s", __func__);
-	return pfsm->data.u.beep.f > 0.0f ? THIS(s3) : THIS(s1);
+
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+
+	if (pfsm->data.u.beep.f > 0.0f)
+	{
+		RETURN_STATE(ret, s3);
+	}
+
+	return ret;
 }
 
-NEW_MACHINE_STATE newMachine_transitionTos1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
+TR_FN_RETURN_TYPE newMachine_transitionTos1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) pfsm;
 	(void) e;
 	DBG_PRINTF("%s", __func__);
-	return THIS(s1);
+
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+	return ret;
 }
 
 void newMachine_baz(pNEW_MACHINE pfsm, NEW_MACHINE_STATE s)
@@ -106,19 +124,22 @@ NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(noAction)(FSM_TYPE_PTR pfsm)
 	return THIS(noEvent);
 }
 
-NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos4(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT_ENUM e)
+TR_FN_RETURN_TYPE __attribute__((weak)) newMachine_transitionTos4(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT_ENUM e)
 {
 	(void) e;
 	(void) pfsm;
 
-	return newMachine_s4;
+	DECLARE_TR_FN_RET_VAR(ret, s4);
+	return ret;
 }
 
+#if defined (FSM_VARIANT_C) || defined (FSM_VARIANT_CC)
 NEW_MACHINE_STATE __attribute__((weak)) UFMN(noTransitionFn)(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT_ENUM e)
 {
 	(void) e;
 	return pfsm->state;
 }
+#endif
 
 NEW_MACHINE_EVENT_ENUM __attribute__((weak)) UFMN(shareSharedEvent)(pNEW_MACHINE pfsm)
 {

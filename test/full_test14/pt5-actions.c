@@ -81,33 +81,47 @@ void newMachine_noAction(pNEW_MACHINE pfsm)
    DBG_PRINTF("newMachine_noAction");
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+TR_FN_RETURN_TYPE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
 {
    (void) pfsm;
 
    DBG_PRINTF("newMachine_TransitionFn\n");
 
-   return (e == newMachine_e2)
-      ? newMachine_s1
-      : newMachine_s3
-      ;
+	DECLARE_TR_FN_RET_VAR(ret, s3);
 
+	if (e == THIS(e2))
+	{
+		RETURN_STATE(ret, s1);
+	}
+
+	return ret;
+		
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+TR_FN_RETURN_TYPE newMachine_transitionFn1(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
 {
    (void) e;
-   NEW_MACHINE_STATE s = pfsm->state;
 
    DBG_PRINTF("newMachine_TransitionFn1\n");
 
-   return (s < newMachine_s3)
-            ? s++
-            : newMachine_s1
-            ;
+	DECLARE_TR_FN_RET_VAR(ret, s3);
+
+	switch(pfsm->state)
+	{
+		case STATE(s1):
+			RETURN_STATE(ret, s2);
+			break;
+		case STATE(s2):
+			RETURN_STATE(ret, s3);
+			break;
+		default:
+			RETURN_STATE(ret, s1);
+			break;
+	}
+
+	return ret;
    
 }
-
 
 void newMachine_machineTransition(pNEW_MACHINE pfsm, NEW_MACHINE_STATE new_state)
 {
@@ -117,18 +131,21 @@ void newMachine_machineTransition(pNEW_MACHINE pfsm, NEW_MACHINE_STATE new_state
               );
 }
 
-NEW_MACHINE_STATE __attribute__((weak)) newMachine_transitionTos2(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT e)
+TR_FN_RETURN_TYPE __attribute__((weak)) newMachine_transitionTos2(FSM_TYPE_PTR pfsm,NEW_MACHINE_EVENT e)
 {
 	(void) e;
 	(void) pfsm;
 
-	return newMachine_s2;
+	DECLARE_TR_FN_RET_VAR(ret, s2);
+	return ret;
 }
 
+#if defined (FSM_VARIANT_C) || defined (FSM_VARIANT_CC)
 NEW_MACHINE_STATE __attribute__((weak)) UFMN(noTransitionFn)(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
 {
 	(void) e;
 	DBG_PRINTF("%s\n", __func__);
 	return pfsm->state;
 }
+#endif
 

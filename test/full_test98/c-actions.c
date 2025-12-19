@@ -40,30 +40,34 @@ void compact_translate_e1_data(pCOMPACT_DATA pfsm_data,pCOMPACT_E1_DATA pe_data)
 	pfsm_data->e1_payload = pe_data->payload;
 }
 
-COMPACT_STATE compact_transition_to_s2(pCOMPACT pfsm, COMPACT_EVENT_ENUM e)
+TR_FN_RETURN_TYPE compact_transition_to_s2(pCOMPACT pfsm, COMPACT_EVENT_ENUM e)
 {
 	DBG_PRINTF(__func__);
 
 	(void) pfsm;
 	(void) e;
 
-	return STATE(s2);
+	DECLARE_TR_FN_RET_VAR(ret, s2);
+	return ret;
 }
 
-COMPACT_STATE compact_transitionTos1(pCOMPACT pfsm, COMPACT_EVENT_ENUM e)
+TR_FN_RETURN_TYPE compact_transitionTos1(pCOMPACT pfsm, COMPACT_EVENT_ENUM e)
 {
 	(void) pfsm;
 	(void) e;
 
-	return STATE(s1);
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+	return ret;
 }
 
+#if defined(FSM_VARIANT_C) || defined(FSM_VARIANT_CC)
 COMPACT_STATE compact_noTransitionFn(pCOMPACT pfsm, COMPACT_EVENT_ENUM e)
 {
 	(void) e;
 
 	return pfsm->state;
 }
+#endif
 
 void UFMN(no_transition)(FSM_TYPE_PTR pfsm, COMPACT_STATE dest)
 {

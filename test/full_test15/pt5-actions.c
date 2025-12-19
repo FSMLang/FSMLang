@@ -81,31 +81,47 @@ void newMachine_noAction(pNEW_MACHINE pfsm)
    DBG_PRINTF("newMachine_noAction");
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+TR_FN_RETURN_TYPE newMachine_transitionFn(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
 {
    (void) pfsm;
 
    DBG_PRINTF("newMachine_TransitionFn\n");
 
-   return (e == newMachine_e2)
-      ? newMachine_s1
-      : newMachine_s3
-      ;
+	DECLARE_TR_FN_RET_VAR(ret, s3);
+
+	if (e == THIS(e2))
+	{
+		RETURN_STATE(ret, s1);
+	}
+
+	return ret;
 
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
+TR_FN_RETURN_TYPE newMachine_transitionFn1(pNEW_MACHINE pfsm, NEW_MACHINE_EVENT e)
 {
    (void) e;
-   NEW_MACHINE_STATE s = pfsm->state;
 
    DBG_PRINTF("newMachine_TransitionFn1\n");
 
-   return (s < newMachine_s3)
-            ? s++
-            : newMachine_s1
-            ;
    
+	DECLARE_TR_FN_RET_VAR(ret, s3);
+
+	switch(pfsm->state)
+	{
+		case STATE(s1):
+			RETURN_STATE(ret, s2);
+			break;
+		case STATE(s2):
+			RETURN_STATE(ret, s3);
+			break;
+		default:
+			RETURN_STATE(ret, s1);
+			break;
+	}
+
+	return ret;
+
 }
 
 

@@ -31,25 +31,43 @@ void newMachine_translate_e3_data(pNEW_MACHINE_DATA pfsm_data, pNEW_MACHINE_E3_D
 	pfsm_data->u.e3_int = pevent_data->i;
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
+TR_FN_RETURN_TYPE newMachine_transitionFn(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) e;
 	DBG_PRINTF("%s\n", __func__);
-	return pfsm->data.u.foo.count_ints < NUM_INTS ?  THIS(s1) : THIS(s2);
+
+	DECLARE_TR_FN_RET_VAR(ret, s2);
+
+	if (pfsm->data.u.foo.count_ints < NUM_INTS)
+	{
+		RETURN_STATE(ret, s1);
+	}
+
+	return ret;
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
+TR_FN_RETURN_TYPE newMachine_transitionFn1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) e;
 	DBG_PRINTF("%s\n", __func__);
-	return pfsm->data.u.beep.f > 0.0f ? THIS(s3) : THIS(s1);
+
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+
+	if (pfsm->data.u.beep.f > 0.0f)
+	{
+		RETURN_STATE(ret, s3);
+	}
+
+	return ret;
 }
 
-NEW_MACHINE_STATE newMachine_transitionTos1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
+TR_FN_RETURN_TYPE newMachine_transitionTos1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) pfsm;
 	(void) e;
-	return THIS(s1);
+
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+	return ret;
 }
 
 void newMachine_baz(pNEW_MACHINE pfsm, NEW_MACHINE_STATE s)

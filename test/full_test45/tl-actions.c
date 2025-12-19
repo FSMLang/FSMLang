@@ -1,24 +1,30 @@
 #include "top_level_priv.h"
 
-NEW_MACHINE_STATE newMachine_transitionFn(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
+TR_FN_RETURN_TYPE newMachine_transitionFn(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) pfsm;
 	(void) e;
-	return THIS(s1);
+
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+	return ret;
 }
 
-NEW_MACHINE_STATE newMachine_transitionFn1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
+TR_FN_RETURN_TYPE newMachine_transitionFn1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) pfsm;
 	(void) e;
-	return THIS(s1);
+
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+	return ret;
 }
 
-NEW_MACHINE_STATE newMachine_transitionTos1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
+TR_FN_RETURN_TYPE newMachine_transitionTos1(pNEW_MACHINE pfsm, ACTION_RETURN_TYPE e)
 {
 	(void) pfsm;
 	(void) e;
-	return THIS(s1);
+
+	DECLARE_TR_FN_RET_VAR(ret, s1);
+	return ret;
 }
 
 void newMachine_baz(pNEW_MACHINE pfsm, NEW_MACHINE_STATE s)

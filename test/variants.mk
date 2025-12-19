@@ -1,4 +1,4 @@
-VARIANTS ?= c s e cc
+VARIANTS ?= c s e cc sc
 
 .PHONY: runtest test clean clean_generated $(VARIANTS)
 
@@ -17,6 +17,10 @@ s s.size s_run: CFLAGS+=-DFSM_VARIANT_S
 
 cc cc.size cc_run: FSM_FLAGS+=-tc -c --generate-weak-fns=false
 cc cc.size cc_run: CFLAGS+=-DFSM_VARIANT_CC
+
+sc sc.size sc_run: FSM_FLAGS+=-ts -c --generate-weak-fns=false  --force-generation-of-event-passing-actions
+sc sc.size sc_run: CFLAGS+=-DFSM_VARIANT_SC
+sc sc.size sc_run: DIFF_FLAGS=-I \"Warning: Ignoring external event designations\"
 
 runtest: $(addsuffix _run, $(VARIANTS))
 	@echo "all tests successful"
@@ -39,7 +43,7 @@ $(addsuffix .size, $(VARIANTS)):
 
 $(addsuffix _run, $(VARIANTS)):
 	@echo $@: $(FSM_FLAGS)
-	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" CFLAGS="$(CFLAGS)" do_runtest
+	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" CFLAGS="$(CFLAGS)" DIFF_FLAGS="$(DIFF_FLAGS)" do_runtest
 
 clean:
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
@@ -50,7 +54,7 @@ clean_generated:
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
 
 $(VARIANTS):
-	$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" VARIANTS="$@" $@
+	$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" DIFF_FLAGS="$(DIFF_FLAGS)" VARIANTS="$@" $@
 
 stats.txt:
 	$(MAKE) -f ../create_target.mk $@

@@ -37,18 +37,27 @@ machine test_empty_cells
       {
 			pSUB psub = &sub_INSTANCE0;
 			psub->state = STATE(s1);
+			#if defined(FSM_VARIANT_SC)
+			psub->currentState = STATE_FN(s1);
+			#endif
 		}
 
 		void set_sub_state_s2(void)
       {
 			pSUB psub = &sub_INSTANCE0;
 			psub->state = STATE(s2);
+			#if defined(FSM_VARIANT_SC)
+			psub->currentState = STATE_FN(s2);
+			#endif
 		}
 
 		void set_sub_state_s3(void)
       {
 			pSUB psub = &sub_INSTANCE0;
 			psub->state = STATE(s3);
+			#if defined(FSM_VARIANT_SC)
+			psub->currentState = STATE_FN(s3);
+			#endif
 		}
 
 	}
