@@ -213,7 +213,7 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
-	   declareStateEntryAndExitManagers(pcmd, pmi);
+	   declareStateEntryAndExitManagers(pcmd, pmi, true);
    }
 
    /* Declare needed event functions. */
@@ -248,7 +248,7 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 	  defineSubMachineFinder(pcmd, pmi);
    }
 
-   defineStateEntryAndExitManagers(pcmd, pmi);
+   defineStateEntryAndExitManagers(pcmd, pmi, true);
 
    defineCEventTableHandlers(pfsmcog);
 
@@ -377,7 +377,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
 	{
-		declareStateEntryAndExitManagers(pcmd, pmi);
+		declareStateEntryAndExitManagers(pcmd, pmi, true);
 	}
 
 	/* Declare needed event functions. */
@@ -414,7 +414,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 	   defineSubMachineFinder(pcmd, pmi);
 	}
 
-	defineStateEntryAndExitManagers(pcmd, pmi);
+	defineStateEntryAndExitManagers(pcmd, pmi, true);
 
 	if (pmi->data_block_count)
 	{

@@ -15,6 +15,8 @@ STAT_FULL_TESTS=$(addsuffix .stats, $(FULL_TESTS))
 
 .PHONY: all clean $(SUITES) $(CLEAN_SUITES)
 
+$(FULL_TESTS): override CFLAGS+=-Werror
+
 all: $(TODO)
 	-@rm done      2> /dev/null
 
@@ -44,3 +46,4 @@ $(STAT_FULL_TESTS):
 
 check:
 	@echo $(SUITES)
+
