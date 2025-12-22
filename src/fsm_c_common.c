@@ -3736,7 +3736,7 @@ static void print_state_entry_or_exit_manager_signature(pCMachineData pcmd, pMAC
 			);
 }
 
-void declareStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
+void declareStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi, bool want_exit_manager)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -3744,7 +3744,7 @@ void declareStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
    {
 	   print_state_entry_or_exit_manager_signature(pcmd, pmi, eoe_entry, dod_declare);
    }
-   if (pmi->states_with_exit_fns_count)
+   if (pmi->states_with_exit_fns_count && want_exit_manager)
    {
 	   print_state_entry_or_exit_manager_signature(pcmd, pmi, eoe_exit, dod_declare);
    }
@@ -3799,7 +3799,7 @@ static bool write_state_exit_fn_switch_case(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
+void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi, bool want_exit_manager)
 {
    ITERATOR_CALLBACK_HELPER ich;
 
@@ -3821,7 +3821,7 @@ void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi)
                  );
       }
    }
-   if (pmi->states_with_exit_fns_count)
+   if (pmi->states_with_exit_fns_count && want_exit_manager)
    {
 	   print_state_entry_or_exit_manager_signature(pcmd, pmi, eoe_exit, dod_define);
 

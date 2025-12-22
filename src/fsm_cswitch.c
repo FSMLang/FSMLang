@@ -595,7 +595,7 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
-	   declareStateEntryAndExitManagers(pcmd, pmi);
+	   declareStateEntryAndExitManagers(pcmd, pmi, pmi->has_single_pai_events);
    }
 
    if (!compact_action_array)
@@ -652,7 +652,7 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
       defineAllStateHandler(pcmd, pmi);
    }
 
-   defineStateEntryAndExitManagers(pcmd, pmi);
+   defineStateEntryAndExitManagers(pcmd, pmi, pmi->has_single_pai_events);
 
    if (pmi->data_block_count)
    {
@@ -817,7 +817,7 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
       defineAllStateHandler(pcmd, pmi);
    }
 
-   defineStateEntryAndExitManagers(pcmd, pmi);
+   defineStateEntryAndExitManagers(pcmd, pmi, pmi->has_single_pai_events);
 
    defineCSwitchMachineStateFns(pcmd, pmi);
 
@@ -1065,7 +1065,7 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 
    if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
-	   declareStateEntryAndExitManagers(pcmd, pmi);
+	   declareStateEntryAndExitManagers(pcmd, pmi, pmi->has_single_pai_events);
    }
 
    fprintf(pcmd->cFile
@@ -1195,15 +1195,21 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
                   );
        }
 
-       if (pmi->states_with_exit_fns_count)
-       {
-           fprintf(pcmd->cFile
-                   ,"\t\trunAppropriateExitFunction(%s%s_%s);\n"
-                   , pmi->data ? "&pfsm->data, " : ""
-                   , machineName(pcmd)
-                   , pstate->name
-                  );
-       }
+	   if (pstate->type_data.state_data.state_flags & sfHasExitFn)
+	   {
+		   fprintf(pcmd->cFile
+				   , "\t\tUFMN(%s%s)(%s);\n"
+				   , pstate->type_data.state_data.exit_fn
+					 ? pstate->type_data.state_data.exit_fn->name
+					 : "onExitFrom_"
+				   , pstate->type_data.state_data.exit_fn
+					 ? ""
+					 : pstate->name
+				   , pmi->data
+					 ? "&pfsm->data"
+					 : ""
+				   );
+	   }
 
        if (pmi->states_with_entry_fns_count)
        {
@@ -1214,16 +1220,15 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
        }
 
        fprintf(pcmd->cFile
-               , "\t\tpfsm->state = new_s;"
+               , "\t\tpfsm->state = new_s;\n"
               );
 
 	   if (compact_action_array)
 	   {
 		   fprintf(pcmd->cFile
-				   , "\n\t\tpfsm->currentState = new_sfn;"
+				   , "\n\t\tpfsm->currentState = new_sfn;\n"
 				  );
 	   }
-       fprintf(pcmd->cFile, "\n\n");
 
        fprintf(pcmd->cFile
                , "\t}\n\n"
@@ -1486,7 +1491,7 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                     if (add_profiling_macros)
                     {
                         fprintf(pich->pcmd->cFile
-                                , "\t\t\tACTION_EXIT(pfsm);\n"
+                                , "\t\tACTION_EXIT(pfsm);\n"
                                );
                     }
 

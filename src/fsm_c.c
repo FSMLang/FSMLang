@@ -255,7 +255,7 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
 	{
-		declareStateEntryAndExitManagers(pcmd, pmi);
+		declareStateEntryAndExitManagers(pcmd, pmi, true);
 	}
 
 	defineActionArray(pcmd, pmi);
@@ -283,7 +283,7 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 		defineSubMachineFinder(pcmd, pmi);
 	}
 
-	defineStateEntryAndExitManagers(pcmd, pmi);
+	defineStateEntryAndExitManagers(pcmd, pmi, true);
 
 	if (generate_weak_fns)
 	{
@@ -347,7 +347,7 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
 	{
-		declareStateEntryAndExitManagers(pcmd, pmi);
+		declareStateEntryAndExitManagers(pcmd, pmi, true);
 	}
 
 	if (pmi->data_block_count)
@@ -381,7 +381,7 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 		defineSubMachineFinder(pcmd, pmi);
 	}
 
-	defineStateEntryAndExitManagers(pcmd, pmi);
+	defineStateEntryAndExitManagers(pcmd, pmi, true);
 
 	if (pmi->data_block_count)
 	{
@@ -1902,7 +1902,7 @@ static void defineCSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 
 	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
 	{
-		declareStateEntryAndExitManagers(pcmd, pmi);
+		declareStateEntryAndExitManagers(pcmd, pmi, true);
 	}
 
 	fprintf(pcmd->cFile
