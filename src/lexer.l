@@ -35,11 +35,8 @@ struct _bufstack_
 pBUFSTACK curbs   = NULL;
 char *curfilename = NULL;
 
-#if defined (LEX_DEBUG) || defined (PARSER_DEBUG)
-
+#define YY_NO_INPUT
 #define YY_NO_UNPUT
-
-#endif
 
 #ifdef __cplusplus
 #error nasty
