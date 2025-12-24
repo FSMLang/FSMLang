@@ -9,7 +9,7 @@ override CFLAGS += -I../ \
 	 -ggdb
 
 
-VARIANTS=s
+VARIANTS=s sc
 
 include ../variants.mk
 
