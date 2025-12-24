@@ -77,7 +77,7 @@ if (EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 
 		if (e < top_level_noEvent)
 		{
-			e = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));
+			e = (*(*pfsm->statesArray)[pfsm->state])(pfsm,e);
 		}
 		else
 		{

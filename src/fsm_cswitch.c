@@ -193,66 +193,31 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
 
    print_tab_levels(pcmd->cFile,tab_level);
    fprintf(pcmd->cFile
-           , "\tif (s != STATE(noTransition))\n"
-           );
+		   , "\tif (s != STATE(noTransition))\n"
+		   );
    print_tab_levels(pcmd->cFile,tab_level);
    fprintf(pcmd->cFile
 		   , "\t{\n"
-           );
-
-   if (pmi->executes_fns_on_state_transitions)
-   {
-	  print_tab_levels(pcmd->cFile,tab_level);
-      fprintf(pcmd->cFile
-              , "\t\tif (s != pfsm->state)\n"
-             );
-	  print_tab_levels(pcmd->cFile,tab_level);
-      fprintf(pcmd->cFile
-			  , "\t\t{\n"
-			  );
-
-      if (pmi->machineTransition)
-      {
-		 print_tab_levels(pcmd->cFile,tab_level);
-         fprintf(pcmd->cFile
-                 , "\t\t\tUFMN(%s)(pfsm,s);\n"
-                 , pmi->machineTransition->name
-                 );
-      }
-
-      if (pmi->states_with_exit_fns_count)
-      {
-		 print_tab_levels(pcmd->cFile,tab_level);
-         fprintf(pcmd->cFile
-                 ,"\t\t\trunAppropriateExitFunction(%spfsm->state);\n"
-                 , pmi->data ? "&pfsm->data, " : ""
-                 );
-      }
-
-      if (pmi->states_with_entry_fns_count)
-      {
-		 print_tab_levels(pcmd->cFile,tab_level);
-         fprintf(pcmd->cFile
-                 ,"\t\t\trunAppropriateEntryFunction(%ss);\n"
-                 , pmi->data ? "&pfsm->data, " : ""
-                 );
-      }
-
-	  print_tab_levels(pcmd->cFile,tab_level);
-      fprintf(pcmd->cFile
-              , "\t\t}\n"
-			  );
-
-   }
-
-   print_tab_levels(pcmd->cFile,tab_level);
-   fprintf(pcmd->cFile
-           , "\t\tpfsm->state = s;\n"
-          );
-   print_tab_levels(pcmd->cFile,tab_level);
-   fprintf(pcmd->cFile
-		   , "\t}\n\n"
 		   );
+
+  if (pmi->states_with_entry_fns_count)
+  {
+	 print_tab_levels(pcmd->cFile,tab_level);
+	 fprintf(pcmd->cFile
+			 ,"\t\trunAppropriateEntryFunction(%ss);\n"
+			 , pmi->data ? "&pfsm->data, " : ""
+			 );
+  }
+
+  print_tab_levels(pcmd->cFile,tab_level);
+  fprintf(pcmd->cFile
+		  , "\t\tpfsm->state = s;\n"
+		 );
+
+  print_tab_levels(pcmd->cFile,tab_level);
+  fprintf(pcmd->cFile
+		  , "\t}\n"
+		  );
 
    if (pmi->has_single_pai_events)
    {
@@ -352,7 +317,7 @@ static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
    if (pmi->machine_list)
    {
       fprintf(pcmd->cFile
-              , "\tif (event < THIS(noEvent))\n\t\t{\n"
+              , "\tif (event < THIS(noEvent))\n\t{\n"
               );
 	  tab_level++;
    }
@@ -377,65 +342,30 @@ static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
 
    print_tab_levels(pcmd->cFile,tab_level);
    fprintf(pcmd->cFile
-           , "\tif (s != STATE(noTransition))\n"
-           );
+		   , "\tif (s != STATE(noTransition))\n"
+		   );
    print_tab_levels(pcmd->cFile,tab_level);
    fprintf(pcmd->cFile
 		   , "\t{\n"
-           );
+		   );
 
-   if (pmi->executes_fns_on_state_transitions)
-   {
-      print_tab_levels(pcmd->cFile,tab_level);
-      fprintf(pcmd->cFile
-              , "\tif (s != pfsm->state)\n"
-             );
-      print_tab_levels(pcmd->cFile,tab_level);
-      fprintf(pcmd->cFile
-			  , "\t{\n"
-			  );
-
-      if (pmi->machineTransition)
-      {
-		 print_tab_levels(pcmd->cFile,tab_level);
-         fprintf(pcmd->cFile
-                 , "\t\tUFMN(%s)(pfsm,s);\n"
-                 , pmi->machineTransition->name
-                 );
-      }
-
-      if (pmi->states_with_exit_fns_count)
-      {
-		 print_tab_levels(pcmd->cFile,tab_level);
-         fprintf(pcmd->cFile
-                 ,"\t\trunAppropriateExitFunction(%spfsm->state);\n"
-                 , pmi->data ? "&pfsm->data, " : ""
-                 );
-      }
-
-      if (pmi->states_with_entry_fns_count)
-      {
-		 print_tab_levels(pcmd->cFile,tab_level);
-         fprintf(pcmd->cFile
-                 ,"\t\trunAppropriateEntryFunction(%ss);\n"
-                 , pmi->data ? "&pfsm->data, " : ""
-                 );
-      }
-
-	  print_tab_levels(pcmd->cFile,tab_level);
-      fprintf(pcmd->cFile
-              , "\t}\n"
-			  );
-
-   }
+  if (pmi->states_with_entry_fns_count)
+  {
+	 print_tab_levels(pcmd->cFile,tab_level);
+	 fprintf(pcmd->cFile
+			 ,"\t\trunAppropriateEntryFunction(%ss);\n"
+			 , pmi->data ? "&pfsm->data, " : ""
+			 );
+  }
 
    print_tab_levels(pcmd->cFile,tab_level);
    fprintf(pcmd->cFile
            , "\t\tpfsm->state = s;\n"
           );
+
    print_tab_levels(pcmd->cFile,tab_level);
    fprintf(pcmd->cFile
-		   , "\t}\n\n"
+		   , "\t}\n"
 		   );
 
    if (pmi->has_single_pai_events)
@@ -451,11 +381,17 @@ static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
    {
 	  print_tab_levels(pcmd->cFile,tab_level);
       fprintf(pcmd->cFile
-              , "\t}\n\t\telse\n"
+              , "}\n"
               );
+
 	  print_tab_levels(pcmd->cFile,tab_level);
       fprintf(pcmd->cFile
-			  , "\t\t{\n"
+			  , "else\n"
+			  );
+
+	  print_tab_levels(pcmd->cFile,tab_level);
+      fprintf(pcmd->cFile
+			  , "{\n"
               );
 
       if (pmi->submachine_inhibitor_count)
@@ -472,7 +408,7 @@ static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
               );
 	  print_tab_levels(pcmd->cFile,tab_level);
       fprintf(pcmd->cFile
-              , "\t}"
+              , "}"
               );
 	  tab_level--;
    }
@@ -1349,16 +1285,6 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
             , stateType(pich->pcmd)
            );
 
-    if (pich->pcmd->pmi->executes_fns_on_state_transitions)
-    {
-        fprintf(pich->pcmd->cFile
-                , "\t%s new_s = %s_%s;\n"
-                , stateType(pich->pcmd)
-                , nfMachineName(pich->pcmd)
-                , pstate->name
-                );
-    }
-
     fprintf(pich->pcmd->cFile, "\n\tswitch(e)\n\t{\n");
     
     pich->counter    = 0;
@@ -1394,11 +1320,50 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
     if (!pich->counter)
     {
         fprintf(pich->pcmd->cFile
-                , "\t(void) pfsm;\n"
+                , "\n\t(void) pfsm;\n"
                 );
     }
 
-    print_state_fn_epilogue(pich->pcmd, pich->ih.pmi, pstate, true);
+	// Are we exiting this state and have things to do?
+	if (pich->pcmd->pmi->machineTransition
+		|| (pstate->type_data.state_data.state_flags & sfHasExitFn)
+		)
+	{
+		fprintf(pich->pcmd->cFile
+				, "\n\tif (retVal != STATE(noTransition))\n\t{\n"
+			   );
+
+		if (pich->pcmd->pmi->machineTransition)
+		{
+			fprintf(pich->pcmd->cFile
+					, "\t\tUFMN(%s)(pfsm,retVal);\n"
+					, pich->pcmd->pmi->machineTransition->name
+				   );
+		}
+
+		if (pstate->type_data.state_data.state_flags & sfHasExitFn)
+		{
+			fprintf(pich->pcmd->cFile
+					, "\t\tUFMN(%s%s)(%s);\n"
+					, pstate->type_data.state_data.exit_fn
+					? pstate->type_data.state_data.exit_fn->name
+					: "onExitFrom_"
+					, pstate->type_data.state_data.exit_fn
+					? ""
+					: pstate->name
+					, pich->pcmd->pmi->data
+					? "&pfsm->data"
+					: ""
+				   );
+		}
+		fprintf(pich->pcmd->cFile
+				, "\t}\n"
+			   );
+	}
+
+	fprintf(pich->pcmd->cFile
+			, "\n\treturn retVal;\n}\n\n"
+			);
 
     return false;
 
@@ -1762,7 +1727,10 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                     }
 
                     fprintf(pich->pcmd->cFile
-                            , "\t\tretVal = UFMN(%s)(pfsm);\n"
+                            , "\t\t%s UFMN(%s)(pfsm);\n"
+							, pai->transition
+							  ? "(void)"
+							  : "retVal ="
                             , pai->action->name
                             );
 
@@ -1774,12 +1742,14 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                     }
 
                 }
-                else
-                {
+
+				if (pai->transition)
+				{
                    fprintf(pich->pcmd->cFile
-                           , "\t\tretVal = UFMN(%s)%s;\n"
+                           , "\t\tretVal = %s(%s)%s;\n"
+                           , pai->transition->type == STATE ? "STATE" : "UFMN"
                            , pai->transition->name
-                           , pai->transition->type == STATE ? "" : "(pfsm,e)"
+                           , pai->transition->type == STATE ? "" : "(pfsm)"
                            );
                 }
 
@@ -1828,7 +1798,7 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
       fprintf(pcmd->cFile
 			   , compact_action_array
 			     ? "%s%s\t(*pfsm->currentState)(pfsm,%s);\n"
-			     : "%s%s\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,%s));\n"
+			     : "%s%s\t(*(*pfsm->statesArray)[pfsm->state])(pfsm,%s);\n"
               , tabstr
               , local_tabstr
 			  , (pmi->data_block_count == 0) ? "event" : "e"
@@ -1839,7 +1809,7 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
       fprintf(pcmd->cFile
 			  , compact_action_array
 				? "%s%s\te = (*pfsm->currentState)(pfsm,e);\n"
-                : "%s%s\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
+                : "%s%s\te = (*(*pfsm->statesArray)[pfsm->state])(pfsm,e);\n"
               , tabstr
               , local_tabstr
               );
@@ -1889,7 +1859,7 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
       fprintf(pcmd->cFile
 			   , compact_action_array
 			     ? "\t\t\t(*pfsm->currentState)(pfsm,event);\n"
-			     : "\t\t\t((* (*pfsm->statesArray)[pfsm->state])(pfsm,event));\n"
+			     : "\t\t\t(*(*pfsm->statesArray)[pfsm->state])(pfsm,event);\n"
               );
    }
    else
@@ -1897,7 +1867,7 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
       fprintf(pcmd->cFile
 			  , compact_action_array
 			    ? "\t\t\te = (*pfsm->currentState)(pfsm,e);\n"
-                : "\t\t\te = ((* (*pfsm->statesArray)[pfsm->state])(pfsm,e));\n"
+                : "\t\t\te = (*(*pfsm->statesArray)[pfsm->state])(pfsm,e);\n"
               );
    }
 
@@ -2239,6 +2209,12 @@ static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMEN
 {
    pITERATOR_CALLBACK_HELPER pich  = (pITERATOR_CALLBACK_HELPER) data;
    pID_INFO                  event = (pID_INFO) pelem->mbr;
+   pACTION_INFO              pai   = event->type_data.event_data.psingle_pai;
+
+   char                     *s_var = pich->pcmd->pmi->executes_fns_on_state_transitions
+	                                 ? "new_s ="
+	                                 : "pfsm->state ="
+	                                 ;
 
    if (event->type_data.event_data.single_pai_for_all_states)
    {
@@ -2250,21 +2226,41 @@ static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMEN
 			  , event->name
 			  );
 
-      fprintf(pich->pcmd->cFile
-              , "%s\t\t\t%s = UFMN(%s)(pfsm);\n%s"
-              , event->type_data.event_data.psingle_pai->transition
-                ? ""
-                : add_profiling_macros ? "\t\t\tACTION_ENTRY(pfsm);\n" : ""
-			  , compact_action_array
-			    ? "pfsm->currentState"
-			    : "pfsm->state"
-              , event->type_data.event_data.psingle_pai->transition
-                ? event->type_data.event_data.psingle_pai->transition->name
-                : event->type_data.event_data.psingle_pai->action->name
-              , event->type_data.event_data.psingle_pai->transition
-                ? ""
-                : add_profiling_macros ? "\t\t\tACTION_EXIT(pfsm);\n" : ""
-              );
+	  if (strlen(pai->action->name))
+	  {
+		  if (add_profiling_macros)
+		  {
+			  fprintf(pich->pcmd->cFile
+					  , "\t\t\tACTION_ENTRY(pfsm);\n"
+					 );
+		  }
+		  fprintf(pich->pcmd->cFile
+				  , "\t\t\t%s UFMN(%s)(pfsm);\n"
+				  , pai->transition
+				    ? "(void)"
+					: s_var
+				  , pai->action->name
+				  );
+		  if (add_profiling_macros)
+		  {
+			  fprintf(pich->pcmd->cFile
+					  , "\t\t\tACTION_EXIT(pfsm);\n"
+					 );
+		  }
+	  }
+
+	  if (pai->transition)
+	  {
+		  
+		  fprintf(pich->pcmd->cFile
+				  , "\t\t\t%s %s(%s)(pfsm);\n"
+				  , s_var
+				  , (pai->transition->type == STATE)
+					? "STATE"
+					: "UFMN"
+				  , pai->transition->name
+				  );
+	  }
       
       fprintf(pich->pcmd->cFile
              , "\t\t\thandled = true;\n"
@@ -2303,7 +2299,7 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
               );
    }
 
-   if (pmi->executes_fns_on_state_transitions && !(pmi->modFlags & mfActionsReturnStates))
+   if (pmi->executes_fns_on_state_transitions)
    {
       fprintf(pcmd->cFile
 			  , "\t%s new_s = pfsm->state;\n"
@@ -2354,7 +2350,7 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
               );
    }
 
-   if (pmi->executes_fns_on_state_transitions && !(pmi->modFlags & mfActionsReturnStates))
+   if (pmi->executes_fns_on_state_transitions)
    {
       fprintf(pcmd->cFile
               , "\n\n\tif (pfsm->state != new_s)\n\t{\n"

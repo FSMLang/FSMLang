@@ -4,7 +4,7 @@
 #
 #
 
-CFLAGS += -DFSM_DEBUG -DTEST_FSM_DEBUG -I../
+CFLAGS += -Werror -DFSM_DEBUG -DTEST_FSM_DEBUG -I../
 
 FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
 
