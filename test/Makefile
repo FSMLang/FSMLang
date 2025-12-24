@@ -3,15 +3,26 @@
 #
 #
  
-SUITES = lexer parser unit statistics html
 FULL_TESTS = $(shell find . -maxdepth 1 -type d -name "full_test*" -printf "%P ")
 
-SUITES += $(FULL_TESTS)
-DONE = $(shell cat done)
-TODO = $(filter-out $(DONE), $(SUITES))
+#
+# This conditional block allows for the setting of a shorter list of suites in relevant.lst
+#
+ifneq ("$(wildcard relevant.lst)", "")
 
-CLEAN_SUITES=$(addsuffix .clean, $(SUITES))
+	SUITES = $(shell cat relevant.lst)
+
+else
+
+	SUITES = lexer parser unit statistics html
+	SUITES += $(FULL_TESTS)
+
+endif
+
 STAT_FULL_TESTS=$(addsuffix .stats, $(FULL_TESTS))
+CLEAN_SUITES=$(addsuffix .clean, $(SUITES))
+DONE = $(shell if [ -f done ]; then cat done; fi)
+TODO = $(filter-out $(DONE), $(SUITES))
 
 .PHONY: all clean $(SUITES) $(CLEAN_SUITES)
 
