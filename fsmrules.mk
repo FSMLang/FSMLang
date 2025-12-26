@@ -40,25 +40,37 @@ cleanfsm:
 	@-rm -f $(GENERATED_SRC) 2> /dev/null
 	@-rm -f $(GENERATED_HDR) 2> /dev/null
 
+$(GENERATED_SRC) $(GENERATED_HDR):
+	@$(FSM) $(FSM_FLAGS) $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
+
 .fsm.o:
-	@$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_FLAGS) $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
 	@$(CC) -c $(CFLAGS) $*.c
 	@rm -f $*.c
 
 .fsm.c:
-	@$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_FLAGS) $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
 
 .fsm.h:
-	@$(FSM) $(FSM_FLAGS) $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_FLAGS) $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
+
+$(GENERATED_HTML):
+	@$(FSM) $(FSM_HTML_FLAGS) -th $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
 
 .fsm.html:
-	@$(FSM) $(FSM_HTML_FLAGS) -th $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_HTML_FLAGS) -th $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
+
+$(GENERATED_PLANTUML):
+	@$(FSM) $(FSM_PLANTUML_FLAGS) -tp $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
 
 .fsm.plantuml:
-	@$(FSM) $(FSM_PLANTUML_FLAGS) -tp $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_PLANTUML_FLAGS) -tp $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
+
+$(GENERATED_RST):
+	@$(FSM) $(FSM_RST_FLAGS) -tr $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
 
 .fsm.rst:
-	@$(FSM) $(FSM_RST_FLAGS) -tr $< > fsmout $(CALL_FSM_FAILURE_A_SUCCESS)
+	@$(FSM) $(FSM_RST_FLAGS) -tr $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
 
 $(FSM_SRC:.fsm=.html): $(FSM_SRC) $(FSM)
 

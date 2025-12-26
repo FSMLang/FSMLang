@@ -4,7 +4,9 @@
 #
 #
 
-override CFLAGS += -DFSM_DEBUG -DNEW_MACHINE_DEBUG -I../
+override CFLAGS += -Werror -DFSM_DEBUG -DNEW_MACHINE_DEBUG -I../
+
+DIFF_FLAGS= -I "Warning: Ignoring compact array request because actions do not return appropriately\\." 
 
 FSM_FLAGS = -c
 

@@ -629,7 +629,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
    {
       if (assignExternalEventValues(pmi) == false)
       {
-         fprintf(stdout
+         fprintf(stderr
 				 , "Warning: Ignoring external event designations\n"
 				 );
       }
@@ -4165,7 +4165,6 @@ void writeCMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 		 printf(": %s.fsm\n"
 				, inputFileName
 				);
-		 printf("\t$(FSM) $(FSM_FLAGS) $<\n\n");
 	 }
 }
 
