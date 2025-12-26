@@ -17,10 +17,12 @@ s s.size s_run: CFLAGS+=-DFSM_VARIANT_S
 
 cc cc.size cc_run: FSM_FLAGS+=-tc -c --generate-weak-fns=false
 cc cc.size cc_run: CFLAGS+=-DFSM_VARIANT_CC
+cc cc.size cc_run: DIFF_FLAGS+=-I \"Warning: Ignoring compact array request because actions do not return appropriately\\.\"
 
 sc sc.size sc_run: FSM_FLAGS+=-ts -c --generate-weak-fns=false  --force-generation-of-event-passing-actions
 sc sc.size sc_run: CFLAGS+=-DFSM_VARIANT_SC
-sc sc.size sc_run: DIFF_FLAGS=-I \"Warning: Ignoring external event designations\"
+sc sc.size sc_run: DIFF_FLAGS+=-I \"Warning: Ignoring external event designations\"
+sc sc.size sc_run: DIFF_FLAGS+=-I \"Warning: Ignoring compact array request because actions do not return appropriately\\.\"
 
 runtest: $(addsuffix _run, $(VARIANTS))
 	@echo "all tests successful"
