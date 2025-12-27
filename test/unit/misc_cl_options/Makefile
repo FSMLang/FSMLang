@@ -14,6 +14,9 @@ test_mh_e: FSM_FLAGS=-Mh -te
 test_m_p: FSM_FLAGS=-M -tp
 test_m_h: FSM_FLAGS=-M -th
 test_m_r: FSM_FLAGS=-M -tr
+test_md_p: FSM_FLAGS=-Md -tp
+test_md_h: FSM_FLAGS=-Md -th
+test_md_r: FSM_FLAGS=-Md -tr
 test_m_r_o: FSM_FLAGS=-M -tr -o index
 test.json: FSM_FLAGS=--event-cross-ref-only=true
 test.xml: FSM_FLAGS=--event-cross-ref-format=xml
@@ -38,6 +41,9 @@ LISTERS = \
         test_m_p  \
         test_m_h  \
         test_m_r  \
+        test_md_p  \
+        test_md_h  \
+        test_md_r  \
         test_m_r_o
 
 CREATORS = \

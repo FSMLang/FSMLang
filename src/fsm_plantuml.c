@@ -631,7 +631,18 @@ static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 	pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator)pfsmog;
 
-	printf("%s ", pfsmpumlog->pmd->pumlName);
+	if (output_make_recipe && !pfsmpumlog->parent)
+	{
+		printf("%s: %s.fsm\n"
+			   , pfsmpumlog->pmd->pumlName
+			   , inputFileName
+			   );
+	}
+
+	if (!output_make_recipe || pmi->parent)
+	{
+		printf("%s ", pfsmpumlog->pmd->pumlName);
+	}
 
 	pfsmpumlog->pmd->pmi = pmi;
 	if (pmi->machine_list)
@@ -641,13 +652,14 @@ static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	write_sequence_names(pfsmpumlog);
 
-	if (output_make_recipe && !pfsmpumlog->parent)
+	if (
+		(output_make_recipe && !pfsmpumlog->parent)
+		&& (pmi->machine_list || pmi->sequences)
+		)
 	{
-		printf(": %s.fsm\n"
-				, inputFileName
-				);
-
-		printf("\t$(FSM) -tp $(FSM_PLANTUML_FLAGS) $<\n\n");
+		printf(": %s\n"
+			   , pfsmpumlog->pmd->pumlName
+			   );
 	}
 }
 
