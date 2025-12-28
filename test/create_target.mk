@@ -18,4 +18,5 @@ include ../../fsmrules.mk
 
 include ../test.mk
 
+$(VARIANTS): $(FSM_SRC:.fsm=.c)
 
