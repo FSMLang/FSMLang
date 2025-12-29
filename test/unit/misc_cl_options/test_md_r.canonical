@@ -1,0 +1,2 @@
+test.rst: test.fsm
+sub1.rst sub2.rst sub2_sub2Sub1.rst : test.rst
