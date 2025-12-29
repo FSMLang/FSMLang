@@ -629,7 +629,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
    {
       if (assignExternalEventValues(pmi) == false)
       {
-         fprintf(stdout
+         fprintf(stderr
 				 , "Warning: Ignoring external event designations\n"
 				 );
       }
@@ -4110,63 +4110,76 @@ void writeReentrantEpilogue(pCMachineData pcmd)
 void writeCMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 	pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
-	 if (output_make_recipe || output_header_files)
-	 {
-		 for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
-		 {
-			 //if this machine has no sub-machines, skip _submach.h
-			 //if this machine has no sub-machines, skip _instance_macros.h
-			 if (!pmi->machine_list)
-			 {
-				 if ((cf == cf_subMachineH)
-					 || (cf == cf_instanceMacrosH)
-					 )
-				 {
-					 continue;
-				 }
-			 }
+	if (output_make_recipe && !pfsmcog->pcmd->parent_pcmd)
+	{
+		printf("%s: %s.fsm\n"
+			   , pfsmcog->pcmd->cName
+			   , inputFileName
+			   );
+	}
 
-			 //sub machines do not have public headers
-			 //sub machines do not have event headers
-			 if (pfsmcog->pcmd->parent_pcmd)
-			 {
-				 if ((cf == cf_pubH)
-					 || (cf == cf_eventsH)
-					 )
-				 {
-					 continue;
-				 }
-			 }
+	if (output_make_recipe || output_header_files)
+	{
+		for (CREATED_FILES cf = cf_first; cf < cf_numCreatedFiles; cf++)
+		{
+			//if this machine has no sub-machines, skip _submach.h
+			//if this machine has no sub-machines, skip _instance_macros.h
+			if (!pmi->machine_list)
+			{
+				if ((cf == cf_subMachineH)
+					|| (cf == cf_instanceMacrosH)
+					)
+				{
+					continue;
+				}
+			}
 
-			 //if we're outputting headers (only), skip the source file
-			 if (output_header_files &&(cf == cf_c))
-			 {
-				 continue;
-			 }
+			//sub machines do not have public headers
+			//sub machines do not have event headers
+			if (pfsmcog->pcmd->parent_pcmd)
+			{
+				if ((cf == cf_pubH)
+					|| (cf == cf_eventsH)
+					)
+				{
+					continue;
+				}
+			}
 
-			 if (pfsmcog->pcmd->file_name_array[cf])
-			 {
-				 printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
-			 }
-		 }
-	 }
-	 else
-	 {
-		 printf("%s ", pfsmcog->pcmd->cName);
-	 }
+			//special source file rules
+			if (cf == cf_c)
+			{
+				//skip when outputting headers
+				//skip when outputing top-level, since we dealt with that above
+				if (output_header_files || !pfsmcog->parent_fsmcog)
+				{
+					continue;
+				}
+			}
 
-	 if (pmi->machine_list)
-	 {
-		 write_machines(pmi->machine_list, pfsmog->fsmogFactory, pfsmog);
-	 }
+			if (pfsmcog->pcmd->file_name_array[cf])
+			{
+				printf("%s ", pfsmcog->pcmd->file_name_array[cf]);
+			}
+		}
+	}
+	else
+	{
+		printf("%s ", pfsmcog->pcmd->cName);
+	}
 
-	 if (output_make_recipe && !pfsmcog->pcmd->parent_pcmd)
-	 {
-		 printf(": %s.fsm\n"
-				, inputFileName
-				);
-		 printf("\t$(FSM) $(FSM_FLAGS) $<\n\n");
-	 }
+	if (pmi->machine_list)
+	{
+		write_machines(pmi->machine_list, pfsmog->fsmogFactory, pfsmog);
+	}
+
+	if (output_make_recipe && !pfsmcog->pcmd->parent_pcmd)
+	{
+		printf(": %s\n"
+			   , pfsmcog->pcmd->cName
+			   );
+	}
+
 }
 
 static bool possibly_add_macro_parameter(pLIST_ELEMENT pelem, void *data)

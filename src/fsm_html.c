@@ -1316,20 +1316,30 @@ static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 	pFSMHTMLOutputGenerator pfsmhtmlog = (pFSMHTMLOutputGenerator)pfsmog;
 
-	printf("%s ", pfsmhtmlog->pmd->htmlName);
+	if (output_make_recipe && !pmi->parent)
+	{
+		printf("%s: %s.fsm\n"
+			   , pfsmhtmlog->pmd->htmlName
+			   , inputFileName
+			   );
+	}
+
+	if (!output_make_recipe || pmi->parent)
+	{
+		printf("%s ", pfsmhtmlog->pmd->htmlName);
+	}
 
 	if (pmi->machine_list)
 	{
 		write_machines(pmi->machine_list, generateHTMLMachineWriter, pfsmog);
 	}
 
-	if (output_make_recipe && !pmi->parent)
+	if (output_make_recipe && !pmi->parent && pmi->machine_list)
 	{
-		printf(": %s.fsm\n"
-			   , inputFileName
+		printf(": %s\n"
+			   , pfsmhtmlog->pmd->htmlName
 			   );
 
-		printf("\t$(FSM) -th $(FSM_HTML_FLAGS) $<\n\n");
 	}
 }
 

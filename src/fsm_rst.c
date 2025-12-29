@@ -185,11 +185,29 @@ static void writeRSTFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 	pFSMRSTOutputGenerator pfsmrstog = (pFSMRSTOutputGenerator)pfsmog;
 
-	printf("%s ", pfsmrstog->pmd->rstName);
+	if (output_make_recipe && !pmi->parent)
+	{
+		printf("%s: %s.fsm\n"
+			   , pfsmrstog->pmd->rstName
+			   , inputFileName
+			   );
+	}
+
+	if (!output_make_recipe || pmi->parent)
+	{
+		printf("%s ", pfsmrstog->pmd->rstName);
+	}
 
 	if (pmi->machine_list)
 	{
 		write_machines(pmi->machine_list, generateRSTMachineWriter, pfsmog);
+	}
+
+	if (output_make_recipe && !pmi->parent && pmi->machine_list)
+	{
+		printf(": %s\n"
+			   , pfsmrstog->pmd->rstName
+			   );
 	}
 }
 

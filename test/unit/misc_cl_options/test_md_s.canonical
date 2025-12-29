@@ -1,3 +1,2 @@
-test.c test_priv.h test.h test_submach.h test_events.h sub1.c sub1_priv.h sub2.c sub2_priv.h sub2_submach.h sub2_sub2Sub1.c sub2_sub2Sub1_priv.h : test.fsm
-	$(FSM) $(FSM_FLAGS) $<
-
+test.c: test.fsm
+test_priv.h test.h test_submach.h test_events.h sub1.c sub1_priv.h sub2.c sub2_priv.h sub2_submach.h sub2_sub2Sub1.c sub2_sub2Sub1_priv.h : test.c

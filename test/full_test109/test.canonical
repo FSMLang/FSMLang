@@ -10,3 +10,4 @@ test_fsm_handle_e1
 test_fsm_grab_e1_data
 e1 accumulator: 4
 test_fsm_handle_e1
+warning: (test_fsm): all events are handled identically in all states.

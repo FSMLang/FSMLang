@@ -1,0 +1,2 @@
+test.html: test.fsm
+sub1.html sub2.html sub2_sub2Sub1.html : test.html
