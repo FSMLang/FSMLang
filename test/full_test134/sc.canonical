@@ -1,0 +1,2 @@
+warning: (test_fsm_sub_subSub): all events are handled identically in all states.
+warning: (test_fsm_sub2_subSub): all events are handled identically in all states.
