@@ -1,2 +1,2 @@
-test.html: test.fsm
+test.html: test.fsm sub1.fsms sub2.fsms sub2Sub1.fsms 
 sub1.html sub2.html sub2_sub2Sub1.html : test.html
