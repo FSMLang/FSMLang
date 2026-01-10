@@ -36,6 +36,7 @@
 #include "fsm_html.h"
 #include "list.h"
 #include "event_sequences.h"
+#include "util_file_inclusion.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1318,10 +1319,14 @@ static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	if (output_make_recipe && !pmi->parent)
 	{
-		printf("%s: %s.fsm\n"
+		printf("%s: %s.fsm "
 			   , pfsmhtmlog->pmd->htmlName
 			   , inputFileName
 			   );
+		
+		print_included_files_list();
+
+		printf("\n");
 	}
 
 	if (!output_make_recipe || pmi->parent)

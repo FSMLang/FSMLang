@@ -1,0 +1,11 @@
+add_one_file_test
+foo 
+add_two_file_test
+foo bar 
+add_two_files_with_intervening_print_test
+foo 
+bar 
+check_panchor_is_null
+foo 
+panchor is null
+
