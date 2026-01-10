@@ -40,8 +40,8 @@ runtest: test
 	-@rm -f $(OBJ) test test.out test.result *.d
 
 diff_canonical: test
-	@./test > test.out $(GRAB_STDERR)
-	@diff test.out test.canonical > test.result
+	./test > test.out $(GRAB_STDERR)
+	diff test.out test.canonical > test.result
 	-@rm -f $(OBJ) test test.out test.result *.d > /dev/null 2>&1
 	-@rm -f $(LIB_OBJ) $(addprefix lib, $(LIB_NAME)).a > /dev/null 2>&1
 

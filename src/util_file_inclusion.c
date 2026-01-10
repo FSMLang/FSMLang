@@ -55,6 +55,10 @@ extern void yyerror(char*);
 #define STATIC static
 #endif
 
+#if defined (LEX_DEBUG)
+#define yyerror(A)
+#endif
+
 STATIC pLIST panchor = NULL;
 
 void track_included_file(char *filename)

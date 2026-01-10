@@ -11,13 +11,14 @@ include $(OUTPUT_DIR)/system.mk
 #include $(OUTPUT_DIR)/source.mk
 endif
 
-SRC =	lexer.c        \
-			parser.c    \
-			fsm_utils.c \
-			list.c      \
-			ancestry.c  \
-			cwalk.c     \
-			usage.c
+SRC =	lexer.c                  \
+			parser.c              \
+			fsm_utils.c           \
+			list.c                \
+			ancestry.c            \
+			cwalk.c               \
+			usage.c               \
+         util_file_inclusion.c \
 
 ifdef NEED_RINDEX
 SRC += rindex.c
