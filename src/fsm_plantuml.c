@@ -35,6 +35,7 @@
 #include "fsm_plantuml.h"
 #include "list.h"
 #include "event_sequences.h"
+#include "util_file_inclusion.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -633,10 +634,14 @@ static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	if (output_make_recipe && !pfsmpumlog->parent)
 	{
-		printf("%s: %s.fsm\n"
+		printf("%s: %s.fsm "
 			   , pfsmpumlog->pmd->pumlName
 			   , inputFileName
 			   );
+
+		print_included_files_list();
+
+		printf("\n");
 	}
 
 	if (!output_make_recipe || pmi->parent)

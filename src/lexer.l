@@ -4,6 +4,8 @@
 	*/
 
 #include "fsm_priv.h"
+#include "util_file_inclusion.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
@@ -124,6 +126,8 @@ include[ \t]*\"? { BEGIN INCLUDE; }
 		{
 			yyterminate();
 		}
+		
+		track_included_file(curfilename);
 
 		BEGIN INITIAL;
 	}
@@ -634,8 +638,8 @@ int popfile(void)
 
 	curbs = prevbs;
 	if (!prevbs)
-{
-	return 0;
+	{
+		return 0;
 	}
 
 	yy_switch_to_buffer(prevbs->bs);
