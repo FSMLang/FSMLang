@@ -36,6 +36,8 @@
 #include "fsm_c_common.h"
 #include "fsm_unused.h"
 #include "ancestry.h"
+#include "util_file_inclusion.h"
+#include "revision.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -57,9 +59,6 @@
 	#include "lexer_debug.h"
 #endif
 
-
-#include "revision.h"
-
 bool generate_weak_fns                   = true;
 bool core_logging_only                   = false;
 bool include_svg_img                     = false;
@@ -67,7 +66,6 @@ bool convenience_macros_in_public_header = true;
 bool add_profiling_macros                = false;
 bool profile_sub_fsms                    = false;
 bool inhibiting_states_share_events      = false;
-
 
 static char  *eventXRefFormat0Str = "\t%5u  ";
 static char  *eventXRefFormat1Str = "_%s\n";
@@ -4112,10 +4110,14 @@ void writeCMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 	if (output_make_recipe && !pfsmcog->pcmd->parent_pcmd)
 	{
-		printf("%s: %s.fsm\n"
+		printf("%s: %s.fsm "
 			   , pfsmcog->pcmd->cName
 			   , inputFileName
 			   );
+
+		print_included_files_list();
+
+		printf("\n");
 	}
 
 	if (output_make_recipe || output_header_files)

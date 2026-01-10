@@ -13,11 +13,12 @@ VPATH=../../src
 
 override CFLAGS += -DLEX_DEBUG -I../ -I$(VPATH)
 
-SRC = lexer.c       \
-			lexer_debug.c \
-			list.c \
-			ancestry.c \
-			fsm_utils.c
+SRC = lexer.c                  \
+			lexer_debug.c         \
+			list.c                \
+			ancestry.c            \
+			fsm_utils.c           \
+         util_file_inclusion.c \
 
 TESTS = $(basename $(shell find . -name "lexer-*.txt" -printf "%P "))
 

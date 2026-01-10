@@ -36,6 +36,7 @@
 #include "fsm_rst.h"
 #include "y.tab.h"
 #include "event_sequences.h"
+#include "util_file_inclusion.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 	#include <stdio.h>
@@ -187,10 +188,14 @@ static void writeRSTFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	if (output_make_recipe && !pmi->parent)
 	{
-		printf("%s: %s.fsm\n"
+		printf("%s: %s.fsm "
 			   , pfsmrstog->pmd->rstName
 			   , inputFileName
 			   );
+
+		print_included_files_list();
+
+		printf("\n");
 	}
 
 	if (!output_make_recipe || pmi->parent)

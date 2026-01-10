@@ -1,0 +1,11 @@
+	machine sub2
+	{
+		event e1;
+		state s1;
+
+		include sub2Sub1.fsms
+
+		action a1 [e1, s1];
+
+	}
+

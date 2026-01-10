@@ -1,0 +1,9 @@
+		machine sub2Sub1
+		{
+			event e1;
+			state s1, s2, s3;
+
+			action a1 [e1, s1];
+
+		}
+
