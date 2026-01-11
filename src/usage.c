@@ -178,28 +178,38 @@ void usage(void)
 	fprintf(stdout
 			,"%s-c%swill create a more compact event/state table when -tc is used%s"
 			, item_start
-      , expl_start
+			, expl_start
 			, list_start
 			);
 	fprintf(stdout
-			,"%swith machines having actions which return states%s"
+			,"%swith machines having actions which return events.%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			, "%sWhen used with -ts and machines having actions which do not return states,%s"
+			, inner_item_start
+			, item_end
+			);
+	fprintf(stdout
+			, "%sthe switch machine will not use a state function array.%s"
 			, inner_item_start
 			, list_item_end
 			);
 	fprintf(stdout
 			,"%s-s%sprints some useful statistics and exits%s"
 			, item_start
-      , expl_start
+			, expl_start
 			, item_end
 			);
 	fprintf(stdout
 			,"%s-o %soutfile%s%swill use %soutfile%s as the filename for the top-level machine output.%s"
 			, item_start
-      , lt
-      , gt
-      , expl_start
-      , lt
-      , gt
+			, lt
+			, gt
+			, expl_start
+			, lt
+			, gt
 			, list_start
 			);
 	fprintf(stdout
@@ -210,21 +220,21 @@ void usage(void)
 	fprintf(stdout
 			,"%s--generate-weak-fns=false%ssuppresses the generation of weak function stubs.%s"
 			, item_start
-      , expl_start
+			, expl_start
 			, item_end
 			);
 	fprintf(stdout
 			,"%s--short-user-fn-names=true%scauses user functions (such as action functions to use only the%s"
 			, item_start
-      , expl_start
+			, expl_start
 			, item_end
 			);
 
 	fprintf(stdout
-     , "%smachine name when the sub-machine depth is 1).%s"
-		 , inner_item_start
-		 , item_end
-		 );
+			, "%smachine name when the sub-machine depth is 1).%s"
+			, inner_item_start
+			, item_end
+			);
 
 	fprintf(stdout
 			,"%s--force-generation-of-event-passing-actions%sforces the generation of actions which pass events%s"
