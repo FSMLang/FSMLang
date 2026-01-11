@@ -522,6 +522,10 @@
 
 	Machines with state returning actions now work correctly with -ts.
 
+	The output of -Md now first creates a rule specifying the dependence of the top-level output
+	file on the fsm source and any files which that source includes. Next, a rule specifying that
+	all other generated files depend on the top-level output file is created.  This was done to have
+	suffix rules work correctly (they were not, in certain cases).
 
 */
 const char rev_string[] = "2.1";
