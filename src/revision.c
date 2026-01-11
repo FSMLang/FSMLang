@@ -524,5 +524,5 @@
 
 
 */
-const char rev_string[] = "2.0";
+const char rev_string[] = "2.1";
 
