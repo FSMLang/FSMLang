@@ -490,5 +490,43 @@
 	functions written for previous versions will need to be modified.
 
 */
-const char rev_string[] = "2.0";
+
+/*
+	Revision 2.1
+
+	Inclusion of files is now supported:
+	
+	<code>include subMachine.fsms</code>
+
+	As with the C language preprosessor, the contents of the included file are
+	treated exactly as if they were present in the including file, at the point of
+	inclusion.  Thus, anything which would be legal to be present in an FSM file can
+	be moved to a file to be included at that point.
+
+	The use of a file extension other than <i>.fsm</i> is simply to not break gnu make
+	suffix rules.
+
+	Included files are listed as dependencies in the Makefile dependency rule.
+
+	-c now works with -ts for machines with states returning events or void.  The effect
+	is that no array of state functions is created; rather a pointer to the current
+	state function is maintained.  This has implications for transition functions, which
+	now must return a function pointer as well as the state enumeration (the state
+	enumeration is still needed, sadly).
+
+	The use of -c is vocally ignored with -tc for machines with actions returning other
+	than events; and with -ts for machines with actions returning states.
+
+	State functions now call their exit functions directly, rather than through
+	<i>callAppropriateExitFunction</i>.
+
+	Machines with state returning actions now work correctly with -ts.
+
+	The output of -Md now first creates a rule specifying the dependence of the top-level output
+	file on the fsm source and any files which that source includes. Next, a rule specifying that
+	all other generated files depend on the top-level output file is created.  This was done to have
+	suffix rules work correctly (they were not, in certain cases).
+
+*/
+const char rev_string[] = "2.1";
 

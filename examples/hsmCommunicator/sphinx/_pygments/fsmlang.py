@@ -9,6 +9,8 @@
 """
 
 import re
+import os
+from pygments import lex
 from pygments.lexer import RegexLexer, include, default, bygroups
 from pygments.token import *
 
@@ -23,7 +25,7 @@ class FSMLangLexer(RegexLexer):
 
 	name = 'FSMLang'
 	aliases = ['fsmlang', 'fsm']
-	filenames = ['*.fsm']
+	filenames = ['*.fsm', '*.fsms']
 	url = 'https://fsmlang.github.io/'
 	version_added = '2.20'
 
@@ -48,14 +50,6 @@ class FSMLangLexer(RegexLexer):
 			lexer.fns.append(match.group(1))
 
 		yield match.start(1), Name.Function, match.group(1)
-
-	def check_event(lexer, match):
-		if match.group(1) in lexer.events:
-			token = Name.Variable
-		else:
-			token = Error
-
-		yield match.start(1), token, match.group(1)
 
 	def check_state(lexer, match):
 		if match.group(1) in lexer.states:
@@ -82,22 +76,13 @@ class FSMLangLexer(RegexLexer):
 
 		yield match.start(1), token, match.group(1)
 
-	def check_return_type(lexer, match):
-		if match.group(1) in lexer.events or match.group(1) in lexer.states:
-			token = Name.Variable;
-		else:
-			token = Error;
-
-		yield match.start(1), token, match.group(1)
-
-
 	flags = re.DOTALL | re.MULTILINE
 
 	keywords = (
 		'actions', 'return', 'returns', 'states', 'events', 'void', 'transition', 'data', 'native',
 		'implementation', 'impl', 'on', 'entry', 'exit', 'prologue', 'epilogue', 'translator', 'all',
 		'struct', 'union', 'inhibits', 'submachines', 'parent', 'void', 'external', 'reentrant',
-		'noEvent', 'noTransition', 'sequence', 'start'
+		'noEvent', 'noTransition', 'sequence', 'start', 'include', 'guard'
 		)
 
 	operators = ( '::' )
@@ -132,7 +117,7 @@ class FSMLangLexer(RegexLexer):
 		],
 		'check_event_name': [
          include('commentsandwhitespace'),
-			(r'([$a-zA-Z_][\w\\]*)', check_event, '#pop'),
+			(r'([$a-zA-Z_][\w\\]*)', Name.Variable, '#pop'),
          default('#pop')
 		],
 		'namespace': [
@@ -209,7 +194,7 @@ class FSMLangLexer(RegexLexer):
 		'get_event_vector': [
          include('commentsandwhitespace'),
 			(r'(all)(\s+)?([)])', bygroups(Keyword.Reserved, Whitespace, Punctuation), '#pop'),
-			(r'([$a-zA-Z_][\w\\]*)', check_event),
+			(r'([$a-zA-Z_][\w\\]*)', Name.Variable),
 			(r',', Punctuation),
 			(r'[)]', Punctuation, '#pop'),
 		],
@@ -219,7 +204,7 @@ class FSMLangLexer(RegexLexer):
 
 			# Seeing no opening parenthesis, we have a scalar.
 			(r'all', Keyword.Reserved, '#pop'),
-			(r'([$a-zA-Z_][\w\\]*)', check_event, '#pop'),
+			(r'([$a-zA-Z_][\w\\]*)', Name.Variable, '#pop'),
 
 			# Otherwise, we have a vector.
 			(r'[(]', Punctuation, 'get_event_vector'),
@@ -267,6 +252,7 @@ class FSMLangLexer(RegexLexer):
 		'a_name': [
          include('commentsandwhitespace'),
 			(r'(transition)\b', Keyword.Reserved, 'get_transition_name'),
+			(r'(guard)\b', Keyword.Reserved, 'get_transition_name'),
 			(r'([$a-zA-Z_][\w\\]*)', add_action, 'matrix'),
 			(r';', Punctuation, '#pop'),
          default('#pop')
@@ -297,7 +283,7 @@ class FSMLangLexer(RegexLexer):
 			(r'(noEvent|noTransition)\b', Keyword.Reserved),
 			(r'(parent)(\s+)?([:]{2})', bygroups(Keyword.Reserved, Whitespace, Operator)),
 			(r'([$a-zA-Z_][\w\\]*)(\s+)?([:]{2})', bygroups(Name.Variable, Whitespace, Operator)),
-			(r'([$a-zA-Z_][\w\\]*)', check_return_type),
+			(r'([$a-zA-Z_][\w\\]*)', Name.Variable),
 			(r',', Punctuation),
 			default('#pop')
 		],
@@ -307,6 +293,20 @@ class FSMLangLexer(RegexLexer):
 			(r';', Punctuation, '#pop')
       ],
 		'root': [
+			(r'(include)(\s+)(")([^"]+)(")'
+				, bygroups(Keyword.Reserved
+								, Whitespace
+								, Punctuation
+								, Text
+								, Punctuation
+								)
+			),
+			(r'(include)(\s+)(\b\w+\.*\w*\b)'
+				, bygroups(Keyword.Reserved
+								, Whitespace
+								, Text
+								)
+			),
 			(r'^(?=\s|/)', Whitespace, 'slashstartsregex'),
 			include('commentsandwhitespace'),
 			(r'(machine)\b', Keyword.Declaration, 'm_name'),
@@ -314,6 +314,7 @@ class FSMLangLexer(RegexLexer):
 			(r'(state)\b', Keyword.Declaration, 's_name'),
 			(r'(action)\b', Keyword.Declaration, 'a_name'),
 			(r'(transition)\b', Keyword.Declaration, 'transition'),
+			(r'(guard)\b', Keyword.Declaration, 'transition'),
 			(r'(returns)\b', Keyword.Reserved, 'returns'),
 			(r'(sequence)\b', Keyword.Declaration, 'read_sequence'),
 			(r'(native)([{])'
