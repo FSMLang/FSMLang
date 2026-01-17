@@ -279,18 +279,18 @@ void usage(void)
 	fprintf(stdout
 			,"%s--include-svg-img%s=%strue|false%s%sadds %simg/%s tag referencing %sfilename%s.svg to include an image at%s"
 			, item_start
-      , lt
-      , dflt
-      , gt
-      , expl_start
-      , lt
-      , gt
-      , lt
-      , gt
+			, lt
+			, dflt
+			, gt
+			, expl_start
+			, lt
+			, gt
+			, lt
+			, gt
 			, list_start
 			);
   fprintf(stdout
-		  ,"%sthe top of the web page.%s"
+		  ,"%sthe top of the web page.  This is incompatible with --include-uml-objects.%s"
 		  , inner_item_start
 		  , list_item_end
 		  );
@@ -663,6 +663,22 @@ void usage(void)
 		 , inner_item_start
 		 , list_item_end
 		 );
+ fprintf(stdout
+		 ,"%s--include-uml-objects%s=%strue|false%s%s uses sphinx ..uml:: directive referencing %sfilename%s.plantuml to%s"
+		 , item_start
+		 , lt
+		 , dflt
+		 , gt
+		 , expl_start
+		 , lt
+		 , gt
+		 , list_start
+		 );
+fprintf(stdout
+	   ,"%sshow plantuml diagrams. This is incompatible with --include-svg-img.%s"
+	   , inner_item_start
+	   , list_item_end
+	   );
  fprintf(stdout
 		 ,"%s-v%sprints the version and exits%s%s"
 		 , item_start

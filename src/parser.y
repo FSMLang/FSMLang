@@ -2443,6 +2443,7 @@ typedef enum {
  , lo_profile_sub_fsms
  , lo_empty_cell_fn
  , lo_inhibiting_states_share_events
+ , lo_include_uml_objects
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2617,6 +2618,12 @@ const struct option longopts[] =
         , .flag    = &longval
 				, .val     = lo_inhibiting_states_share_events
     }
+    , {
+        .name      = "include-uml-objects"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+        , .val     = lo_include_uml_objects
+		}
     , {0}
 };
       
@@ -2666,6 +2673,10 @@ int main(int argc, char **argv)
                 if (!optarg || !strcmp(optarg, "true"))
                 {
                   include_svg_img = true;
+									if (include_uml_objects)
+									{
+										yyerror("Include either UML objects or SVG images.");
+									}
                 }
                 break;
             case lo_css_content_filename:
@@ -2801,6 +2812,16 @@ int main(int argc, char **argv)
 				      if (!optarg || !strcmp(optarg, "true"))
 					      inhibiting_states_share_events = true;
 				      break;
+            case lo_include_uml_objects:
+                if (!optarg || !strcmp(optarg, "true"))
+                {
+                  include_uml_objects = true;
+									if (include_svg_img)
+									{
+										yyerror("Include either UML objects or SVG images.");
+									}
+                }
+                break;
             default:
                 usage();
                 return(0);
