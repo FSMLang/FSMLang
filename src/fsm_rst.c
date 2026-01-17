@@ -330,9 +330,8 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	else if (include_uml_objects)
 	{
 		fprintf(FOUT(pfsmrstog)
-				, ".. uml:: %s.plantuml\n%s:width: 100%%\n\n"
+				, ".. uml:: %s.plantuml\n\n"
 				, pfsmrstog->pmd->baseName
-				, indent
 			   );
 	}
 
