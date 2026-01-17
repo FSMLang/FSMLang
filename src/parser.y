@@ -24,6 +24,7 @@
 
 #include "revision.h"
 #include "fsm_priv.h"
+#include "cwalk.h"
 
 #include "fsm_c.h"
 #include "fsm_cswitch.h"
@@ -2653,7 +2654,7 @@ int main(int argc, char **argv)
 
 #ifndef PARSER_DEBUG
 
-	while ((c = getopt_long(argc,argv,"vh:t:o:i:csM::", longopts, &longindex)) != -1) {
+	while ((c = getopt_long(argc,argv,"vh::t:o:i:csM::", longopts, &longindex)) != -1) {
 
 		switch(c) {
   
@@ -2830,7 +2831,7 @@ int main(int argc, char **argv)
         break;
 
 		case 'h':
-      if (optarg[0])
+      if (optarg)
       {
          help_fmt = optarg[0];
       }
@@ -3009,8 +3010,17 @@ int main(int argc, char **argv)
 
 void yyerror(char *s)
 {
+	const char *basename;
+	const char *ext;
 
-  fprintf(stderr,"%s: %s\n",me,s);
+  fprintf(stderr,"%s%s%s: %s\n"
+					, (cwk_path_get_basename(me, &basename, NULL), basename)
+					, cwk_path_has_extension(me) ? "." : ""
+					, cwk_path_has_extension(me)
+						 ? (cwk_path_get_extension(me, &ext, NULL), ext)
+						 : ""
+					,s
+					);
   fprintf(stderr,"\tline %d : %s\n",lineno,yytext);
 
   #ifdef PARSER_DEBUG

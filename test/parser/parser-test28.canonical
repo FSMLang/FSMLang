@@ -486,5 +486,5 @@ this machine has 2 sub-machines
 the sub-machine depth is 2
 
 found a single machine
-./test: event user data not allowed in sub-machines
+test: event user data not allowed in sub-machines
 	line 84 : }

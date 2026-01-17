@@ -230,8 +230,8 @@ The 1 transitions :
 
 making a list of machines
 Machine newMachine: Won't insert action a2 into slot: event e2, state s1 because it is already occupied by a1
-./test: Action array population failed
+test: Action array population failed
 	line 9 : }
 Machine anotherNewMachine: Won't insert action a2 into slot: event e2, state s1 because it is already occupied by a1
-./test: Action array population failed
+test: Action array population failed
 	line 19 : }
