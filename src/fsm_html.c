@@ -49,6 +49,7 @@
 
 #include "y.tab.h"
 
+
 /*
 	Our interface to the outside world
 */
@@ -88,6 +89,7 @@ static FSMHTMLOutputGenerator HTMLMachineWriter = {
 };
 
 bool  css_content_internal = false;
+bool  include_svg_img      = false;
 char *css_content_filename = "fsmlang.css";
 
 

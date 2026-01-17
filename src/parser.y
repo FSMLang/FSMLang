@@ -24,6 +24,7 @@
 
 #include "revision.h"
 #include "fsm_priv.h"
+#include "cwalk.h"
 
 #include "fsm_c.h"
 #include "fsm_cswitch.h"
@@ -2443,6 +2444,7 @@ typedef enum {
  , lo_profile_sub_fsms
  , lo_empty_cell_fn
  , lo_inhibiting_states_share_events
+ , lo_include_uml_objects
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2617,6 +2619,12 @@ const struct option longopts[] =
         , .flag    = &longval
 				, .val     = lo_inhibiting_states_share_events
     }
+    , {
+        .name      = "include-uml-objects"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+        , .val     = lo_include_uml_objects
+		}
     , {0}
 };
       
@@ -2646,7 +2654,7 @@ int main(int argc, char **argv)
 
 #ifndef PARSER_DEBUG
 
-	while ((c = getopt_long(argc,argv,"vh:t:o:i:csM::", longopts, &longindex)) != -1) {
+	while ((c = getopt_long(argc,argv,"vh::t:o:i:csM::", longopts, &longindex)) != -1) {
 
 		switch(c) {
   
@@ -2666,6 +2674,10 @@ int main(int argc, char **argv)
                 if (!optarg || !strcmp(optarg, "true"))
                 {
                   include_svg_img = true;
+									if (include_uml_objects)
+									{
+										yyerror("Include either UML objects or SVG images.");
+									}
                 }
                 break;
             case lo_css_content_filename:
@@ -2801,6 +2813,16 @@ int main(int argc, char **argv)
 				      if (!optarg || !strcmp(optarg, "true"))
 					      inhibiting_states_share_events = true;
 				      break;
+            case lo_include_uml_objects:
+                if (!optarg || !strcmp(optarg, "true"))
+                {
+                  include_uml_objects = true;
+									if (include_svg_img)
+									{
+										yyerror("Include either UML objects or SVG images.");
+									}
+                }
+                break;
             default:
                 usage();
                 return(0);
@@ -2809,7 +2831,7 @@ int main(int argc, char **argv)
         break;
 
 		case 'h':
-      if (optarg[0])
+      if (optarg)
       {
          help_fmt = optarg[0];
       }
@@ -2988,8 +3010,17 @@ int main(int argc, char **argv)
 
 void yyerror(char *s)
 {
+	const char *basename;
+	const char *ext;
 
-  fprintf(stderr,"%s: %s\n",me,s);
+  fprintf(stderr,"%s%s%s: %s\n"
+					, (cwk_path_get_basename(me, &basename, NULL), basename)
+					, cwk_path_has_extension(me) ? "." : ""
+					, cwk_path_has_extension(me)
+						 ? (cwk_path_get_extension(me, &ext, NULL), ext)
+						 : ""
+					,s
+					);
   fprintf(stderr,"\tline %d : %s\n",lineno,yytext);
 
   #ifdef PARSER_DEBUG

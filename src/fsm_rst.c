@@ -49,6 +49,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+bool include_uml_objects = false;
+
 //!< A must be pFSMRSTOutputGenerator
 #define FOUT(A) (A)->pmd->rstFile
 
@@ -323,6 +325,13 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 				, pfsmrstog->pmd->baseName
 				, indent
 				, indent
+			   );
+	}
+	else if (include_uml_objects)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, ".. uml:: %s.plantuml\n\n"
+				, pfsmrstog->pmd->baseName
 			   );
 	}
 
