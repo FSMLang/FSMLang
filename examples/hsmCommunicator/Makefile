@@ -21,7 +21,7 @@ override CFLAGS += -I../          \
 
 override FSM_FLAGS += -ts --generate-weak-fns=false
 
-FSM_RST_FLAGS=--include-svg-img
+FSM_RST_FLAGS=--include-uml-objects
 
 SPHINX_DIR ?= sphinx
 
