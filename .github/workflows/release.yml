@@ -15,8 +15,6 @@ jobs:
   build-linux:
     name: Build Linux (CMake) and upload assets
     runs-on: ubuntu-latest
-    env:
-      TAG: ${{ env.TAG }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,6 +27,7 @@ jobs:
 
       - name: Prepare Linux artifact and metadata
         run: |
+          TAG="${{ github.event.release.tag_name }}"
           mkdir -p artifacts
           cp build/fsm artifacts/fsm-${TAG}-linux
           chmod +x artifacts/fsm-${TAG}-linux || true
