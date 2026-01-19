@@ -33,6 +33,7 @@ jobs:
           cp build/fsm artifacts/fsm-${TAG}-linux
           chmod +x artifacts/fsm-${TAG}-linux || true
 
+          # metadata file with tag, commit, runner, cmake version, build time, size
           echo "tag: ${TAG}" > artifacts/fsm-${TAG}-linux.meta.txt
           echo "release_name: ${{ github.event.release.name }}" >> artifacts/fsm-${TAG}-linux.meta.txt
           echo "commit: ${{ github.sha }}" >> artifacts/fsm-${TAG}-linux.meta.txt
@@ -43,6 +44,7 @@ jobs:
           echo -n "file_size_bytes: " >> artifacts/fsm-${TAG}-linux.meta.txt
           stat -c%s artifacts/fsm-${TAG}-linux >> artifacts/fsm-${TAG}-linux.meta.txt
 
+          # checksum
           sha256sum artifacts/fsm-${TAG}-linux > artifacts/fsm-${TAG}-linux.sha256
 
       - name: Install GnuPG (only if signing)
@@ -52,9 +54,12 @@ jobs:
       - name: Import GPG private key (Linux) (only if signing)
         if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
         run: |
+          # Expect GPG_PRIVATE_KEY secret to be base64-encoded private key
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode > private.key
           gpg --batch --import private.key
           rm -f private.key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
       - name: Create GPG detached signatures for Linux artifacts (only if signing)
         if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
@@ -62,6 +67,8 @@ jobs:
           for f in artifacts/fsm-${TAG}-linux artifacts/fsm-${TAG}-linux.sha256 artifacts/fsm-${TAG}-linux.meta.txt; do
             gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign -a "$f"
           done
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Upload Linux binary to Release
         uses: actions/upload-release-asset@v1
@@ -138,6 +145,7 @@ jobs:
           New-Item -ItemType Directory -Path artifacts -Force | Out-Null
           Copy-Item -Path build\fsm.exe -Destination artifacts\fsm-${TAG}-windows.exe -Force
 
+          # metadata
           "tag: ${TAG}" | Out-File -Encoding ascii artifacts\fsm-${TAG}-windows.meta.txt
           "release_name: ${{ github.event.release.name }}" | Out-File -Encoding ascii -Append artifacts\fsm-${TAG}-windows.meta.txt
           "commit: ${{ github.sha }}" | Out-File -Encoding ascii -Append artifacts\fsm-${TAG}-windows.meta.txt
@@ -148,6 +156,7 @@ jobs:
           $size = (Get-Item artifacts\fsm-${TAG}-windows.exe).Length
           "file_size_bytes: $size" | Out-File -Encoding ascii -Append artifacts\fsm-${TAG}-windows.meta.txt
 
+          # checksum (sha256)
           $hash = Get-FileHash -Algorithm SHA256 artifacts\fsm-${TAG}-windows.exe
           "$($hash.Hash)  fsm-${TAG}-windows.exe" | Out-File -Encoding ascii artifacts\fsm-${TAG}-windows.exe.sha256
 
@@ -159,6 +168,7 @@ jobs:
         if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
         shell: pwsh
         run: |
+          # GPG_PRIVATE_KEY expected base64-encoded
           $b64 = $env:GPG_PRIVATE_KEY
           [IO.File]::WriteAllBytes('private.key', [System.Convert]::FromBase64String($b64))
           gpg --batch --import private.key
@@ -232,42 +242,42 @@ jobs:
           RST_FILE=artifacts/release-${TAG}.rst
 
           cat > "${RST_FILE}" <<EOF
-Release ${TAG}
-=================================================================
+          Release ${TAG}
+          =================================================================
 
-Release name: ${RELEASE_NAME}
-Tag: ${TAG}
-Commit: ${COMMIT}
-Build time (UTC): ${BUILD_TIME}
+          Release name: ${RELEASE_NAME}
+          Tag: ${TAG}
+          Commit: ${COMMIT}
+          Build time (UTC): ${BUILD_TIME}
 
-Assets
-------
+          Assets
+          ------
 
-- Linux binary: fsm-${TAG}-linux
-- Linux checksum: fsm-${TAG}-linux.sha256
-- Linux metadata: fsm-${TAG}-linux.meta.txt
-- Linux signature (optional): fsm-${TAG}-linux.asc
-- Linux checksum signature (optional): fsm-${TAG}-linux.sha256.asc
-- Linux metadata signature (optional): fsm-${TAG}-linux.meta.txt.asc
+          - Linux binary: fsm-${TAG}-linux
+          - Linux checksum: fsm-${TAG}-linux.sha256
+          - Linux metadata: fsm-${TAG}-linux.meta.txt
+          - Linux signature (optional): fsm-${TAG}-linux.asc
+          - Linux checksum signature (optional): fsm-${TAG}-linux.sha256.asc
+          - Linux metadata signature (optional): fsm-${TAG}-linux.meta.txt.asc
 
-- Windows binary: fsm-${TAG}-windows.exe
-- Windows checksum: fsm-${TAG}-windows.exe.sha256
-- Windows metadata: fsm-${TAG}-windows.meta.txt
-- Windows signature (optional): fsm-${TAG}-windows.exe.asc
-- Windows checksum signature (optional): fsm-${TAG}-windows.exe.sha256.asc
-- Windows metadata signature (optional): fsm-${TAG}-windows.meta.txt.asc
+          - Windows binary: fsm-${TAG}-windows.exe
+          - Windows checksum: fsm-${TAG}-windows.exe.sha256
+          - Windows metadata: fsm-${TAG}-windows.meta.txt
+          - Windows signature (optional): fsm-${TAG}-windows.exe.asc
+          - Windows checksum signature (optional): fsm-${TAG}-windows.exe.sha256.asc
+          - Windows metadata signature (optional): fsm-${TAG}-windows.meta.txt.asc
 
-Download URLs (GitHub release assets)
-------------------------------------
+          Download URLs (GitHub release assets)
+          ------------------------------------
 
-- Linux binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux
-- Linux checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.sha256
-- Linux metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.meta.txt
-- Windows binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe
-- Windows checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe.sha256
-- Windows metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.meta.txt
+          - Linux binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux
+          - Linux checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.sha256
+          - Linux metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.meta.txt
+          - Windows binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe
+          - Windows checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe.sha256
+          - Windows metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.meta.txt
 
-EOF
+          EOF
 
       - name: Upload RST to Release
         uses: actions/upload-release-asset@v1
