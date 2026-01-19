@@ -18,17 +18,22 @@ env:
 
 jobs:
   resolve-upload-url:
-    name: Resolve release upload_url
+    name: Resolve release upload_url and tag
     runs-on: ubuntu-latest
     outputs:
       upload_url: ${{ steps.set.outputs.upload_url }}
+      tag: ${{ steps.set.outputs.tag }}
+      release_name: ${{ steps.set.outputs.release_name }}
     steps:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Determine upload_url
+      - name: Determine upload_url and tag
         id: set
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # If triggered manually, use the provided tag and look up the release via API.
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             TAG="${{ github.event.inputs.tag }}"
             if [ -z "$TAG" ]; then
@@ -38,17 +43,21 @@ jobs:
             echo "Looking up release for tag: $TAG"
             resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
             upload_url=$(printf '%s' "$resp" | jq -r .upload_url // empty)
+            release_name=$(printf '%s' "$resp" | jq -r .name // empty)
             if [ -z "$upload_url" ] || [ "$upload_url" = "null" ]; then
               echo "ERROR: Release for tag '$TAG' not found or has no upload_url." >&2
               printf 'response:\n%s\n' "$resp" >&2
               exit 1
             fi
             echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "release_name=$release_name" >> $GITHUB_OUTPUT
           else
+            # Triggered by a release event: take values from the event payload
             echo "upload_url=${{ github.event.release.upload_url }}" >> $GITHUB_OUTPUT
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            echo "release_name=${{ github.event.release.name }}" >> $GITHUB_OUTPUT
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-linux:
     name: Build Linux (CMake) and upload assets
@@ -79,13 +88,14 @@ jobs:
 
       - name: Prepare Linux artifact and metadata
         run: |
-          TAG="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}"
+          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
+          RELEASE_NAME="${{ needs.resolve-upload-url.outputs.release_name }}"
           mkdir -p artifacts
           cp build/fsm "artifacts/fsm-${TAG}-linux"
           chmod +x "artifacts/fsm-${TAG}-linux" || true
 
           echo "tag: ${TAG}" > "artifacts/fsm-${TAG}-linux.meta.txt"
-          echo "release_name: ${{ github.event.release.name }}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
+          echo "release_name: ${RELEASE_NAME}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
           echo "commit: ${{ github.sha }}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
           echo "runner: ${{ runner.os }}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
           echo -n "cmake: " >> "artifacts/fsm-${TAG}-linux.meta.txt"
@@ -136,7 +146,7 @@ jobs:
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          TAG="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}"
+          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
           for f in "artifacts/fsm-${TAG}-linux" "artifacts/fsm-${TAG}-linux.sha256" "artifacts/fsm-${TAG}-linux.meta.txt"; do
             gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign -a "$f"
           done
@@ -145,24 +155,24 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux"
           asset_content_type: application/octet-stream
 
       - name: Upload Linux checksum to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.sha256"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.sha256"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256"
           asset_content_type: text/plain
 
       - name: Upload Linux metadata to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.meta.txt"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.meta.txt"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt"
           asset_content_type: text/plain
 
       - name: Upload Linux signatures to Release (only if signing)
@@ -170,8 +180,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.sha256.asc"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.sha256.asc"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256.asc"
           asset_content_type: text/plain
 
       - name: Upload Linux metadata signature to Release (only if signing)
@@ -179,8 +189,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.meta.txt.asc"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.meta.txt.asc"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt.asc"
           asset_content_type: text/plain
 
       - name: Upload Linux binary signature to Release (only if signing)
@@ -188,8 +198,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.asc"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-linux.asc"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.asc"
           asset_content_type: text/plain
 
   build-windows:
@@ -222,12 +232,13 @@ jobs:
       - name: Prepare Windows artifact and metadata (PowerShell)
         shell: pwsh
         run: |
-          $tag = "${{ github.event_name == 'workflow_dispatch' ? github.event.inputs.tag : github.event.release.tag_name }}"
+          $tag = "${{ needs.resolve-upload-url.outputs.tag }}"
+          $releaseName = "${{ needs.resolve-upload-url.outputs.release_name }}"
           New-Item -ItemType Directory -Path artifacts -Force | Out-Null
           Copy-Item -Path build\fsm.exe -Destination "artifacts\fsm-$tag-windows.exe" -Force
 
           "tag: $tag" | Out-File -Encoding ascii "artifacts\fsm-$tag-windows.meta.txt"
-          "release_name: ${{ github.event.release.name }}" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
+          "release_name: $releaseName" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
           "commit: ${{ github.sha }}" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
           "runner: ${{ runner.os }}" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
           $cmake = (& cmake --version) -split "`n"
@@ -284,7 +295,7 @@ jobs:
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
-          $tag = "${{ github.event_name == 'workflow_dispatch' ? github.event.inputs.tag : github.event.release.tag_name }}"
+          $tag = "${{ needs.resolve-upload-url.outputs.tag }}"
           $pass = $env:GPG_PASSPHRASE
           & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.exe"
           & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.exe.sha256"
@@ -294,24 +305,24 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-windows.exe"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-windows.exe"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe"
           asset_content_type: application/octet-stream
 
       - name: Upload Windows checksum to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-windows.exe.sha256"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-windows.exe.sha256"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256"
           asset_content_type: text/plain
 
       - name: Upload Windows metadata to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-windows.meta.txt"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-windows.meta.txt"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.meta.txt"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.meta.txt"
           asset_content_type: text/plain
 
       - name: Upload Windows signatures to Release (only if signing)
@@ -319,8 +330,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-windows.exe.asc"
-          asset_name: "fsm-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}-windows.exe.asc"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.asc"
           asset_content_type: text/plain
 
   generate-rst-and-publish:
@@ -336,9 +347,9 @@ jobs:
       - name: Create RST document
         run: |
           mkdir -p artifacts
-          TAG="${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}"
+          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
           REPO="${{ env.REPO }}"
-          RELEASE_NAME="${{ github.event.release.name }}"
+          RELEASE_NAME="${{ needs.resolve-upload-url.outputs.release_name }}"
           COMMIT="${{ github.sha }}"
           BUILD_TIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           RST_FILE="artifacts/release-${TAG}.rst"
@@ -385,8 +396,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/release-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}.rst"
-          asset_name: "release-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }}.rst"
+          asset_path: "artifacts/release-${{ needs.resolve-upload-url.outputs.tag }}.rst"
+          asset_name: "release-${{ needs.resolve-upload-url.outputs.tag }}.rst"
           asset_content_type: text/x-rst
 
       - name: Publish RST to gh-pages
@@ -395,7 +406,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./artifacts
           publish_branch: gh-pages
-          commit_message: "Publish release ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || github.event.release.tag_name }} RST to gh-pages"
+          commit_message: "Publish release ${{ needs.resolve-upload-url.outputs.tag }} RST to gh-pages"
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
 
