@@ -64,12 +64,29 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         run: |
-          # Try base64 decode; if invalid base64, write raw key (normalize CRLF)
-          if printf '%s' "$GPG_PRIVATE_KEY" | base64 --decode >/dev/null 2>&1; then
-            printf '%s' "$GPG_PRIVATE_KEY" | base64 --decode > private.key
+          set -e
+          # Try raw ASCII-armored first (normalize CRLF), validate with gpg --list-packets
+          printf '%s\n' "$GPG_PRIVATE_KEY" | sed 's/\r$//' > private.key.raw
+          if gpg --list-packets private.key.raw >/dev/null 2>&1; then
+            mv private.key.raw private.key
           else
-            printf '%s\n' "$GPG_PRIVATE_KEY" | sed 's/\r$//' > private.key
+            rm -f private.key.raw
+            # Try base64 decode
+            if printf '%s' "$GPG_PRIVATE_KEY" | base64 --decode > private.key.b64 2>/dev/null; then
+              if gpg --list-packets private.key.b64 >/dev/null 2>&1; then
+                mv private.key.b64 private.key
+              else
+                rm -f private.key.b64
+                echo "ERROR: decoded secret is not valid OpenPGP data. Ensure the secret contains a valid base64-encoded private key or an ASCII-armored private key." >&2
+                exit 2
+              fi
+            else
+              echo "ERROR: secret is neither valid ASCII-armored OpenPGP data nor valid base64-encoded data." >&2
+              exit 2
+            fi
           fi
+
+          # Import the validated private.key and clean up
           gpg --batch --import private.key
           rm -f private.key
 
@@ -188,13 +205,26 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         run: |
-          try {
-            $bytes = [System.Convert]::FromBase64String($env:GPG_PRIVATE_KEY)
-            [IO.File]::WriteAllBytes('private.key', $bytes)
-          } catch {
-            $content = $env:GPG_PRIVATE_KEY -replace "`r`n", "`n"
-            Set-Content -Path private.key -Value $content -Encoding ascii
+          # Try raw armored first
+          $raw = $env:GPG_PRIVATE_KEY -replace "`r`n", "`n"
+          $raw | Out-File -Encoding ascii private.key.raw
+          $ok = $false
+          if ((gpg --list-packets private.key.raw) -eq $null) { $ok = $true } else { $ok = $true } 2>$null
+
+          if ($ok) {
+            Move-Item private.key.raw private.key -Force
+          } else {
+            Remove-Item private.key.raw -ErrorAction SilentlyContinue
+            try {
+              $bytes = [System.Convert]::FromBase64String($env:GPG_PRIVATE_KEY)
+              [IO.File]::WriteAllBytes('private.key.b64', $bytes)
+              if ((gpg --list-packets private.key.b64) -eq $null) { Move-Item private.key.b64 private.key -Force } else { Remove-Item private.key.b64; Write-Error "decoded data not valid OpenPGP"; exit 2 }
+            } catch {
+              Write-Error "secret is neither valid ASCII-armored OpenPGP data nor valid base64-encoded data"
+              exit 2
+            }
           }
+
           gpg --batch --import private.key
           Remove-Item private.key
 
