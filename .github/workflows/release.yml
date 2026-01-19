@@ -8,18 +8,26 @@ permissions:
   contents: write
 
 env:
-  TAG: ${{ github.event.release.tag_name }}
   REPO: FSMLang/FSMLang
 
 jobs:
   build-linux:
     name: Build Linux (CMake) and upload assets
     runs-on: ubuntu-latest
-    env:
-      TAG: ${{ env.TAG }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Check if signing is enabled
+        id: check_signing
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          if [ -n "$GPG_PRIVATE_KEY" ]; then
+            echo "sign=true" >> $GITHUB_OUTPUT
+          else
+            echo "sign=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Configure (CMake)
         run: cmake -B ./build
@@ -29,106 +37,111 @@ jobs:
 
       - name: Prepare Linux artifact and metadata
         run: |
+          TAG="${{ github.event.release.tag_name }}"
           mkdir -p artifacts
-          cp build/fsm artifacts/fsm-${TAG}-linux
-          chmod +x artifacts/fsm-${TAG}-linux || true
+          cp build/fsm "artifacts/fsm-${TAG}-linux"
+          chmod +x "artifacts/fsm-${TAG}-linux" || true
 
-          # metadata file with tag, commit, runner, cmake version, build time, size
-          echo "tag: ${TAG}" > artifacts/fsm-${TAG}-linux.meta.txt
-          echo "release_name: ${{ github.event.release.name }}" >> artifacts/fsm-${TAG}-linux.meta.txt
-          echo "commit: ${{ github.sha }}" >> artifacts/fsm-${TAG}-linux.meta.txt
-          echo "runner: ${{ runner.os }}" >> artifacts/fsm-${TAG}-linux.meta.txt
-          echo -n "cmake: " >> artifacts/fsm-${TAG}-linux.meta.txt
-          cmake --version | head -n1 >> artifacts/fsm-${TAG}-linux.meta.txt
-          echo "build_time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> artifacts/fsm-${TAG}-linux.meta.txt
-          echo -n "file_size_bytes: " >> artifacts/fsm-${TAG}-linux.meta.txt
-          stat -c%s artifacts/fsm-${TAG}-linux >> artifacts/fsm-${TAG}-linux.meta.txt
+          echo "tag: ${TAG}" > "artifacts/fsm-${TAG}-linux.meta.txt"
+          echo "release_name: ${{ github.event.release.name }}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
+          echo "commit: ${{ github.sha }}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
+          echo "runner: ${{ runner.os }}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
+          echo -n "cmake: " >> "artifacts/fsm-${TAG}-linux.meta.txt"
+          cmake --version | head -n1 >> "artifacts/fsm-${TAG}-linux.meta.txt"
+          echo "build_time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "artifacts/fsm-${TAG}-linux.meta.txt"
+          echo -n "file_size_bytes: " >> "artifacts/fsm-${TAG}-linux.meta.txt"
+          stat -c%s "artifacts/fsm-${TAG}-linux" >> "artifacts/fsm-${TAG}-linux.meta.txt"
 
-          # checksum
-          sha256sum artifacts/fsm-${TAG}-linux > artifacts/fsm-${TAG}-linux.sha256
+          sha256sum "artifacts/fsm-${TAG}-linux" > "artifacts/fsm-${TAG}-linux.sha256"
 
       - name: Install GnuPG (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         run: sudo apt-get update && sudo apt-get install -y gnupg
 
       - name: Import GPG private key (Linux) (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
-        run: |
-          # Expect GPG_PRIVATE_KEY secret to be base64-encoded private key
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 --decode > private.key
-          gpg --batch --import private.key
-          rm -f private.key
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | base64 --decode > private.key
+          gpg --batch --import private.key
+          rm -f private.key
 
       - name: Create GPG detached signatures for Linux artifacts (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
-        run: |
-          for f in artifacts/fsm-${TAG}-linux artifacts/fsm-${TAG}-linux.sha256 artifacts/fsm-${TAG}-linux.meta.txt; do
-            gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign -a "$f"
-          done
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          for f in "artifacts/fsm-${TAG}-linux" "artifacts/fsm-${TAG}-linux.sha256" "artifacts/fsm-${TAG}-linux.meta.txt"; do
+            gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign -a "$f"
+          done
 
       - name: Upload Linux binary to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/fsm-${{ env.TAG }}-linux
-          asset_name: fsm-${{ env.TAG }}-linux
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-linux"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-linux"
           asset_content_type: application/octet-stream
 
       - name: Upload Linux checksum to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/fsm-${{ env.TAG }}-linux.sha256
-          asset_name: fsm-${{ env.TAG }}-linux.sha256
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-linux.sha256"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-linux.sha256"
           asset_content_type: text/plain
 
       - name: Upload Linux metadata to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/fsm-${{ env.TAG }}-linux.meta.txt
-          asset_name: fsm-${{ env.TAG }}-linux.meta.txt
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-linux.meta.txt"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-linux.meta.txt"
           asset_content_type: text/plain
 
       - name: Upload Linux signatures to Release (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/fsm-${{ env.TAG }}-linux.sha256.asc
-          asset_name: fsm-${{ env.TAG }}-linux.sha256.asc
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-linux.sha256.asc"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-linux.sha256.asc"
           asset_content_type: text/plain
 
       - name: Upload Linux metadata signature to Release (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/fsm-${{ env.TAG }}-linux.meta.txt.asc
-          asset_name: fsm-${{ env.TAG }}-linux.meta.txt.asc
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-linux.meta.txt.asc"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-linux.meta.txt.asc"
           asset_content_type: text/plain
 
       - name: Upload Linux binary signature to Release (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/fsm-${{ env.TAG }}-linux.asc
-          asset_name: fsm-${{ env.TAG }}-linux.asc
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-linux.asc"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-linux.asc"
           asset_content_type: text/plain
 
   build-windows:
     name: Build Windows (CMake + MinGW) and upload assets
     runs-on: windows-latest
-    env:
-      TAG: ${{ env.TAG }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Check if signing is enabled (Windows)
+        id: check_signing
+        shell: pwsh
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          if ($env:GPG_PRIVATE_KEY) { "sign=true" >> $env:GITHUB_OUTPUT } else { "sign=false" >> $env:GITHUB_OUTPUT }
 
       - name: Install packages (Windows)
         run: choco install winflexbison3 -y
@@ -142,91 +155,87 @@ jobs:
       - name: Prepare Windows artifact and metadata (PowerShell)
         shell: pwsh
         run: |
+          $tag = "${{ github.event.release.tag_name }}"
           New-Item -ItemType Directory -Path artifacts -Force | Out-Null
-          Copy-Item -Path build\fsm.exe -Destination artifacts\fsm-${TAG}-windows.exe -Force
+          Copy-Item -Path build\fsm.exe -Destination "artifacts\fsm-$tag-windows.exe" -Force
 
-          # metadata
-          "tag: ${TAG}" | Out-File -Encoding ascii artifacts\fsm-${TAG}-windows.meta.txt
-          "release_name: ${{ github.event.release.name }}" | Out-File -Encoding ascii -Append artifacts\fsm-${TAG}-windows.meta.txt
-          "commit: ${{ github.sha }}" | Out-File -Encoding ascii -Append artifacts\fsm-${TAG}-windows.meta.txt
-          "runner: ${{ runner.os }}" | Out-File -Encoding ascii -Append artifacts\fsm-${TAG}-windows.meta.txt
+          "tag: $tag" | Out-File -Encoding ascii "artifacts\fsm-$tag-windows.meta.txt"
+          "release_name: ${{ github.event.release.name }}" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
+          "commit: ${{ github.sha }}" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
+          "runner: ${{ runner.os }}" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
           $cmake = (& cmake --version) -split "`n"
-          $cmake[0] | Out-File -Encoding ascii -Append artifacts\fsm-${TAG}-windows.meta.txt
-          "build_time: $(Get-Date -Format s)Z" | Out-File -Encoding ascii -Append artifacts\fsm-${TAG}-windows.meta.txt
-          $size = (Get-Item artifacts\fsm-${TAG}-windows.exe).Length
-          "file_size_bytes: $size" | Out-File -Encoding ascii -Append artifacts\fsm-${TAG}-windows.meta.txt
+          $cmake[0] | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
+          "build_time: $(Get-Date -Format s)Z" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
+          $size = (Get-Item "artifacts\fsm-$tag-windows.exe").Length
+          "file_size_bytes: $size" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
 
-          # checksum (sha256)
-          $hash = Get-FileHash -Algorithm SHA256 artifacts\fsm-${TAG}-windows.exe
-          "$($hash.Hash)  fsm-${TAG}-windows.exe" | Out-File -Encoding ascii artifacts\fsm-${TAG}-windows.exe.sha256
+          $hash = Get-FileHash -Algorithm SHA256 "artifacts\fsm-$tag-windows.exe"
+          "$($hash.Hash)  fsm-$tag-windows.exe" | Out-File -Encoding ascii "artifacts\fsm-$tag-windows.exe.sha256"
 
       - name: Install GnuPG (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         run: choco install gnupg -y
 
       - name: Import GPG private key (Windows) (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         shell: pwsh
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         run: |
-          # GPG_PRIVATE_KEY expected base64-encoded
           $b64 = $env:GPG_PRIVATE_KEY
           [IO.File]::WriteAllBytes('private.key', [System.Convert]::FromBase64String($b64))
           gpg --batch --import private.key
           Remove-Item private.key
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
       - name: Create GPG detached signatures for Windows artifacts (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         shell: pwsh
-        run: |
-          $pass = $env:GPG_PASSPHRASE
-          & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a artifacts\fsm-${TAG}-windows.exe
-          & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a artifacts\fsm-${TAG}-windows.exe.sha256
-          & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a artifacts\fsm-${TAG}-windows.meta.txt
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          $pass = $env:GPG_PASSPHRASE
+          & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.exe"
+          & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.exe.sha256"
+          & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.meta.txt"
 
       - name: Upload Windows binary to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/fsm-${{ env.TAG }}-windows.exe
-          asset_name: fsm-${{ env.TAG }}-windows.exe
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-windows.exe"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-windows.exe"
           asset_content_type: application/octet-stream
 
       - name: Upload Windows checksum to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/fsm-${{ env.TAG }}-windows.exe.sha256
-          asset_name: fsm-${{ env.TAG }}-windows.exe.sha256
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-windows.exe.sha256"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-windows.exe.sha256"
           asset_content_type: text/plain
 
       - name: Upload Windows metadata to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/fsm-${{ env.TAG }}-windows.meta.txt
-          asset_name: fsm-${{ env.TAG }}-windows.meta.txt
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-windows.meta.txt"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-windows.meta.txt"
           asset_content_type: text/plain
 
       - name: Upload Windows signatures to Release (only if signing)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts\fsm-${{ env.TAG }}-windows.exe.asc
-          asset_name: fsm-${{ env.TAG }}-windows.exe.asc
+          asset_path: "artifacts/fsm-${{ github.event.release.tag_name }}-windows.exe.asc"
+          asset_name: "fsm-${{ github.event.release.tag_name }}-windows.exe.asc"
           asset_content_type: text/plain
 
   generate-rst-and-publish:
     name: Produce ReStructuredText release index, upload to Release, and publish to gh-pages
     needs: [build-linux, build-windows]
     runs-on: ubuntu-latest
-    env:
-      TAG: ${{ env.TAG }}
-      REPO: ${{ env.REPO }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -234,59 +243,57 @@ jobs:
       - name: Create RST document
         run: |
           mkdir -p artifacts
-          RST_FILE=artifacts/release-${TAG}.rst
-          cat > "${RST_FILE}" <<'EOF'
-Release ${TAG}
-=================================================================
+          TAG="${{ github.event.release.tag_name }}"
+          REPO="${{ env.REPO }}"
+          RELEASE_NAME="${{ github.event.release.name }}"
+          COMMIT="${{ github.sha }}"
+          BUILD_TIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          RST_FILE="artifacts/release-${TAG}.rst"
 
-Release name: ${RELEASE_NAME}
-Tag: ${TAG}
-Commit: ${COMMIT}
-Build time (UTC): ${BUILD_TIME}
-
-Assets
-------
-
-- Linux binary: fsm-${TAG}-linux
-- Linux checksum: fsm-${TAG}-linux.sha256
-- Linux metadata: fsm-${TAG}-linux.meta.txt
-- Linux signature (optional): fsm-${TAG}-linux.asc
-- Linux checksum signature (optional): fsm-${TAG}-linux.sha256.asc
-- Linux metadata signature (optional): fsm-${TAG}-linux.meta.txt.asc
-
-- Windows binary: fsm-${TAG}-windows.exe
-- Windows checksum: fsm-${TAG}-windows.exe.sha256
-- Windows metadata: fsm-${TAG}-windows.meta.txt
-- Windows signature (optional): fsm-${TAG}-windows.exe.asc
-- Windows checksum signature (optional): fsm-${TAG}-windows.exe.sha256.asc
-- Windows metadata signature (optional): fsm-${TAG}-windows.meta.txt.asc
-
-Download URLs (GitHub release assets)
-------------------------------------
-
-.. note:: Replace TAG with the release tag if viewing this file independently.
-
-- Linux binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux
-- Linux checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.sha256
-- Linux metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.meta.txt
-- Windows binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe
-- Windows checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe.sha256
-- Windows metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.meta.txt
-
-EOF
-        env:
-          TAG: ${{ env.TAG }}
-          REPO: ${{ env.REPO }}
-          RELEASE_NAME: ${{ github.event.release.name }}
-          COMMIT: ${{ github.sha }}
-          BUILD_TIME: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          cat > "${RST_FILE}" <<EOF
+          Release ${TAG}
+          ================================================================
+          
+          Release name: ${RELEASE_NAME}
+          Tag: ${TAG}
+          Commit: ${COMMIT}
+          Build time (UTC): ${BUILD_TIME}
+          
+          Assets
+          ------
+          
+          - Linux binary: fsm-${TAG}-linux
+          - Linux checksum: fsm-${TAG}-linux.sha256
+          - Linux metadata: fsm-${TAG}-linux.meta.txt
+          - Linux signature (optional): fsm-${TAG}-linux.asc
+          - Linux checksum signature (optional): fsm-${TAG}-linux.sha256.asc
+          - Linux metadata signature (optional): fsm-${TAG}-linux.meta.txt.asc
+          
+          - Windows binary: fsm-${TAG}-windows.exe
+          - Windows checksum: fsm-${TAG}-windows.exe.sha256
+          - Windows metadata: fsm-${TAG}-windows.meta.txt
+          - Windows signature (optional): fsm-${TAG}-windows.exe.asc
+          - Windows checksum signature (optional): fsm-${TAG}-windows.exe.sha256.asc
+          - Windows metadata signature (optional): fsm-${TAG}-windows.meta.txt.asc
+          
+          Download URLs (GitHub release assets)
+          ------------------------------------
+          
+          - Linux binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux
+          - Linux checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.sha256
+          - Linux metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.meta.txt
+          - Windows binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe
+          - Windows checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe.sha256
+          - Windows metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.meta.txt
+          
+          EOF
 
       - name: Upload RST to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: artifacts/release-${{ env.TAG }}.rst
-          asset_name: release-${{ env.TAG }}.rst
+          asset_path: "artifacts/release-${{ github.event.release.tag_name }}.rst"
+          asset_name: "release-${{ github.event.release.tag_name }}.rst"
           asset_content_type: text/x-rst
 
       - name: Publish RST to gh-pages
@@ -295,7 +302,6 @@ EOF
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./artifacts
           publish_branch: gh-pages
-          commit_message: "Publish release ${TAG} RST to gh-pages"
+          commit_message: "Publish release ${{ github.event.release.tag_name }} RST to gh-pages"
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
-
