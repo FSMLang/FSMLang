@@ -8,8 +8,8 @@ permissions:
   contents: write
 
 env:
-  REPO: FSMLang/FSMLang
   TAG: ${{ github.event.release.tag_name }}
+  REPO: FSMLang/FSMLang
 
 jobs:
   build-linux:
@@ -234,11 +234,6 @@ jobs:
       - name: Create RST document
         run: |
           mkdir -p artifacts
-          TAG="${TAG}"
-          REPO="${REPO}"
-          RELEASE_NAME="${{ github.event.release.name }}"
-          COMMIT="${{ github.sha }}"
-          BUILD_TIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           RST_FILE=artifacts/release-${TAG}.rst
 
           cat > "${RST_FILE}" <<EOF
@@ -296,3 +291,4 @@ jobs:
           commit_message: "Publish release ${TAG} RST to gh-pages"
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
+
