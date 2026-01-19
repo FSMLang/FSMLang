@@ -316,4 +316,3 @@ jobs:
           commit_message: "Publish release ${{ github.event.release.tag_name }} RST to gh-pages"
           user_name: "github-actions[bot]"
           user_email: "github-actions[bot]@users.noreply.github.com"
-
