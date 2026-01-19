@@ -2,7 +2,8 @@ name: Release — Build, metadata, checksums, optional GPG signatures, and publi
 
 on:
   release:
-    types: [created]
+    types: [created, published]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -63,7 +64,12 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         run: |
-          echo "$GPG_PRIVATE_KEY" | base64 --decode > private.key
+          # Try base64 decode; if invalid base64, write raw key (normalize CRLF)
+          if printf '%s' "$GPG_PRIVATE_KEY" | base64 --decode >/dev/null 2>&1; then
+            printf '%s' "$GPG_PRIVATE_KEY" | base64 --decode > private.key
+          else
+            printf '%s\n' "$GPG_PRIVATE_KEY" | sed 's/\r$//' > private.key
+          fi
           gpg --batch --import private.key
           rm -f private.key
 
@@ -182,8 +188,13 @@ jobs:
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         run: |
-          $b64 = $env:GPG_PRIVATE_KEY
-          [IO.File]::WriteAllBytes('private.key', [System.Convert]::FromBase64String($b64))
+          try {
+            $bytes = [System.Convert]::FromBase64String($env:GPG_PRIVATE_KEY)
+            [IO.File]::WriteAllBytes('private.key', $bytes)
+          } catch {
+            $content = $env:GPG_PRIVATE_KEY -replace "`r`n", "`n"
+            Set-Content -Path private.key -Value $content -Encoding ascii
+          }
           gpg --batch --import private.key
           Remove-Item private.key
 
