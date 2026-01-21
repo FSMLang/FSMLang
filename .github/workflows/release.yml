@@ -221,7 +221,7 @@ jobs:
           if ($env:GPG_PRIVATE_KEY) { "sign=true" >> $env:GITHUB_OUTPUT } else { "sign=false" >> $env:GITHUB_OUTPUT }
 
       - name: Install packages (Windows)
-        run: choco install winflexbison3 -y
+        run: choco install winflexbison3 -y --execution-timeout=5400
 
       - name: Configure (CMake, MinGW)
         run: cmake -B build -G "MinGW Makefiles"
@@ -252,7 +252,7 @@ jobs:
 
       - name: Install GnuPG (only if signing)
         if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        run: choco install gnupg -y
+        run: choco install gnupg -y --execution-timeout=5400
 
       - name: Import GPG private key (Windows) (only if signing)
         if: ${{ steps.check_signing.outputs.sign == 'true' }}
