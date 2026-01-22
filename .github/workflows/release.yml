@@ -1,4 +1,3 @@
-```name=release.yml
 name: Release — Build, metadata, checksums, optional GPG signatures, and publish RST to gh-pages
 
 on:
