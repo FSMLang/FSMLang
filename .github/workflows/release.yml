@@ -277,7 +277,7 @@ jobs:
           "file_size_bytes: $size" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
 
           $hash = Get-FileHash -Algorithm SHA256 "artifacts\fsm-$tag-windows.exe"
-          "$($hash.Hash)  fsm-$tag-windows.exe" | Out-File -Encoding ascii "artifacts/fsm-$tag-windows.exe.sha256"
+          "$($hash.Hash)  fsm-$tag-windows.exe" | Out-File -Encoding ascii "artifacts\fsm-$tag-windows.exe.sha256"
 
       - name: Install GnuPG (Windows) with retry and fallback
         if: ${{ steps.check_signing.outputs.sign == 'true' }}
