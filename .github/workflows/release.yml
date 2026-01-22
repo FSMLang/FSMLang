@@ -1,3 +1,4 @@
+```name=release.yml
 name: Release — Build, metadata, checksums, optional GPG signatures, and publish RST to gh-pages
 
 on:
@@ -285,12 +286,118 @@ jobs:
           "file_size_bytes: $size" | Out-File -Encoding ascii -Append "artifacts\fsm-$tag-windows.meta.txt"
 
           $hash = Get-FileHash -Algorithm SHA256 "artifacts\fsm-$tag-windows.exe"
-          "$($hash.Hash)  fsm-$tag-windows.exe" | Out-File -Encoding ascii "artifacts\fsm-$tag-windows.exe.sha256"
+          "$($hash.Hash)  fsm-$tag-windows.exe" | Out-File -Encoding ascii "artifacts/fsm-$tag-windows.exe.sha256"
 
-      - name: Install GnuPG (only if signing)
+      - name: Install GnuPG (Windows) with retry and fallback
         if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        run: choco install gnupg -y
+        shell: pwsh
+        run: |
+          # Try Chocolatey install first with extended timeout and retries.
+          $timeout = 21600   # seconds (6 hours)
+          $attempts = 2
+          $success = $false
 
+          for ($i = 1; $i -le $attempts; $i++) {
+            Write-Host "choco install attempt $i of $attempts..."
+            choco install gnupg -y --execution-timeout=$timeout --no-progress
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "choco install succeeded."
+              $success = $true
+              break
+            }
+
+            Write-Host "choco install failed (exit code $LASTEXITCODE). Cleaning partial state and retrying..."
+            Remove-Item -Recurse -Force 'C:\ProgramData\chocolatey\lib\gnupg' -ErrorAction SilentlyContinue
+            Remove-Item -Recurse -Force 'C:\ProgramData\chocolatey\lib-bad\gnupg' -ErrorAction SilentlyContinue
+            Start-Sleep -Seconds 8
+          }
+
+          if ($success) {
+            Write-Host "GnuPG installed via Chocolatey."
+            gpg --version
+            exit 0
+          }
+
+          Write-Host "Chocolatey install failed after retries — attempting fallback (download nupkg/extract)."
+
+          $scratch = Join-Path $env:TEMP 'gnupg-fallback'
+          New-Item -ItemType Directory -Path $scratch -Force | Out-Null
+
+          Write-Host "Downloading package nupkg via choco download..."
+          choco download gnupg --output-directory="$scratch" --ignore-checksums -y
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "choco download failed with exit code $LASTEXITCODE"
+            if (Test-Path 'C:\ProgramData\chocolatey\logs\chocolatey.log') {
+              Get-Content -Tail 300 'C:\ProgramData\chocolatey\logs\chocolatey.log' | Write-Host
+            }
+            throw "Failed to download gnupg package"
+          }
+
+          $nupkg = Get-ChildItem -Path $scratch -Filter "gnupg*.nupkg" -File -Recurse | Select-Object -First 1
+          if (-not $nupkg) {
+            Write-Host "No gnupg nupkg found in $scratch"
+            throw "nupkg not found"
+          }
+          Write-Host "Found nupkg: $($nupkg.FullName)"
+
+          $extractDir = Join-Path $scratch "nupkg-extracted"
+          Expand-Archive -Path $nupkg.FullName -DestinationPath $extractDir -Force
+
+          $toolsDir = Join-Path $extractDir "tools"
+          Write-Host "Searching tools in $toolsDir..."
+          $exe = Get-ChildItem -Path $toolsDir -Recurse -Include *.exe -File -ErrorAction SilentlyContinue | Select-Object -First 1
+          $zip = Get-ChildItem -Path $toolsDir -Recurse -Include *.zip -File -ErrorAction SilentlyContinue | Select-Object -First 1
+
+          if ($exe) {
+            Write-Host "Installer EXE found: $($exe.FullName). Attempting silent install..."
+            $args = '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-'
+            & $exe.FullName $args
+            $code = $LASTEXITCODE
+            Write-Host "Installer exit code: $code"
+            if ($code -eq 0) {
+              Write-Host "Installer completed. Verifying gpg..."
+              gpg --version
+              exit 0
+            } else {
+              Write-Host "Installer returned non-zero exit code $code; continuing to portable extraction if available."
+            }
+          }
+
+          if ($zip) {
+            Write-Host "Portable ZIP found: $($zip.FullName). Extracting to C:\tools\gnupg-portable"
+            $portableDir = "C:\tools\gnupg-portable"
+            New-Item -ItemType Directory -Path $portableDir -Force | Out-Null
+            Expand-Archive -Path $zip.FullName -DestinationPath $portableDir -Force
+
+            # Attempt to find a 'bin' folder inside the extracted content and add to PATH
+            $bin = Get-ChildItem -Path $portableDir -Directory -Recurse | Where-Object { $_.Name -match 'bin' } | Select-Object -First 1
+            if (-not $bin) {
+              $binGuess = Join-Path $portableDir "gnupg\bin"
+              if (Test-Path $binGuess) { $bin = Get-Item $binGuess }
+            }
+
+            if ($bin) {
+              Write-Host "Adding $($bin.FullName) to PATH for remainder of job."
+              Add-Content -Path $env:GITHUB_PATH -Value $bin.FullName
+              Write-Host "Verifying gpg..."
+              gpg --version
+              exit 0
+            } else {
+              Write-Host "Could not find bin directory inside portable extraction."
+            }
+          }
+
+          Write-Host "Fallback steps exhausted; showing chocolatey log tail to help debugging."
+          if (Test-Path 'C:\ProgramData\chocolatey\logs\chocolatey.log') {
+            Get-Content -Tail 300 'C:\ProgramData\chocolatey\logs\chocolatey.log' | Write-Host
+          } else {
+            Write-Host "No Chocolatey log present at expected path."
+          }
+
+          Write-Host "Listing fallback dir for debugging:"
+          Get-ChildItem -Path $scratch -Recurse | Select-Object FullName, Length | Format-Table -AutoSize
+
+          throw "Failed to install GnuPG on runner."
       - name: Import GPG private key (Windows) (only if signing)
         if: ${{ steps.check_signing.outputs.sign == 'true' }}
         shell: pwsh
