@@ -478,7 +478,7 @@ jobs:
             $url = "$base`?name=$assetName"
             Write-Host "Uploading $filePath -> $url (Content-Type: $contentType)"
             $respFile = Join-Path $env:TEMP "upload_resp.json"
-            $wc = Invoke-RestMethod -Uri $url -Method Post -InFile $filePath -ContentType $contentType -Headers @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = "application/vnd.github+json" } -SkipHttpErrorCheck -ErrorAction SilentlyContinue
+            Invoke-RestMethod -Uri $url -Method Post -InFile $filePath -ContentType $contentType -Headers @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = "application/vnd.github+json" } -SkipHttpErrorCheck -ErrorAction SilentlyContinue
             if ($LASTEXITCODE -ne 0) {
               Write-Host "Invoke-RestMethod returned non-zero exit code: $LASTEXITCODE"
             }
