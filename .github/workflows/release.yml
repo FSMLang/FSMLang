@@ -41,17 +41,27 @@ jobs:
               exit 1
             fi
             echo "Looking up release for tag: $TAG"
-            resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
-            upload_url=$(printf '%s' "$resp" | jq -r '.upload_url // empty')
-            release_name=$(printf '%s' "$resp" | jq -r '.name // empty')
+            respfile=$(mktemp)
+            status=$(curl -s -w "%{http_code}" -o "$respfile" -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
+            if [ "$status" -ne 200 ]; then
+              echo "ERROR: lookup returned HTTP $status" >&2
+              echo "response:" >&2
+              cat "$respfile" >&2
+              rm -f "$respfile"
+              exit 1
+            fi
+            upload_url=$(jq -r '.upload_url // empty' < "$respfile")
+            release_name=$(jq -r '.name // empty' < "$respfile")
             if [ -z "$upload_url" ] || [ "$upload_url" = "null" ]; then
-              echo "ERROR: Release for tag '$TAG' not found or has no upload_url." >&2
-              printf 'response:\n%s\n' "$resp" >&2
+              echo "ERROR: release for tag '$TAG' has no upload_url" >&2
+              cat "$respfile" >&2
+              rm -f "$respfile"
               exit 1
             fi
             echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
             echo "tag=$TAG" >> $GITHUB_OUTPUT
             echo "release_name=$release_name" >> $GITHUB_OUTPUT
+            rm -f "$respfile"
           else
             # Triggered by a release event: take values from the event payload
             echo "upload_url=${{ github.event.release.upload_url }}" >> $GITHUB_OUTPUT
@@ -150,6 +160,33 @@ jobs:
           for f in "artifacts/fsm-${TAG}-linux" "artifacts/fsm-${TAG}-linux.sha256" "artifacts/fsm-${TAG}-linux.meta.txt"; do
             gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign -a "$f"
           done
+
+      - name: Install jq (for deletion step)
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Delete existing Linux release assets (if present)
+        run: |
+          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
+          echo "Checking release assets for tag $TAG"
+          resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
+          for NAME in \
+            "fsm-${TAG}-linux" \
+            "fsm-${TAG}-linux.sha256" \
+            "fsm-${TAG}-linux.meta.txt" \
+            "fsm-${TAG}-linux.sha256.asc" \
+            "fsm-${TAG}-linux.meta.txt.asc" \
+            "fsm-${TAG}-linux.asc" \
+          ; do
+            asset_id=$(printf '%s' "$resp" | jq -r --arg NAME "$NAME" '.assets[] | select(.name==$NAME) .id // empty')
+            if [ -n "$asset_id" ]; then
+              echo "Deleting existing asset $NAME (id $asset_id)"
+              curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
+            else
+              echo "No existing asset named $NAME"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Linux binary to Release
         uses: actions/upload-release-asset@v1
@@ -301,6 +338,30 @@ jobs:
           & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.exe.sha256"
           & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.meta.txt"
 
+      - name: Delete existing Windows release assets (if present)
+        shell: pwsh
+        run: |
+          $tag = "${{ needs.resolve-upload-url.outputs.tag }}"
+          Write-Host "Checking release assets for tag $tag"
+          $resp = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag" -Headers @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = 'application/vnd.github+json' }
+          $names = @(
+            "fsm-$tag-windows.exe",
+            "fsm-$tag-windows.exe.sha256",
+            "fsm-$tag-windows.meta.txt",
+            "fsm-$tag-windows.exe.asc"
+          )
+          foreach ($name in $names) {
+            $asset = $resp.assets | Where-Object { $_.name -eq $name }
+            if ($asset) {
+              Write-Host "Deleting existing asset $name (id $($asset.id))"
+              Invoke-RestMethod -Method Delete -Uri "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)" -Headers @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = 'application/vnd.github+json' }
+            } else {
+              Write-Host "No existing asset named $name"
+            }
+          }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload Windows binary to Release
         uses: actions/upload-release-asset@v1
         with:
@@ -391,6 +452,25 @@ jobs:
           - Windows metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.meta.txt
           
           EOF
+
+      - name: Install jq (for deletion step)
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Delete existing RST release asset (if present)
+        run: |
+          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
+          NAME="release-${TAG}.rst"
+          echo "Checking for existing asset named $NAME"
+          resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
+          asset_id=$(printf '%s' "$resp" | jq -r --arg NAME "$NAME" '.assets[] | select(.name==$NAME) .id // empty')
+          if [ -n "$asset_id" ]; then
+            echo "Deleting existing asset $NAME (id $asset_id)"
+            curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
+          else
+            echo "No existing asset named $NAME"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload RST to Release
         uses: actions/upload-release-asset@v1
