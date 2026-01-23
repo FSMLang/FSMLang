@@ -188,48 +188,43 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Linux assets (curl fallback uploader)
-        env:
-          UPLOAD_URL: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          TAG: ${{ needs.resolve-upload-url.outputs.tag }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -e
-          # uploader function: file_path, asset_name, content_type
-          upload() {
-            local file_path="$1"
-            local name="$2"
-            local content_type="$3"
-            if [ ! -f "$file_path" ]; then
-              echo "WARNING: file not found: $file_path"
-              return 0
-            fi
-            # upload_url includes the template {?name,label}; append ?name=...
-            url="${UPLOAD_URL%\{}"?name=${name}"
-            echo "Uploading $file_path -> $url (content-type: $content_type)"
-            http_code=$(curl -s -o /tmp/upload_resp -w "%{http_code}" \
-              -X POST \
-              -H "Authorization: Bearer $GITHUB_TOKEN" \
-              -H "Content-Type: $content_type" \
-              --data-binary @"$file_path" \
-              "$url")
-            if [ "$http_code" -ne 201 ]; then
-              echo "Upload failed (HTTP $http_code). Response:"
-              cat /tmp/upload_resp || true
-              exit 1
-            fi
-            echo "Upload succeeded for $name"
-          }
+      - name: Upload Linux binary to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux"
+          asset_content_type: application/octet-stream
 
-          upload "artifacts/fsm-${TAG}-linux" "fsm-${TAG}-linux" "application/octet-stream"
-          upload "artifacts/fsm-${TAG}-linux.sha256" "fsm-${TAG}-linux.sha256" "text/plain"
-          upload "artifacts/fsm-${TAG}-linux.meta.txt" "fsm-${TAG}-linux.meta.txt" "text/plain"
+      - name: Upload Linux checksum to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256"
+          asset_content_type: text/plain
 
-          if [ "${{ steps.check_signing.outputs.sign }}" = "true" ]; then
-            upload "artifacts/fsm-${TAG}-linux.sha256.asc" "fsm-${TAG}-linux.sha256.asc" "text/plain"
-            upload "artifacts/fsm-${TAG}-linux.meta.txt.asc" "fsm-${TAG}-linux.meta.txt.asc" "text/plain"
-            upload "artifacts/fsm-${TAG}-linux.asc" "fsm-${TAG}-linux.asc" "text/plain"
-          fi
+      - name: Upload Linux metadata to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt"
+          asset_content_type: text/plain
+
+      - name: Upload Linux signature to Release (only if signing)
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt.asc"
+          asset_content_type: text/plain
+
+      - name: Upload Linux binary signature to Release (only if signing)
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.asc"
+          asset_content_type: text/plain
+
 
   build-windows:
     name: Build Windows (CMake + MinGW) and upload assets
@@ -280,7 +275,8 @@ jobs:
           "$($hash.Hash)  fsm-$tag-windows.exe" | Out-File -Encoding ascii "artifacts\fsm-$tag-windows.exe.sha256"
 
       - name: Install GnuPG (Windows) with retry and fallback
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        # if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        if: ${{ false }}
         shell: pwsh
         run: |
           # Try Chocolatey install first with extended timeout and retries.
@@ -390,7 +386,8 @@ jobs:
 
           throw "Failed to install GnuPG on runner."
       - name: Import GPG private key (Windows) (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        # if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        if: ${{ false }}
         shell: pwsh
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -425,7 +422,8 @@ jobs:
           Remove-Item private.key
 
       - name: Create GPG detached signatures for Windows artifacts (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        # if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        if: ${{ false }}
         shell: pwsh
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
