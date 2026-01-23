@@ -188,56 +188,48 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Linux binary to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux"
-          asset_content_type: application/octet-stream
+      - name: Upload Linux assets (curl fallback uploader)
+        env:
+          UPLOAD_URL: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          TAG: ${{ needs.resolve-upload-url.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          # uploader function: file_path, asset_name, content_type
+          upload() {
+            local file_path="$1"
+            local name="$2"
+            local content_type="$3"
+            if [ ! -f "$file_path" ]; then
+              echo "WARNING: file not found: $file_path"
+              return 0
+            fi
+            # upload_url includes the template {?name,label}; append ?name=...
+            url="${UPLOAD_URL%\{}"?name=${name}"
+            echo "Uploading $file_path -> $url (content-type: $content_type)"
+            http_code=$(curl -s -o /tmp/upload_resp -w "%{http_code}" \
+              -X POST \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Content-Type: $content_type" \
+              --data-binary @"$file_path" \
+              "$url")
+            if [ "$http_code" -ne 201 ]; then
+              echo "Upload failed (HTTP $http_code). Response:"
+              cat /tmp/upload_resp || true
+              exit 1
+            fi
+            echo "Upload succeeded for $name"
+          }
 
-      - name: Upload Linux checksum to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256"
-          asset_content_type: text/plain
+          upload "artifacts/fsm-${TAG}-linux" "fsm-${TAG}-linux" "application/octet-stream"
+          upload "artifacts/fsm-${TAG}-linux.sha256" "fsm-${TAG}-linux.sha256" "text/plain"
+          upload "artifacts/fsm-${TAG}-linux.meta.txt" "fsm-${TAG}-linux.meta.txt" "text/plain"
 
-      - name: Upload Linux metadata to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt"
-          asset_content_type: text/plain
-
-      - name: Upload Linux signatures to Release (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256.asc"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256.asc"
-          asset_content_type: text/plain
-
-      - name: Upload Linux metadata signature to Release (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt.asc"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt.asc"
-          asset_content_type: text/plain
-
-      - name: Upload Linux binary signature to Release (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.asc"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.asc"
-          asset_content_type: text/plain
+          if [ "${{ steps.check_signing.outputs.sign }}" = "true" ]; then
+            upload "artifacts/fsm-${TAG}-linux.sha256.asc" "fsm-${TAG}-linux.sha256.asc" "text/plain"
+            upload "artifacts/fsm-${TAG}-linux.meta.txt.asc" "fsm-${TAG}-linux.meta.txt.asc" "text/plain"
+            upload "artifacts/fsm-${TAG}-linux.asc" "fsm-${TAG}-linux.asc" "text/plain"
+          fi
 
   build-windows:
     name: Build Windows (CMake + MinGW) and upload assets
@@ -468,38 +460,56 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Windows binary to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe"
-          asset_content_type: application/octet-stream
+      - name: Upload Windows assets (curl uploader in PowerShell)
+        shell: pwsh
+        env:
+          UPLOAD_URL: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          TAG: ${{ needs.resolve-upload-url.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          function Upload-Asset($filePath, $assetName, $contentType) {
+            if (-not (Test-Path $filePath)) {
+              Write-Host "WARNING: file not found: $filePath"
+              return
+            }
+            # UPLOAD_URL contains the template like: .../assets{?name,label}
+            # Replace the template portion so we can append ?name=...
+            $base = $env:UPLOAD_URL -replace '\{.*$',''
+            $url = "$base`?name=$assetName"
+            Write-Host "Uploading $filePath -> $url (Content-Type: $contentType)"
+            $respFile = Join-Path $env:TEMP "upload_resp.json"
+            Invoke-RestMethod -Uri $url -Method Post -InFile $filePath -ContentType $contentType -Headers @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = "application/vnd.github+json" } -SkipHttpErrorCheck -ErrorAction SilentlyContinue
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "Invoke-RestMethod returned non-zero exit code: $LASTEXITCODE"
+            }
+            # Fallback to curl if Invoke-RestMethod doesn't provide status easily
+            try {
+              $status = (Invoke-WebRequest -Uri $url -Method POST -InFile $filePath -ContentType $contentType -Headers @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = "application/vnd.github+json" } -UseBasicParsing -ErrorAction Stop).StatusCode
+            } catch {
+              $status = $_.Exception.Response.StatusCode.Value__
+            }
+            if ($status -ne 201) {
+              Write-Host "Upload failed (HTTP $status). Trying curl for more detailed output..."
+              $curlOut = & curl -s -w "%{http_code}" -o "$respFile" -X POST -H "Authorization: Bearer $env:GITHUB_TOKEN" -H "Content-Type: $contentType" --data-binary @"$filePath" "$base?name=$assetName"
+              if ($curlOut -ne "201") {
+                Write-Host "Curl upload also failed (HTTP $curlOut). Response:"
+                Get-Content $respFile | Write-Host
+                throw "Upload failed for $assetName"
+              } else {
+                Write-Host "Upload succeeded for $assetName (curl)."
+              }
+            } else {
+              Write-Host "Upload succeeded for $assetName (Invoke-WebRequest)."
+            }
+          }
 
-      - name: Upload Windows checksum to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256"
-          asset_content_type: text/plain
+          Upload-Asset "artifacts\fsm-${TAG}-windows.exe" "fsm-${TAG}-windows.exe" "application/octet-stream"
+          Upload-Asset "artifacts\fsm-${TAG}-windows.exe.sha256" "fsm-${TAG}-windows.exe.sha256" "text/plain"
+          Upload-Asset "artifacts\fsm-${TAG}-windows.meta.txt" "fsm-${TAG}-windows.meta.txt" "text/plain"
 
-      - name: Upload Windows metadata to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.meta.txt"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.meta.txt"
-          asset_content_type: text/plain
-
-      - name: Upload Windows signatures to Release (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.asc"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.asc"
-          asset_content_type: text/plain
+          if ("${{ steps.check_signing.outputs.sign }}" -eq "true") {
+            Upload-Asset "artifacts\fsm-${TAG}-windows.exe.asc" "fsm-${TAG}-windows.exe.asc" "text/plain"
+          }
 
   generate-rst-and-publish:
     name: Produce ReStructuredText release index, upload to Release, and publish to gh-pages
@@ -578,13 +588,33 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload RST to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/release-${{ needs.resolve-upload-url.outputs.tag }}.rst"
-          asset_name: "release-${{ needs.resolve-upload-url.outputs.tag }}.rst"
-          asset_content_type: text/x-rst
+      - name: Upload RST to Release (curl uploader)
+        env:
+          UPLOAD_URL: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          TAG: ${{ needs.resolve-upload-url.outputs.tag }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          file="artifacts/release-${TAG}.rst"
+          if [ ! -f "$file" ]; then
+            echo "RST file not present: $file"
+            exit 1
+          fi
+          base="${UPLOAD_URL%\{}"
+          url="$base?name=release-${TAG}.rst"
+          echo "Uploading $file to $url"
+          http_code=$(curl -s -o /tmp/upload_resp -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Content-Type: text/x-rst" \
+            --data-binary @"$file" \
+            "$url")
+          if [ "$http_code" -ne 201 ]; then
+            echo "Upload failed (HTTP $http_code). Response:"
+            cat /tmp/upload_resp || true
+            exit 1
+          fi
+          echo "RST uploaded."
 
       - name: Publish RST to gh-pages
         uses: peaceiris/actions-gh-pages@v3
