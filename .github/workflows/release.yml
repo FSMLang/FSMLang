@@ -193,6 +193,7 @@ jobs:
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
           asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux"
           asset_content_type: application/octet-stream
 
       - name: Upload Linux checksum to Release
@@ -200,6 +201,7 @@ jobs:
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
           asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256"
           asset_content_type: text/plain
 
       - name: Upload Linux metadata to Release
@@ -207,6 +209,7 @@ jobs:
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
           asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt"
           asset_content_type: text/plain
 
       - name: Upload Linux signature to Release (only if signing)
@@ -215,6 +218,7 @@ jobs:
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
           asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt.asc"
           asset_content_type: text/plain
 
       - name: Upload Linux binary signature to Release (only if signing)
@@ -223,6 +227,7 @@ jobs:
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
           asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.asc"
           asset_content_type: text/plain
 
 
