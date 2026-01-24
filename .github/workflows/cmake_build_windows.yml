@@ -1,8 +1,6 @@
 name: CMake build Windows
 
 on:
-  push:
-    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
