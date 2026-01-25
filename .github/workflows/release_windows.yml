@@ -346,7 +346,7 @@ jobs:
 
   generate-rst-and-publish:
     name: Produce ReStructuredText release index, upload to Release, and publish to gh-pages
-    needs: [resolve-upload-url, build-linux, build-windows]
+    needs: [resolve-upload-url, build-windows]
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
