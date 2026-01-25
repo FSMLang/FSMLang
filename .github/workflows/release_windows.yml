@@ -17,6 +17,58 @@ env:
   REPO: FSMLang/FSMLang
 
 jobs:
+  resolve-upload-url:
+    name: Resolve release upload_url and tag
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.set.outputs.upload_url }}
+      tag: ${{ steps.set.outputs.tag }}
+      release_name: ${{ steps.set.outputs.release_name }}
+    steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Determine upload_url and tag
+        id: set
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # If triggered manually, use the provided tag and look up the release via API.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+            if [ -z "$TAG" ]; then
+              echo "Error: workflow_dispatch requires input 'tag'." >&2
+              exit 1
+            fi
+            echo "Looking up release for tag: $TAG"
+            respfile=$(mktemp)
+            status=$(curl -s -w "%{http_code}" -o "$respfile" -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
+            if [ "$status" -ne 200 ]; then
+              echo "ERROR: lookup returned HTTP $status" >&2
+              echo "response:" >&2
+              cat "$respfile" >&2
+              rm -f "$respfile"
+              exit 1
+            fi
+            upload_url=$(jq -r '.upload_url // empty' < "$respfile")
+            release_name=$(jq -r '.name // empty' < "$respfile")
+            if [ -z "$upload_url" ] || [ "$upload_url" = "null" ]; then
+              echo "ERROR: release for tag '$TAG' has no upload_url" >&2
+              cat "$respfile" >&2
+              rm -f "$respfile"
+              exit 1
+            fi
+            echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
+            echo "release_name=$release_name" >> $GITHUB_OUTPUT
+            rm -f "$respfile"
+          else
+            # Triggered by a release event: take values from the event payload
+            echo "upload_url=${{ github.event.release.upload_url }}" >> $GITHUB_OUTPUT
+            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+            echo "release_name=${{ github.event.release.name }}" >> $GITHUB_OUTPUT
+          fi
+
   build-windows:
     name: Build Windows (CMake + MinGW) and upload assets
     runs-on: windows-latest
