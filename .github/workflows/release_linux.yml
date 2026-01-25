@@ -301,8 +301,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/release-${{ needs.resolf-upload-url.outputs.tag }}-linux.rst"
-          asset_name: "release-${{ needs.resolf-upload-url.outputs.tag }}-linux.rst"
+          asset_path: "artifacts/release-${{ needs.resolve-upload-url.outputs.tag }}-linux.rst"
+          asset_name: "release-${{ needs.resolve-upload-url.outputs.tag }}-linux.rst"
           asset_content_type: text/plain
 
       - name: Publish RST to gh-pages
