@@ -17,220 +17,6 @@ env:
   REPO: FSMLang/FSMLang
 
 jobs:
-  resolve-upload-url:
-    name: Resolve release upload_url and tag
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.set.outputs.upload_url }}
-      tag: ${{ steps.set.outputs.tag }}
-      release_name: ${{ steps.set.outputs.release_name }}
-    steps:
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Determine upload_url and tag
-        id: set
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # If triggered manually, use the provided tag and look up the release via API.
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
-            if [ -z "$TAG" ]; then
-              echo "Error: workflow_dispatch requires input 'tag'." >&2
-              exit 1
-            fi
-            echo "Looking up release for tag: $TAG"
-            respfile=$(mktemp)
-            status=$(curl -s -w "%{http_code}" -o "$respfile" -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
-            if [ "$status" -ne 200 ]; then
-              echo "ERROR: lookup returned HTTP $status" >&2
-              echo "response:" >&2
-              cat "$respfile" >&2
-              rm -f "$respfile"
-              exit 1
-            fi
-            upload_url=$(jq -r '.upload_url // empty' < "$respfile")
-            release_name=$(jq -r '.name // empty' < "$respfile")
-            if [ -z "$upload_url" ] || [ "$upload_url" = "null" ]; then
-              echo "ERROR: release for tag '$TAG' has no upload_url" >&2
-              cat "$respfile" >&2
-              rm -f "$respfile"
-              exit 1
-            fi
-            echo "upload_url=$upload_url" >> $GITHUB_OUTPUT
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-            echo "release_name=$release_name" >> $GITHUB_OUTPUT
-            rm -f "$respfile"
-          else
-            # Triggered by a release event: take values from the event payload
-            echo "upload_url=${{ github.event.release.upload_url }}" >> $GITHUB_OUTPUT
-            echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-            echo "release_name=${{ github.event.release.name }}" >> $GITHUB_OUTPUT
-          fi
-
-  build-linux:
-    name: Build Linux (CMake) and upload assets
-    runs-on: ubuntu-latest
-    needs: resolve-upload-url
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Check if signing is enabled
-        id: check_signing
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        run: |
-          if [ -n "$GPG_PRIVATE_KEY" ]; then
-            echo "sign=true" >> $GITHUB_OUTPUT
-          else
-            echo "sign=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Configure (CMake)
-        run: cmake -B ./build
-
-      - name: Build (CMake)
-        run: cmake --build build
-
-      - name: Prepare Linux artifact and metadata
-        run: |
-          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
-          RELEASE_NAME="${{ needs.resolve-upload-url.outputs.release_name }}"
-          mkdir -p artifacts
-          cp build/fsm "artifacts/fsm-${TAG}-linux"
-          chmod +x "artifacts/fsm-${TAG}-linux" || true
-
-          echo "tag: ${TAG}" > "artifacts/fsm-${TAG}-linux.meta.txt"
-          echo "release_name: ${RELEASE_NAME}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
-          echo "commit: ${{ github.sha }}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
-          echo "runner: ${{ runner.os }}" >> "artifacts/fsm-${TAG}-linux.meta.txt"
-          echo -n "cmake: " >> "artifacts/fsm-${TAG}-linux.meta.txt"
-          cmake --version | head -n1 >> "artifacts/fsm-${TAG}-linux.meta.txt"
-          echo "build_time: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> "artifacts/fsm-${TAG}-linux.meta.txt"
-          echo -n "file_size_bytes: " >> "artifacts/fsm-${TAG}-linux.meta.txt"
-          stat -c%s "artifacts/fsm-${TAG}-linux" >> "artifacts/fsm-${TAG}-linux.meta.txt"
-
-          sha256sum "artifacts/fsm-${TAG}-linux" > "artifacts/fsm-${TAG}-linux.sha256"
-
-      - name: Install GnuPG (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        run: sudo apt-get update && sudo apt-get install -y gnupg
-
-      - name: Import GPG private key (Linux) (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        run: |
-          set -e
-          # Try raw ASCII-armored first (normalize CRLF), validate with gpg --list-packets
-          printf '%s\n' "$GPG_PRIVATE_KEY" | sed 's/\r$//' > private.key.raw
-          if gpg --list-packets private.key.raw >/dev/null 2>&1; then
-            mv private.key.raw private.key
-          else
-            rm -f private.key.raw
-            # Try base64 decode
-            if printf '%s' "$GPG_PRIVATE_KEY" | base64 --decode > private.key.b64 2>/dev/null; then
-              if gpg --list-packets private.key.b64 >/dev/null 2>&1; then
-                mv private.key.b64 private.key
-              else
-                rm -f private.key.b64
-                echo "ERROR: decoded secret is not valid OpenPGP data. Ensure the secret contains a valid base64-encoded private key or an ASCII-armored private key." >&2
-                exit 2
-              fi
-            else
-              echo "ERROR: secret is neither valid ASCII-armored OpenPGP data nor valid base64-encoded data." >&2
-              exit 2
-            fi
-          fi
-
-          # Import the validated private.key and clean up
-          gpg --batch --import private.key
-          rm -f private.key
-
-      - name: Create GPG detached signatures for Linux artifacts (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        run: |
-          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
-          for f in "artifacts/fsm-${TAG}-linux" "artifacts/fsm-${TAG}-linux.sha256" "artifacts/fsm-${TAG}-linux.meta.txt"; do
-            gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign -a "$f"
-          done
-
-      - name: Install jq (for deletion step)
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Delete existing Linux release assets (if present)
-        run: |
-          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
-          echo "Checking release assets for tag $TAG"
-          resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
-          for NAME in \
-            "fsm-${TAG}-linux" \
-            "fsm-${TAG}-linux.sha256" \
-            "fsm-${TAG}-linux.meta.txt" \
-            "fsm-${TAG}-linux.sha256.asc" \
-            "fsm-${TAG}-linux.meta.txt.asc" \
-            "fsm-${TAG}-linux.asc" \
-          ; do
-            asset_id=$(printf '%s' "$resp" | jq -r --arg NAME "$NAME" '.assets[] | select(.name==$NAME) .id // empty')
-            if [ -n "$asset_id" ]; then
-              echo "Deleting existing asset $NAME (id $asset_id)"
-              curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
-            else
-              echo "No existing asset named $NAME"
-            fi
-          done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Linux binary to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux"
-          asset_content_type: application/octet-stream
-
-      - name: Upload Linux checksum to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.sha256"
-          asset_content_type: text/plain
-
-      - name: Upload Linux metadata to Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt"
-          asset_content_type: text/plain
-
-      - name: Upload Linux signature to Release (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt.asc"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.meta.txt.asc"
-          asset_content_type: text/plain
-
-      - name: Upload Linux binary signature to Release (only if signing)
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.asc"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux.asc"
-          asset_content_type: text/plain
-
-
   build-windows:
     name: Build Windows (CMake + MinGW) and upload assets
     runs-on: windows-latest
@@ -467,16 +253,16 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe"
           asset_content_type: application/octet-stream
 
       - name: Upload Windows checksum to Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.sha256"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.sha256"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256"
           asset_content_type: text/plain
 
       - name: Upload Windows metadata to Release
@@ -524,7 +310,7 @@ jobs:
           RELEASE_NAME="${{ needs.resolve-upload-url.outputs.release_name }}"
           COMMIT="${{ github.sha }}"
           BUILD_TIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          RST_FILE="artifacts/release-${TAG}.rst"
+          RST_FILE="artifacts/release-${TAG}-windows.rst"
 
           cat > "${RST_FILE}" <<EOF
           Release ${TAG}
@@ -538,13 +324,6 @@ jobs:
           Assets
           ------
           
-          - Linux binary: fsm-${TAG}-linux
-          - Linux checksum: fsm-${TAG}-linux.sha256
-          - Linux metadata: fsm-${TAG}-linux.meta.txt
-          - Linux signature (optional): fsm-${TAG}-linux.asc
-          - Linux checksum signature (optional): fsm-${TAG}-linux.sha256.asc
-          - Linux metadata signature (optional): fsm-${TAG}-linux.meta.txt.asc
-          
           - Windows binary: fsm-${TAG}-windows.exe
           - Windows checksum: fsm-${TAG}-windows.exe.sha256
           - Windows metadata: fsm-${TAG}-windows.meta.txt
@@ -555,9 +334,6 @@ jobs:
           Download URLs (GitHub release assets)
           ------------------------------------
           
-          - Linux binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux
-          - Linux checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.sha256
-          - Linux metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.meta.txt
           - Windows binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe
           - Windows checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe.sha256
           - Windows metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.meta.txt
@@ -570,7 +346,7 @@ jobs:
       - name: Delete existing RST release asset (if present)
         run: |
           TAG="${{ needs.resolve-upload-url.outputs.tag }}"
-          NAME="release-${TAG}.rst"
+          NAME="release-${TAG}-windows.rst"
           echo "Checking for existing asset named $NAME"
           resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
           asset_id=$(printf '%s' "$resp" | jq -r --arg NAME "$NAME" '.assets[] | select(.name==$NAME) .id // empty')
@@ -590,13 +366,13 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          file="artifacts/release-${TAG}.rst"
+          file="artifacts/release-${TAG}-windows.rst"
           if [ ! -f "$file" ]; then
             echo "RST file not present: $file"
             exit 1
           fi
           base="${UPLOAD_URL%\{}"
-          url="$base?name=release-${TAG}.rst"
+          url="$base?name=release-${TAG}-windows.rst"
           echo "Uploading $file to $url"
           http_code=$(curl -s -o /tmp/upload_resp -w "%{http_code}" \
             -X POST \
