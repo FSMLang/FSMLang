@@ -251,7 +251,7 @@ jobs:
           RST_FILE="artifacts/release-${TAG}-linux.rst"
 
           cat > "${RST_FILE}" <<EOF
-          Release ${TAG}
+          Release ${TAG} (Linux)
           ================================================================
           
           Release name: ${RELEASE_NAME}
