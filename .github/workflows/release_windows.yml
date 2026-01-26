@@ -118,8 +118,8 @@ jobs:
           "$($hash.Hash)  fsm-$tag-windows.exe" | Out-File -Encoding ascii "artifacts\fsm-$tag-windows.exe.sha256"
 
       - name: Install GnuPG (Windows) with retry and fallback
-        # if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        if: ${{ false }}
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        # if: ${{ false }}
         shell: pwsh
         run: |
           # Try Chocolatey install first with extended timeout and retries.
@@ -365,7 +365,7 @@ jobs:
           RST_FILE="artifacts/release-${TAG}-windows.rst"
 
           cat > "${RST_FILE}" <<EOF
-          Release ${TAG}
+          Release ${TAG} (Windows)
           ================================================================
           
           Release name: ${RELEASE_NAME}
@@ -392,60 +392,43 @@ jobs:
           
           EOF
 
-      - name: Install jq (for deletion step)
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      - name: Delete existing RST release asset (if present)
-        run: |
-          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
-          NAME="release-${TAG}-windows.rst"
-          echo "Checking for existing asset named $NAME"
-          resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
-          asset_id=$(printf '%s' "$resp" | jq -r --arg NAME "$NAME" '.assets[] | select(.name==$NAME) .id // empty')
-          if [ -n "$asset_id" ]; then
-            echo "Deleting existing asset $NAME (id $asset_id)"
-            curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
-          else
-            echo "No existing asset named $NAME"
-          fi
+      - name: Deploy release RST to FSMLang.github.io master/Artifacts
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload RST to Release (curl uploader)
-        env:
-          UPLOAD_URL: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          PAGES_REPO: FSMLang/FSMLang.github.io
+          PAGES_BRANCH: master
+          PAGES_TOKEN: ${{ secrets.PAGES_REPO_TOKEN }}
           TAG: ${{ needs.resolve-upload-url.outputs.tag }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # This step commits only the generated release-<TAG>-windows.rst into the Artifacts/ folder
+          # on the FSMLang/FSMLang.github.io repository master branch.
+          # Ensure you have created a secret PAGES_REPO_TOKEN with a token that has write access
           set -e
-          file="artifacts/release-${TAG}-windows.rst"
-          if [ ! -f "$file" ]; then
-            echo "RST file not present: $file"
-            exit 1
-          fi
-          base="${UPLOAD_URL%\{}"
-          url="$base?name=release-${TAG}-windows.rst"
-          echo "Uploading $file to $url"
-          http_code=$(curl -s -o /tmp/upload_resp -w "%{http_code}" \
-            -X POST \
-            -H "Authorization: Bearer $GITHUB_TOKEN" \
-            -H "Content-Type: text/x-rst" \
-            --data-binary @"$file" \
-            "$url")
-          if [ "$http_code" -ne 201 ]; then
-            echo "Upload failed (HTTP $http_code). Response:"
-            cat /tmp/upload_resp || true
-            exit 1
-          fi
-          echo "RST uploaded."
 
-      - name: Publish RST to gh-pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./artifacts
-          publish_branch: gh-pages
-          commit_message: "Publish release ${{ needs.resolve-upload-url.outputs.tag }} RST to gh-pages"
-          user_name: "github-actions[bot]"
-          user_email: "github-actions[bot]@users.noreply.github.com"
+          echo "Cloning target repo ${PAGES_REPO} (branch ${PAGES_BRANCH})"
+          git clone --depth=1 --branch "${PAGES_BRANCH}" "https://x-access-token:${PAGES_TOKEN}@github.com/${PAGES_REPO}.git" site || {
+            # If branch doesn't exist, clone default and create the branch
+            git clone "https://x-access-token:${PAGES_TOKEN}@github.com/${PAGES_REPO}.git" site
+            pushd site
+            git checkout -b "${PAGES_BRANCH}"
+            popd
+          }
+
+          # Ensure Artifacts folder exists and copy only the RST file
+          mkdir -p site/Artifacts
+          cp "artifacts/release-${TAG}-windows.rst" "site/Artifacts/"
+
+          pushd site
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # add and commit only the Artifacts/release-*.rst file
+          git add "Artifacts/release-${TAG}-windows.rst"
+          if git diff --cached --quiet; then
+            echo "No changes to commit for Artifacts/release-${TAG}-windows.rst"
+          else
+            git commit -m "Publish release ${TAG} RST to Artifacts/"
+            echo "Pushing changes to ${PAGES_REPO}:${PAGES_BRANCH}"
+            git push "https://x-access-token:${PAGES_TOKEN}@github.com/${PAGES_REPO}.git" "HEAD:${PAGES_BRANCH}"
+          fi
+          popd
 
