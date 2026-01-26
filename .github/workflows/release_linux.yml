@@ -1,4 +1,4 @@
-name: Release — Build, metadata, checksums, optional GPG signatures, and publish RST to gh-pages
+name: Linux Release
 
 on:
   release:
