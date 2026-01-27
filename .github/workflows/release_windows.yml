@@ -145,13 +145,13 @@ jobs:
       - name: Download Exe
         uses: actions/download-artifact@v4
         with:
-          name: fsm-${{ needs.resolve-download-url.outputs.tag }}-windows.exe
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe
           path: artifacts/
 
       - name: Download Checksum
         uses: actions/download-artifact@v4
         with:
-          name: fsm-${{ needs.resolve-download-url.outputs.tag }}-windows.meta.txt
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.meta.txt
           path: artifacts/
 
       - name: Download Metadata
