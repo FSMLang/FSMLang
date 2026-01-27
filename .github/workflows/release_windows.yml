@@ -243,7 +243,7 @@ jobs:
           - Windows metadata signature (optional): fsm-${TAG}-windows.meta.txt.asc
           
           Download URLs (GitHub release assets)
-          ------------------------------------
+          -------------------------------------
           
           - Windows binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe
           - Windows checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe.sha256

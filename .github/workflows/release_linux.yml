@@ -270,7 +270,7 @@ jobs:
           - Linux metadata signature (optional): fsm-${TAG}-linux.meta.txt.asc
           
           Download URLs (GitHub release assets)
-          ------------------------------------
+          -------------------------------------
           
           - Linux binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux
           - Linux checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.sha256
