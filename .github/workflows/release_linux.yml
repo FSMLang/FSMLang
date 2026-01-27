@@ -78,6 +78,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ needs.resolve-upload-url.outputs.tag }}
+          fetch-depth: 0
 
       - name: Check if signing is enabled
         id: check_signing
@@ -270,7 +273,7 @@ jobs:
           - Linux metadata signature (optional): fsm-${TAG}-linux.meta.txt.asc
           
           Download URLs (GitHub release assets)
-          ------------------------------------
+          -------------------------------------
           
           - Linux binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux
           - Linux checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.sha256
