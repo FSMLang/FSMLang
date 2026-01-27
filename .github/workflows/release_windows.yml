@@ -117,189 +117,48 @@ jobs:
           $hash = Get-FileHash -Algorithm SHA256 "artifacts\fsm-$tag-windows.exe"
           "$($hash.Hash)  fsm-$tag-windows.exe" | Out-File -Encoding ascii "artifacts\fsm-$tag-windows.exe.sha256"
 
-      - name: Install GnuPG (Windows) with retry and fallback
-        if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        # if: ${{ false }}
-        shell: pwsh
-        run: |
-          # Try Chocolatey install first with extended timeout and retries.
-          $timeout = 21600   # seconds (6 hours)
-          $attempts = 2
-          $success = $false
+      - name: Upload Exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe
+          path: artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe
 
-          for ($i = 1; $i -le $attempts; $i++) {
-            Write-Host "choco install attempt $i of $attempts..."
-            choco install gnupg -y --execution-timeout=$timeout --no-progress
-            if ($LASTEXITCODE -eq 0) {
-              Write-Host "choco install succeeded."
-              $success = $true
-              break
-            }
+      - name: Upload Checksum
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.meta.txt
+          path: artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.meta.txt
 
-            Write-Host "choco install failed (exit code $LASTEXITCODE). Cleaning partial state and retrying..."
-            Remove-Item -Recurse -Force 'C:\ProgramData\chocolatey\lib\gnupg' -ErrorAction SilentlyContinue
-            Remove-Item -Recurse -Force 'C:\ProgramData\chocolatey\lib-bad\gnupg' -ErrorAction SilentlyContinue
-            Start-Sleep -Seconds 8
-          }
+      - name: Upload Metadata
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256
+          path: artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256
 
-          if ($success) {
-            Write-Host "GnuPG installed via Chocolatey."
-            gpg --version
-            exit 0
-          }
+  sign-and-publish:
+    name: Sign Windows Artificts and Upload to Release
+    runs-on: ubuntu-latest
+    needs: [resolve-upload-url, build-windows]
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Download Exe
+        uses: actions/download-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-download-url.outputs.tag }}-windows.exe
+          path: artifacts/
 
-          Write-Host "Chocolatey install failed after retries — attempting fallback (download nupkg/extract)."
+      - name: Download Checksum
+        uses: actions/download-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-download-url.outputs.tag }}-windows.meta.txt
+          path: artifacts/
 
-          $scratch = Join-Path $env:TEMP 'gnupg-fallback'
-          New-Item -ItemType Directory -Path $scratch -Force | Out-Null
-
-          Write-Host "Downloading package nupkg via choco download..."
-          choco download gnupg --output-directory="$scratch" --ignore-checksums -y
-          if ($LASTEXITCODE -ne 0) {
-            Write-Host "choco download failed with exit code $LASTEXITCODE"
-            if (Test-Path 'C:\ProgramData\chocolatey\logs\chocolatey.log') {
-              Get-Content -Tail 300 'C:\ProgramData\chocolatey\logs\chocolatey.log' | Write-Host
-            }
-            throw "Failed to download gnupg package"
-          }
-
-          $nupkg = Get-ChildItem -Path $scratch -Filter "gnupg*.nupkg" -File -Recurse | Select-Object -First 1
-          if (-not $nupkg) {
-            Write-Host "No gnupg nupkg found in $scratch"
-            throw "nupkg not found"
-          }
-          Write-Host "Found nupkg: $($nupkg.FullName)"
-
-          $extractDir = Join-Path $scratch "nupkg-extracted"
-          Expand-Archive -Path $nupkg.FullName -DestinationPath $extractDir -Force
-
-          $toolsDir = Join-Path $extractDir "tools"
-          Write-Host "Searching tools in $toolsDir..."
-          $exe = Get-ChildItem -Path $toolsDir -Recurse -Include *.exe -File -ErrorAction SilentlyContinue | Select-Object -First 1
-          $zip = Get-ChildItem -Path $toolsDir -Recurse -Include *.zip -File -ErrorAction SilentlyContinue | Select-Object -First 1
-
-          if ($exe) {
-            Write-Host "Installer EXE found: $($exe.FullName). Attempting silent install..."
-            $args = '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/SP-'
-            & $exe.FullName $args
-            $code = $LASTEXITCODE
-            Write-Host "Installer exit code: $code"
-            if ($code -eq 0) {
-              Write-Host "Installer completed. Verifying gpg..."
-              gpg --version
-              exit 0
-            } else {
-              Write-Host "Installer returned non-zero exit code $code; continuing to portable extraction if available."
-            }
-          }
-
-          if ($zip) {
-            Write-Host "Portable ZIP found: $($zip.FullName). Extracting to C:\tools\gnupg-portable"
-            $portableDir = "C:\tools\gnupg-portable"
-            New-Item -ItemType Directory -Path $portableDir -Force | Out-Null
-            Expand-Archive -Path $zip.FullName -DestinationPath $portableDir -Force
-
-            # Attempt to find a 'bin' folder inside the extracted content and add to PATH
-            $bin = Get-ChildItem -Path $portableDir -Directory -Recurse | Where-Object { $_.Name -match 'bin' } | Select-Object -First 1
-            if (-not $bin) {
-              $binGuess = Join-Path $portableDir "gnupg\bin"
-              if (Test-Path $binGuess) { $bin = Get-Item $binGuess }
-            }
-
-            if ($bin) {
-              Write-Host "Adding $($bin.FullName) to PATH for remainder of job."
-              Add-Content -Path $env:GITHUB_PATH -Value $bin.FullName
-              Write-Host "Verifying gpg..."
-              gpg --version
-              exit 0
-            } else {
-              Write-Host "Could not find bin directory inside portable extraction."
-            }
-          }
-
-          Write-Host "Fallback steps exhausted; showing chocolatey log tail to help debugging."
-          if (Test-Path 'C:\ProgramData\chocolatey\logs\chocolatey.log') {
-            Get-Content -Tail 300 'C:\ProgramData\chocolatey\logs\chocolatey.log' | Write-Host
-          } else {
-            Write-Host "No Chocolatey log present at expected path."
-          }
-
-          Write-Host "Listing fallback dir for debugging:"
-          Get-ChildItem -Path $scratch -Recurse | Select-Object FullName, Length | Format-Table -AutoSize
-
-          throw "Failed to install GnuPG on runner."
-      - name: Import GPG private key (Windows) (only if signing)
-        # if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        if: ${{ false }}
-        shell: pwsh
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        run: |
-          # Try raw armored first
-          $raw = $env:GPG_PRIVATE_KEY -replace "`r`n", "`n"
-          $raw | Out-File -Encoding ascii private.key.raw
-          $isValid = $false
-          try {
-            gpg --list-packets private.key.raw > $null 2>&1
-            $isValid = $true
-          } catch {
-            $isValid = $false
-          }
-
-          if ($isValid) {
-            Move-Item private.key.raw private.key -Force
-          } else {
-            Remove-Item private.key.raw -ErrorAction SilentlyContinue
-            try {
-              $bytes = [System.Convert]::FromBase64String($env:GPG_PRIVATE_KEY)
-              [IO.File]::WriteAllBytes('private.key.b64', $bytes)
-              gpg --list-packets private.key.b64 > $null 2>&1
-              Move-Item private.key.b64 private.key -Force
-            } catch {
-              Write-Error "secret is neither valid ASCII-armored OpenPGP data nor valid base64-encoded data"
-              exit 2
-            }
-          }
-
-          gpg --batch --import private.key
-          Remove-Item private.key
-
-      - name: Create GPG detached signatures for Windows artifacts (only if signing)
-        # if: ${{ steps.check_signing.outputs.sign == 'true' }}
-        if: ${{ false }}
-        shell: pwsh
-        env:
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        run: |
-          $tag = "${{ needs.resolve-upload-url.outputs.tag }}"
-          $pass = $env:GPG_PASSPHRASE
-          & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.exe"
-          & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.exe.sha256"
-          & gpg --batch --yes --pinentry-mode loopback --passphrase "$pass" --detach-sign -a "artifacts\fsm-$tag-windows.meta.txt"
-
-      - name: Delete existing Windows release assets (if present)
-        shell: pwsh
-        run: |
-          $tag = "${{ needs.resolve-upload-url.outputs.tag }}"
-          Write-Host "Checking release assets for tag $tag"
-          $resp = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag" -Headers @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = 'application/vnd.github+json' }
-          $names = @(
-            "fsm-$tag-windows.exe",
-            "fsm-$tag-windows.exe.sha256",
-            "fsm-$tag-windows.meta.txt",
-            "fsm-$tag-windows.exe.asc"
-          )
-          foreach ($name in $names) {
-            $asset = $resp.assets | Where-Object { $_.name -eq $name }
-            if ($asset) {
-              Write-Host "Deleting existing asset $name (id $($asset.id))"
-              Invoke-RestMethod -Method Delete -Uri "https://api.github.com/repos/${{ github.repository }}/releases/assets/$($asset.id)" -Headers @{ Authorization = "Bearer $env:GITHUB_TOKEN"; Accept = 'application/vnd.github+json' }
-            } else {
-              Write-Host "No existing asset named $name"
-            }
-          }
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download Metadata
+        uses: actions/download-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256
+          path: artifacts/
 
       - name: Upload Windows binary to Release
         uses: actions/upload-release-asset@v1
@@ -346,7 +205,7 @@ jobs:
 
   generate-rst-and-publish:
     name: Produce ReStructuredText release index, upload to Release, and publish to gh-pages
-    needs: [resolve-upload-url, build-windows]
+    needs: [resolve-upload-url, sign-and-publish]
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
