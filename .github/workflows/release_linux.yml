@@ -1,4 +1,4 @@
-name: Release — Build, metadata, checksums, optional GPG signatures, and publish RST to gh-pages
+name: Linux Release
 
 on:
   release:
@@ -251,7 +251,7 @@ jobs:
           RST_FILE="artifacts/release-${TAG}-linux.rst"
 
           cat > "${RST_FILE}" <<EOF
-          Release ${TAG}
+          Release ${TAG} (Linux)
           ================================================================
           
           Release name: ${RELEASE_NAME}
