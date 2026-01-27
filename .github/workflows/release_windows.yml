@@ -78,6 +78,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ needs.resolve-upload-url.outputs.tag }}
+          fetch-depth: 0
 
       - name: Check if signing is enabled (Windows)
         id: check_signing
