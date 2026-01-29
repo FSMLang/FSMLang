@@ -1,0 +1,12 @@
+machine test_guard_exit
+{
+	event e1, e2;
+	state s1, s2, s3;
+
+	transition [(e1,e2), s1] which_way_to_go;
+
+	which_way_to_go
+	returns s2
+           , s3
+           ;
+}
