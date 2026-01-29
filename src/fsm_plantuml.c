@@ -864,6 +864,8 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
       free_list(loopBackEvents);
 
 	}
+
+	free_list(ptransition_fns_seen);
 	
   if (pmi->machine_list)
   {
