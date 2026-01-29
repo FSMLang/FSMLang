@@ -671,6 +671,10 @@ static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
 
+	if (!pmi)
+
+	  return;
+
   pID_INFO        pevent;
   pACTION_INFO    pai;
   unsigned        e,s;
@@ -678,10 +682,6 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
   pLIST           ptransition_fns_seen = init_list();
 
   pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
-
-  if (!pmi)
-
-  	return;
 
   pfsmpumlog->pmd->pmi = pmi;
 
