@@ -27,7 +27,6 @@ $(TESTS): $(FSM) $$@.plantuml Makefile
 	@$(DIFF) $@.plantuml $@.plantuml.canonical > $@.result
 	@echo $@ successful
 	@rm -f $@.plantuml $@.result > /dev/null
-      
 clean::
 	-@rm -f *.plantuml > /dev/null
 	-@rm -f *.stderr > /dev/null
