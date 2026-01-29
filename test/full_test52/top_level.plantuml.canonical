@@ -22,8 +22,6 @@ s1 --> transitionFn1 : **Event:** e2\n**Action:** none
 transitionFn1 -[#blue]-> s2
 transitionFn1 -[#blue]-> s3
 s1 --> transitionFn1 : **Event:** e3\n**Action:** none
-transitionFn1 -[#blue]-> s2
-transitionFn1 -[#blue]-> s3
 s1 --> s4 : **Event:** e4\n**Action:** none
 
 note left of s1
@@ -44,11 +42,7 @@ end note
 transitionFn -[#blue]-> s1
 transitionFn -[#blue]-> s2
 s2 --> transitionFn1 : **Event:** e2\n**Action:** none
-transitionFn1 -[#blue]-> s2
-transitionFn1 -[#blue]-> s3
 s2 --> transitionFn1 : **Event:** e3\n**Action:** none
-transitionFn1 -[#blue]-> s2
-transitionFn1 -[#blue]-> s3
 s2 --> s4 : **Event:** e4\n**Action:** none
 s2 --> s2 : **Event:** eShared\n**Action:** shareSharedEvent
 s3 --> transitionFn : **Event:** e1\n**Action:** a2
@@ -57,14 +51,8 @@ note on link
 		A Document Comment
 	
 end note
-transitionFn -[#blue]-> s1
-transitionFn -[#blue]-> s2
 s3 --> transitionFn1 : **Event:** e2\n**Action:** none
-transitionFn1 -[#blue]-> s2
-transitionFn1 -[#blue]-> s3
 s3 --> transitionFn1 : **Event:** e3\n**Action:** none
-transitionFn1 -[#blue]-> s2
-transitionFn1 -[#blue]-> s3
 s3 --> s4 : **Event:** e4\n**Action:** none
 s3 --> s3 : **Event:** eShared\n**Action:** shareSharedEvent
 

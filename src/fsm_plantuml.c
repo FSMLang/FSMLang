@@ -438,14 +438,14 @@ static bool print_state_inhibitions(pLIST_ELEMENT pelem, void *data)
 
 static bool print_transition_options(pLIST_ELEMENT pelem, void *data)
 {
-   pID_INFO pid         = ((pID_INFO) pelem->mbr);
+   pID_INFO         pid = ((pID_INFO) pelem->mbr);
    pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
    fprintf(pih->fout
-           , "%s -[#blue]-> %s\n"
-           , pih->pid->name
-           , pid->name
-           );
+		   , "%s -[#blue]-> %s\n"
+		   , pih->pid->name
+		   , pid->name
+		   );
 
    return false;
 }
@@ -670,17 +670,18 @@ static void writePlantUMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
-
-  pID_INFO     pevent;
-  pACTION_INFO pai;
-  unsigned     e,s;
+  pID_INFO        pevent;
+  pACTION_INFO    pai;
+  unsigned        e,s;
   ITERATOR_HELPER ih;
-
-  pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
 
   if (!pmi)
 
-  	return;
+	return;
+
+  pLIST           ptransition_fns_seen = init_list();
+
+  pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) pfsmog;
 
   pfsmpumlog->pmd->pmi = pmi;
 
@@ -772,23 +773,28 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
               if (pai->transition->type != STATE)
               {
-                 if (pai->transition->transition_fn_returns_decl)
+                 if (!member_is_in_list(ptransition_fns_seen, pai->transition))
                  {
-                    ih.pid = pai->transition;
-                    ih.fout = pfsmpumlog->pmd->pumlFile;
+                    add_to_list(ptransition_fns_seen, pai->transition);
 
-                    iterate_list(ih.pid->transition_fn_returns_decl
-                                 , print_transition_options
-                                 , &ih
-                                 );
-                 }
-                 else
-                 {
-                    fprintf(stderr
-                            , "**guard function:** %s\n"
-                            , pai->transition->name
-                            );
-                    yyerror("It is required to declare what the transition function returns.");
+                    if (pai->transition->transition_fn_returns_decl)
+                    {
+                       ih.pid = pai->transition;
+                       ih.fout = pfsmpumlog->pmd->pumlFile;
+
+                       iterate_list(ih.pid->transition_fn_returns_decl
+                                    , print_transition_options
+                                    , &ih
+                                   );
+                    }
+                    else
+                    {
+                       fprintf(stderr
+                               , "**guard function:** %s\n"
+                               , pai->transition->name
+                              );
+                       yyerror("It is required to declare what the transition function returns.");
+                    }
                  }
               }
 
@@ -858,6 +864,8 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
       free_list(loopBackEvents);
 
 	}
+
+	free_list(ptransition_fns_seen);
 	
   if (pmi->machine_list)
   {
