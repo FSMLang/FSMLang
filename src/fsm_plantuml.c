@@ -773,30 +773,30 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
               if (pai->transition->type != STATE)
               {
-				   if (!member_is_in_list(ptransition_fns_seen, pai->transition))
-				   {
-					   add_to_list(ptransition_fns_seen, pai->transition);
+                 if (!member_is_in_list(ptransition_fns_seen, pai->transition))
+                 {
+                    add_to_list(ptransition_fns_seen, pai->transition);
 
-					   if (pai->transition->transition_fn_returns_decl)
-					   {
-						   ih.pid = pai->transition;
-						   ih.fout = pfsmpumlog->pmd->pumlFile;
+                    if (pai->transition->transition_fn_returns_decl)
+                    {
+                       ih.pid = pai->transition;
+                       ih.fout = pfsmpumlog->pmd->pumlFile;
 
-						   iterate_list(ih.pid->transition_fn_returns_decl
-										, print_transition_options
-										, &ih
-									   );
-					   }
-					   else
-					   {
-						   fprintf(stderr
-								   , "**guard function:** %s\n"
-								   , pai->transition->name
-								  );
-						   yyerror("It is required to declare what the transition function returns.");
-					   }
-				   }
-			   }
+                       iterate_list(ih.pid->transition_fn_returns_decl
+                                    , print_transition_options
+                                    , &ih
+                                   );
+                    }
+                    else
+                    {
+                       fprintf(stderr
+                               , "**guard function:** %s\n"
+                               , pai->transition->name
+                              );
+                       yyerror("It is required to declare what the transition function returns.");
+                    }
+                 }
+              }
 
            }
            else
