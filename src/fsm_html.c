@@ -865,6 +865,17 @@ static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
 				: pstate->name
 			   );
 		something_printed = true;
+
+		if (
+			psd->entry_fn
+			&& psd->entry_fn->docCmnt
+			)
+		{
+			fprintf(pih->fout
+					, "<p>%s</p>\n"
+					, psd->entry_fn->docCmnt
+					);
+		}
 	}
 
 	if (psd->state_flags & sfHasExitFn)
@@ -879,6 +890,17 @@ static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
 				: pstate->name
 			   );
 		something_printed = true;
+
+		if (
+			psd->exit_fn
+			&& psd->exit_fn->docCmnt
+			)
+		{
+			fprintf(pih->fout
+					, "<p>%s</p>\n"
+					, psd->exit_fn->docCmnt
+					);
+		}
 	}
 
 	if (psd->state_flags & sfInibitSubMachines)

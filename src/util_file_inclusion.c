@@ -64,7 +64,7 @@ STATIC pLIST panchor = NULL;
 void track_included_file(char *filename)
 {
 	FSMLANG_DEVELOP_PRINTF(stdout, "%s\n", __func__);
-	FSMLANG_DEVELOP_PRINTF("%s\n", filename);
+	FSMLANG_DEVELOP_PRINTF(stdout, "%s\n", filename);
 
 	bool good = true;
 	char *fn  = NULL;
