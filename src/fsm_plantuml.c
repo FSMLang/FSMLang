@@ -400,7 +400,7 @@ static bool print_state_entry_fn(pLIST_ELEMENT pelem, void *data)
 				  , pid->type_data.state_data.entry_fn->docCmnt
 				  );
 	  }
-	  fprintf(pfsmpumlog->pmd->pumlFile, "\n\n");
+	  fprintf(pfsmpumlog->pmd->pumlFile, "\n");
    }
 
    return false;
