@@ -1228,9 +1228,11 @@ static void escape_newlines(FILE *fout, char *str)
 					{
 						end_of_initial_ws = cp;
 					}
-					//fall through
+					fputc(*cp, fout);
+					break;
 				default:
 					fputc(*cp, fout);
+					state = normal;
 					break;
 				}
 				break;
@@ -1243,9 +1245,12 @@ static void escape_newlines(FILE *fout, char *str)
 				case '\n':
 					break;
 				default:
-					for (char *cp_ws = str; cp_ws <= end_of_initial_ws; cp_ws++)
+					if (end_of_initial_ws)
 					{
-						fputc(*cp_ws, fout);
+						for (char *cp_ws = str; cp_ws <= end_of_initial_ws; cp_ws++)
+						{
+							fputc(*cp_ws, fout);
+						}
 					}
 					fputc(*cp, fout);
 					state = normal;
