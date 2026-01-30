@@ -22,6 +22,7 @@ echotests:
 
 runtest: $(TESTS) 
 	@echo "all html tests pass"
+	@$(MAKE) clean
 
 $(TESTS): $(FSM) $$@.html Makefile
 	@$(DIFF) $@.html $@.html.canonical > $@.result
@@ -33,5 +34,6 @@ clean::
 	-@rm -f *.stderr > /dev/null
 	-@rm -f *.result > /dev/null
 	-@rm -f *.fsmdh  > /dev/null
+	-@rm -f fsmout  > /dev/null
 
 

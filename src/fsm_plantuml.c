@@ -72,6 +72,8 @@ typedef struct _fsmpumlsq_og_factory_str_ FSMPumlSqOgFactoryStr, *pFSMPumlSqOgFa
 static pFSMPlantUMLSqOutputGenerator generatePlantUMLSequenceWriter(pFSMPlantUMLOutputGenerator,unsigned,pEVENT_SEQUENCE);
 static pFSMPlantUMLSqOutputGenerator generatePlantUMLSeqFNWriter(pFSMPlantUMLOutputGenerator,unsigned,pEVENT_SEQUENCE);
 
+static void escape_newlines(FILE*,char*);
+
 static char* create_sequence_file_name(pFSMPlantUMLSqOutputGenerator);
 static bool write_sequence(pLIST_ELEMENT,void*);
 static void write_sequences(pFSMPlantUMLOutputGenerator);
@@ -352,23 +354,8 @@ static bool print_state_docCmnt(pLIST_ELEMENT pelem, void *data)
               , "%s: "
               , pid->name
               );
-      for (char *cp = pid->docCmnt; *cp; cp++)
-      {
-         switch (*cp)
-         {
-               case '\n':
-                  fputc('\\', pfsmpumlog->pmd->pumlFile);
-                  fputc('n', pfsmpumlog->pmd->pumlFile);
-                  break;
-               case '\r':
-                  break;
-               default:
-                  fputc(*cp, pfsmpumlog->pmd->pumlFile);
-         }
-      }
-      fputc('\\', pfsmpumlog->pmd->pumlFile);
-      fputc('n', pfsmpumlog->pmd->pumlFile);
-      fputc('\n', pfsmpumlog->pmd->pumlFile);
+	  escape_newlines(pfsmpumlog->pmd->pumlFile, pid->docCmnt);
+      fprintf(pfsmpumlog->pmd->pumlFile, "\\n\n");
    }
 
    return false;
@@ -398,10 +385,10 @@ static bool print_state_entry_fn(pLIST_ELEMENT pelem, void *data)
 		  && pid->type_data.state_data.entry_fn->docCmnt
 		  )
 	  {
-		  fprintf(pfsmpumlog->pmd->pumlFile
-				  , "\\n%s"
-				  , pid->type_data.state_data.entry_fn->docCmnt
-				  );
+		  fprintf(pfsmpumlog->pmd->pumlFile, "\\n");
+		  escape_newlines(pfsmpumlog->pmd->pumlFile
+						  , pid->type_data.state_data.entry_fn->docCmnt
+						  );
 	  }
 	  fprintf(pfsmpumlog->pmd->pumlFile, "\n");
    }
@@ -432,10 +419,10 @@ static bool print_state_exit_fn(pLIST_ELEMENT pelem, void *data)
 		  && pid->type_data.state_data.exit_fn->docCmnt
 		  )
 	  {
-		  fprintf(pfsmpumlog->pmd->pumlFile
-				  , "\\n%s"
-				  , pid->type_data.state_data.exit_fn->docCmnt
-				  );
+		  fprintf(pfsmpumlog->pmd->pumlFile, "\\n");
+		  escape_newlines(pfsmpumlog->pmd->pumlFile
+						  , pid->type_data.state_data.exit_fn->docCmnt
+						  );
 	  }
 
 	  fprintf(pfsmpumlog->pmd->pumlFile, "\n");
@@ -483,10 +470,12 @@ static bool print_list_for_legend(pLIST_ELEMENT pelem, void *data)
    if (pid->name && strlen(pid->name))
    {
       fprintf(pfsmpumlog->pmd->pumlFile
-              ,"|  %s  |  %s  |\n"
+              ,"|  %s  |  "
               , pid->name
-              , pid->docCmnt ? pid->docCmnt : ""
               );
+	  escape_newlines(pfsmpumlog->pmd->pumlFile, pid->docCmnt);
+      fprintf(pfsmpumlog->pmd->pumlFile, "  |\n");
+
    }
   
   return false;
@@ -1209,5 +1198,73 @@ static void writePlantUMLSeqFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	printf("%s ", pfsmpumlog->pmd->pumlName);
 
+}
+
+static void escape_newlines(FILE *fout, char *str)
+{
+	enum {initial, normal, eating_ws} state = initial;
+	char *end_of_initial_ws = NULL;
+
+	if (str)
+	{
+		for (char *cp = str; *cp; cp++)
+		{
+			switch (state)
+			{
+			case initial:
+			case normal:
+				switch (*cp)
+				{
+				case '\n':
+					fputc('\\', fout);
+					fputc('n', fout);
+					state = eating_ws;
+					break;
+				case '\r':
+					break;
+				case ' ':
+				case '\t':
+					if (state == initial)
+					{
+						end_of_initial_ws = cp;
+					}
+					fputc(*cp, fout);
+					break;
+				default:
+					fputc(*cp, fout);
+					state = normal;
+					break;
+				}
+				break;
+			case eating_ws:
+				switch (*cp)
+				{
+				case ' ':
+				case '\t':
+				case '\r':
+					/* Skip whitespace following a newline */
+					break;
+				case '\n':
+					/* Preserve blank lines by emitting another PlantUML newline escape */
+					fputc('\\', fout);
+					fputc('n', fout);
+					/* stay in eating_ws to continue skipping subsequent whitespace */
+					break;
+				default:
+					if (end_of_initial_ws)
+					{
+						for (char *cp_ws = str; cp_ws <= end_of_initial_ws; cp_ws++)
+						{
+							fputc(*cp_ws, fout);
+						}
+					}
+					fputc(*cp, fout);
+					state = normal;
+					break;
+				}
+				break;
+			}
+		}
+	}
 }
 

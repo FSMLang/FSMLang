@@ -1,0 +1,16 @@
+machine foo
+{
+	state s1
+      /**
+			do this
+         on entry
+      */
+		on entry bar
+      /** do this on exit */
+		on exit  baz
+      ;
+
+	event e1;
+
+	action a1[e1, s1];
+}

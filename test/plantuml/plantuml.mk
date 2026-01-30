@@ -22,15 +22,18 @@ echotests:
 
 runtest: $(TESTS) 
 	@echo "all plantuml tests pass"
+	@$(MAKE) clean
 
 $(TESTS): $(FSM) $$@.plantuml Makefile
 	@$(DIFF) $@.plantuml $@.plantuml.canonical > $@.result
 	@echo $@ successful
 	@rm -f $@.plantuml $@.result > /dev/null
+
 clean::
 	-@rm -f *.plantuml > /dev/null
 	-@rm -f *.stderr > /dev/null
 	-@rm -f *.result > /dev/null
 	-@rm -f *.fsmdh  > /dev/null
+	-@rm -f fsmout  > /dev/null
 
 
