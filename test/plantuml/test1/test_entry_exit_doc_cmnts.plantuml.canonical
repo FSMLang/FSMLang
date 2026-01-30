@@ -9,7 +9,6 @@
 @startuml
 state s1
 s1: **Entry Function:** bar\n do this on entry 
-
 s1: **Exit Function:** baz\n do this on exit 
 
 [*] --> s1
