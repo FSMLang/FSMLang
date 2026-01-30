@@ -1228,6 +1228,7 @@ static void escape_newlines(FILE *fout, char *str)
 					{
 						end_of_initial_ws = cp;
 					}
+					//fall through
 				default:
 					fputc(*cp, fout);
 					break;
