@@ -20,10 +20,9 @@ include $(OUTPUT_DIR)/../fsmrules.mk
 echotests:
 	@echo $(TESTS)
 
-puml_runtest: $(TESTS) 
+runtest: $(TESTS) 
 	@echo "all plantuml tests pass"
-
-runtest: puml_runtest clean
+	@$(MAKE) clean
 
 $(TESTS): $(FSM) $$@.plantuml Makefile
 	@$(DIFF) $@.plantuml $@.plantuml.canonical > $@.result

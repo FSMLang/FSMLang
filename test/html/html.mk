@@ -20,10 +20,9 @@ include $(OUTPUT_DIR)/../fsmrules.mk
 echotests:
 	@echo $(TESTS)
 
-html_runtest: $(TESTS) 
+runtest: $(TESTS) 
 	@echo "all html tests pass"
-
-runtest: html_runtest clean
+	@$(MAKE) clean
 
 $(TESTS): $(FSM) $$@.html Makefile
 	@$(DIFF) $@.html $@.html.canonical > $@.result
