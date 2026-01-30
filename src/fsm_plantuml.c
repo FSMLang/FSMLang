@@ -383,7 +383,7 @@ static bool print_state_entry_fn(pLIST_ELEMENT pelem, void *data)
    if (pid->type_data.state_data.state_flags & sfHasEntryFn)
    {
       fprintf(pfsmpumlog->pmd->pumlFile
-              , "%s: **Entry Function:** %s%s\n"
+              , "%s: **Entry Function:** %s%s"
               , pid->name
               , pid->type_data.state_data.entry_fn
                 ? pid->type_data.state_data.entry_fn->name
@@ -392,6 +392,15 @@ static bool print_state_entry_fn(pLIST_ELEMENT pelem, void *data)
                 ? ""
                 : pid->name
               );
+	   
+	  if (pid->type_data.state_data.entry_fn->docCmnt)
+	  {
+		  fprintf(pfsmpumlog->pmd->pumlFile
+				  , "\\n%s"
+				  , pid->type_data.state_data.entry_fn->docCmnt
+				  );
+	  }
+	  fprintf(pfsmpumlog->pmd->pumlFile, "\n\n");
    }
 
    return false;
@@ -405,7 +414,7 @@ static bool print_state_exit_fn(pLIST_ELEMENT pelem, void *data)
    if (pid->type_data.state_data.state_flags & sfHasExitFn)
    {
       fprintf(pfsmpumlog->pmd->pumlFile
-              , "%s: **Exit Function:** %s%s\n"
+              , "%s: **Exit Function:** %s%s"
               , pid->name
               , pid->type_data.state_data.exit_fn
                 ? pid->type_data.state_data.exit_fn->name
@@ -414,6 +423,16 @@ static bool print_state_exit_fn(pLIST_ELEMENT pelem, void *data)
                 ? ""
                 : pid->name
               );
+
+	  if (pid->type_data.state_data.exit_fn->docCmnt)
+	  {
+		  fprintf(pfsmpumlog->pmd->pumlFile
+				  , "\\n%s"
+				  , pid->type_data.state_data.exit_fn->docCmnt
+				  );
+	  }
+
+	  fprintf(pfsmpumlog->pmd->pumlFile, "\n");
    }
 
    return false;
