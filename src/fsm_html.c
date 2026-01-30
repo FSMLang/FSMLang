@@ -866,7 +866,10 @@ static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
 			   );
 		something_printed = true;
 
-		if (psd->entry_fn->docCmnt)
+		if (
+			psd->entry_fn
+			&& psd->entry_fn->docCmnt
+			)
 		{
 			fprintf(pih->fout
 					, "<p>%s</p>\n"
@@ -888,7 +891,10 @@ static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
 			   );
 		something_printed = true;
 
-		if (psd->exit_fn->docCmnt)
+		if (
+			psd->exit_fn
+			&& psd->exit_fn->docCmnt
+			)
 		{
 			fprintf(pih->fout
 					, "<p>%s</p>\n"

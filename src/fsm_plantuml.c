@@ -393,7 +393,10 @@ static bool print_state_entry_fn(pLIST_ELEMENT pelem, void *data)
                 : pid->name
               );
 	   
-	  if (pid->type_data.state_data.entry_fn->docCmnt)
+	  if (
+		  pid->type_data.state_data.entry_fn
+		  && pid->type_data.state_data.entry_fn->docCmnt
+		  )
 	  {
 		  fprintf(pfsmpumlog->pmd->pumlFile
 				  , "\\n%s"
@@ -424,7 +427,10 @@ static bool print_state_exit_fn(pLIST_ELEMENT pelem, void *data)
                 : pid->name
               );
 
-	  if (pid->type_data.state_data.exit_fn->docCmnt)
+	  if (
+		  pid->type_data.state_data.exit_fn
+		  && pid->type_data.state_data.exit_fn->docCmnt
+		  )
 	  {
 		  fprintf(pfsmpumlog->pmd->pumlFile
 				  , "\\n%s"
