@@ -1242,7 +1242,13 @@ static void escape_newlines(FILE *fout, char *str)
 				case ' ':
 				case '\t':
 				case '\r':
+					/* Skip whitespace following a newline */
+					break;
 				case '\n':
+					/* Preserve blank lines by emitting another PlantUML newline escape */
+					fputc('\\', fout);
+					fputc('n', fout);
+					/* stay in eating_ws to continue skipping subsequent whitespace */
 					break;
 				default:
 					if (end_of_initial_ws)
