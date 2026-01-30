@@ -1,6 +1,6 @@
 Hello, world.
 
-FSM version: 2.1
+FSM version: 2.2
 
 event: top_level_e1; state: top_level_s1
 top_level_a1

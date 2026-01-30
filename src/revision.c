@@ -528,5 +528,20 @@
 	suffix rules work correctly (they were not, in certain cases).
 
 */
-const char rev_string[] = "2.1";
+
+/*
+	Revision 2.1
+
+	Document comments placed on named entry and exit functions now appear in HTML and PlantUML output.
+
+	Document comments in PlantUML output have their newlines escaped in certain display situations.
+
+	PlantUML now only depicts one arrow for each path leaving a <<choice>>, regardless of the number of
+	entry paths.
+
+	RST output can now be directed to reference a PlantUML source file rather than writing the PlantUML
+	directly into the RST. See the usage discussion of --include-uml-objects.
+*/
+
+const char rev_string[] = "2.2";
 
