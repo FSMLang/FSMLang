@@ -530,7 +530,7 @@
 */
 
 /*
-	Revision 2.1
+	Revision 2.2
 
 	Document comments placed on named entry and exit functions now appear in HTML and PlantUML output.
 
