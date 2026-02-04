@@ -1,0 +1,124 @@
+native
+{
+#include <stdint.h>
+#include "test.h"
+}
+machine m1
+    actions return events;
+    native impl
+    {
+     #define INIT_FSM_DATA {.field1 = 0, .field2 = 0}
+    }
+{
+    data
+    {
+        uint8_t field1;
+        uint8_t field2;
+        uint8_t field3;
+        uint8_t field4;
+        uint8_t field5;
+        uint16_t field6;
+    }
+
+    state s1
+          on entry enter_s1
+          ;
+
+    state s2
+          on entry enter_s2
+          ;
+
+    state s3
+          on entry enter_s3
+          ;
+
+    state s4
+          on entry enter_s4
+          ;
+
+    event e1
+          data
+          translator grab_e1_data
+          {int e1_field; }
+          ;
+
+    event e2
+          data
+          translator grab_e2_data
+          {int e2_field; }
+          ;
+
+    event e3
+          data
+          translator grab_e3_data
+          {int e3_field; }
+          ;
+
+    event e4
+          data
+          translator grab_e4_data
+          {int e4_field; }
+          ;
+
+    event e5
+          data
+          translator grab_e5_data
+          {int e5_field; }
+          ;
+
+    event e6;
+    event e7;
+
+    [(e1, e3), s1] transition guard1;
+
+    [e2, s1] transition s4;
+
+    [e4, s1] transition s3;
+
+    [e6, s2] transition guard2;
+
+    [e2, s2] transition s4;
+
+    [e4, s2] transition s3;
+
+    action a1[e5, s2] transition guard3;
+
+    action a2[e1, s2];
+
+    action a2[e1, s4];
+
+    action a3[e3, s2];
+
+    [(e3, e4), s4] transition s3;
+
+    action a1[e5, s4] transition guard4;
+
+    action a4[e7, s2];
+
+    a4
+    returns e6
+            , noEvent
+            ;
+
+    guard1
+    returns s2
+        , s3
+        , s4
+        ;
+
+    guard2
+    returns s3
+            , s4
+            , s1
+            ;
+
+    guard3
+    returns s2
+            , s1
+            ;
+
+    guard4
+    returns s4
+            , s1
+            ;
+}
