@@ -328,7 +328,7 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 	/* do this now, since some header stuff puts content into the source file.*/
 	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-	commonHeaderStart(pfsmcog, "action", true);
+	commonHeaderStart(pfsmcog, true);
 
 	declareCMachineActionArray(pcmd, pmi);
 

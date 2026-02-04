@@ -35,6 +35,7 @@
 #include "fsm_c_pid_xref.h"
 #include "fsm_rst.h"
 #include "usage.h"
+#include "fsm_c_single_switch.h"
 
 #include "list.h"
 
@@ -2844,35 +2845,57 @@ int main(int argc, char **argv)
 
 			case 't':
 
-				switch (optarg[0]) {
+        if (optarg)
+				{
+					switch (optarg[0]) {
 
-					case 'c':
-            fpfsmogf = generateCMachineWriter;
-						break;
+						case 'c':
+							fpfsmogf = generateCMachineWriter;
+							break;
 
-					case 'h':
-						fpfsmogf = generateHTMLMachineWriter;
-						break;
+						case 'h':
+							fpfsmogf = generateHTMLMachineWriter;
+							break;
 
-					case 's':
-						fpfsmogf = generateCSwitchMachineWriter;
-						break;
+						case 's':
+						  switch (optarg[1])
+							{
+								case 0:
+							    fpfsmogf = generateCSwitchMachineWriter;
+								  break;
+								case 's':
+								  fpfsmogf = generateCSingleSwitchMachineWriter;
+								  break;
+								default:
+						      usage();
+						      return (1);
+									break;
+							}
+							break;
 
-					case 'p':
-						fpfsmogf = generatePlantUMLMachineWriter;
-						break;
+						case 'p':
+							fpfsmogf = generatePlantUMLMachineWriter;
+							break;
 
-					case 'e':
-						fpfsmogf = generateCEventTableMachineWriter;
-						break;
-          		case 'r':
-            		fpfsmogf = generateRSTMachineWriter;
-            		break;
+						case 'e':
+							fpfsmogf = generateCEventTableMachineWriter;
+							break;
 
-					default:
-						usage();
-						return (1);
+						case 'r':
+							fpfsmogf = generateRSTMachineWriter;
+            	break;
 
+					  default:
+						  usage();
+						  return (1);
+
+				  }
+
+				}
+				else
+				{
+					usage();
+					return (1);
 				}
 				break;
 

@@ -520,7 +520,6 @@ void standardTransitionFnTypedef(pFSMCOutputGenerator pfsmcog)
 }
 
 void commonHeaderStart(pFSMCOutputGenerator pfsmcog
-					   , char *arrayName
 					   , bool add_numStates
 					   )
 {
@@ -528,9 +527,6 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 	
 	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
-
-	//TODO: remove from signature
-	(void) arrayName;
 
    ITERATOR_CALLBACK_HELPER   ich = {
 	   .ih = {
@@ -1121,22 +1117,25 @@ void generateInstance(pCMachineData pcmd
 			   , eventNameByIndex(pmi, 0)
 			  );
 
-	   if (arrayFieldIsArray)
+	   if (arrayFieldName != NULL)
 	   {
-		   fprintf(pcmd->cFile
-				   , "\t, .%s = &%s_%s_array\n"
-				   , arrayFieldName
-				   , machineName(pcmd)
-				   , arrayName
-				  );
-	   }
-	   else
-	   {
-		   fprintf(pcmd->cFile
-				   , "\t, .%s = %s_stateFn\n"
-				   , arrayFieldName
-				   , arrayName
-				  );
+		   if (arrayFieldIsArray)
+		   {
+			   fprintf(pcmd->cFile
+					   , "\t, .%s = &%s_%s_array\n"
+					   , arrayFieldName
+					   , machineName(pcmd)
+					   , arrayName
+					  );
+		   }
+		   else
+		   {
+			   fprintf(pcmd->cFile
+					   , "\t, .%s = %s_stateFn\n"
+					   , arrayFieldName
+					   , arrayName
+					  );
+		   }
 	   }
 
 	   if (pmi->machine_list)
@@ -1228,7 +1227,7 @@ void generateInstanceMacro(pCMachineData pcmd
 						   , bool arrayFieldIsArray
 						   )
 {
-   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+   FSMLANG_DEVELOP_PRINTF(pcmd->pubHFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    char *cp;
 
@@ -1298,22 +1297,25 @@ void generateInstanceMacro(pCMachineData pcmd
            , eventNameByIndex(pmi, 0)
           );
 
-   if (arrayFieldIsArray)
+   if (arrayFieldName != NULL)
    {
-	   fprintf(pcmd->pubHFile
-			   , "\t, .%s = &%s_%s_array\\\n"
-			   , arrayFieldName
-			   , fqMachineName(pcmd)
-			   , arrayName
-			  );
-   }
-   else
-   {
-	   fprintf(pcmd->pubHFile
-			   , "\t, .%s = %s_stateFn\\\n"
-			   , arrayFieldName
-			   , arrayName
-			  );
+	   if (arrayFieldIsArray)
+	   {
+		   fprintf(pcmd->pubHFile
+				   , "\t, .%s = &%s_%s_array\\\n"
+				   , arrayFieldName
+				   , fqMachineName(pcmd)
+				   , arrayName
+				  );
+	   }
+	   else
+	   {
+		   fprintf(pcmd->pubHFile
+				   , "\t, .%s = %s_stateFn\\\n"
+				   , arrayFieldName
+				   , arrayName
+				  );
+	   }
    }
 
    fprintf(pcmd->pubHFile

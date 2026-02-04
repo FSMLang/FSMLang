@@ -1,0 +1,12 @@
+test_fsm_grab_e1_data
+e1 accumulator: 1
+test_fsm_handle_e1
+test_fsm_grab_e1_data
+e1 accumulator: 2
+test_fsm_handle_e1
+test_fsm_grab_e1_data
+e1 accumulator: 3
+test_fsm_handle_e1
+test_fsm_grab_e1_data
+e1 accumulator: 4
+test_fsm_handle_e1

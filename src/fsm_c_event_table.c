@@ -353,7 +353,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 	/* do this now, since some header stuff puts content into the source file.*/
 	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-	commonHeaderStart(pfsmcog, "event_fn", false);
+	commonHeaderStart(pfsmcog, false);
 
 	declareCEventTableMachineEventTable(pcmd);
 
@@ -496,11 +496,14 @@ static void defineCEventTableMachineStruct(pCMachineData pcmd)
 		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   );
 
-   fprintf(fout
-		   , "\t%-*s instance;\n"
-		   , (int) pcmd->sub_machine_struct_format_width
-		   , "unsigned"
-		   );
+   if (generate_instance)
+   {
+	   fprintf(fout
+			   , "\t%-*s instance;\n"
+			   , (int) pcmd->sub_machine_struct_format_width
+			   , "unsigned"
+			   );
+   }
 
    if (pmi->data)
    {

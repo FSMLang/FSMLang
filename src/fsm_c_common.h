@@ -176,7 +176,7 @@ void closeCMachineFN(pFSMOutputGenerator,int);
 
 void standardConvenienceMacros(pFSMCOutputGenerator);
 void standardTransitionFnTypedef(pFSMCOutputGenerator);
-void commonHeaderStart(pFSMCOutputGenerator,char*,bool);
+void commonHeaderStart(pFSMCOutputGenerator,bool);
 void addEventCrossReference(pCMachineData,pMACHINE_INFO,pITERATOR_CALLBACK_HELPER);
 void commonHeaderEnd(pFSMCOutputGenerator,bool);
 void generateInstance(pCMachineData,pMACHINE_INFO,char*,char*,bool);

@@ -51,9 +51,9 @@ typedef bool (*COutputFn$ple$pv)          (pLIST_ELEMENT,void*);
 struct _fsm_c_switch_output_generator_
 {
 	FSMCOutputGenerator       fsmcog;
-	COutputFn$fp$pid$pai$pcmd pethbsspe;
-	COutputFn$fp$ped$pich     pethbmse;
-	COutputFn$ple$pv          pethsc;
+	COutputFn$fp$pid$pai$pcmd pethbsspe; //!< event table handler body for single state or pai events
+	COutputFn$fp$ped$pich     pethbmse;  //!< event table handler for multiple state events
+	COutputFn$ple$pv          pethsc;    //!< event table handler state case
 };
 
 void writeCSwitchMachineFN(pFSMOutputGenerator,pMACHINE_INFO);
