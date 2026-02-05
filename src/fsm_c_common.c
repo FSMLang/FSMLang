@@ -3811,25 +3811,20 @@ void defineStateEntryAndExitManagers(pCMachineData pcmd, pMACHINE_INFO pmi, bool
 
       iterate_list(pmi->state_list, write_state_entry_fn_switch_case, &ich);
 
-      if (pmi->states_with_entry_fns_count < pmi->state_list->count)
-      {
-         fprintf(pcmd->cFile
-                 , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
-                 );
-      }
+	  fprintf(pcmd->cFile
+			  , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
+			  );
    }
+
    if (pmi->states_with_exit_fns_count && want_exit_manager)
    {
 	   print_state_entry_or_exit_manager_signature(pcmd, pmi, eoe_exit, dod_define);
 
       iterate_list(pmi->state_list, write_state_exit_fn_switch_case, &ich);
 
-      if (pmi->states_with_exit_fns_count < pmi->state_list->count)
-      {
-         fprintf(pcmd->cFile
-                 , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
-                 );
-      }
+	  fprintf(pcmd->cFile
+			  , "\tdefault:\n\t\tbreak;\n\t}\n}\n\n"
+			  );
    }
 }
 
