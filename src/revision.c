@@ -530,7 +530,7 @@
 */
 
 /*
-	Revision 2.1
+	Revision 2.2
 
 	Document comments placed on named entry and exit functions now appear in HTML and PlantUML output.
 
@@ -543,5 +543,11 @@
 	directly into the RST. See the usage discussion of --include-uml-objects.
 */
 
-const char rev_string[] = "2.2";
+/*
+	Revision 2.2.1
+
+	<i>runAppropriate...</i> functions are now correctly constructed when
+	all states have entry functions or all states have exit functions.
+*/
+const char rev_string[] = "2.2.1";
 
