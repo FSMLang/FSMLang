@@ -91,8 +91,6 @@ static bool print_event_table_handler_state_case_arv(pLIST_ELEMENT,void*);
 static bool print_event_table_handler_state_case_ars(pLIST_ELEMENT,void*);
 static bool find_transition(pLIST_ELEMENT,void*);
 
-#define writeFSMLoop(A) pfsmcog->wfsm((A))
-
 #define print_event_table_handler_body_for_single_state_or_pai_events(A,B,C,D) \
 ((pFSMCSwitchOutputGenerator)pfsmcog)->pethbsspe((A),(B),(C),(D))
 
@@ -1558,50 +1556,7 @@ static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
 			, "\t{\n"
 			);
 
-	if (pmi->executes_fns_on_state_transitions)
-	{
-	   print_tab_levels(pcmd->cFile,tab_level);
-	   fprintf(pcmd->cFile
-			   , "\t\tif (s != pfsm->state)\n"
-			  );
-	   print_tab_levels(pcmd->cFile,tab_level);
-	   fprintf(pcmd->cFile
-			   , "\t\t{\n"
-			   );
-
-	   if (pmi->machineTransition)
-	   {
-		  print_tab_levels(pcmd->cFile,tab_level);
-		  fprintf(pcmd->cFile
-				  , "\t\t\tUFMN(%s)(pfsm,s);\n"
-				  , pmi->machineTransition->name
-				  );
-	   }
-
-	   if (pmi->states_with_exit_fns_count)
-	   {
-		  print_tab_levels(pcmd->cFile,tab_level);
-		  fprintf(pcmd->cFile
-				  ,"\t\t\trunAppropriateExitFunction(%spfsm->state);\n"
-				  , pmi->data ? "&pfsm->data, " : ""
-				  );
-	   }
-
-	   if (pmi->states_with_entry_fns_count)
-	   {
-		  print_tab_levels(pcmd->cFile,tab_level);
-		  fprintf(pcmd->cFile
-				  ,"\t\t\trunAppropriateEntryFunction(%ss);\n"
-				  , pmi->data ? "&pfsm->data, " : ""
-				  );
-	   }
-
-	   print_tab_levels(pcmd->cFile,tab_level);
-	   fprintf(pcmd->cFile
-			   , "\t\t}\n"
-			   );
-
-	}
+	handleStateTransitionActions(pcmd, pmi, tab_level);
 
 	print_tab_levels(pcmd->cFile,tab_level);
 	fprintf(pcmd->cFile

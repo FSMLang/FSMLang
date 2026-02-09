@@ -65,6 +65,7 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator);
 void cswitchSubMachineHeaderEnd(pFSMCOutputGenerator,bool);
 void switchTransitionFnTypedef(pFSMCOutputGenerator);
 void empty(pFSMCOutputGenerator);
+void handleStateTransitionActions(pCMachineData,pMACHINE_INFO,unsigned);
 
 #endif
 

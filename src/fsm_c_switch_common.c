@@ -509,3 +509,55 @@ void empty(pFSMCOutputGenerator pfsmcog)
 	(void) pfsmcog;
 }
 
+void handleStateTransitionActions(pCMachineData pcmd, pMACHINE_INFO pmi, unsigned tab_level)
+{
+	if (pmi->executes_fns_on_state_transitions)
+	{
+		
+		fprintf(pcmd->cFile, "\n");
+
+		print_tab_levels(pcmd->cFile,tab_level);
+		fprintf(pcmd->cFile
+				, "\tif (s != pfsm->state)\n"
+			   );
+		print_tab_levels(pcmd->cFile,tab_level);
+		fprintf(pcmd->cFile
+				, "\t{\n"
+				);
+
+		if (pmi->machineTransition)
+		{
+		   print_tab_levels(pcmd->cFile,tab_level);
+		   fprintf(pcmd->cFile
+				   , "\t\tUFMN(%s)(pfsm,s);\n"
+				   , pmi->machineTransition->name
+				   );
+		}
+
+		if (pmi->states_with_exit_fns_count)
+		{
+		   print_tab_levels(pcmd->cFile,tab_level);
+		   fprintf(pcmd->cFile
+				   ,"\t\trunAppropriateExitFunction(%spfsm->state);\n"
+				   , pmi->data ? "&pfsm->data, " : ""
+				   );
+		}
+
+		if (pmi->states_with_entry_fns_count)
+		{
+		   print_tab_levels(pcmd->cFile,tab_level);
+		   fprintf(pcmd->cFile
+				   ,"\t\trunAppropriateEntryFunction(%ss);\n"
+				   , pmi->data ? "&pfsm->data, " : ""
+				   );
+		}
+
+		print_tab_levels(pcmd->cFile,tab_level);
+		fprintf(pcmd->cFile
+				, "\t}\n"
+				);
+
+	}
+
+}
+
