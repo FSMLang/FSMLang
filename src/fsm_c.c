@@ -85,9 +85,6 @@ static void defineActionArray(pCMachineData, pMACHINE_INFO);
 static void defineCMachineFSM(pFSMCOutputGenerator);
 static void defineCSubMachineFSM(pFSMCOutputGenerator);
 
-#define writeFSMLoop(A) pfsmcog->wfsm((A))
-#define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
-
 FSMCOutputGenerator CMachineWriter = {
 	.fsmog = {
 		initCMachine

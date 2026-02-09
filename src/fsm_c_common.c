@@ -1536,9 +1536,14 @@ void defineWeakStateEntryAndExitFunctionStubs(pCMachineData pcmd, pMACHINE_INFO 
    ich.ih.pmi    = pmi;
    ich.pcmd   = pcmd;
 
-   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   if (pmi->states_with_entry_fns_count
+	   || pmi->states_with_exit_fns_count
+	  )
    {
-      iterate_list(pmi->state_list, define_state_entry_and_exit_functions, &ich);
+      iterate_list(pmi->state_list
+				   , define_state_entry_and_exit_functions
+				   , &ich
+				   );
    }
 
 }

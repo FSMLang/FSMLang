@@ -93,9 +93,6 @@ static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMEN
 static void switchConvenienceMacros(pFSMCOutputGenerator);
 
 
-#define writeFSMLoop(A) pfsmcog->wfsm((A))
-#define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
-
 static FSMCSwitchOutputGenerator CSwitchMachineWriter = {
 	.fsmcog = {
 		.fsmog = {
