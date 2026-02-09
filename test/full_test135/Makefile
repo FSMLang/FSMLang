@@ -8,13 +8,14 @@
 
 override CFLAGS += -I../ \
 	 -Wall \
-	 -ggdb
+	 -ggdb \
+    -DTEST_FSM_DEBUG
 
 override FSM_FLAGS+=-i0
 
 DIFF_FLAGS=-I \"warning: (test_fsm): all events are handled identically in all states\\.\"
 
-VARIANTS=ss
+VARIANTS=ss s c cc e
 
 include ../variants.mk
 
