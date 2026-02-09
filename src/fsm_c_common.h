@@ -37,6 +37,9 @@
 
 #include "fsm_priv.h"
 
+#define writeFSMLoop(A) pfsmcog->wfsm((A))
+#define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
+
 typedef enum ENTRY_OR_EXIT
 {
     eoe_entry
