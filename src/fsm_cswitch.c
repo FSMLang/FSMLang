@@ -1598,23 +1598,11 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                 }
                 else
                 {
-					fprintf(pich->pcmd->cFile, "\tdefault:\n");
-					if (empty_cell_fn)
-					{
-						fprintf(pich->pcmd->cFile
-								, "\t\tUFMN(%s)(pfsm);\n"
-								, empty_cell_fn
-								);
-					}
-					else
-					{
-						fprintf(pich->pcmd->cFile
-								, "\t\t%s(\"%s_noAction\");\n"
-								, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
-								, ufMachineName(pich->pcmd)
-							   );
-					}
-					fprintf(pich->pcmd->cFile, "\t\tbreak;\n");
+					fprintf(pich->pcmd->cFile
+							, "\t\t%s(\"%s_noAction\");\n"
+							, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+							, ufMachineName(pich->pcmd)
+						   );
                 }
 
                 if (pai->transition)
