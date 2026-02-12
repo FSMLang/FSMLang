@@ -49,7 +49,7 @@ sizes: $(addsuffix .size, $(VARIANTS))
 $(addsuffix .size, $(VARIANTS)):
 	@echo $(FSM_FLAGS)
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" CFLAGS="$(CFLAGS)" test
-	@echo -n "$@ size: " > $@
+	@echo -n "$(basename $@) size: " > $@
 	@ls -l test | cut -f5 -d' ' >>  $@
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
 
