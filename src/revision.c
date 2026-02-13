@@ -549,5 +549,12 @@
 	<i>runAppropriate...</i> functions are now correctly constructed when
 	all states have entry functions or all states have exit functions.
 */
-const char rev_string[] = "2.2.1";
+
+/*
+	Revision 2.2.2
+
+	Code for the c switch implementation of machines having actions which
+	return void is now generated correctly for the 'transition only' cases.
+*/
+const char rev_string[] = "2.2.2";
 
