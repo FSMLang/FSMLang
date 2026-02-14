@@ -225,6 +225,19 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
                );
    }
 
+   fprintf(pcmd->cFile
+		   , "\n#ifdef %s_DEBUG\n"
+		   , fsmType(pcmd)
+		   );
+   fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
+   fprintf(pcmd->cFile
+		   , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+		   , ucnfMachineName(pcmd)
+		   );
+   fprintf(pcmd->cFile
+		   , "\n#endif\n"
+		   );
+
    if (pmi->machine_list)
    {
 	  tab_level--;
@@ -263,19 +276,6 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
               , "\t}"
               );
    }
-
-   fprintf(pcmd->cFile
-		   , "\n#ifdef %s_DEBUG\n"
-		   , fsmType(pcmd)
-		   );
-   fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
-   fprintf(pcmd->cFile
-           , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
-           , ucnfMachineName(pcmd)
-           );
-   fprintf(pcmd->cFile
-		   , "\n#endif\n"
-		   );
 
 }
 
@@ -2349,9 +2349,21 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    if (pmi->executes_fns_on_state_transitions)
    {
-      fprintf(pcmd->cFile
-              , "\n\n\tif (pfsm->state != new_s)\n\t{\n"
-             );
+
+	  if (pmi->modFlags & mfActionsReturnStates)
+	  {
+		  fprintf(pcmd->cFile
+				  , "\n\n\tif ((pfsm->state != new_s)\n\t"
+				    "    && (new_s != STATE(noTransition))"
+				    ")\n\t{\n"
+				  );
+	  }
+	  else
+	  {
+		  fprintf(pcmd->cFile
+				  , "\n\n\tif (pfsm->state != new_s)\n\t{\n"
+				 );
+	  }
 
       if (pmi->machineTransition)
       {

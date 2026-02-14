@@ -3955,15 +3955,21 @@ void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 			  ? "event" 
 			  : "e"
             );
+
     if (short_dbg_names && add_machine_name)
     {
-       fprintf(pcmd->cFile, "\tDBG_PRINTF(\"%s: event: %%s; state: %%s\"\n,"
+       fprintf(pcmd->cFile
+			   , "\tDBG_PRINTF(\"%s: event: %%s; %sstate: %%s\"\n,"
                , pmi->name->name
+			   , pmi->modFlags & mfActionsReturnStates ? "start " : ""
               );
     }
     else
     {
-       fprintf(pcmd->cFile, "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,");
+       fprintf(pcmd->cFile
+			   , "\tDBG_PRINTF(\"event: %%s; %sstate: %%s\"\n,"
+			   , pmi->modFlags & mfActionsReturnStates ? "start " : ""
+			   );
     }
 
     fprintf(pcmd->cFile
