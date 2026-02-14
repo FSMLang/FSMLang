@@ -1,6 +1,6 @@
 #include "test_fsm.h"
 
-#define INIT_INSTANCE_DATA {.e1_count = 0}
+#define INIT_INSTANCE_DATA {.e1_count = 0, .e2_count = 0, .e3_count = 0}
 
 TEST_FSM_INSTANCE(test_fsm,INIT_INSTANCE_DATA);
 
