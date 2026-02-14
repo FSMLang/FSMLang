@@ -80,6 +80,7 @@ typedef enum CREATED_FILES
 {
 	cf_c
 	, cf_first            = cf_c
+    , cf_weakFunctionsC
 	, cf_h
 	, cf_pubH
 	, cf_subMachineH
@@ -90,6 +91,7 @@ typedef enum CREATED_FILES
 
 /* These macros allow existing code to remain.*/
 #define cFile               file_array[cf_c]
+#define weakFunctionsCFile  file_array[cf_weakFunctionsC]
 #define hFile               file_array[cf_h]
 #define pubHFile            file_array[cf_pubH]
 #define subMachineHFile     file_array[cf_subMachineH]
@@ -97,6 +99,7 @@ typedef enum CREATED_FILES
 #define instanceMacrosHFile file_array[cf_instanceMacrosH]
 
 #define cName               file_name_array[cf_c]
+#define weakFunctionsCName  file_name_array[cf_weakFunctionsC]
 #define hName               file_name_array[cf_h]
 #define pubHName            file_name_array[cf_pubH]
 #define subMachineHName     file_name_array[cf_subMachineH]
