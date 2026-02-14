@@ -16,6 +16,12 @@ test_md_p: FSM_FLAGS=-Md -tp
 test_md_h: FSM_FLAGS=-Md -th
 test_md_r: FSM_FLAGS=-Md -tr
 test_m_r_o: FSM_FLAGS=-M -tr -o index
+test_m_c_w: FSM_FLAGS=-M -tc --weak-fn-filename=foo
+test_m_s_w: FSM_FLAGS=-M -ts --weak-fn-filename=foo
+test_m_e_w: FSM_FLAGS=-M -te --weak-fn-filename=foo
+test_md_c_w: FSM_FLAGS=-Md -tc --weak-fn-filename=foo
+test_md_s_w: FSM_FLAGS=-Md -ts --weak-fn-filename=foo
+test_md_e_w: FSM_FLAGS=-Md -te --weak-fn-filename=foo
 test.json: FSM_FLAGS=--event-cross-ref-only=true
 test.xml: FSM_FLAGS=--event-cross-ref-format=xml
 test.tab: FSM_FLAGS=--event-cross-ref-format=tab
@@ -30,22 +36,28 @@ fail_svg_and_uml: FSM_FLAGS=--include-svg-img --include-uml-objects
 fail_no_weak_fns_and_weak_fn_filename: FSM_FLAGS=--generate-weak-fns=false --weak-fn-filename=foo
 
 LISTERS = \
-        test_m_c  \
-        test_m_s  \
-        test_m_e  \
-        test_md_c \
-        test_md_s \
-        test_md_e \
-        test_mh_c \
-        test_mh_s \
-        test_mh_e \
-        test_m_p  \
-        test_m_h  \
-        test_m_r  \
-        test_md_p  \
-        test_md_h  \
-        test_md_r  \
-        test_m_r_o
+        test_m_c    \
+        test_m_s    \
+        test_m_e    \
+        test_md_c   \
+        test_md_s   \
+        test_md_e   \
+        test_mh_c   \
+        test_mh_s   \
+        test_mh_e   \
+        test_m_p    \
+        test_m_h    \
+        test_m_r    \
+        test_md_p   \
+        test_md_h   \
+        test_md_r   \
+        test_m_r_o  \
+        test_m_c_w  \
+        test_m_s_w  \
+        test_m_e_w  \
+        test_md_c_w \
+        test_md_s_w \
+        test_md_e_w \
 
 CREATORS = \
          test.json   \
