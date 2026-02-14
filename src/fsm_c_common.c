@@ -241,7 +241,7 @@ void writeCFilePreambles(pCMachineData pcmd, bool sub_machine)
 		for (cf = cf_first; cf < cf_numCreatedFiles; cf++)
 		{
 			if ((cf == cf_c)
-				|| ((cf == cf_weakFunctionsC) && weak_fn_filename)
+				|| ((cf == cf_weakFunctionsC) && weak_fn_separate_file)
 				)
 			{
 				/* the source file */
@@ -1872,7 +1872,7 @@ pCMachineData	newCMachineData(char *baseFileName)
 			 pcmd->instanceMacrosHName = createFileName(baseFileName, "_instance_macros.h");
 		 }
 
-		 if (weak_fn_filename)
+		 if (weak_fn_separate_file)
 		 {
 			 pcmd->weakFunctionsCName = createFileName(baseFileName, "_weak_fns.c");
 		 }

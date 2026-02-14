@@ -463,7 +463,7 @@ extern bool                 profile_sub_fsms;
 extern char                 *empty_cell_fn;
 extern bool                 inhibiting_states_share_events;
 extern bool                 include_uml_objects;
-extern char                 *weak_fn_filename;
+extern bool                 weak_fn_separate_file;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 
