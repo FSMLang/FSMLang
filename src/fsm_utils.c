@@ -113,6 +113,7 @@ bool     output_header_files                       = false;
 bool     output_make_recipe                        = false;
 bool     short_user_fn_names                       = false;
 char     *empty_cell_fn                            = NULL;
+char     *weak_fn_filename                         = NULL;
 
 void print_tab_levels(FILE *output, unsigned levels)
 {

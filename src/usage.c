@@ -224,6 +224,14 @@ void usage(void)
 			, item_end
 			);
 	fprintf(stdout
+			,"%s--weak-fn-filename=%sfilename%s%sWeak functions, if generated, will be put in this file.%s"
+			, item_start
+			, lt
+			, gt
+			, expl_start
+			, item_end
+			);
+	fprintf(stdout
 			,"%s--short-user-fn-names=true%scauses user functions (such as action functions to use only the%s"
 			, item_start
 			, expl_start
