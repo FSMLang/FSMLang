@@ -1,2 +1,2 @@
-fsm: Either enable weak function generation or do not designate a file for them.
+fsm: Either enable weak function generation or do not indicate a separate file for them.
 	line 1 : (null)

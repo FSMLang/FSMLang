@@ -16,12 +16,12 @@ test_md_p: FSM_FLAGS=-Md -tp
 test_md_h: FSM_FLAGS=-Md -th
 test_md_r: FSM_FLAGS=-Md -tr
 test_m_r_o: FSM_FLAGS=-M -tr -o index
-test_m_c_w: FSM_FLAGS=-M -tc --weak-fn-separate-file=true
-test_m_s_w: FSM_FLAGS=-M -ts --weak-fn-separate-file=true
-test_m_e_w: FSM_FLAGS=-M -te --weak-fn-separate-file=true
-test_md_c_w: FSM_FLAGS=-Md -tc --weak-fn-separate-file=true
-test_md_s_w: FSM_FLAGS=-Md -ts --weak-fn-separate-file=true
-test_md_e_w: FSM_FLAGS=-Md -te --weak-fn-separate-file=true
+test_m_c_w: FSM_FLAGS=-M -tc --weak-fns-separate-file=true
+test_m_s_w: FSM_FLAGS=-M -ts --weak-fns-separate-file=true
+test_m_e_w: FSM_FLAGS=-M -te --weak-fns-separate-file=true
+test_md_c_w: FSM_FLAGS=-Md -tc --weak-fns-separate-file=true
+test_md_s_w: FSM_FLAGS=-Md -ts --weak-fns-separate-file=true
+test_md_e_w: FSM_FLAGS=-Md -te --weak-fns-separate-file=true
 test.json: FSM_FLAGS=--event-cross-ref-only=true
 test.xml: FSM_FLAGS=--event-cross-ref-format=xml
 test.tab: FSM_FLAGS=--event-cross-ref-format=tab
@@ -33,7 +33,7 @@ test_s.csv: FSM_FLAGS=--event-cross-ref-format=csv --include-state-cross-refs
 test_s_f.csv: FSM_FLAGS=--event-cross-ref-format=csv --include-state-cross-refs=false
 
 fail_svg_and_uml: FSM_FLAGS=--include-svg-img --include-uml-objects
-fail_no_weak_fns_and_weak_fn_filename: FSM_FLAGS=--generate-weak-fns=false --weak-fn-separate-file=true
+fail_no_weak_fns_and_weak_fn_filename: FSM_FLAGS=--generate-weak-fns=false --weak-fns-separate-file=true
 
 LISTERS = \
         test_m_c    \
