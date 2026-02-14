@@ -27,6 +27,7 @@ test_s.csv: FSM_FLAGS=--event-cross-ref-format=csv --include-state-cross-refs
 test_s_f.csv: FSM_FLAGS=--event-cross-ref-format=csv --include-state-cross-refs=false
 
 fail_svg_and_uml: FSM_FLAGS=--include-svg-img --include-uml-objects
+fail_no_weak_fns_and_weak_fn_filename: FSM_FLAGS=--generate-weak-fns=false --weak-fn-filename=foo
 
 LISTERS = \
         test_m_c  \
@@ -57,7 +58,8 @@ CREATORS = \
          test_s.csv  \
          test_s_f.csv 
 
-FAILERS=fail_svg_and_uml
+FAILERS=fail_svg_and_uml \
+        fail_no_weak_fns_and_weak_fn_filename
 
 .PHONY: test_file_listers test_file_creators test_file_failers $(LISTERS) $(FAILERS)
 
