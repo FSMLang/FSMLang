@@ -224,7 +224,7 @@ void usage(void)
 			, item_end
 			);
 	fprintf(stdout
-			,"%s--weak-fn-filename=%strue|false*%s%sWeak functions, if generated, will be put into a separate file.%s"
+			,"%s--weak-fns-separate-file=%strue|false*%s%sWeak functions, if generated, will be put into a separate file.%s"
 			, item_start
 			, lt
 			, gt

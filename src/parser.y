@@ -2627,7 +2627,7 @@ const struct option longopts[] =
         , .val     = lo_include_uml_objects
 		}
 		, {
-        .name      = "weak-fn-separate-file"
+        .name      = "weak-fns-separate-file"
         , .has_arg = required_argument
         , .flag    = &longval
 				, .val     = lo_weak_fn_separate_file
