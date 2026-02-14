@@ -1797,17 +1797,10 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 				/* we need to insert a dummy here */
 				if (pmi->modFlags & mfActionsReturnStates)
 				{
-
 					fprintf(pcmd->cFile
-							, "%s(noTransition%s)\n"
-							, compact_action_array ? "THIS" : "UFMN"
-							, compact_action_array
-							  ? "_e"
-							  : pmi->transition_fn_list->count
-							    ? "Fn"
-							    : ""
-						   );
-
+							, "UFMN(%s)\n"
+							, empty_cell_fn ? empty_cell_fn : "noAction"
+							);
 				}
 				else
 				{
