@@ -2680,7 +2680,7 @@ int main(int argc, char **argv)
             case lo_weak_fn_separate_file:
                 weak_fn_separate_file 
                   = !strcmp(optarg, "true") ? true : false;
-                if (!generate_weak_fns)
+                if (weak_fn_separate_file && !generate_weak_fns)
                 {
                       yyerror("Either enable weak function generation or do not indicate a separate file for them.");
                 }
