@@ -2445,6 +2445,7 @@ typedef enum {
  , lo_empty_cell_fn
  , lo_inhibiting_states_share_events
  , lo_include_uml_objects
+ , lo_weak_fn_separate_file
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2625,6 +2626,12 @@ const struct option longopts[] =
         , .flag    = &longval
         , .val     = lo_include_uml_objects
 		}
+		, {
+        .name      = "weak-fns-separate-file"
+        , .has_arg = required_argument
+        , .flag    = &longval
+				, .val     = lo_weak_fn_separate_file
+    }
     , {0}
 };
       
@@ -2665,6 +2672,18 @@ int main(int argc, char **argv)
             case lo_weak_fns:
                 generate_weak_fns 
                     = !strcmp(optarg,"true") ? true : false;
+                    if (!generate_weak_fns && weak_fn_separate_file)
+                    {
+                      yyerror("Either enable weak function generation or do not indicate a separate file for them.");
+                    }
+                break;
+            case lo_weak_fn_separate_file:
+                weak_fn_separate_file 
+                  = !strcmp(optarg, "true") ? true : false;
+                if (weak_fn_separate_file && !generate_weak_fns)
+                {
+                      yyerror("Either enable weak function generation or do not indicate a separate file for them.");
+                }
                 break;
             case lo_core_logging:
                 core_logging_only 

@@ -16,6 +16,12 @@ test_md_p: FSM_FLAGS=-Md -tp
 test_md_h: FSM_FLAGS=-Md -th
 test_md_r: FSM_FLAGS=-Md -tr
 test_m_r_o: FSM_FLAGS=-M -tr -o index
+test_m_c_w: FSM_FLAGS=-M -tc --weak-fns-separate-file=true
+test_m_s_w: FSM_FLAGS=-M -ts --weak-fns-separate-file=true
+test_m_e_w: FSM_FLAGS=-M -te --weak-fns-separate-file=true
+test_md_c_w: FSM_FLAGS=-Md -tc --weak-fns-separate-file=true
+test_md_s_w: FSM_FLAGS=-Md -ts --weak-fns-separate-file=true
+test_md_e_w: FSM_FLAGS=-Md -te --weak-fns-separate-file=true
 test.json: FSM_FLAGS=--event-cross-ref-only=true
 test.xml: FSM_FLAGS=--event-cross-ref-format=xml
 test.tab: FSM_FLAGS=--event-cross-ref-format=tab
@@ -27,24 +33,31 @@ test_s.csv: FSM_FLAGS=--event-cross-ref-format=csv --include-state-cross-refs
 test_s_f.csv: FSM_FLAGS=--event-cross-ref-format=csv --include-state-cross-refs=false
 
 fail_svg_and_uml: FSM_FLAGS=--include-svg-img --include-uml-objects
+fail_no_weak_fns_and_weak_fn_filename: FSM_FLAGS=--generate-weak-fns=false --weak-fns-separate-file=true
 
 LISTERS = \
-        test_m_c  \
-        test_m_s  \
-        test_m_e  \
-        test_md_c \
-        test_md_s \
-        test_md_e \
-        test_mh_c \
-        test_mh_s \
-        test_mh_e \
-        test_m_p  \
-        test_m_h  \
-        test_m_r  \
-        test_md_p  \
-        test_md_h  \
-        test_md_r  \
-        test_m_r_o
+        test_m_c    \
+        test_m_s    \
+        test_m_e    \
+        test_md_c   \
+        test_md_s   \
+        test_md_e   \
+        test_mh_c   \
+        test_mh_s   \
+        test_mh_e   \
+        test_m_p    \
+        test_m_h    \
+        test_m_r    \
+        test_md_p   \
+        test_md_h   \
+        test_md_r   \
+        test_m_r_o  \
+        test_m_c_w  \
+        test_m_s_w  \
+        test_m_e_w  \
+        test_md_c_w \
+        test_md_s_w \
+        test_md_e_w \
 
 CREATORS = \
          test.json   \
@@ -57,7 +70,8 @@ CREATORS = \
          test_s.csv  \
          test_s_f.csv 
 
-FAILERS=fail_svg_and_uml
+FAILERS=fail_svg_and_uml \
+        fail_no_weak_fns_and_weak_fn_filename
 
 .PHONY: test_file_listers test_file_creators test_file_failers $(LISTERS) $(FAILERS)
 
