@@ -93,7 +93,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMENT,void*);
 static void switchConvenienceMacros(pFSMCOutputGenerator);
 static bool define_weak_user_transition_function(pLIST_ELEMENT,void*);
-static void print_user_transition_function_body(FILE*,pMACHINE_INFO);
+static void print_user_transition_function_body(FILE*);
 
 
 #define writeFSMLoop(A) pfsmcog->wfsm((A))
@@ -2554,12 +2554,12 @@ static bool define_weak_user_transition_function(pLIST_ELEMENT pelem, void *data
 										, true
 										);
 
-	print_user_transition_function_body(pich->ih.fout, pich->pcmd->pmi);
+	print_user_transition_function_body(pich->ih.fout);
 
 	return false;
 }
 
-static void print_user_transition_function_body(FILE *fout, pMACHINE_INFO pmi)
+static void print_user_transition_function_body(FILE *fout)
 {
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
