@@ -1523,7 +1523,7 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
 		      : pcmd->cFile
 		      ;
 
-	print_weak_action_function_body_omitting_return_statement(pcmd, "noAction", &ih);
+	print_weak_action_function_body_omitting_return_statement("noAction", &ih);
 
 	if (!(pcmd->pmi->modFlags & mfActionsReturnVoid))
 	{
@@ -3254,7 +3254,7 @@ bool print_sub_machine_if(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
-void print_weak_action_function_body_omitting_return_statement(pCMachineData pcmd, char *name, pITERATOR_HELPER pih)
+void print_weak_action_function_body_omitting_return_statement(char *name, pITERATOR_HELPER pih)
 {
 	fprintf(pih->fout
 			, "ACTION_RETURN_TYPE __attribute__((weak)) UFMN(%s)(FSM_TYPE_PTR pfsm)\n{\n"
@@ -3281,7 +3281,7 @@ bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
 
    if (pid_info->name && strlen(pid_info->name))
    {
-	   print_weak_action_function_body_omitting_return_statement(pich->pcmd, pid_info->name, &pich->ih);
+	   print_weak_action_function_body_omitting_return_statement(pid_info->name, &pich->ih);
 
        if (pich->ih.pmi->modFlags & mfActionsReturnStates)
        {
