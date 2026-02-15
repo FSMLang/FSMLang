@@ -83,6 +83,7 @@ typedef enum CREATED_FILES
 {
 	cf_c
 	, cf_first            = cf_c
+    , cf_weakFunctionsC
 	, cf_h
 	, cf_pubH
 	, cf_subMachineH
@@ -93,6 +94,7 @@ typedef enum CREATED_FILES
 
 /* These macros allow existing code to remain.*/
 #define cFile               file_array[cf_c]
+#define weakFunctionsCFile  file_array[cf_weakFunctionsC]
 #define hFile               file_array[cf_h]
 #define pubHFile            file_array[cf_pubH]
 #define subMachineHFile     file_array[cf_subMachineH]
@@ -100,6 +102,7 @@ typedef enum CREATED_FILES
 #define instanceMacrosHFile file_array[cf_instanceMacrosH]
 
 #define cName               file_name_array[cf_c]
+#define weakFunctionsCName  file_name_array[cf_weakFunctionsC]
 #define hName               file_name_array[cf_h]
 #define pubHName            file_name_array[cf_pubH]
 #define subMachineHName     file_name_array[cf_subMachineH]
@@ -189,6 +192,7 @@ void generateRunFunction(pCMachineData,pMACHINE_INFO);
 void defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO);
 void defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO);
 void defineWeakStateEntryAndExitFunctionStubs(pCMachineData,pMACHINE_INFO);
+void defineWeakUserTransitionFns(pFSMCOutputGenerator);
 void writeStateTransitions(pCMachineData,pMACHINE_INFO);
 void writeDebugInfo(pCMachineData,pMACHINE_INFO);
 void destroyCMachineData(pCMachineData,int);
@@ -225,7 +229,7 @@ void printFSMMachineDebugBlock(pCMachineData,pMACHINE_INFO);
 void printFSMSubMachineDebugBlock(pCMachineData,pMACHINE_INFO);
 void print_action_function_declaration(pCMachineData,char*);
 void print_transition_fn_declaration_for_when_actions_return_states(pCMachineData,FILE*,char*);
-void print_weak_action_function_body_omitting_return_statement(pCMachineData, char *);
+void print_weak_action_function_body_omitting_return_statement(char*,pITERATOR_HELPER);
 void print_native_epilogue(pCMachineData,pMACHINE_INFO);
 void addNativeImplementationPrologIfThereIsAny(pMACHINE_INFO,FILE*);
 void addNativeImplementationEpilogIfThereIsAny(pMACHINE_INFO,FILE*);
@@ -234,6 +238,7 @@ void writeNoTransition(pCMachineData,pMACHINE_INFO);
 void writeReentrantPrologue(pCMachineData);
 void writeReentrantEpilogue(pCMachineData);
 void writeCMachineFN(pFSMOutputGenerator, pMACHINE_INFO);
+void print_transition_function_signature(FILE*,pCMachineData,char*,char*,bool);
 
 pCMachineData   newCMachineData(char*);
 

@@ -303,6 +303,9 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 			writeNoTransition(pcmd, pmi);
 		}
 
+		/* write any user transition functions */
+		defineWeakUserTransitionFns(pfsmcog);
+
 	}
 	else if (force_generation_of_event_passing_actions)
 	{
@@ -408,6 +411,9 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 			writeStateTransitions(pcmd, pmi);
 			writeNoTransition(pcmd, pmi);
 		}
+
+		/* write any user transition functions */
+		defineWeakUserTransitionFns(pfsmcog);
 
 	}
 	else if (force_generation_of_event_passing_actions)

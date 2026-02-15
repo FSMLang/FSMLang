@@ -1,0 +1,38 @@
+native
+{
+#include "../test.h"
+}
+machine FSMIssue
+    actions return void;
+{
+
+    state s1;
+    state s2;
+    state s3 on entry ef1;
+    state s4;
+
+    event e1;
+    event e2;
+    event e3;
+    event e4;
+    event e5;
+    event e6;
+
+    [(e1, e3), s1] transition dp1;
+    [e2, s1] transition s4;
+    [e4, s1] transition s3;
+    [(e5, e2), s2] transition dp2;
+    [e4, s2] transition s3;
+    [e6, s2] transition dp3;
+    action a2[e1, s2];
+    action a2[(e1, e2), s4];
+    action a1[e3, s2];
+    [(e3, e4), s4] transition s3;
+    [e6, s4] transition dp4;
+
+
+    dp1 returns s2, s3, s4;
+    dp2 returns s3, s4, s1 ;
+    dp3 returns s2, s1;
+    dp4 returns s4, s1;
+}

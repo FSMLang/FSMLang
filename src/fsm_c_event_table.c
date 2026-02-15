@@ -433,6 +433,9 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 		  defineWeakDataTranslatorStubs(pcmd, pmi);
 	   }
 
+	   /* write any user transition functions */
+	   defineWeakUserTransitionFns(pfsmcog);
+
 	}
 	else if (force_generation_of_event_passing_actions)
 	{
