@@ -77,6 +77,7 @@ static bool declare_event_user_data_union_mbrs                                  
 static bool print_sub_machine_as_enum_member                                         (pLIST_ELEMENT,void*);
 static bool declare_sub_machine_if                                                   (pLIST_ELEMENT,void*);
 static bool define_weak_action_function                                              (pLIST_ELEMENT,void*);
+static bool define_weak_user_transition_function                                     (pLIST_ELEMENT,void*);
 static bool define_event_passing_actions                                             (pLIST_ELEMENT,void*);
 static bool print_event_macro                                                        (pLIST_ELEMENT,void*);
 static bool declare_shared_event_lists                                               (pLIST_ELEMENT,void*);
@@ -104,8 +105,8 @@ static void print_state_enum_member                                             
 static void print_shared_event_data_block_signature                                  (FILE*,pCMachineData,pMACHINE_INFO,char*,bool);
 static char *createHeaderCompilationGuard                                            (char*);
 static void writeHeaderPreamble                                                      (char*,FILE*);
-static void print_transition_function_signature                                      (FILE*,pCMachineData,char*,char*,bool);
 static void print_transition_function_body                                           (FILE*,pCMachineData,char*);
+static void print_user_transition_function_body                                           (FILE*);
 static void print_state_entry_or_exit_manager_signature                              (pCMachineData,pMACHINE_INFO,ENTRY_OR_EXIT,DECLARE_OR_DEFINE);
 static void print_native_prologue                                                    (pCMachineData,pMACHINE_INFO);
 static void print_data_translator_fn_signature                                       (FILE*,pCMachineData,pID_INFO,DECLARE_OR_DEFINE);
@@ -1558,7 +1559,41 @@ void defineWeakStateEntryAndExitFunctionStubs(pCMachineData pcmd, pMACHINE_INFO 
 
 }
 
-static void print_transition_function_signature(FILE *fout, pCMachineData pcmd, char *name_prefix, char *name, bool define)
+void defineWeakUserTransitionFns(pFSMCOutputGenerator pfsmcog)
+{
+   ITERATOR_CALLBACK_HELPER ich = { 0 };
+
+   ich.pcmd      = pfsmcog->pcmd;
+   ich.ih.pmi    = pfsmcog->pcmd->pmi;
+   ich.ih.fout   = weak_fn_separate_file
+	               ? pfsmcog->pcmd->weakFunctionsCFile
+	               : pfsmcog->pcmd->cFile
+	               ;
+
+   iterate_list(pfsmcog->pcmd->pmi->transition_fn_list
+				, define_weak_user_transition_function
+				, &ich
+				);
+}
+
+static bool define_weak_user_transition_function(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO                  ptransitionFn = (pID_INFO) pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich          = (pITERATOR_CALLBACK_HELPER) data;
+
+	print_transition_function_signature(pich->ih.fout
+										, pich->pcmd
+										, ""
+										, ptransitionFn->name
+										, true
+										);
+
+	print_user_transition_function_body(pich->ih.fout);
+
+	return false;
+}
+
+void print_transition_function_signature(FILE *fout, pCMachineData pcmd, char *name_prefix, char *name, bool define)
 {
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -1586,6 +1621,17 @@ static void print_transition_function_body(FILE *fout, pCMachineData pcmd, char 
 			, !(pcmd->pmi->modFlags & mfActionsReturnStates) ? "\t(void) e;\n" : ""
 			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
 			, name
+		   );
+}
+
+static void print_user_transition_function_body(FILE *fout)
+{
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	fprintf(fout
+			, "\t(void) e;\n\n\t%s(\"weak: %%s\", __func__);\n"
+			  "\treturn pfsm->state;\n}\n\n"
+			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
 		   );
 }
 

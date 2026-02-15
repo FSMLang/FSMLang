@@ -76,6 +76,7 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator, char*);
 static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator,char*);
 static void chooseWorkerFunctions(pFSMCOutputGenerator);
 static void defineCSwitchMachineStateFns(pCMachineData,pMACHINE_INFO);
+static void defineCSwitchMachineWeakUserTransitionFns(pFSMCOutputGenerator);
 static void defineStateFnArray(pCMachineData,pMACHINE_INFO);
 static bool print_state_fn_signature(pLIST_ELEMENT,void*);
 static bool print_state_fn_name(pLIST_ELEMENT,void*);
@@ -91,6 +92,8 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT,void*);
 static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEMENT,void*);
 static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMENT,void*);
 static void switchConvenienceMacros(pFSMCOutputGenerator);
+static bool define_weak_user_transition_function(pLIST_ELEMENT,void*);
+static void print_user_transition_function_body(FILE*,pMACHINE_INFO);
 
 
 #define writeFSMLoop(A) pfsmcog->wfsm((A))
@@ -608,6 +611,9 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
       {
          defineWeakDataTranslatorStubs(pcmd, pmi);
       }
+
+	  /* write any user transition functions */
+	  defineCSwitchMachineWeakUserTransitionFns(pfsmcog);
 
    }
    else if (force_generation_of_event_passing_actions)
@@ -2517,5 +2523,54 @@ static void switchConvenienceMacros(pFSMCOutputGenerator pfsmcog)
 
 	}
 
+}
+
+static void defineCSwitchMachineWeakUserTransitionFns(pFSMCOutputGenerator pfsmcog)
+{
+	ITERATOR_CALLBACK_HELPER ich = { 0 };
+
+	ich.pcmd      = pfsmcog->pcmd;
+	ich.ih.pmi    = pfsmcog->pcmd->pmi;
+	ich.ih.fout   = weak_fn_separate_file
+					? pfsmcog->pcmd->weakFunctionsCFile
+					: pfsmcog->pcmd->cFile
+					;
+
+	iterate_list(pfsmcog->pcmd->pmi->transition_fn_list
+				 , define_weak_user_transition_function
+				 , &ich
+				 );
+}
+
+static bool define_weak_user_transition_function(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO                  ptransitionFn = (pID_INFO) pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich          = (pITERATOR_CALLBACK_HELPER) data;
+
+	print_transition_function_signature(pich->ih.fout
+										, pich->pcmd
+										, ""
+										, ptransitionFn->name
+										, true
+										);
+
+	print_user_transition_function_body(pich->ih.fout, pich->pcmd->pmi);
+
+	return false;
+}
+
+static void print_user_transition_function_body(FILE *fout, pMACHINE_INFO pmi)
+{
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	fprintf(fout
+			, "\t(void) e;\n\n\t%s(\"weak: %%s\", __func__);\n"
+			  "\tTR_FN_RETURN_TYPE var = %s;\n"
+			  "\treturn var;\n}\n\n"
+			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+			, compact_action_array
+			  ? "{.s_enum = pfsm->state, .s_fn = pfsm->currentState}"
+			  : "pfsm->state"
+		   );
 }
 

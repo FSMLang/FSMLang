@@ -189,6 +189,7 @@ void generateRunFunction(pCMachineData,pMACHINE_INFO);
 void defineWeakActionFunctionStubs(pCMachineData,pMACHINE_INFO);
 void defineWeakNoActionFunctionStubs(pCMachineData,pMACHINE_INFO);
 void defineWeakStateEntryAndExitFunctionStubs(pCMachineData,pMACHINE_INFO);
+void defineWeakUserTransitionFns(pFSMCOutputGenerator);
 void writeStateTransitions(pCMachineData,pMACHINE_INFO);
 void writeDebugInfo(pCMachineData,pMACHINE_INFO);
 void destroyCMachineData(pCMachineData,int);
@@ -234,6 +235,7 @@ void writeNoTransition(pCMachineData,pMACHINE_INFO);
 void writeReentrantPrologue(pCMachineData);
 void writeReentrantEpilogue(pCMachineData);
 void writeCMachineFN(pFSMOutputGenerator, pMACHINE_INFO);
+void print_transition_function_signature(FILE*,pCMachineData,char*,char*,bool);
 
 pCMachineData   newCMachineData(char*);
 
