@@ -673,7 +673,7 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
    /* do this now, since some header stuff puts content into the source file.*/
    addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-   subMachineHeaderStart(pfsmcog, "state_fn", true);
+   subMachineHeaderStart(pfsmcog, true);
 
    declareCSwitchMachineStateFnArray(pcmd);
 

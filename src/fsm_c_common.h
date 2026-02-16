@@ -209,7 +209,7 @@ bool sub_machine_declare_data_translator_functions(pLIST_ELEMENT,void*);
 bool define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 bool sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 
-void subMachineHeaderStart(pFSMCOutputGenerator,char*,bool);
+void subMachineHeaderStart(pFSMCOutputGenerator,bool);
 void defineSubMachineIF(pCMachineData);
 void possiblyDefineSubMachineSharedEventStructures(pCMachineData,pMACHINE_INFO);
 void defineSubMachineArray(pCMachineData,pMACHINE_INFO);

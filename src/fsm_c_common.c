@@ -2816,14 +2816,12 @@ void print_native_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi)
 }
 
 void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
-						   , char *arrayName
 						   , bool add_num_states
 						   )
 {
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 
-	(void) arrayName;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
    char *cp = NULL;
 
