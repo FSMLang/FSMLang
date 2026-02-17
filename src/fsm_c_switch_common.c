@@ -44,7 +44,6 @@
 #endif
 #include <string.h>
 #include <stdlib.h>
-#define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
 
 static bool            cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
 

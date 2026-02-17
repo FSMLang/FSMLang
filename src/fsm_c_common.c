@@ -1447,22 +1447,25 @@ void generateSubMachineInstanceMacro(pCMachineData pcmd
            , eventNameByIndex(pmi, 0)
           );
 
-   if (arrayFieldIsArray)
+   if (arrayFieldName != NULL)
    {
-	   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
-			   , "\t, .%s = &%s_%s_array\\\n"
-			   , arrayFieldName
-			   , fqMachineName(pcmd)
-			   , arrayName
-			  );
-   }
-   else
-   {
-	   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
-			   , "\t, .%s = %s_stateFn\\\n"
-			   , arrayFieldName
-			   , arrayName
-			  );
+	   if (arrayFieldIsArray)
+	   {
+		   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
+				   , "\t, .%s = &%s_%s_array\\\n"
+				   , arrayFieldName
+				   , fqMachineName(pcmd)
+				   , arrayName
+				  );
+	   }
+	   else
+	   {
+		   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
+				   , "\t, .%s = %s_stateFn\\\n"
+				   , arrayFieldName
+				   , arrayName
+				  );
+	   }
    }
 
    fprintf(pcmd->parent_pcmd->instanceMacrosHFile
