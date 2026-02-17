@@ -135,6 +135,12 @@ void usage(void)
 			, help_fmt == 'r' ? list_item_end : item_end
 			);
 	fprintf(stdout
+			,"%s'ss'%sgets you c code output with a single switch combining the event and state,%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
+			);
+	fprintf(stdout
 			,"%s'h'%sgets you html output%s"
 			, help_fmt == 'r' ? item_start : inner_item_start
       , expl_start
