@@ -1,6 +1,6 @@
 .SECONDEXPANSION:
 
-VARIANTS ?= c s e cc sc
+VARIANTS ?= c s e cc sc ss
 
 .PHONY: runtest test clean clean_generated $(VARIANTS) check_fsmout
 
