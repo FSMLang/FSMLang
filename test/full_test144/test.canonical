@@ -1,0 +1,69 @@
+test_fsm_grab_e1_data
+e1 accumulator: 1
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+test_fsm_grab_e1_data
+e1 accumulator: 2
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+test_fsm_grab_e1_data
+e1 accumulator: 3
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+test_fsm_grab_e1_data
+e1 accumulator: 4
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+event: test_fsm_e2; state: test_fsm_s1
+test_fsm_act_on_e2
+event: test_fsm_e3; state: test_fsm_s2
+test_fsm_act_on_e3
+test_fsm_guard1
+test_fsm_leave_s2
+test_fsm_enter_s1
+test_fsm_grab_e1_data
+e1 accumulator: 2
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+test_fsm_grab_e1_data
+e1 accumulator: 3
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+test_fsm_grab_e1_data
+e1 accumulator: 4
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+test_fsm_grab_e1_data
+e1 accumulator: 5
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+event: test_fsm_e2; state: test_fsm_s1
+test_fsm_act_on_e2
+event: test_fsm_e3; state: test_fsm_s2
+test_fsm_act_on_e3
+test_fsm_guard1
+test_fsm_leave_s2
+test_fsm_enter_s1
+test_fsm_grab_e1_data
+e1 accumulator: 3
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+test_fsm_grab_e1_data
+e1 accumulator: 4
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+test_fsm_grab_e1_data
+e1 accumulator: 5
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+test_fsm_grab_e1_data
+e1 accumulator: 6
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_act_on_e1
+event: test_fsm_e2; state: test_fsm_s1
+test_fsm_act_on_e2
+event: test_fsm_e3; state: test_fsm_s2
+test_fsm_act_on_e3
+test_fsm_guard1
+test_fsm_leave_s2
+test_fsm_enter_s1

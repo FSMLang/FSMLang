@@ -37,6 +37,9 @@
 
 #include "fsm_priv.h"
 
+#define writeFSMLoop(A) pfsmcog->wfsm((A))
+#define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
+
 typedef enum ENTRY_OR_EXIT
 {
     eoe_entry
@@ -179,7 +182,7 @@ void closeCMachineFN(pFSMOutputGenerator,int);
 
 void standardConvenienceMacros(pFSMCOutputGenerator);
 void standardTransitionFnTypedef(pFSMCOutputGenerator);
-void commonHeaderStart(pFSMCOutputGenerator,char*,bool);
+void commonHeaderStart(pFSMCOutputGenerator,bool);
 void addEventCrossReference(pCMachineData,pMACHINE_INFO,pITERATOR_CALLBACK_HELPER);
 void commonHeaderEnd(pFSMCOutputGenerator,bool);
 void generateInstance(pCMachineData,pMACHINE_INFO,char*,char*,bool);
@@ -206,7 +209,7 @@ bool sub_machine_declare_data_translator_functions(pLIST_ELEMENT,void*);
 bool define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 bool sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT,void*);
 
-void subMachineHeaderStart(pFSMCOutputGenerator,char*,bool);
+void subMachineHeaderStart(pFSMCOutputGenerator,bool);
 void defineSubMachineIF(pCMachineData);
 void possiblyDefineSubMachineSharedEventStructures(pCMachineData,pMACHINE_INFO);
 void defineSubMachineArray(pCMachineData,pMACHINE_INFO);

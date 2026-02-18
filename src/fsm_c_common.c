@@ -523,7 +523,6 @@ void standardTransitionFnTypedef(pFSMCOutputGenerator pfsmcog)
 }
 
 void commonHeaderStart(pFSMCOutputGenerator pfsmcog
-					   , char *arrayName
 					   , bool add_numStates
 					   )
 {
@@ -531,9 +530,6 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 	
 	FILE *fout = generate_instance ? pcmd->hFile : pcmd->pubHFile;
-
-	//TODO: remove from signature
-	(void) arrayName;
 
    ITERATOR_CALLBACK_HELPER   ich = {
 	   .ih = {
@@ -1124,22 +1120,25 @@ void generateInstance(pCMachineData pcmd
 			   , eventNameByIndex(pmi, 0)
 			  );
 
-	   if (arrayFieldIsArray)
+	   if (arrayFieldName != NULL)
 	   {
-		   fprintf(pcmd->cFile
-				   , "\t, .%s = &%s_%s_array\n"
-				   , arrayFieldName
-				   , machineName(pcmd)
-				   , arrayName
-				  );
-	   }
-	   else
-	   {
-		   fprintf(pcmd->cFile
-				   , "\t, .%s = %s_stateFn\n"
-				   , arrayFieldName
-				   , arrayName
-				  );
+		   if (arrayFieldIsArray)
+		   {
+			   fprintf(pcmd->cFile
+					   , "\t, .%s = &%s_%s_array\n"
+					   , arrayFieldName
+					   , machineName(pcmd)
+					   , arrayName
+					  );
+		   }
+		   else
+		   {
+			   fprintf(pcmd->cFile
+					   , "\t, .%s = %s_stateFn\n"
+					   , arrayFieldName
+					   , arrayName
+					  );
+		   }
 	   }
 
 	   if (pmi->machine_list)
@@ -1231,7 +1230,7 @@ void generateInstanceMacro(pCMachineData pcmd
 						   , bool arrayFieldIsArray
 						   )
 {
-   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+   FSMLANG_DEVELOP_PRINTF(pcmd->pubHFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    char *cp;
 
@@ -1301,22 +1300,25 @@ void generateInstanceMacro(pCMachineData pcmd
            , eventNameByIndex(pmi, 0)
           );
 
-   if (arrayFieldIsArray)
+   if (arrayFieldName != NULL)
    {
-	   fprintf(pcmd->pubHFile
-			   , "\t, .%s = &%s_%s_array\\\n"
-			   , arrayFieldName
-			   , fqMachineName(pcmd)
-			   , arrayName
-			  );
-   }
-   else
-   {
-	   fprintf(pcmd->pubHFile
-			   , "\t, .%s = %s_stateFn\\\n"
-			   , arrayFieldName
-			   , arrayName
-			  );
+	   if (arrayFieldIsArray)
+	   {
+		   fprintf(pcmd->pubHFile
+				   , "\t, .%s = &%s_%s_array\\\n"
+				   , arrayFieldName
+				   , fqMachineName(pcmd)
+				   , arrayName
+				  );
+	   }
+	   else
+	   {
+		   fprintf(pcmd->pubHFile
+				   , "\t, .%s = %s_stateFn\\\n"
+				   , arrayFieldName
+				   , arrayName
+				  );
+	   }
    }
 
    fprintf(pcmd->pubHFile
@@ -1445,22 +1447,25 @@ void generateSubMachineInstanceMacro(pCMachineData pcmd
            , eventNameByIndex(pmi, 0)
           );
 
-   if (arrayFieldIsArray)
+   if (arrayFieldName != NULL)
    {
-	   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
-			   , "\t, .%s = &%s_%s_array\\\n"
-			   , arrayFieldName
-			   , fqMachineName(pcmd)
-			   , arrayName
-			  );
-   }
-   else
-   {
-	   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
-			   , "\t, .%s = %s_stateFn\\\n"
-			   , arrayFieldName
-			   , arrayName
-			  );
+	   if (arrayFieldIsArray)
+	   {
+		   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
+				   , "\t, .%s = &%s_%s_array\\\n"
+				   , arrayFieldName
+				   , fqMachineName(pcmd)
+				   , arrayName
+				  );
+	   }
+	   else
+	   {
+		   fprintf(pcmd->parent_pcmd->instanceMacrosHFile
+				   , "\t, .%s = %s_stateFn\\\n"
+				   , arrayFieldName
+				   , arrayName
+				  );
+	   }
    }
 
    fprintf(pcmd->parent_pcmd->instanceMacrosHFile
@@ -1552,9 +1557,14 @@ void defineWeakStateEntryAndExitFunctionStubs(pCMachineData pcmd, pMACHINE_INFO 
 	             : pcmd->cFile
 	             ;
 
-   if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+   if (pmi->states_with_entry_fns_count
+	   || pmi->states_with_exit_fns_count
+	  )
    {
-      iterate_list(pmi->state_list, define_state_entry_and_exit_functions, &ich);
+      iterate_list(pmi->state_list
+				   , define_state_entry_and_exit_functions
+				   , &ich
+				   );
    }
 
 }
@@ -2809,14 +2819,12 @@ void print_native_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi)
 }
 
 void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
-						   , char *arrayName
 						   , bool add_num_states
 						   )
 {
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
 
-	(void) arrayName;
    ITERATOR_CALLBACK_HELPER ich = { 0 };
    char *cp = NULL;
 
@@ -4024,15 +4032,21 @@ void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
 			  ? "event" 
 			  : "e"
             );
+
     if (short_dbg_names && add_machine_name)
     {
-       fprintf(pcmd->cFile, "\tDBG_PRINTF(\"%s: event: %%s; state: %%s\"\n,"
+       fprintf(pcmd->cFile
+			   , "\tDBG_PRINTF(\"%s: event: %%s; %sstate: %%s\"\n,"
                , pmi->name->name
+			   , pmi->modFlags & mfActionsReturnStates ? "start " : ""
               );
     }
     else
     {
-       fprintf(pcmd->cFile, "\tDBG_PRINTF(\"event: %%s; state: %%s\"\n,");
+       fprintf(pcmd->cFile
+			   , "\tDBG_PRINTF(\"event: %%s; %sstate: %%s\"\n,"
+			   , pmi->modFlags & mfActionsReturnStates ? "start " : ""
+			   );
     }
 
     fprintf(pcmd->cFile

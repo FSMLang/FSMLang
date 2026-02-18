@@ -66,14 +66,14 @@ static void defineCSwitchMachineStruct(pCMachineData,pMACHINE_INFO);
 static void declareCSwitchMachineStateFnArray(pCMachineData);
 static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator);
 static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator);
-static void writeOriginalSwitchFSMAre(pFSMCOutputGenerator);
-static void writeOriginalSwitchFSMArv(pFSMCOutputGenerator);
-static void writeOriginalSwitchSubFSMAre(pFSMCOutputGenerator);
-static void writeOriginalSwitchSubFSMArv(pFSMCOutputGenerator);
+static void writeSwitchFSMAre(pFSMCOutputGenerator);
+static void writeSwitchFSMArv(pFSMCOutputGenerator);
+static void writeSwitchSubFSMAre(pFSMCOutputGenerator);
+static void writeSwitchSubFSMArv(pFSMCOutputGenerator);
 static int  writeCSwitchMachineInternal(pFSMCOutputGenerator);
 static int  writeCSwitchSubMachineInternal(pFSMCOutputGenerator);
-static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator, char*);
-static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator,char*);
+static void writeSwitchFSMLoopInnards(pFSMCOutputGenerator, char*);
+static void writeSwitchSubFSMLoopInnards(pFSMCOutputGenerator,char*);
 static void chooseWorkerFunctions(pFSMCOutputGenerator);
 static void defineCSwitchMachineStateFns(pCMachineData,pMACHINE_INFO);
 static void defineCSwitchMachineWeakUserTransitionFns(pFSMCOutputGenerator);
@@ -95,9 +95,6 @@ static void switchConvenienceMacros(pFSMCOutputGenerator);
 static bool define_weak_user_transition_function(pLIST_ELEMENT,void*);
 static void print_user_transition_function_body(FILE*);
 
-
-#define writeFSMLoop(A) pfsmcog->wfsm((A))
-#define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
 
 static FSMCSwitchOutputGenerator CSwitchMachineWriter = {
 	.fsmcog = {
@@ -231,6 +228,19 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
                );
    }
 
+   fprintf(pcmd->cFile
+		   , "\n#ifdef %s_DEBUG\n"
+		   , fsmType(pcmd)
+		   );
+   fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
+   fprintf(pcmd->cFile
+		   , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
+		   , ucnfMachineName(pcmd)
+		   );
+   fprintf(pcmd->cFile
+		   , "\n#endif\n"
+		   );
+
    if (pmi->machine_list)
    {
 	  tab_level--;
@@ -269,19 +279,6 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
               , "\t}"
               );
    }
-
-   fprintf(pcmd->cFile
-		   , "\n#ifdef %s_DEBUG\n"
-		   , fsmType(pcmd)
-		   );
-   fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
-   fprintf(pcmd->cFile
-           , "%s_STATE_NAMES[pfsm->state]\n\t\t);\n"
-           , ucnfMachineName(pcmd)
-           );
-   fprintf(pcmd->cFile
-		   , "\n#endif\n"
-		   );
 
 }
 
@@ -439,7 +436,7 @@ static void writeCSwitchMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
    set_compacting(pmi, mfActionsReturnStates);
 
    pfsmcog->pcmd->pmi = pmi;
-   pfsmcog->cfsmliw   = writeOriginalSwitchFSMLoopInnards;
+   pfsmcog->cfsmliw   = writeSwitchFSMLoopInnards;
    chooseWorkerFunctions(pfsmcog);
 
    writeCSwitchMachineInternal(pfsmcog);
@@ -455,9 +452,9 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
 
    pFSMCOutputGenerator pfsmcog = (pFSMCOutputGenerator) pfsmog;
 
-   pfsmcog->cfsmliw   = writeOriginalSwitchSubFSMLoopInnards;
+   pfsmcog->cfsmliw   = writeSwitchSubFSMLoopInnards;
 
-   pfsmcog->pcmd->pmi                = pmi;
+   pfsmcog->pcmd->pmi = pmi;
 
    /* for sub machines, some output strings are taken from the parent */
    if (!(pfsmcog->pcmd->pmi->modFlags & mfActionsReturnStates))
@@ -496,7 +493,7 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
    /* do this now, since some header stuff puts content into the source file.*/
    addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-   commonHeaderStart(pfsmcog, "state_fn", true);
+   commonHeaderStart(pfsmcog, true);
 
    declareCSwitchMachineStateFnArray(pcmd);
 
@@ -676,7 +673,7 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
    /* do this now, since some header stuff puts content into the source file.*/
    addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-   subMachineHeaderStart(pfsmcog, "state_fn", true);
+   subMachineHeaderStart(pfsmcog, true);
 
    declareCSwitchMachineStateFnArray(pcmd);
 
@@ -1755,7 +1752,7 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
     return false;
 }
 
-static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char *tabstr)
+static void writeSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char *tabstr)
 {
 
    char *local_tabstr = "";
@@ -1819,7 +1816,7 @@ static void writeOriginalSwitchFSMLoopInnards(pFSMCOutputGenerator pfsmcog,char 
 
 }
 
-static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
+static void writeSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tabstr)
 {
    (void) tabstr;
 
@@ -1878,7 +1875,7 @@ static void writeOriginalSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, c
 
 }
 
-static void writeOriginalSwitchFSMAre(pFSMCOutputGenerator pfsmcog)
+static void writeSwitchFSMAre(pFSMCOutputGenerator pfsmcog)
 {
     pCMachineData pcmd = pfsmcog->pcmd;
     pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
@@ -1894,7 +1891,7 @@ static void writeOriginalSwitchFSMAre(pFSMCOutputGenerator pfsmcog)
 
 }
 
-static void writeOriginalSwitchFSMArv(pFSMCOutputGenerator pfsmcog)
+static void writeSwitchFSMArv(pFSMCOutputGenerator pfsmcog)
 {
     pCMachineData pcmd = pfsmcog->pcmd;
     pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
@@ -1910,7 +1907,7 @@ static void writeOriginalSwitchFSMArv(pFSMCOutputGenerator pfsmcog)
     writeOriginalSwitchFSMLoopArv(pfsmcog);
 }
 
-static void writeOriginalSwitchSubFSMAre(pFSMCOutputGenerator pfsmcog)
+static void writeSwitchSubFSMAre(pFSMCOutputGenerator pfsmcog)
 {
     pCMachineData pcmd = pfsmcog->pcmd;
 
@@ -1923,7 +1920,7 @@ static void writeOriginalSwitchSubFSMAre(pFSMCOutputGenerator pfsmcog)
 
 }
 
-static void writeOriginalSwitchSubFSMArv(pFSMCOutputGenerator pfsmcog)
+static void writeSwitchSubFSMArv(pFSMCOutputGenerator pfsmcog)
 {
 	FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
     writeOriginalSwitchSubFSMLoopArv(pfsmcog);
@@ -2346,9 +2343,21 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
 
    if (pmi->executes_fns_on_state_transitions)
    {
-      fprintf(pcmd->cFile
-              , "\n\n\tif (pfsm->state != new_s)\n\t{\n"
-             );
+
+	  if (pmi->modFlags & mfActionsReturnStates)
+	  {
+		  fprintf(pcmd->cFile
+				  , "\n\n\tif ((pfsm->state != new_s)\n\t"
+				    "    && (new_s != STATE(noTransition))"
+				    ")\n\t{\n"
+				  );
+	  }
+	  else
+	  {
+		  fprintf(pcmd->cFile
+				  , "\n\n\tif (pfsm->state != new_s)\n\t{\n"
+				 );
+	  }
 
       if (pmi->machineTransition)
       {
@@ -2448,8 +2457,8 @@ static void chooseWorkerFunctions(pFSMCOutputGenerator pfsmcog)
 	{
 	case 0: // Actions return events
 		pfsmcog->wfsm = pfsmcog->pcmd->pmi->parent
-			               ? writeOriginalSwitchSubFSMAre
-			               : writeOriginalSwitchFSMAre
+			               ? writeSwitchSubFSMAre
+			               : writeSwitchFSMAre
 			               ;
 		break;
 
@@ -2462,8 +2471,8 @@ static void chooseWorkerFunctions(pFSMCOutputGenerator pfsmcog)
 
 	case mfActionsReturnVoid:
 		pfsmcog->wfsm = pfsmcog->pcmd->pmi->parent
-			               ? writeOriginalSwitchSubFSMArv
-			               : writeOriginalSwitchFSMArv
+			               ? writeSwitchSubFSMArv
+			               : writeSwitchFSMArv
 			               ;
 		break;
 	}

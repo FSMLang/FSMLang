@@ -85,9 +85,6 @@ static void defineActionArray(pCMachineData, pMACHINE_INFO);
 static void defineCMachineFSM(pFSMCOutputGenerator);
 static void defineCSubMachineFSM(pFSMCOutputGenerator);
 
-#define writeFSMLoop(A) pfsmcog->wfsm((A))
-#define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
-
 FSMCOutputGenerator CMachineWriter = {
 	.fsmog = {
 		initCMachine
@@ -225,7 +222,7 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 	/* do this now, since some header stuff puts content into the source file.*/
 	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-	subMachineHeaderStart(pfsmcog, "action", true);
+	subMachineHeaderStart(pfsmcog, true);
 
 	/* we need our count of events */
 	fprintf(pcmd->hFile
@@ -331,7 +328,7 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 	/* do this now, since some header stuff puts content into the source file.*/
 	addNativeImplementationPrologIfThereIsAny(pmi, pcmd->cFile);
 
-	commonHeaderStart(pfsmcog, "action", true);
+	commonHeaderStart(pfsmcog, true);
 
 	declareCMachineActionArray(pcmd, pmi);
 
@@ -1806,17 +1803,10 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 				/* we need to insert a dummy here */
 				if (pmi->modFlags & mfActionsReturnStates)
 				{
-
 					fprintf(pcmd->cFile
-							, "%s(noTransition%s)\n"
-							, compact_action_array ? "THIS" : "UFMN"
-							, compact_action_array
-							  ? "_e"
-							  : pmi->transition_fn_list->count
-							    ? "Fn"
-							    : ""
-						   );
-
+							, "UFMN(%s)\n"
+							, empty_cell_fn ? empty_cell_fn : "noAction"
+							);
 				}
 				else
 				{

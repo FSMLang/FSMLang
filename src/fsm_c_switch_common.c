@@ -44,7 +44,6 @@
 #endif
 #include <string.h>
 #include <stdlib.h>
-#define writeCFSMLoopInnards(A) pfsmcog->cfsmliw(pfsmcog, (A))
 
 static bool            cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
 
@@ -229,6 +228,67 @@ void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator pfsmcog)
    }
 
    printFSMMachineDebugBlock(pcmd, pmi);
+
+   fprintf(pcmd->cFile
+           , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
+           );
+   fprintf(pcmd->cFile
+           , "\t\tpfsm->event = %s;\n\n"
+		   , (pmi->data_block_count == 0) ? "event" : "e"
+           );
+
+   if (pmi->machine_list)
+   {
+      fprintf(pcmd->cFile
+              , "\t\tif (%s < THIS(%s))\n\t\t{\n"
+			  , (pmi->data_block_count == 0) ? "event" : "e"
+			  , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "numEvents" : "noEvent"
+              );
+      tabstr = "\t\t";
+   }
+
+   writeCFSMLoopInnards(tabstr);
+
+   if (pmi->machine_list)
+   {
+      fprintf(pcmd->cFile
+              , "\t\t}\n\t\telse\n\t\t{\n"
+              );
+
+      if (pmi->submachine_inhibitor_count)
+      {
+         fprintf(pcmd->cFile
+                 , "\t\t\tif (doNotInhibitSubMachines(pfsm->state))\n\t"
+                 );
+      }
+
+      fprintf(pcmd->cFile
+              , "\t\t\tfindAndRunSubMachine(pfsm, e);"
+              );
+      fprintf(pcmd->cFile
+              , "\n\t\t}\n"
+              );
+   }
+
+}
+
+void writeOriginalSwitchFSMLoopArs(pFSMCOutputGenerator pfsmcog)
+{
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   char *tabstr = "\t";
+
+   printFSMMachineDebugBlock(pcmd, pmi);
+
+   if (pmi->data_block_count)
+   {
+      fprintf(pcmd->cFile
+              , "\ttranslateEventData(&pfsm->data, event);\n\n"
+              );
+   }
 
    fprintf(pcmd->cFile
            , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
@@ -471,6 +531,45 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
    FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: End %s */\n", __func__);
 }
 
+void writeOriginalSwitchSubFSMLoopArs(pFSMCOutputGenerator pfsmcog)
+{
+   pCMachineData pcmd = pfsmcog->pcmd;
+   pMACHINE_INFO pmi  = pcmd->pmi;
+
+   FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   printFSMSubMachineDebugBlock(pcmd, pmi);
+
+   fprintf(pcmd->cFile
+           , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
+           );
+
+   fprintf(pcmd->cFile
+           , "\t\tpfsm->event = event;\n\n"
+           );
+
+   writeCFSMLoopInnards("");
+
+   if (pmi->machine_list)
+   {
+       fprintf(pcmd->cFile
+               , "\n\t\tif ((event > THIS(noEvent))\n\t\t\t&& (event < THIS(lastEvent)))\n\t\t{\n\t\t\t"
+              );
+
+	   fprintf(pcmd->cFile
+			   , "%sfindAndRunSubMachine(pfsm, event);\n\t\t}\n"
+			   , pmi->submachine_inhibitor_count ? "if (doNotInhibitSubMachines(pfsm->state))\n\t\t\t\t  " : ""
+			   );
+   }
+
+   if (add_profiling_macros && profile_sub_fsms)
+   {
+	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
+   }
+
+   FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: End %s */\n", __func__);
+}
+
 void switchTransitionFnTypedef(pFSMCOutputGenerator pfsmcog)
 {
 	pCMachineData pcmd = pfsmcog->pcmd;
@@ -507,5 +606,82 @@ void switchTransitionFnTypedef(pFSMCOutputGenerator pfsmcog)
 void empty(pFSMCOutputGenerator pfsmcog)
 {
 	(void) pfsmcog;
+}
+
+void handleStateTransitionActions(pCMachineData pcmd, pMACHINE_INFO pmi, unsigned tab_level)
+{
+	if (pmi->executes_fns_on_state_transitions)
+	{
+
+		if (pmi->modFlags & mfActionsReturnStates)
+		{
+			fprintf(pcmd->cFile, "\n");
+			print_tab_levels(pcmd->cFile,tab_level);
+			fprintf(pcmd->cFile
+					, "\tif (s != STATE(noTransition))\n"
+					);
+			
+			print_tab_levels(pcmd->cFile,tab_level);
+			fprintf(pcmd->cFile
+					, "\t{\n"
+					);
+			tab_level++;
+		}
+
+		fprintf(pcmd->cFile, "\n");
+
+		print_tab_levels(pcmd->cFile,tab_level);
+		fprintf(pcmd->cFile
+				, "\tif (s != pfsm->state)\n"
+			   );
+		print_tab_levels(pcmd->cFile,tab_level);
+		fprintf(pcmd->cFile
+				, "\t{\n"
+				);
+
+		if (pmi->machineTransition)
+		{
+		   print_tab_levels(pcmd->cFile,tab_level);
+		   fprintf(pcmd->cFile
+				   , "\t\tUFMN(%s)(pfsm,s);\n"
+				   , pmi->machineTransition->name
+				   );
+		}
+
+		if (pmi->states_with_exit_fns_count)
+		{
+		   print_tab_levels(pcmd->cFile,tab_level);
+		   fprintf(pcmd->cFile
+				   ,"\t\trunAppropriateExitFunction(%spfsm->state);\n"
+				   , pmi->data ? "&pfsm->data, " : ""
+				   );
+		}
+
+		if (pmi->states_with_entry_fns_count)
+		{
+		   print_tab_levels(pcmd->cFile,tab_level);
+		   fprintf(pcmd->cFile
+				   ,"\t\trunAppropriateEntryFunction(%ss);\n"
+				   , pmi->data ? "&pfsm->data, " : ""
+				   );
+		}
+
+		print_tab_levels(pcmd->cFile,tab_level);
+		fprintf(pcmd->cFile
+				, "\t}\n"
+				);
+
+		if (pmi->modFlags & mfActionsReturnStates)
+		{
+			tab_level--;
+			fprintf(pcmd->cFile, "\n");
+			print_tab_levels(pcmd->cFile,tab_level);
+			fprintf(pcmd->cFile
+					, "\t}\n"
+					);
+		}
+
+	}
+
 }
 

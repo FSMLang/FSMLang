@@ -129,7 +129,13 @@ void usage(void)
 			, help_fmt == 'r' ? list_item_end : item_end
 			);
 	fprintf(stdout
-			,"%s'e'%sgets you c code output with a table of functions for each event using switch constructions,%s"
+			,"%s'e'%sgets you c code output with a table of functions for each event,%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
+			);
+	fprintf(stdout
+			,"%s'ss'%sgets you c code output with a single switch combining the event and state,%s"
 			, help_fmt == 'r' ? item_start : inner_item_start
       , expl_start
 			, help_fmt == 'r' ? list_item_end : item_end

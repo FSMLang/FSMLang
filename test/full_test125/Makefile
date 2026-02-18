@@ -10,7 +10,7 @@ override CFLAGS += -I../ \
 
 override FSM_FLAGS += -i0
 
-VARIANTS=c s e
+VARIANTS=ss c s e
 
 DIFF_FLAGS= -I \"warning: (test_fsm): all events are handled identically in all states\\.\"             \
             -I \"warning: (test_fsm_sub): all events are handled identically in all states\\.\"         \

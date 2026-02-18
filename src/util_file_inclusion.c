@@ -63,9 +63,6 @@ STATIC pLIST panchor = NULL;
 
 void track_included_file(char *filename)
 {
-	FSMLANG_DEVELOP_PRINTF(stdout, "%s\n", __func__);
-	FSMLANG_DEVELOP_PRINTF(stdout, "%s\n", filename);
-
 	bool good = true;
 	char *fn  = NULL;
 
@@ -108,8 +105,6 @@ void track_included_file(char *filename)
 
 static bool print_file_name(pLIST_ELEMENT pelem, void *data)
 {
-	FSMLANG_DEVELOP_PRINTF(stdout, "%s\n", __func__);
-
 	(void) data;
 	char *fn = (char *) pelem->mbr;
 
@@ -120,8 +115,6 @@ static bool print_file_name(pLIST_ELEMENT pelem, void *data)
 
 void print_included_files_list(void)
 {
-	FSMLANG_DEVELOP_PRINTF(stdout, "%s\n", __func__);
-
 	//It is not an error to have encountered no included files
 	if (panchor)
 	{

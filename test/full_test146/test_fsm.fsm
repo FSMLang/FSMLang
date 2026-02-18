@@ -1,0 +1,107 @@
+native
+{
+#include "test.h"
+}
+
+machine test_fsm
+	actions return states;
+	native impl
+	{
+	#define INIT_FSM_DATA0 { .e1_count = 0 }
+	#define INIT_FSM_DATA1 { .e1_count = 100 }
+	#define INIT_FSM_DATA2 { .e1_count = 1000 }
+	}
+{
+	data
+	{
+		int e1_count;
+	}
+
+	event e1 data translator grab_e1_data {int i;};
+
+	state s1;
+
+	machine sub
+		actions return states;
+		native impl
+		{
+		#define INIT_FSM_DATA0 { .sub_e1_count = 0 }
+		#define INIT_FSM_DATA1 { .sub_e1_count = 100 }
+		#define INIT_FSM_DATA2 { .sub_e1_count = 1000 }
+		}
+	{
+		data
+		{
+			int sub_e1_count;
+		}
+
+		event parent::e1 data translator grab_parent_e1_data;
+		state s1;
+
+		machine subSub
+			actions return states;
+			native impl
+			{
+			#define INIT_FSM_DATA0 { .subSub_e1_count = 0 }
+			#define INIT_FSM_DATA1 { .subSub_e1_count = 100 }
+			#define INIT_FSM_DATA2 { .subSub_e1_count = 1000 }
+			}
+		{
+			data
+			{
+				int subSub_e1_count;
+			}
+	
+			event parent::e1 data translator grab_parent_e1_data;
+			state s1;
+	
+			action do_nothing[e1, s1];
+		}
+
+		action do_nothing[e1, s1];
+	}
+
+	machine sub2
+		actions return states;
+		native impl
+		{
+		#define INIT_FSM_DATA0 { .sub2_e1_count = 0 }
+		#define INIT_FSM_DATA1 { .sub2_e1_count = 100 }
+		#define INIT_FSM_DATA2 { .sub2_e1_count = 1000 }
+		}
+	{
+		data
+		{
+			int sub2_e1_count;
+		}
+
+		event parent::e1 data translator grab_parent_e1_data;
+		state s1;
+
+		machine subSub
+			actions return states;
+			native impl
+			{
+			#define INIT_FSM_DATA0 { .subSub_e1_count = 0 }
+			#define INIT_FSM_DATA1 { .subSub_e1_count = 100 }
+			#define INIT_FSM_DATA2 { .subSub_e1_count = 1000 }
+			}
+		{
+			data
+			{
+				int subSub_e1_count;
+			}
+	
+			event parent::e1 data translator grab_parent_e1_data;
+			state s1;
+	
+			action do_nothing[e1, s1];
+		}
+
+		action do_nothing[e1, s1];
+	}
+
+	action handle_e1[e1, s1];
+
+}
+

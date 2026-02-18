@@ -1,6 +1,6 @@
 .SECONDEXPANSION:
 
-VARIANTS ?= c s e cc sc
+VARIANTS ?= c s e cc sc ss
 
 .PHONY: runtest test clean clean_generated $(VARIANTS) check_fsmout
 
@@ -18,6 +18,8 @@ c c.size c_run: CFLAGS+=-DFSM_VARIANT_C
 #s s.size s_run: FSM_FLAGS=-ts
 s s.size s_run: FSM_FLAGS+=-ts --generate-weak-fns=false --force-generation-of-event-passing-actions
 s s.size s_run: CFLAGS+=-DFSM_VARIANT_S
+ss ss.size ss_run: FSM_FLAGS+=-tss --generate-weak-fns=false --force-generation-of-event-passing-actions
+ss ss.size ss_run: CFLAGS+=-DFSM_VARIANT_SS
 
 cc cc.size cc_run: FSM_FLAGS+=-tc -c --generate-weak-fns=false
 cc cc.size cc_run: CFLAGS+=-DFSM_VARIANT_CC
@@ -47,7 +49,7 @@ sizes: $(addsuffix .size, $(VARIANTS))
 $(addsuffix .size, $(VARIANTS)):
 	@echo $(FSM_FLAGS)
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" CFLAGS="$(CFLAGS)" test
-	@echo -n "$@ size: " > $@
+	@echo -n "$(basename $@) size: " > $@
 	@ls -l test | cut -f5 -d' ' >>  $@
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
 
