@@ -64,7 +64,7 @@ static void defineCSingleSwitchMachineStruct(pCMachineData);
 static void defineCSingleSwitchMachineFSM(pFSMCOutputGenerator);
 static void defineCSingleSwitchSubMachineFSM(pFSMCOutputGenerator);
 static void declareOrDefineSinglePAIEventHandler(pCMachineData,pMACHINE_INFO,DECLARE_OR_DEFINE);
-static void defineAllStateHandler(pCMachineData,pMACHINE_INFO);
+static void defineAllStateHandler(pFSMCOutputGenerator);
 
 static bool print_event_cases(pLIST_ELEMENT,void*);
 static bool print_event_state_case_are(pLIST_ELEMENT,void*);
@@ -73,6 +73,8 @@ static bool print_event_state_case_ars(pLIST_ELEMENT,void*);
 static bool print_cases_for_events_handled_in_all_states_are(pLIST_ELEMENT,void*);
 static bool print_cases_for_events_handled_in_all_states_arv(pLIST_ELEMENT,void*);
 static bool print_cases_for_events_handled_in_all_states_ars(pLIST_ELEMENT,void*);
+static void setNewState(pFSMCOutputGenerator);
+static void handleEmptyCells(pFSMCOutputGenerator,char*);
 
 static FSMCSwitchOutputGenerator CSingleSwitchMachineWriter =
 {
@@ -208,7 +210,9 @@ static void writeCSingleSwitchMachineInternal(pFSMCSwitchOutputGenerator pfsmcss
 	*/
 
 	fprintf(pcmd->cFile
-			, "#define COMBINE(E, S) ((E << 16) | S)\n"
+			, "#define COMBINE(E, S) \\\n"
+			  "(((unsigned long long)(E) << (sizeof(unsigned long long)/2)\\\n"
+			  " | (unsigned long long)(S)))\n"
 			);
 
 	if (pmi->machine_list)
@@ -258,7 +262,7 @@ static void writeCSingleSwitchMachineInternal(pFSMCSwitchOutputGenerator pfsmcss
 
 	if (pmi->has_single_pai_events)
 	{
-		defineAllStateHandler(pcmd, pmi);
+		defineAllStateHandler(pfsmcog);
 	}
 
 	defineStateEntryAndExitManagers(pcmd, pmi, true);
@@ -352,10 +356,10 @@ static void writeCSingleSwitchSubMachineInternal(pFSMCSwitchOutputGenerator pfsm
 
    if (pmi->has_single_pai_events)
    {
-      defineAllStateHandler(pcmd, pmi);
+      defineAllStateHandler(pfsmcog);
    }
 
-   defineStateEntryAndExitManagers(pcmd, pmi, pmi->has_single_pai_events);
+   defineStateEntryAndExitManagers(pcmd, pmi, true);
 
    if (generate_weak_fns)
    {
@@ -513,22 +517,6 @@ static void defineCSingleSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
 	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
    }
 
-   handleStateTransitionActions(pcmd, pmi, 0);
-
-   if (pmi->modFlags & mfActionsReturnStates)
-   {
-	   fprintf(pcmd->cFile
-			   , "\n\tif (s != STATE(noTransition))\n\t"
-				 "{\n\t\tpfsm->state = s;\n\t}\n"
-			   );
-   }
-   else
-   {
-	   fprintf(pcmd->cFile
-			   , "\n\tpfsm->state = s;\n"
-			   );
-   }
-
    if (!pfsmcog->parent_fsmcog)
    {
 	   writeReentrantEpilogue(pcmd);
@@ -601,13 +589,15 @@ static void writeSingleSwitchFSMLoopInnardsAre(pFSMCOutputGenerator pfsmcog, cha
 						   , __func__
 						   );
 
-	ITERATOR_HELPER ih = {
-		.fout = pfsmcog->pcmd->cFile
-		, .pmi = pfsmcog->pcmd->pmi
-		, .str = tabstr
-		, .pfn_sub_iterator = print_event_state_case_are
+	ITERATOR_CALLBACK_HELPER ich = {
+		. ih = {
+				.fout = pfsmcog->pcmd->cFile
+				, .pmi = pfsmcog->pcmd->pmi
+				, .str = tabstr
+				, .pfn_sub_iterator = print_event_state_case_are
+		}
+		, .pcmd = pfsmcog->pcmd
 	};
-
 	fprintf(pfsmcog->pcmd->cFile
 			, "\n%s\tswitch(COMBINE(e, pfsm->state))\n%s\t{\n"
 			, tabstr
@@ -616,21 +606,31 @@ static void writeSingleSwitchFSMLoopInnardsAre(pFSMCOutputGenerator pfsmcog, cha
 
 	iterate_list(pfsmcog->pcmd->pmi->event_list
 				 , print_event_cases
-				 , &ih
+				 , &ich
 				 );
 
 	fprintf(pfsmcog->pcmd->cFile
 			, "%s\tdefault:\n"
 			  "%s\t\te = %s;\n"
-			  "%s\t\tbreak;\n\t%s}\n"
 			, tabstr
 			, tabstr
 			, pfsmcog->pcmd->pmi->has_single_pai_events
 			  ? "eventIsHandledIdenticallyInAllStates(pfsm, e, &s)"
 			  : "THIS(noEvent)"
+			);
+
+	if (!pfsmcog->pcmd->pmi->has_single_pai_events)
+	{
+		handleEmptyCells(pfsmcog, tabstr);
+	}
+
+	fprintf(pfsmcog->pcmd->cFile
+			, "%s\t\tbreak;\n\t%s}\n"
 			, tabstr
 			, tabstr
 			);
+
+	setNewState(pfsmcog);
 
 }
 
@@ -646,11 +646,14 @@ static void writeSingleSwitchFSMLoopInnardsArv(pFSMCOutputGenerator pfsmcog, cha
 		  : "\t\teventIsHandledIdenticallyInAllStates(pfsm, e, &s);\n"
 		  ;
 
-	ITERATOR_HELPER ih = {
-		.fout = pfsmcog->pcmd->cFile
-		, .pmi = pfsmcog->pcmd->pmi
-		, .str = tabstr
-		, .pfn_sub_iterator = print_event_state_case_arv
+	ITERATOR_CALLBACK_HELPER ich = {
+		. ih = {
+				.fout = pfsmcog->pcmd->cFile
+				, .pmi = pfsmcog->pcmd->pmi
+				, .str = tabstr
+				, .pfn_sub_iterator = print_event_state_case_arv
+		}
+		, .pcmd = pfsmcog->pcmd
 	};
 
 	fprintf(pfsmcog->pcmd->cFile
@@ -662,13 +665,12 @@ static void writeSingleSwitchFSMLoopInnardsArv(pFSMCOutputGenerator pfsmcog, cha
 
 	iterate_list(pfsmcog->pcmd->pmi->event_list
 				 , print_event_cases
-				 , &ih
+				 , &ich
 				 );
 
 	fprintf(pfsmcog->pcmd->cFile
 			, "%s\tdefault:\n"
 			  "%s%s"
-			  "%s\t\tbreak;\n\t%s}\n"
 			, tabstr
 			, pfsmcog->pcmd->pmi->has_single_pai_events
 			  ? tabstr
@@ -676,9 +678,20 @@ static void writeSingleSwitchFSMLoopInnardsArv(pFSMCOutputGenerator pfsmcog, cha
 			, pfsmcog->pcmd->pmi->has_single_pai_events
 			  ? single_pai_str
 			  : ""
+			);
+
+	if (!pfsmcog->pcmd->pmi->has_single_pai_events)
+	{
+		handleEmptyCells(pfsmcog, tabstr);
+	}
+
+	fprintf(pfsmcog->pcmd->cFile
+			, "%s\t\tbreak;\n\t%s}\n"
 			, tabstr
 			, tabstr
 			);
+
+	setNewState(pfsmcog);
 
 }
 
@@ -694,11 +707,14 @@ static void writeSingleSwitchFSMLoopInnardsArs(pFSMCOutputGenerator pfsmcog, cha
 		  : "\t\teventIsHandledIdenticallyInAllStates(pfsm, e, &s);\n"
 		  ;
 
-	ITERATOR_HELPER ih = {
-		.fout = pfsmcog->pcmd->cFile
-		, .pmi = pfsmcog->pcmd->pmi
-		, .str = tabstr
-		, .pfn_sub_iterator = print_event_state_case_ars
+	ITERATOR_CALLBACK_HELPER ich = {
+		. ih = {
+				.fout = pfsmcog->pcmd->cFile
+				, .pmi = pfsmcog->pcmd->pmi
+				, .str = tabstr
+				, .pfn_sub_iterator = print_event_state_case_ars
+		}
+		, .pcmd = pfsmcog->pcmd
 	};
 
 	fprintf(pfsmcog->pcmd->cFile
@@ -710,13 +726,12 @@ static void writeSingleSwitchFSMLoopInnardsArs(pFSMCOutputGenerator pfsmcog, cha
 
 	iterate_list(pfsmcog->pcmd->pmi->event_list
 				 , print_event_cases
-				 , &ih
+				 , &ich
 				 );
 
 	fprintf(pfsmcog->pcmd->cFile
 			, "%s\tdefault:\n"
 			  "%s%s"
-			  "%s\t\tbreak;\n\t%s}\n"
 			, tabstr
 			, pfsmcog->pcmd->pmi->has_single_pai_events
 			  ? tabstr
@@ -724,9 +739,21 @@ static void writeSingleSwitchFSMLoopInnardsArs(pFSMCOutputGenerator pfsmcog, cha
 			, pfsmcog->pcmd->pmi->has_single_pai_events
 			  ? single_pai_str
 			  : ""
+			);
+
+	if (!pfsmcog->pcmd->pmi->has_single_pai_events)
+	{
+		handleEmptyCells(pfsmcog, tabstr);
+	}
+
+
+	fprintf(pfsmcog->pcmd->cFile
+			, "%s\t\tbreak;\n\t%s}\n"
 			, tabstr
 			, tabstr
 			);
+
+	setNewState(pfsmcog);
 
 }
 
@@ -749,12 +776,13 @@ static bool print_event_cases(pLIST_ELEMENT pelem, void *data)
 
 static bool print_event_state_case_are(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO         pstate = (pID_INFO) pelem->mbr;
-	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+	pID_INFO                  pstate = (pID_INFO) pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
+	pITERATOR_HELPER          pih    = (pITERATOR_HELPER) data;
 
 	pACTION_INFO pai = pih->pmi->actionArray[pih->pid->order][pstate->order];
 
-	if (pai && pai->action && strlen(pai->action->name))
+	if (pai)
 	{
 		fprintf(pih->fout
 				, "%s\tcase COMBINE(THIS(%s),STATE(%s)):\n"
@@ -763,11 +791,44 @@ static bool print_event_state_case_are(pLIST_ELEMENT pelem, void *data)
 				, pstate->name
 				);
 
-		fprintf(pih->fout
-				, "%s\t\te = UFMN(%s)(pfsm);\n"
-				, pih->str
-				, pai->action->name
-				);
+		if (pai->action && strlen(pai->action->name))
+		{
+			if (add_profiling_macros)
+			{
+				fprintf(pih->fout
+						, "%s\t\tACTION_ENTRY(pfsm);\n"
+						, pih->str
+					   );
+			}
+
+			fprintf(pih->fout
+					, "%s\t\te = UFMN(%s)(pfsm);\n"
+					, pih->str
+					, pai->action->name
+					);
+
+			if (add_profiling_macros)
+			{
+				fprintf(pih->fout
+						, "%s\t\tACTION_EXIT(pfsm);\n"
+						, pih->str
+					   );
+			}
+		}
+		else
+		{
+			fprintf(pih->fout
+					, "%s\t\te = THIS(noEvent);\n"
+					, pih->str
+					);
+
+			fprintf(pih->fout
+					, "%s\t\t%s(\"%s_noAction\");\n"
+					, pih->str
+					, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+					, ufMachineName(pich->pcmd)
+				   );
+		}
 
 		if (pai->transition)
 		{
@@ -793,24 +854,25 @@ static bool print_event_state_case_are(pLIST_ELEMENT pelem, void *data)
 			fprintf(pih->fout, ";\n");
 
 		}
-	}
 
-	fprintf(pih->fout
-			, "%s\t\tbreak;\n"
-			, pih->str
-			);
+		fprintf(pih->fout
+				, "%s\t\tbreak;\n"
+				, pih->str
+				);
+	}
 
 	return false;
 }
 
 static bool print_event_state_case_arv(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO         pstate = (pID_INFO) pelem->mbr;
-	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+	pID_INFO                  pstate = (pID_INFO) pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
+	pITERATOR_HELPER          pih    = (pITERATOR_HELPER) data;
 
 	pACTION_INFO pai = pih->pmi->actionArray[pih->pid->order][pstate->order];
 
-	if (pai && pai->action && strlen(pai->action->name))
+	if (pai)
 	{
 		fprintf(pih->fout
 				, "%s\tcase COMBINE(THIS(%s),STATE(%s)):\n"
@@ -819,11 +881,39 @@ static bool print_event_state_case_arv(pLIST_ELEMENT pelem, void *data)
 				, pstate->name
 				);
 
-		fprintf(pih->fout
-				, "%s\t\tUFMN(%s)(pfsm);\n"
-				, pih->str
-				, pai->action->name
-				);
+		if (pai->action && strlen(pai->action->name))
+		{
+			if (add_profiling_macros)
+			{
+				fprintf(pih->fout
+						, "%s\t\tACTION_ENTRY(pfsm);\n"
+						, pih->str
+					   );
+			}
+
+			fprintf(pih->fout
+					, "%s\t\tUFMN(%s)(pfsm);\n"
+					, pih->str
+					, pai->action->name
+					);
+
+			if (add_profiling_macros)
+			{
+				fprintf(pih->fout
+						, "%s\t\tACTION_EXIT(pfsm);\n"
+						, pih->str
+					   );
+			}
+		}
+		else
+		{
+			fprintf(pih->fout
+					, "%s\t\t%s(\"%s_noAction\");\n"
+					, pih->str
+					, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+					, ufMachineName(pich->pcmd)
+				   );
+		}
 
 		if (pai->transition)
 		{
@@ -849,12 +939,12 @@ static bool print_event_state_case_arv(pLIST_ELEMENT pelem, void *data)
 			fprintf(pih->fout, ";\n");
 
 		}
-	}
 
-	fprintf(pih->fout
-			, "%s\t\tbreak;\n"
-			, pih->str
-			);
+		fprintf(pih->fout
+				, "%s\t\tbreak;\n"
+				, pih->str
+				);
+	}
 
 	return false;
 }
@@ -866,7 +956,7 @@ static bool print_event_state_case_ars(pLIST_ELEMENT pelem, void *data)
 
 	pACTION_INFO pai = pih->pmi->actionArray[pih->pid->order][pstate->order];
 
-	if (pai && pai->action && strlen(pai->action->name))
+	if (pai)
 	{
 		fprintf(pih->fout
 				, "%s\tcase COMBINE(THIS(%s),STATE(%s)):\n"
@@ -875,11 +965,30 @@ static bool print_event_state_case_ars(pLIST_ELEMENT pelem, void *data)
 				, pstate->name
 				);
 
-		fprintf(pih->fout
-				, "%s\t\ts = UFMN(%s)(pfsm);\n"
-				, pih->str
-				, pai->action->name
-				);
+		if (pai->action && strlen(pai->action->name))
+		{
+			if (add_profiling_macros)
+			{
+				fprintf(pih->fout
+						, "%s\t\tACTION_ENTRY(pfsm);\n"
+						, pih->str
+					   );
+			}
+
+			fprintf(pih->fout
+					, "%s\t\ts = UFMN(%s)(pfsm);\n"
+					, pih->str
+					, pai->action->name
+					);
+
+			if (add_profiling_macros)
+			{
+				fprintf(pih->fout
+						, "%s\t\tACTION_EXIT(pfsm);\n"
+						, pih->str
+					   );
+			}
+		}
 
 		if (pai->transition)
 		{
@@ -905,12 +1014,12 @@ static bool print_event_state_case_ars(pLIST_ELEMENT pelem, void *data)
 			fprintf(pih->fout, ";\n");
 
 		}
-	}
 
-	fprintf(pih->fout
-			, "%s\t\tbreak;\n"
-			, pih->str
-			);
+		fprintf(pih->fout
+				, "%s\t\tbreak;\n"
+				, pih->str
+				);
+	}
 
 	return false;
 }
@@ -946,8 +1055,11 @@ static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_IN
 
 }
 
-static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
+static void defineAllStateHandler(pFSMCOutputGenerator pfsmcog)
 {
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
+
 	unsigned transition_count = 0;
 	ITERATOR_CALLBACK_HELPER ich = {
 		.pcmd = pcmd
@@ -992,7 +1104,13 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
 	}
 
 	fprintf(pcmd->cFile
-			, "\tdefault:\n\t\tbreak;\n\t}\n\n"
+			, "\tdefault:\n"
+			);
+
+	handleEmptyCells(pfsmcog, "\t");
+
+	fprintf(pcmd->cFile
+			, "\t\tbreak;\n\t}\n\n"
 			);
 
 	if ((pmi->modFlags & mfActionsReturnStates) != mfActionsReturnStates)
@@ -1022,6 +1140,7 @@ static bool print_cases_for_events_handled_in_all_states_are(pLIST_ELEMENT pelem
 {
 	pID_INFO                  pevent = (pID_INFO) pelem->mbr;
 	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
+
 	pEVENT_DATA ped = &pevent->type_data.event_data;
 
 	if (ped->single_pai_for_all_states)
@@ -1039,10 +1158,32 @@ static bool print_cases_for_events_handled_in_all_states_are(pLIST_ELEMENT pelem
 			&& strlen(pai->action->name)
 			)
 		{
+			if (add_profiling_macros)
+			{
+				fprintf(pich->ih.fout
+						, "\t\tACTION_ENTRY(pfsm);\n"
+					   );
+			}
+
 			fprintf(pich->ih.fout
 					,"\t\tretVal = UFMN(%s)(pfsm);\n"
 					, ped->psingle_pai->action->name
 					);
+
+			if (add_profiling_macros)
+			{
+				fprintf(pich->ih.fout
+						, "\t\tACTION_EXIT(pfsm);\n"
+					   );
+			}
+		}
+		else
+		{
+			fprintf(pich->ih.fout
+					, "\t\t%s(\"%s_noAction\");\n"
+					, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+					, ufMachineName(pich->pcmd)
+				   );
 		}
 
 		if (pai->transition)
@@ -1073,6 +1214,7 @@ static bool print_cases_for_events_handled_in_all_states_arv(pLIST_ELEMENT pelem
 {
 	pID_INFO                  pevent = (pID_INFO) pelem->mbr;
 	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
+
 	pEVENT_DATA ped = &pevent->type_data.event_data;
 
 	if (ped->single_pai_for_all_states)
@@ -1090,10 +1232,32 @@ static bool print_cases_for_events_handled_in_all_states_arv(pLIST_ELEMENT pelem
 			&& strlen(pai->action->name)
 			)
 		{
+			if (add_profiling_macros)
+			{
+				fprintf(pich->ih.fout
+						, "\t\tACTION_ENTRY(pfsm);\n"
+					   );
+			}
+
 			fprintf(pich->ih.fout
 					,"\t\tUFMN(%s)(pfsm);\n"
 					, ped->psingle_pai->action->name
 					);
+
+			if (add_profiling_macros)
+			{
+				fprintf(pich->ih.fout
+						, "\t\tACTION_EXIT(pfsm);\n"
+					   );
+			}
+		}
+		else
+		{
+			fprintf(pich->ih.fout
+					, "\t\t%s(\"%s_noAction\");\n"
+					, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+					, ufMachineName(pich->pcmd)
+				   );
 		}
 
 		if (pai->transition)
@@ -1124,6 +1288,7 @@ static bool print_cases_for_events_handled_in_all_states_ars(pLIST_ELEMENT pelem
 {
 	pID_INFO                  pevent = (pID_INFO) pelem->mbr;
 	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
+
 	pEVENT_DATA ped = &pevent->type_data.event_data;
 
 	if (ped->single_pai_for_all_states)
@@ -1141,10 +1306,24 @@ static bool print_cases_for_events_handled_in_all_states_ars(pLIST_ELEMENT pelem
 			&& strlen(pai->action->name)
 			)
 		{
+			if (add_profiling_macros)
+			{
+				fprintf(pich->ih.fout
+						, "\t\tACTION_ENTRY(pfsm);\n"
+					   );
+			}
+
 			fprintf(pich->ih.fout
 					,"\t\t*s = UFMN(%s)(pfsm);\n"
 					, ped->psingle_pai->action->name
 					);
+
+			if (add_profiling_macros)
+			{
+				fprintf(pich->ih.fout
+						, "\t\tACTION_EXIT(pfsm);\n"
+					   );
+			}
 		}
 
 		if (pai->transition)
@@ -1159,7 +1338,7 @@ static bool print_cases_for_events_handled_in_all_states_ars(pLIST_ELEMENT pelem
 					, pai->transition->name
 					, pai->transition->type == STATE
 					  ? ""
-					  : "(pfsm,e)"
+					  : "(pfsm)"
 					);
 		}
 
@@ -1194,7 +1373,7 @@ static void defineCSingleSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 
    if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
    {
-	   declareStateEntryAndExitManagers(pcmd, pmi, pmi->has_single_pai_events);
+	   declareStateEntryAndExitManagers(pcmd, pmi, true);
    }
 
    fprintf(pcmd->cFile
@@ -1249,7 +1428,25 @@ static void writeSingleSwitchSubFSMLoop(pFSMCOutputGenerator pfsmcog)
 			, pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
 			);
 
+	printFSMSubMachineDebugBlock(pcmd, pmi);
+
 	writeCFSMLoopInnards("\t");
+
+	handleStateTransitionActions(pcmd, pmi, 1);
+
+	if (pmi->modFlags & mfActionsReturnStates)
+	{
+		fprintf(pcmd->cFile
+				, "\n\t\tif (s != STATE(noTransition))\n\t\t"
+				  "{\n\t\t\tpfsm->state = s;\n\t\t}\n"
+				);
+	}
+	else
+	{
+		fprintf(pcmd->cFile
+				, "\n\t\tpfsm->state = s;\n"
+				);
+	}
 
 	fprintf(pcmd->cFile
 			, "\t}\n"
@@ -1269,11 +1466,62 @@ static void writeSingleSwitchSubFSMLoop(pFSMCOutputGenerator pfsmcog)
 				);
 	}
 
-	if (!(pmi->modFlags && ACTIONS_RETURN_FLAGS))
+	if (pfsmcog->parent_fsmcog)
+	{
+		if (add_profiling_macros && profile_sub_fsms)
+		{
+			fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
+		}
+	}
+
+	if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
 	{
 		fprintf(pcmd->cFile
 				, "\treturn (e == THIS(noEvent)) ? PARENT(noEvent) : e;\n"
 				);
+	}
+}
+
+static void setNewState(pFSMCOutputGenerator pfsmcog)
+{
+	pCMachineData pcmd = pfsmcog->pcmd;
+	pMACHINE_INFO pmi  = pcmd->pmi;
+
+	handleStateTransitionActions(pcmd, pmi, 2);
+
+	if (pmi->modFlags & mfActionsReturnStates)
+	{
+		fprintf(pcmd->cFile
+				, "\n\t\t\tif (s != STATE(noTransition))\n\t\t\t"
+				  "{\n\t\t\t\tpfsm->state = s;\n\t\t\t}\n"
+				);
+	}
+	else
+	{
+		fprintf(pcmd->cFile
+				, "\n\t\t\tpfsm->state = s;\n"
+				);
+	}
+}
+
+static void handleEmptyCells(pFSMCOutputGenerator pfsmcog, char *tabstr)
+{
+	if (empty_cell_fn)
+	{
+		fprintf(pfsmcog->pcmd->cFile
+				, "%s\t\tUFMN(%s)(pfsm);\n"
+				, tabstr
+				, empty_cell_fn
+				);
+	}
+	else
+	{
+		fprintf(pfsmcog->pcmd->cFile
+				, "%s\t%s(\"%s_noAction\");\n"
+				, tabstr
+				, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+				, ufMachineName(pfsmcog->pcmd)
+			   );
 	}
 }
 
