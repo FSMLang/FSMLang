@@ -18,5 +18,6 @@ SRC =	lexer.c                  \
 			usage.c               \
 			event_sequences.c     \
          util_file_inclusion.c \
-			fsm_c_single_switch.c
+			fsm_c_single_switch.c \
+         action_info_list.c
 
