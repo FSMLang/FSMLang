@@ -10,6 +10,15 @@ ID_INFO e2 = {
 ID_INFO e3 = {
 	.name = "e3"
 };
+ID_INFO e4 = {
+	.name = "e4"
+};
+ID_INFO e5 = {
+	.name = "e5"
+};
+ID_INFO e6 = {
+	.name = "e6"
+};
 ID_INFO s1 = {
 	.name = "s1"
 };

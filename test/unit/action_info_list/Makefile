@@ -39,6 +39,6 @@ check_macros:
 clean:
 	-@rm -rf *.a *.o 2> /dev/null
 	-@rm -rf $(TESTS) 2> /dev/null
-	-@rm -rf *.result 2> /dev/null
+	-@rm -rf *.result *.out 2> /dev/null
 
 

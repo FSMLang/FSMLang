@@ -6,6 +6,9 @@
 extern ID_INFO e1;
 extern ID_INFO e2;
 extern ID_INFO e3;
+extern ID_INFO e4;
+extern ID_INFO e5;
+extern ID_INFO e6;
 extern ID_INFO s1;
 extern ID_INFO s2;
 extern ID_INFO s3;

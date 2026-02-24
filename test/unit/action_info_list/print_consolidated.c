@@ -25,7 +25,8 @@ static bool print_record(pLIST_ELEMENT pelem, void *data)
 
 	pACTION_INFO pai = pcai->pai;
 	ITERATOR_HELPER ih = {
-		.str = ", "
+		.first = true
+		, .str = ", "
 	};
 
 	if (pai->action->name && strlen(pai->action->name))
@@ -53,9 +54,9 @@ static bool print_pid_name(pLIST_ELEMENT pelem, void *data)
 	if (!pih->first)
 	{
 		printf("%s", pih->str);
-		pih->first = false;
 	}
-	
+	pih->first = false;
+
 	printf("%s", pid->name);
 
 	return false;
@@ -66,6 +67,10 @@ static bool print_matrix(pLIST_ELEMENT pelem, void *data)
 	pMATRIX_INFO pmi = (pMATRIX_INFO) pelem->mbr;
 	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
+	if (!pih->first)
+	{
+		printf("%s", pih->str);
+	}
 	printf("[");
 
 	if (pmi->event_list->count > 1)
@@ -97,6 +102,8 @@ static bool print_matrix(pLIST_ELEMENT pelem, void *data)
 	}
 
 	printf("]");
+
+	pih->first = false;
 
 	return false;
 }
