@@ -35,10 +35,17 @@
 
 #include <stdbool.h>
 
+typedef enum {
+	less_than
+	, equal_to
+	, greater_than
+} ORDER_ENUM;
+
 typedef struct _list_         LIST, *pLIST;
 typedef struct _list_element_ LIST_ELEMENT, *pLIST_ELEMENT;
 
 typedef bool (*LIST_ITERATOR_FN)(pLIST_ELEMENT,void*);
+typedef ORDER_ENUM (*ORDER_FN)(pLIST_ELEMENT,void*);
 
 struct _list_ {
    unsigned      count;
@@ -86,6 +93,7 @@ pLIST move_list_unique(pLIST, pLIST);
 
 pLIST_ELEMENT add_to_list(pLIST,void*);
 pLIST_ELEMENT add_unique_to_list(pLIST,void*);
+pLIST_ELEMENT add_to_list_ordered(pLIST,void*,ORDER_FN);
 
 void remove_from_list(pLIST,void*);
 void remove_nth_list_member(pLIST,unsigned);
