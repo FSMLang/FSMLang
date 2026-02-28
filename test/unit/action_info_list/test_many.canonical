@@ -1,0 +1,2 @@
+action a1 [e1, s1], [(e3, e4, e5), s3] transition t1 
+action a2 [e2, s2], [(e1, e2), s2], [(e3, e4), (s1, s2)] transition t1 

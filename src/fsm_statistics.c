@@ -48,6 +48,8 @@ bool print_action_array = false;
 static int  initMachineStatisticsWriter(pFSMOutputGenerator,char*);
 static void writeMachineStatistics(pFSMOutputGenerator,pMACHINE_INFO);
 static void closeMachineStatisticsWriter(pFSMOutputGenerator,int);
+static void writeMatrices(pMACHINE_INFO);
+static bool write_matrix(pLIST_ELEMENT,void*);
 static bool write_machine_statistics(pLIST_ELEMENT,void*);
 static bool write_events(pLIST_ELEMENT,void*);
 static bool write_states(pLIST_ELEMENT,void*);
@@ -200,6 +202,13 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 		  , pmi->events_with_one_handler
 		  );
 
+   printf("number of events having data%s: %u\n"
+		  , pmi->parent ? " translators" : ""
+		  , pmi->parent
+		    ? pmi->data_translator_count
+		    : pmi->data_block_count
+		  );
+
    printf("machine has events with single pai: %s\n"
           , pmi->has_single_pai_events ? "yes" : "no"
          );
@@ -299,6 +308,8 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 
    //ih.first does not need to be reset here.
    iterate_list(pmi->state_list, write_states, &ih);
+
+   writeMatrices(pmi);
 
    printf("\n");
 
@@ -444,6 +455,89 @@ static bool compute_pid_name_len(pLIST_ELEMENT pelem, void *data)
 	}
 
 	pih->first = false;
+
+	return false;
+}
+
+static void writeMatrices(pMACHINE_INFO pmi)
+{
+	printf("Action Matrices:\n");
+	iterate_list(pmi->action_list
+				 ,write_matrix
+				 ,NULL
+				 );
+}
+
+static bool write_matrix(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO pid = (pID_INFO) pelem->mbr;
+	pACTION_INFO pai = pid->type_data.action_data.actionInfo;
+	(void) data;
+
+	ITERATOR_HELPER ih = {
+		.str = ", "
+	};
+
+	//Possible action
+	if (pai)
+	{
+		if (pai->action && strlen(pai->action->name))
+		{
+			printf("action %s "
+				   , pai->action->name
+				   );
+		}
+
+		//Matrix
+		printf("[");
+
+		//events
+		if (pai->matrix->event_list->count > 1)
+		{
+			printf("(");
+		}
+
+		ih.first = true;
+		iterate_list(pai->matrix->event_list
+					 , print_pid_name
+					 , &ih
+					 );
+
+		if (pai->matrix->event_list->count > 1)
+		{
+			printf(")");
+		}
+
+		//states
+		printf(", ");
+		if (pai->matrix->state_list->count > 1)
+		{
+			printf("(");
+		}
+
+		ih.first = true;
+		iterate_list(pai->matrix->state_list
+					 , print_pid_name
+					 , &ih
+					 );
+
+		if (pai->matrix->state_list->count > 1)
+		{
+			printf(")");
+		}
+
+		printf("]");
+
+		//Possible transition
+		if (pai->transition)
+		{
+			printf(" transition %s"
+				   , pai->transition->name
+				   );
+		}
+
+		printf(";\n");
+	}
 
 	return false;
 }

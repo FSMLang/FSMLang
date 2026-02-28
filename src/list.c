@@ -38,6 +38,7 @@
 
 typedef struct _counter_str_ COUNTER_STR, *pCOUNTER_STR;
 typedef struct _unique_exception_str_ UNIQUE_EXCEPTION_STR, *pUNIQUE_EXCEPTION_STR;
+typedef struct _order_str_ ORDER_STR, *pORDER_STR;
 
 struct _counter_str_
 {
@@ -53,6 +54,12 @@ struct _unique_exception_str_
 {
 	pLIST dest;
 	void  *exception;
+};
+
+struct _order_str_
+{
+	void *pmbr;
+	ORDER_FN order_fn;
 };
 
 static bool nth_record(pLIST_ELEMENT pmbr, void *data)
@@ -85,6 +92,13 @@ static bool reset_ordinals(pLIST_ELEMENT pmbr, void *data)
 	pmbr->ordinal = pcs->ct.counter++;
 
 	return false;
+}
+
+static bool ordered_adder(pLIST_ELEMENT pelem, void *data)
+{
+	pORDER_STR pos = (pORDER_STR) data;
+
+	return pos->order_fn(pelem, pos->pmbr) == less_than;
 }
 
 pLIST init_list()
@@ -420,7 +434,7 @@ void free_list(pLIST plist)
 
 pLIST_ELEMENT add_to_list(pLIST plist, void *pmbr)
 {
-   pLIST_ELEMENT pelem = NULL;
+	pLIST_ELEMENT pelem = NULL;
 
    if (plist)
    {
@@ -446,6 +460,76 @@ pLIST_ELEMENT add_to_list(pLIST plist, void *pmbr)
    }
 
    return pelem;
+}
+
+/**
+ * Add an element to an ordered list, retaining the order.
+ * 
+ * @author Steven Stanton (2/23/2026)
+ * 
+ * @param plist    The ordered list.
+ * @param pmbr     The member to add.
+ * @param order_fn The function which determines relative order.
+ * 
+ * @return pLIST_ELEMENT The added list element.
+ *
+ * The list must already be ordered "lowest" to "highest," as
+ * defined by order_fn.  If the list is not already so ordered,
+ * the new element will be placed in front of the first element
+ * it is deemed to be lower than.
+ *
+ * The ordinals of the list elements are reset to account for
+ * the new list member.
+ */
+pLIST_ELEMENT add_to_list_ordered(pLIST plist, void *pmbr, ORDER_FN order_fn)
+{
+	pLIST_ELEMENT pnew      = NULL;
+	pLIST_ELEMENT pexisting = NULL;
+
+	if (!order_fn)
+	{
+		return NULL;
+	}
+
+	ORDER_STR os = {
+		.order_fn = order_fn
+		, .pmbr = pmbr
+	};
+
+	if (plist)
+	{
+		if (NULL == (pexisting = iterate_list(plist, ordered_adder, &os)))
+		{
+			pnew = add_to_list(plist, pmbr);
+		}
+		else if (NULL != (pnew = (pLIST_ELEMENT) calloc(1, sizeof(LIST_ELEMENT))))
+		{
+			pnew->mbr = pmbr;
+
+			pnew->prev = pexisting->prev;
+			pnew->next = pexisting;
+
+			if (plist->head == pexisting)
+			{
+				plist->head = pnew;
+			}
+			else
+			{
+				pexisting->prev->next = pnew;
+			}
+
+			pexisting->prev = pnew;
+			
+			plist->count++;
+
+			COUNTER_STR cs;
+			cs.ct.counter = 0;
+			iterate_list(plist, reset_ordinals, &cs);
+		}
+	}
+
+	return pnew;
+
 }
 
 /**********************************************************************************************************************/

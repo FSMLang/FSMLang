@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "unit_test.h"
 
@@ -24,6 +25,8 @@ struct _comparitor_helper_
 
 bool comparitor         (pLIST_ELEMENT,void*);
 bool print_id_info_name (pLIST_ELEMENT,void*);
+bool print_pelem        (pLIST_ELEMENT,void*);
+ORDER_ENUM alphabetical (pLIST_ELEMENT,void*);
 
 bool add_to_list_test  (void);
 bool join_lists        (void);
@@ -52,6 +55,10 @@ bool reverse_find_hd   (void);
 bool reverse_find_mid  (void);
 bool find_member       (void);
 bool do_not_find_member(void);
+bool add_ordered_middle(void);
+bool add_ordered_end   (void);
+bool add_ordered_first (void);
+bool add_ordered_empty (void);
 
 TEST_FN tests[] = {
 	add_to_list_test
@@ -78,6 +85,10 @@ TEST_FN tests[] = {
 	, reverse_iterate
 	, find_member
 	, do_not_find_member
+	, add_ordered_middle
+	, add_ordered_end
+	, add_ordered_first
+	, add_ordered_empty
 	, NULL
 };
 
@@ -109,6 +120,32 @@ ID_INFO id_infos_1[] =
 
 unsigned id_info_count_0 = sizeof(id_infos_0)/sizeof(id_infos_0[0]);
 unsigned id_info_count_1 = sizeof(id_infos_1)/sizeof(id_infos_1[0]);
+
+ORDER_ENUM alphabetical (pLIST_ELEMENT pelem, void *pmbr)
+{
+	pID_INFO pexisting = (pID_INFO) pelem->mbr;
+	pID_INFO pnew      = (pID_INFO) pmbr;
+
+	int cmp = strcmp(pnew->name, pexisting->name);
+
+	if (cmp < 0) return less_than;
+	else if (cmp == 0) return equal_to;
+	else return greater_than;
+}
+
+bool print_pelem(pLIST_ELEMENT piilm, void *data)
+{
+  (void) data;
+
+	printf("pelem (%p): {.prev = %p, .next = %p, .ordinal = %u}\n"
+			, (void*) piilm
+         , (void*) piilm->prev
+         , (void*) piilm->next
+         , piilm->ordinal
+         );
+
+	return false;
+}
 
 bool print_id_info_name(pLIST_ELEMENT piilm, void *data)
 {
@@ -1151,6 +1188,111 @@ bool do_not_find_member(void)
    }
 
 	return !member_is_in_list(ptst, &id_infos_0[id_info_count_0]);
+}
+
+bool add_ordered_middle(void)
+{
+	printf("\n%s\n", __func__);
+
+	pLIST ptst = init_list();
+
+	pLIST_ELEMENT pelem1 = add_to_list_ordered(ptst, &id_infos_0[0], alphabetical);
+	//"three" < "two"
+	pLIST_ELEMENT pelem2 = add_to_list_ordered(ptst, &id_infos_0[1], alphabetical);
+	pLIST_ELEMENT pelem3 = add_to_list_ordered(ptst, &id_infos_0[2], alphabetical);
+
+	printf("id info list count %u; head = %p; tail = %p\n"
+          , ptst->count
+          , (void*) ptst->head
+          , (void*) ptst->tail
+          );
+
+	iterate_list(ptst,print_pelem,ptst);
+	iterate_list(ptst,print_id_info_name,ptst);
+
+	return (ptst->count == 3)
+          && (pelem1->mbr == &id_infos_0[0])
+			 && (pelem1->ordinal == 0)
+          && (pelem3->mbr == &id_infos_0[2])
+			 && (pelem3->ordinal == 1)
+          && (pelem2->mbr == &id_infos_0[1])
+			 && (pelem2->ordinal == 2)
+          ;
+
+}
+
+bool add_ordered_end(void)
+{
+	printf("\n%s\n", __func__);
+
+	pLIST ptst = init_list();
+
+	pLIST_ELEMENT pelem1 = add_to_list_ordered(ptst, &id_infos_0[0], alphabetical);
+	pLIST_ELEMENT pelem2 = add_to_list_ordered(ptst, &id_infos_0[2], alphabetical);
+	pLIST_ELEMENT pelem3 = add_to_list_ordered(ptst, &id_infos_0[1], alphabetical);
+
+	printf("id info list count %u; head = %p; tail = %p\n"
+          , ptst->count
+          , (void*) ptst->head
+          , (void*) ptst->tail
+          );
+
+	iterate_list(ptst,print_pelem,ptst);
+	iterate_list(ptst,print_id_info_name,ptst);
+
+	return (ptst->count == 3)
+          && (pelem1->mbr == &id_infos_0[0])
+			 && (pelem1->ordinal == 0)
+          && (pelem2->mbr == &id_infos_0[2])
+			 && (pelem2->ordinal == 1)
+          && (pelem3->mbr == &id_infos_0[1])
+			 && (pelem3->ordinal == 2)
+          ;
+
+}
+
+bool add_ordered_first(void)
+{
+	printf("\n%s\n", __func__);
+
+	pLIST ptst = init_list();
+
+	pLIST_ELEMENT pelem1 = add_to_list_ordered(ptst, &id_infos_0[1], alphabetical);
+	pLIST_ELEMENT pelem2 = add_to_list_ordered(ptst, &id_infos_0[0], alphabetical);
+
+	printf("id info list count %u; head = %p; tail = %p\n"
+          , ptst->count
+          , (void*) ptst->head
+          , (void*) ptst->tail
+          );
+
+	iterate_list(ptst,print_pelem,ptst);
+	iterate_list(ptst,print_id_info_name,ptst);
+
+	return (ptst->count == 2)
+          && (pelem1->mbr == &id_infos_0[1])
+			 && (pelem1->ordinal == 1)
+          && (pelem2->mbr == &id_infos_0[0])
+			 && (pelem2->ordinal == 0)
+          ;
+
+}
+
+bool add_ordered_empty(void)
+{
+	printf("\n%s\n", __func__);
+
+	pLIST ptst = init_list();
+
+	pLIST_ELEMENT pelem = add_to_list_ordered(ptst, &id_infos_0[0], alphabetical);
+
+	printf("id info list count %u\n", ptst->count);
+
+	iterate_list(ptst,print_id_info_name,ptst);
+
+	return (ptst->count == 1)
+          && (pelem->mbr == &id_infos_0[0])
+          ;
 }
 
 int main(void)
