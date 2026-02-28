@@ -35,14 +35,6 @@
 
 #include "action_info_list.h"
 
-#if defined (CYGWIN) || defined (LINUX)
-	#include <stdio.h>
-	#include <ctype.h>
-	#include <unistd.h>
-#endif
-#if defined (LINUX) || defined (VS) || defined (CYGWIN)
-	#include <time.h>
-#endif
 #include <string.h>
 #include <stdlib.h>
 
