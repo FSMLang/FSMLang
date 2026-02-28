@@ -274,7 +274,8 @@ CWK_PUBLIC void cwk_path_get_dirname(const char *path, size_t *length);
  *
  * @param path The path which will be inspected.
  * @param extension The output of the extension pointer.
- * @param length The output of the length of the extension.
+ * @param length The output of the length of the extension. This may be
+ * null if not required.
  * @return Returns true if an extension is found or false otherwise.
  */
 CWK_PUBLIC bool cwk_path_get_extension(const char *path, const char **extension,
