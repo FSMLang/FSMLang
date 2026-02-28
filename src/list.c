@@ -476,7 +476,7 @@ pLIST_ELEMENT add_to_list(pLIST plist, void *pmbr)
  *
  * The list must already be ordered "lowest" to "highest," as
  * defined by order_fn.  If the list is not already so ordered,
- * the new element will be place in front of the first element
+ * the new element will be placed in front of the first element
  * it is deemed to be lower than.
  *
  * The ordinals of the list elements are reset to account for
