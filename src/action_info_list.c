@@ -48,6 +48,7 @@
 
 static bool compose_consolidated_list(pLIST_ELEMENT,void*);
 static bool consolidate_records(pLIST_ELEMENT,void*);
+static bool free_matrix_list(pLIST_ELEMENT,void*);
 
 pLIST consolidate_action_info_list(pLIST action_info_list)
 {
@@ -59,6 +60,21 @@ pLIST consolidate_action_info_list(pLIST action_info_list)
 				 );
 
 	return pconsolidated_list;
+}
+
+void free_consolidated_action_info_list(pLIST plist)
+{
+	if (!plist)
+	{
+		return;
+	}
+
+	iterate_list(plist
+				 , free_matrix_list
+				 , NULL
+				 );
+
+	free_list(plist);
 }
 
 static bool compose_consolidated_list(pLIST_ELEMENT pelem, void *data)
@@ -101,5 +117,15 @@ static bool consolidate_records(pLIST_ELEMENT pelem, void *data)
 	}
 
 	return found;
+}
+
+static bool free_matrix_list(pLIST_ELEMENT pelem, void *data)
+{
+	(void) data;
+	pCONSOLIDATED_ACTION_INFO pcai = (pCONSOLIDATED_ACTION_INFO) pelem->mbr;
+
+	free_list(pcai->matrices);
+
+	return false;
 }
 

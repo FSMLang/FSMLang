@@ -47,6 +47,7 @@ struct _consolidated_action_info_
 };
 
 pLIST consolidate_action_info_list(pLIST);
+void  free_consolidated_action_info_list(pLIST);
 
 #endif
 

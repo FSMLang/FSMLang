@@ -590,6 +590,7 @@ static void writeSingleSwitchFSMLoopInnardsAre(pFSMCOutputGenerator pfsmcog, cha
 				 , print_consolidated_cases_are
 				 , &ich
 				 );
+	free_consolidated_action_info_list(pconsolidated);
 
 	fprintf(pfsmcog->pcmd->cFile
 			, "%s\tdefault:\n"
@@ -642,6 +643,7 @@ static void writeSingleSwitchFSMLoopInnardsArv(pFSMCOutputGenerator pfsmcog, cha
 				 , print_consolidated_cases_arv
 				 , &ich
 				 );
+	free_consolidated_action_info_list(pconsolidated);
 
 	fprintf(pfsmcog->pcmd->cFile
 			, "%s\tdefault:\n"
@@ -689,6 +691,7 @@ static void writeSingleSwitchFSMLoopInnardsArs(pFSMCOutputGenerator pfsmcog, cha
 				 , print_consolidated_cases_ars
 				 , &ich
 				 );
+	free_consolidated_action_info_list(pconsolidated);
 
 	fprintf(pfsmcog->pcmd->cFile
 			, "%s\tdefault:\n"
