@@ -487,6 +487,11 @@ pLIST_ELEMENT add_to_list_ordered(pLIST plist, void *pmbr, ORDER_FN order_fn)
 	pLIST_ELEMENT pnew      = NULL;
 	pLIST_ELEMENT pexisting = NULL;
 
+	if (!order_fn)
+	{
+		return NULL;
+	}
+
 	ORDER_STR os = {
 		.order_fn = order_fn
 		, .pmbr = pmbr
