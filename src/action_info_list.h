@@ -43,7 +43,7 @@ typedef struct _consolidated_action_info_ CONSOLIDATED_ACTION_INFO, *pCONSOLIDAT
 struct _consolidated_action_info_
 {
 	pACTION_INFO pai;
-	pLIST        matrices;          //!< The list of all matrices (pMATRIC_INFO) having the same action and transition in this pai.
+	pLIST        matrices;          //!< The list of all matrices (pMATRIX_INFO) having the same action and transition in this pai.
 };
 
 pLIST consolidate_action_info_list(pLIST);
