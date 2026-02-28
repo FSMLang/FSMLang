@@ -58,7 +58,6 @@ struct _unique_exception_str_
 
 struct _order_str_
 {
-	pLIST plist;
 	void *pmbr;
 	ORDER_FN order_fn;
 };
