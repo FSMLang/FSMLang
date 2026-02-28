@@ -9,7 +9,7 @@
 #include "print_consolidated.h"
 #include "grist.h"
 
-//consolidate a two member action info list having two entries with the same action but different transitions. 
+//consolidate a two member action info list having two entries with different actions but the same transition.
 int main(void)
 {
 	ACTION_INFO ai1, ai2;
