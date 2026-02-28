@@ -1054,7 +1054,10 @@ bool cwk_path_get_extension(const char *path, const char **extension,
     if (*c == '.') {
       // Okay, we found an extension. We can stop looking now.
       *extension = c;
-      *length = (size_t)(segment.end - c);
+	  if (length)
+	  {
+		  *length = (size_t)(segment.end - c);
+	  }
       return true;
     }
   }
