@@ -79,11 +79,12 @@ void free_consolidated_action_info_list(pLIST plist)
 
 static bool compose_consolidated_list(pLIST_ELEMENT pelem, void *data)
 {
-	pACTION_INFO pai                = (pACTION_INFO) pelem->mbr;
-	pLIST        pconsolidated_list = (pLIST) data;
+	pACTION_INFO   pai                = (pACTION_INFO) pelem->mbr;
+	pLIST          pconsolidated_list = (pLIST) data;
+	pLIST_ELEMENT  pconsolidated_elem = NULL;
 
 	// Look for the consolidated record on the list.
-	if (NULL == (pelem = iterate_list(pconsolidated_list, consolidate_records, pai)))
+	if (NULL == (pconsolidated_elem = iterate_list(pconsolidated_list, consolidate_records, pai)))
 	{
 		//Not found; create a new consolidated record.
 		pCONSOLIDATED_ACTION_INFO pcai = (pCONSOLIDATED_ACTION_INFO) calloc(1, sizeof(CONSOLIDATED_ACTION_INFO));
