@@ -470,7 +470,6 @@ static void writeMatrices(pMACHINE_INFO pmi)
 
 static bool write_matrix(pLIST_ELEMENT pelem, void *data)
 {
-	//pACTION_INFO pai = (pACTION_INFO) pelem->mbr;
 	pID_INFO pid = (pID_INFO) pelem->mbr;
 	pACTION_INFO pai = pid->type_data.action_data.actionInfo;
 	(void) data;

@@ -42,7 +42,7 @@ int main(void)
 
 	add_to_list(action_info_list, &ai2);
 
-	//action a2[(e1, e2),s3] transition t3;
+	//action a2[(e1, e2),s2] transition t1;
 	ai3.action     = &a2;
 
 	ai3.matrix = (pMATRIX_INFO) calloc(1, sizeof(MATRIX_INFO));
@@ -57,7 +57,7 @@ int main(void)
 
 	add_to_list(action_info_list, &ai3);
 
-	//action a2[(e3, e4), (s1, s2)] transition t3;
+	//action a2[(e3, e4), (s1, s2)] transition t1;
 	ai4.action     = &a2;
 
 	ai4.matrix = (pMATRIX_INFO) calloc(1, sizeof(MATRIX_INFO));
@@ -73,7 +73,7 @@ int main(void)
 
 	add_to_list(action_info_list, &ai4);
 
-	//action a1[(e3, e4, e5), s3] transition t3;
+	//action a1[(e3, e4, e5), s3] transition t1;
 	ai5.action     = &a1;
 
 	ai5.matrix = (pMATRIX_INFO) calloc(1, sizeof(MATRIX_INFO));
