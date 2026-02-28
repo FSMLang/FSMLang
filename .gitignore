@@ -127,3 +127,7 @@ linux/y.tab.h
 # Test executables (no extension on Linux)
 test/unit/*/test
 
+# Test detritus
+test/*/*.result
+
+
