@@ -2839,7 +2839,7 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 
    fprintf(pcmd->hFile
 		   , "#ifdef %s_DEBUG\n"
-		   , fsmType(pcmd)
+		   , ucfqMachineName(pcmd)
 		   );
    fprintf(pcmd->hFile, "#include <stdio.h>\n");
    fprintf(pcmd->hFile, "#include <stdlib.h>\n");

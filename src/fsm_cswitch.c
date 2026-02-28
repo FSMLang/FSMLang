@@ -298,7 +298,7 @@ static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
 
    fprintf(pcmd->cFile
 		   , "\n#ifdef %s_DEBUG\n"
-		   , fsmType(pcmd)
+		   , ucfqMachineName(pcmd)
 		   );
    fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
    fprintf(pcmd->cFile
@@ -415,7 +415,7 @@ static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
 
    fprintf(pcmd->cFile
 		   , "\n#ifdef %s_DEBUG\n"
-		   , fsmType(pcmd)
+		   , ucfqMachineName(pcmd)
 		   );
    fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"end state: %%s\"\n\t\t,");
    fprintf(pcmd->cFile
