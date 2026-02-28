@@ -42,7 +42,7 @@ int main(void)
 
 	add_to_list(action_info_list, &ai2);
 
-	//action a2[(e1, e2),s3] transition t3;
+	//action a2[(e1, e2),s2] transition t1;
 	ai3.action     = &a2;
 
 	ai3.matrix = (pMATRIX_INFO) calloc(1, sizeof(MATRIX_INFO));
