@@ -6,6 +6,8 @@ override CFLAGS += -I../ -I$(VPATH) -DARCH=$(ARCH)
 
 VPATH=../../../src
 
+DIFF ?= diff
+
 ifdef OUTPUT_DIR
 include $(OUTPUT_DIR)/system.mk
 VPATH=$(OUTPUT_DIR)/../src
