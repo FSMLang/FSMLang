@@ -114,3 +114,16 @@ build/
 
 *.swp
 
+# CodeQL analysis artifacts
+_codeql_build_dir/
+_codeql_detected_source_root
+
+# Generated parser/lexer files
+linux/lexer.c
+linux/parser.c
+linux/y.output
+linux/y.tab.h
+
+# Test executables (no extension on Linux)
+test/unit/*/test
+
