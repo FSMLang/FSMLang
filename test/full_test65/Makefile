@@ -2,7 +2,7 @@
 #
 # makefile for individual test
 #
-.PHONEY: check_plantuml#
+.PHONEY: check_plantuml
 
 override CFLAGS += -DFSM_DEBUG \
                    -DNEW_MACHINE_DEBUG \
