@@ -817,6 +817,13 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
    */
    if (pmi->modFlags & mfActionsReturnStates)
    {
+	   if (add_doxygen_blocks)
+	   {
+		   print_doc_cmnt_as_doxygen_block(ich.ih.fout
+										   , "This is not a real state, but needs to be"
+											 " in the state enumeration."
+										   );
+	   }
 	   print_state_enum_member("noTransition", &ich);
    }
 
@@ -2115,10 +2122,14 @@ static void print_state_enum_member(char *name, pITERATOR_CALLBACK_HELPER pich)
 
 static bool write_state_enum_member(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO                  state         = (pID_INFO) pelem->mbr;
-	pITERATOR_CALLBACK_HELPER pich          = (pITERATOR_CALLBACK_HELPER) data;
+	pID_INFO                  pstate = (pID_INFO) pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
 
-	print_state_enum_member(state->name, pich);
+	if (add_doxygen_blocks && pstate->docCmnt)
+	{
+		print_doc_cmnt_as_doxygen_block(pich->ih.fout, pstate->docCmnt);
+	}
+	print_state_enum_member(pstate->name, pich);
 
 	return false;
 }
