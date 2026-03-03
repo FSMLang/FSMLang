@@ -165,6 +165,7 @@ static void writeCEventTableMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pm
 	pfsmcswog->fsmcog.cfsmliw   = writeEventTableFSMLoopInnards;
 	chooseWorkerFunctions(pfsmcswog);
 
+	writeCFilePreambles(&(pfsmcswog->fsmcog));
 	writeCEventTableMachineInternal(&(pfsmcswog->fsmcog));
 
 	if (pmi->machine_list)
@@ -292,6 +293,7 @@ static void writeCEventTableSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO
 	pfsmcswog->fsmcog.cfsmliw = writeEventTableSubFSMLoopInnards;
 
 	chooseWorkerFunctions(pfsmcswog);
+	writeCFilePreambles(&(pfsmcswog->fsmcog));
 	writeCEventTableSubMachineInternal(&pfsmcswog->fsmcog);
 
 	if (pmi->machine_list)

@@ -417,6 +417,8 @@ void increase_sub_machine_depth(pMACHINE_INFO);
 int newfile(char*);
 int popfile(void);
 void set_compacting(pMACHINE_INFO,unsigned);
+void print_doc_cmnt_as_doxygen_block(FILE*,char*); 
+void eat_initial_white_space(FILE*,char*);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);
@@ -464,6 +466,7 @@ extern char                 *empty_cell_fn;
 extern bool                 inhibiting_states_share_events;
 extern bool                 include_uml_objects;
 extern bool                 weak_fn_separate_file;
+extern bool                 add_doxygen_blocks;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

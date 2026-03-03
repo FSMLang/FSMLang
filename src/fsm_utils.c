@@ -1090,7 +1090,13 @@ bool print_sub_machine_event(pLIST_ELEMENT pelem, void *data)
                              , alc_lower
                              , ai_include_self
                              );
-       fprintf(pih->fout, "\n\t, ");
+	   if (add_doxygen_blocks && pid->docCmnt)
+	   {
+		   print_doc_cmnt_as_doxygen_block(pih->fout
+										   , pid->docCmnt
+										   );
+	   }
+	   fprintf(pih->fout, "\n\t, ");
        printNameWithAncestry(pid->name
                              ,pih->pmi
                              , pih->fout
@@ -1109,6 +1115,12 @@ bool print_sub_machine_event(pLIST_ELEMENT pelem, void *data)
    }
    else
    {
+	   if (add_doxygen_blocks && pid->docCmnt)
+	   {
+		   print_doc_cmnt_as_doxygen_block(pih->fout
+										   , pid->docCmnt
+										   );
+	   }
        printNameWithAncestry(pid->name
                              ,pih->pmi
                              , pih->fout
@@ -1631,6 +1643,83 @@ char *create_sequence_name(unsigned ordinal)
 	return cp;
 }
 
+void print_doc_cmnt_as_doxygen_block(FILE *fout, char *docCmnt)
+{
+	fprintf(fout
+			, "\n/**\n"
+			);
+
+	eat_initial_white_space(fout, docCmnt);
+
+	fprintf(fout
+			, "\n*/\n"
+		   );
+}
+
+void eat_initial_white_space(FILE *fout, char *str)
+{
+	enum {initial, normal, eating_ws} state = initial;
+	char *end_of_initial_ws = NULL;
+
+	if (str)
+	{
+		for (char *cp = str; *cp; cp++)
+		{
+			switch (state)
+			{
+			case initial:
+			case normal:
+				switch (*cp)
+				{
+				case '\n':
+					fputc(*cp, fout);
+					state = eating_ws;
+					break;
+				case '\r':
+					break;
+				case ' ':
+				case '\t':
+					if (state == initial)
+					{
+						end_of_initial_ws = cp;
+					}
+					fputc(*cp, fout);
+					break;
+				default:
+					fputc(*cp, fout);
+					state = normal;
+					break;
+				}
+				break;
+			case eating_ws:
+				switch (*cp)
+				{
+				case ' ':
+				case '\t':
+				case '\r':
+					/* Skip whitespace following a newline */
+					break;
+				case '\n':
+					/* stay in eating_ws to continue skipping subsequent whitespace */
+					fputc(*cp, fout);
+					break;
+				default:
+					if (end_of_initial_ws)
+					{
+						for (char *cp_ws = str; cp_ws <= end_of_initial_ws; cp_ws++)
+						{
+							fputc(*cp_ws, fout);
+						}
+					}
+					fputc(*cp, fout);
+					state = normal;
+					break;
+				}
+				break;
+			}
+		}
+	}
+}
 
 #ifdef PARSER_DEBUG
 
