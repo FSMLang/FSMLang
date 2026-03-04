@@ -65,7 +65,6 @@ bool convenience_macros_in_public_header = true;
 bool add_profiling_macros                = false;
 bool profile_sub_fsms                    = false;
 bool inhibiting_states_share_events      = false;
-bool add_doxygen_blocks                 = false;
 
 static char  *eventXRefFormat0Str = "\t%5u  ";
 static char  *eventXRefFormat1Str = "_%s\n";

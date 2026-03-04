@@ -114,6 +114,7 @@ bool     output_make_recipe                        = false;
 bool     short_user_fn_names                       = false;
 char     *empty_cell_fn                            = NULL;
 bool     weak_fn_separate_file                     = false;
+bool     add_doxygen_blocks                        = false;
 
 void print_tab_levels(FILE *output, unsigned levels)
 {
