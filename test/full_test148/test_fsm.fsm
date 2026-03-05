@@ -105,16 +105,18 @@ machine test_fsm
 			/** Our solitary state. */
 			state s1;
 	
+			action 
       	/**
         	 Really, do nothing.
       	*/
-			action do_nothing[e1, s1];
+			do_nothing[e1, s1];
 		}
 
+		action 
       /**
          Really, do nothing.
       */
-		action do_nothing[e1, s1];
+		do_nothing[e1, s1];
 	}
 
 	/**
@@ -178,10 +180,14 @@ machine test_fsm
 		action do_nothing[e1, s1];
 	}
 
-   /**
-     Do cool things with e1.
-   */
-	action handle_e1[e1, s1];
+	/**
+		This is a really important matrix.
+	*/
+	action 
+   	/**
+     	 Do cool things with e1.
+   	*/
+		handle_e1[e1, s1];
 
 }
 

@@ -63,8 +63,14 @@ struct _test_fsm_struct_ {
 	TEST_FSM_FSM           fsm;
 };
 
-TEST_FSM_EVENT_ENUM test_fsm_handle_e1(pTEST_FSM);
-TEST_FSM_EVENT_ENUM test_fsm_noAction(pTEST_FSM);
+
+/**
+
+Do cool things with e1.
+
+*/
+TEST_FSM_EVENT_ENUM test_fsm_handle_e1(pTEST_FSM pfsm /**< Pointer to FSM instance.*/);
+TEST_FSM_EVENT_ENUM test_fsm_noAction(pTEST_FSM pfsm /**< Pointer to FSM instance.*/);
 
 
 /**
@@ -72,7 +78,7 @@ TEST_FSM_EVENT_ENUM test_fsm_noAction(pTEST_FSM);
 This simply records from and to states.
 
 */
-void test_fsm_record(pTEST_FSM,TEST_FSM_STATE);
+void test_fsm_record(pTEST_FSM pfsm /**< Pointer to FSM instance.*/,TEST_FSM_STATE s /**< The state to which the machine is transitioning.*/);
 
 
 
@@ -81,14 +87,14 @@ void test_fsm_record(pTEST_FSM,TEST_FSM_STATE);
 Set up things for being in s1.
 
 */
-void test_fsm_enter_s1(pTEST_FSM_DATA);
+void test_fsm_enter_s1(pTEST_FSM_DATA pdata/**<Pointer to the FSM's data*/);
 
 /**
 
 Tidy-up on leaving s1.
 
 */
-void test_fsm_exit_s1(pTEST_FSM_DATA);
+void test_fsm_exit_s1(pTEST_FSM_DATA pdata/**<Pointer to the FSM's data*/);
 
 
 /**
@@ -96,7 +102,7 @@ void test_fsm_exit_s1(pTEST_FSM_DATA);
 Grab e1 data.
 
 */
-void test_fsm_grab_e1_data(pTEST_FSM_DATA,pTEST_FSM_E1_DATA);
+void test_fsm_grab_e1_data(pTEST_FSM_DATA pfsm_data/**<Pointer to the FSM's data*/,pTEST_FSM_E1_DATA pdata/**<Pointer to the event's data*/);
 
 
 

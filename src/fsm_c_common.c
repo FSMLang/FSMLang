@@ -996,11 +996,13 @@ void commonHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 										   );
 	   }
 	   fprintf(pcmd->hFile
-			   , "void %s_%s(p%s,%s);\n\n"
+			   , "void %s_%s(p%s%s,%s%s);\n\n"
 			   , ufMachineName(pcmd)
 			   , pmi->machineTransition->name
 			   , fsmType(pcmd)
+			   , add_doxygen_blocks ? " pfsm /**< Pointer to FSM instance.*/" : ""
 			   , stateType(pcmd)
+			   , add_doxygen_blocks ? " s /**< The state to which the machine is transitioning.*/" : ""
 			   );
    }
 
@@ -2593,11 +2595,13 @@ static void print_transition_fn_declaration_for_when_actions_return_events(pCMac
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "TR_FN_RETURN_TYPE %s_%s(p%s,%s);\n"
+			, "TR_FN_RETURN_TYPE %s_%s(p%s%s,%s%s);\n"
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
+			, add_doxygen_blocks ? " pfsm /**< Pointer to FSM instance.*/" : ""
 			, eventType(pcmd)
+			, add_doxygen_blocks ? " e /**< The event causing the transition.*/" : ""
 			);
 }
 
@@ -2606,11 +2610,13 @@ static void print_state_only_transition_fn_declaration_for_when_actions_return_e
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "TR_FN_RETURN_TYPE %s_transitionTo%s(p%s,%s);\n"
+			, "TR_FN_RETURN_TYPE %s_transitionTo%s(p%s%s,%s%s);\n"
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
+			, add_doxygen_blocks ? " pfsm /**< Pointer to FSM instance.*/" : ""
 			, eventType(pcmd)
+			, add_doxygen_blocks ? " e /**< The event causing the transition.*/" : ""
 			);
 }
 
@@ -2643,21 +2649,32 @@ bool declare_state_only_transition_functions_for_when_actions_return_events(pLIS
 
 static void print_entry_or_exit_fn_signature(pID_INFO pstate, pITERATOR_CALLBACK_HELPER pich, ENTRY_OR_EXIT which)
 {
-   pID_INFO fn        = which == eoe_entry ? pstate->type_data.state_data.entry_fn : pstate->type_data.state_data.exit_fn;
-   char    *no_fn_str = which == eoe_entry ? "onEntryTo_"                          : "onExitFrom_";
+   pID_INFO fn        = which == eoe_entry
+	                      ? pstate->type_data.state_data.entry_fn
+	                      : pstate->type_data.state_data.exit_fn
+	                      ;
+   char    *no_fn_str = which == eoe_entry
+	                      ? "onEntryTo_"
+	                      : "onExitFrom_"
+				          ;
+   char    *data_param = (pich->ih.pmi->data && (pich->define || add_doxygen_blocks))
+                           ? " pdata"
+	                       : ""
+	                       ;
    FILE    *file      = pich->define       ? pich->ih.fout : pich->pcmd->hFile;
     
    FSMLANG_DEVELOP_PRINTF(file, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    fprintf(file
-           , "void %s%s_%s%s(%s%s%s)%s\n"
+           , "void %s%s_%s%s(%s%s%s%s)%s\n"
            , pich->define                         ? "__attribute__((weak)) " : ""
 		   , ufMachineName(pich->pcmd)
            , fn                                   ? fn->name                 : no_fn_str
            , fn                                   ? ""                       : pstate->name
            , pich->ih.pmi->data                   ? "p"                      : "void"
            , pich->ih.pmi->data                   ? fsmDataType(pich->pcmd)  : ""
-           , (pich->ih.pmi->data && pich->define) ? " pdata"                 : ""
+		   , data_param
+		   , add_doxygen_blocks                   ? "/**<Pointer to the FSM's data*/" : ""
            , pich->define                         ? ""                       : ";"
           );
 }
@@ -2762,13 +2779,15 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 				   );
 		}
 		fprintf(fout
-				, "(p%s%s,p%s_%s_DATA%s)%s\n"
+				, "(p%s%s%s,p%s_%s_DATA%s%s)%s\n"
 				, fsmDataType(pcmd)
-				, dod == dod_declare ? "" : " pfsm_data"
+				, ((dod == dod_define) || add_doxygen_blocks) ? " pfsm_data" : ""
+				, add_doxygen_blocks ? "/**<Pointer to the FSM's data*/" : ""
 				, fsmType(pcmd)
 				, event_name_cp
-				, dod == dod_declare ? "" : " pdata"
-				, dod == dod_declare ? ";" : "\n{"
+				, ((dod == dod_define) || add_doxygen_blocks) ? " pdata" : ""
+				, add_doxygen_blocks ? "/**<Pointer to the event's data*/" : ""
+				, dod == dod_define ? "\n{" : ";"
 				);
 	}
 
@@ -2814,13 +2833,15 @@ static void print_sub_machine_data_translator_fn_signature(FILE* file, pCMachine
 	   if (pevent->type_data.event_data.puser_event_data->translator)
 	   {
 		  fprintf(file
-				  , "void%s%s_%s(p%s%s, const void *%s)%s\n"
+				  , "void%s%s_%s(p%s%s%s, const void *%s%s)%s\n"
 				  , dod == dod_declare ? " " : " __attribute__((weak)) "
 				  , ufMachineName(pcmd)
 				  , pevent->type_data.event_data.puser_event_data->translator->name
 				  , fsmDataType(pcmd->parent_pcmd)
 				  , dod == dod_declare ? "" : " pdata"
+				  , add_doxygen_blocks ? " /**< Pointer to parent FSM's data.*/" : ""
 				  , dod == dod_declare ? "" : " pfsm"
+				  , add_doxygen_blocks ? " /**< Pointer to FSM instance.*/" : ""
 				  , dod == dod_declare ? ";" : "\n{"
 				 );
 	   }
@@ -3180,11 +3201,12 @@ void print_transition_fn_declaration_for_when_actions_return_states(pCMachineDat
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "%s %s_%s(p%s);\n"
+			, "%s %s_%s(p%s%s);\n"
 			, stateType(pcmd)
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
+			, add_doxygen_blocks ? " pfsm /** < Pointer to FSM instance.*/" : ""
 			);
 }
 
@@ -3193,10 +3215,11 @@ static void print_state_only_transition_fn_declaration_for_when_actions_return_s
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "TR_FN_RETURN_TYPE %s_transitionTo%s(p%s);\n"
+			, "TR_FN_RETURN_TYPE %s_transitionTo%s(p%s%s);\n"
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
+			, add_doxygen_blocks ? " pfsm /** < Pointer to FSM instance.*/" : ""
 			);
 }
 
@@ -3377,11 +3400,12 @@ void defineSubMachineArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 void print_action_function_declaration(pCMachineData pcmd, char *name)
 {
 	fprintf(pcmd->hFile
-			, "%s %s_%s(p%s);\n"
+			, "%s %s_%s(p%s%s);\n"
 			, actionReturnType(pcmd)
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
+			, add_doxygen_blocks ? " pfsm /**< Pointer to FSM instance.*/" : ""
 			);
 }
 

@@ -93,8 +93,14 @@ struct _sub_struct_ {
 	SUB_FSM           fsm;
 };
 
-TEST_FSM_EVENT_ENUM test_fsm_sub_do_nothing(pSUB);
-TEST_FSM_EVENT_ENUM test_fsm_sub_noAction(pSUB);
+
+/**
+
+Really, do nothing.
+
+*/
+TEST_FSM_EVENT_ENUM test_fsm_sub_do_nothing(pSUB pfsm /**< Pointer to FSM instance.*/);
+TEST_FSM_EVENT_ENUM test_fsm_sub_noAction(pSUB pfsm /**< Pointer to FSM instance.*/);
 
 
 
@@ -103,7 +109,7 @@ TEST_FSM_EVENT_ENUM test_fsm_sub_noAction(pSUB);
 Grab the parent data before handling parent::e1.
 
 */
-void test_fsm_sub_grab_parent_e1_data(pTEST_FSM_DATA, const void *);
+void test_fsm_sub_grab_parent_e1_data(pTEST_FSM_DATA /**< Pointer to parent FSM's data.*/, const void * /**< Pointer to FSM instance.*/);
 
 
 #endif
