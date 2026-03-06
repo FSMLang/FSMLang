@@ -417,8 +417,8 @@ void increase_sub_machine_depth(pMACHINE_INFO);
 int newfile(char*);
 int popfile(void);
 void set_compacting(pMACHINE_INFO,unsigned);
-void print_doc_cmnt_as_doxygen_block(FILE*,char*); 
-void eat_initial_white_space(FILE*,char*);
+void print_doc_cmnt_as_doxygen_block(FILE*,char*,bool); 
+void eat_initial_white_space(FILE*,char*,char*);
 
 #ifdef PARSER_DEBUG
 void parser_debug_print_state_list(pLIST,FILE*);

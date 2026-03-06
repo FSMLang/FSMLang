@@ -96,10 +96,10 @@ TEST_FSM_EVENT_ENUM test_fsm_sub2_subSub_noAction(pSUB_SUB pfsm /**< Pointer to 
 
 /**
 
-Grab the parent data before handling parent::e1.
+	Grab the parent data before handling parent::e1.
 
 */
-void test_fsm_sub2_subSub_grab_parent_e1_data(pSUB2_DATA /**< Pointer to parent FSM's data.*/, const void * /**< Pointer to FSM instance.*/);
+void test_fsm_sub2_subSub_grab_parent_e1_data(pSUB2_DATA pdata /**< Pointer to parent FSM's data.*/, const void * pfsm /**< Pointer to FSM instance.*/);
 
 
 #endif

@@ -113,6 +113,7 @@ static void print_data_translator_fn_signature                                  
 static void print_sub_machine_data_translator_fn_signature                           (FILE*,pCMachineData,pID_INFO,DECLARE_OR_DEFINE);
 static void print_instance_selection_find                                            (pCMachineData);
 static void print_instance_selection_share                                           (pCMachineData);
+static bool print_doxygen_return_statement                                           (pLIST_ELEMENT,void*);
 
 int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
@@ -168,7 +169,7 @@ static void writeHeaderPreamble(char *fn, FILE *file, char *docCmnt)
 					, "\n"
 					);
 
-			eat_initial_white_space(file, docCmnt);
+			eat_initial_white_space(file, docCmnt, "\t");
 
 			fprintf(file
 					, "\n"
@@ -250,6 +251,7 @@ void writeCFilePreambles(pFSMCOutputGenerator pfsmcog)
 							);
 					eat_initial_white_space(pcmd->file_array[cf]
 											, pcmd->pmi->name->docCmnt
+											, "\t"
 											);
 					fprintf(pcmd->file_array[cf]
 							, "\n"
@@ -685,6 +687,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 		   print_doc_cmnt_as_doxygen_block(pcmd->eventsHFile
 										   , "noEvent signals the "
 											 "completion of event processing."
+										   , true
 										  );
 	   }
 	   fprintf(pcmd->eventsHFile
@@ -821,6 +824,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 		   print_doc_cmnt_as_doxygen_block(ich.ih.fout
 										   , "This is not a real state, but needs to be"
 											 " in the state enumeration."
+										   , true
 										   );
 	   }
 	   print_state_enum_member("noTransition", &ich);
@@ -993,6 +997,7 @@ void commonHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 	   {
 		   print_doc_cmnt_as_doxygen_block(pcmd->hFile
 										   , pmi->machineTransition->docCmnt
+										   , true
 										   );
 	   }
 	   fprintf(pcmd->hFile
@@ -2128,7 +2133,7 @@ static bool write_state_enum_member(pLIST_ELEMENT pelem, void *data)
 
 	if (add_doxygen_blocks && pstate->docCmnt)
 	{
-		print_doc_cmnt_as_doxygen_block(pich->ih.fout, pstate->docCmnt);
+		print_doc_cmnt_as_doxygen_block(pich->ih.fout, pstate->docCmnt, true);
 	}
 	print_state_enum_member(pstate->name, pich);
 
@@ -2144,6 +2149,7 @@ static bool print_event_enum_member(pLIST_ELEMENT pelem, void *data)
 	{
 		print_doc_cmnt_as_doxygen_block(pich->ih.fout
 										, pevent->docCmnt
+										, true
 										);
 	}
 	fprintf(pich->ih.fout
@@ -2571,7 +2577,17 @@ bool declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT pelem, v
    {
 	   print_doc_cmnt_as_doxygen_block(pcmd->hFile
 									   , pid_info->docCmnt
+									   , pid_info->transition_fn_returns_decl == NULL
 									   );
+	   if (pid_info->transition_fn_returns_decl)
+	   {
+		   iterate_list(pid_info->transition_fn_returns_decl
+						, print_doxygen_return_statement
+						, pich
+						);
+
+		   fprintf(pcmd->hFile, "\n*/\n");
+	   }
    }
    print_transition_fn_declaration_for_when_actions_return_states(pich->pcmd, pich->pcmd->hFile, pid_info->name);
 
@@ -2585,6 +2601,22 @@ bool declare_state_only_transition_functions_for_when_actions_return_states(pLIS
 
    FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
+   if (add_doxygen_blocks && pid_info->docCmnt)
+   {
+	   print_doc_cmnt_as_doxygen_block(pich->pcmd->hFile
+									   , pid_info->docCmnt
+									   , pid_info->transition_fn_returns_decl == NULL
+									   );
+	   if (pid_info->transition_fn_returns_decl)
+	   {
+		   iterate_list(pid_info->transition_fn_returns_decl
+						, print_doxygen_return_statement
+						, pich
+						);
+
+		   fprintf(pich->pcmd->hFile, "\n*/\n");
+	   }
+   }
    print_state_only_transition_fn_declaration_for_when_actions_return_states(pich->pcmd, pich->pcmd->hFile, pid_info->name);
 
    return false;
@@ -2630,7 +2662,18 @@ bool declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT pelem, v
    {
 	   print_doc_cmnt_as_doxygen_block(pcmd->hFile
 									   , pid_info->docCmnt
+									   , pid_info->transition_fn_returns_decl == NULL
 									   );
+
+	   if (pid_info->transition_fn_returns_decl)
+	   {
+		   iterate_list(pid_info->transition_fn_returns_decl
+						, print_doxygen_return_statement
+						, pich
+						);
+
+		   fprintf(pcmd->hFile, "\n*/\n");
+	   }
    }
    print_transition_fn_declaration_for_when_actions_return_events(pich->pcmd, pich->pcmd->hFile, pid_info->name);
 
@@ -2694,6 +2737,7 @@ bool declare_state_entry_and_exit_functions(pLIST_ELEMENT pelem, void *data)
 	   {
 		   print_doc_cmnt_as_doxygen_block(pcmd->hFile
 										   , pstate->type_data.state_data.entry_fn->docCmnt
+										   , true
 										   );
 	   }
       print_entry_or_exit_fn_signature(pstate, pich, eoe_entry);
@@ -2705,6 +2749,7 @@ bool declare_state_entry_and_exit_functions(pLIST_ELEMENT pelem, void *data)
 	   {
 		   print_doc_cmnt_as_doxygen_block(pcmd->hFile
 										   , pstate->type_data.state_data.exit_fn->docCmnt
+										   , true
 										   );
 	   }
        print_entry_or_exit_fn_signature(pstate, pich, eoe_exit);
@@ -2819,6 +2864,7 @@ bool declare_data_translator_functions(pLIST_ELEMENT pelem, void *data)
    {
 	   print_doc_cmnt_as_doxygen_block(pcmd->hFile
 									   , pevent->type_data.event_data.puser_event_data->translator->docCmnt
+									   , true
 									   );
    }
    print_data_translator_fn_signature(pich->pcmd->hFile, pich->pcmd, pevent, dod_declare);
@@ -2834,15 +2880,15 @@ static void print_sub_machine_data_translator_fn_signature(FILE* file, pCMachine
 	   {
 		  fprintf(file
 				  , "void%s%s_%s(p%s%s%s, const void *%s%s)%s\n"
-				  , dod == dod_declare ? " " : " __attribute__((weak)) "
+				  , dod == dod_define ? " __attribute__((weak)) " : " "
 				  , ufMachineName(pcmd)
 				  , pevent->type_data.event_data.puser_event_data->translator->name
 				  , fsmDataType(pcmd->parent_pcmd)
-				  , dod == dod_declare ? "" : " pdata"
+				  , ((dod == dod_define) || add_doxygen_blocks) ? " pdata" : ""
 				  , add_doxygen_blocks ? " /**< Pointer to parent FSM's data.*/" : ""
-				  , dod == dod_declare ? "" : " pfsm"
+				  , ((dod == dod_define) || add_doxygen_blocks) ? " pfsm" : ""
 				  , add_doxygen_blocks ? " /**< Pointer to FSM instance.*/" : ""
-				  , dod == dod_declare ? ";" : "\n{"
+				  , dod == dod_define ? "\n{" : ";"
 				 );
 	   }
 	}
@@ -2860,6 +2906,7 @@ bool sub_machine_declare_data_translator_functions(pLIST_ELEMENT pelem, void *da
    {
 	   print_doc_cmnt_as_doxygen_block(pcmd->hFile
 									   , pevent->type_data.event_data.puser_event_data->translator->docCmnt
+									   , true
 									   );
    }
    print_sub_machine_data_translator_fn_signature(pich->pcmd->hFile
@@ -3421,7 +3468,18 @@ bool declare_action_function(pLIST_ELEMENT pelem, void *data)
 	   {
 		   print_doc_cmnt_as_doxygen_block(pcmd->hFile
 										   , pid_info->docCmnt
+										   , pid_info->type_data.action_data.action_returns_decl == NULL
 										   );
+
+		   if (pid_info->type_data.action_data.action_returns_decl)
+		   {
+			   iterate_list(pid_info->type_data.action_data.action_returns_decl
+							, print_doxygen_return_statement
+							, pich
+							);
+
+			   fprintf(pcmd->hFile, "\n*/\n");
+		   }
 	   }
 	   print_action_function_declaration(pich->pcmd, pid_info->name);
    }
@@ -4535,5 +4593,18 @@ static void print_instance_selection_share(pCMachineData pcmd)
 				);
 	}
 	
+}
+
+static bool print_doxygen_return_statement(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO                  pid  = (pID_INFO) pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+
+	fprintf(pich->pcmd->hFile
+			, "@return %s\n"
+			, pid->name
+			);
+
+	return false;
 }
 

@@ -1095,6 +1095,7 @@ bool print_sub_machine_event(pLIST_ELEMENT pelem, void *data)
 	   {
 		   print_doc_cmnt_as_doxygen_block(pih->fout
 										   , pid->docCmnt
+										   , true
 										   );
 	   }
 	   fprintf(pih->fout, "\n\t, ");
@@ -1120,6 +1121,7 @@ bool print_sub_machine_event(pLIST_ELEMENT pelem, void *data)
 	   {
 		   print_doc_cmnt_as_doxygen_block(pih->fout
 										   , pid->docCmnt
+										   , true
 										   );
 	   }
        printNameWithAncestry(pid->name
@@ -1644,20 +1646,21 @@ char *create_sequence_name(unsigned ordinal)
 	return cp;
 }
 
-void print_doc_cmnt_as_doxygen_block(FILE *fout, char *docCmnt)
+void print_doc_cmnt_as_doxygen_block(FILE *fout, char *docCmnt, bool close_comment)
 {
 	fprintf(fout
 			, "\n/**\n"
 			);
 
-	eat_initial_white_space(fout, docCmnt);
+	eat_initial_white_space(fout, docCmnt, "\t");
 
 	fprintf(fout
-			, "\n*/\n"
+			, "%s"
+			, close_comment ? "\n*/\n" : "\n"
 		   );
 }
 
-void eat_initial_white_space(FILE *fout, char *str)
+void eat_initial_white_space(FILE *fout, char *str, char *min_initial)
 {
 	enum {initial, normal, eating_ws} state = initial;
 	char *end_of_initial_ws = NULL;
@@ -1711,6 +1714,10 @@ void eat_initial_white_space(FILE *fout, char *str)
 						{
 							fputc(*cp_ws, fout);
 						}
+					}
+					else if (min_initial)
+					{
+						fputs(min_initial, fout);
 					}
 					fputc(*cp, fout);
 					state = normal;
