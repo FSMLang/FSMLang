@@ -2694,8 +2694,8 @@ int main(int argc, char **argv)
                 }
                 break;
             case lo_doxygen_blocks:
-                add_doxygen_blocks 
-                    = (optarg && !strcmp(optarg,"true")) ? true : false;
+                add_doxygen_blocks
+                    = (!optarg || !strcmp(optarg,"true")) ? true : false;
                 break;
             case lo_core_logging:
                 core_logging_only 
