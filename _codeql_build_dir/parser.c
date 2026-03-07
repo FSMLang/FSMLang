@@ -4331,6 +4331,7 @@ typedef enum {
  , lo_inhibiting_states_share_events
  , lo_include_uml_objects
  , lo_weak_fn_separate_file
+ , lo_doxygen_blocks
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -4517,6 +4518,12 @@ const struct option longopts[] =
         , .flag    = &longval
 				, .val     = lo_weak_fn_separate_file
     }
+		, {
+        .name      = "add-doxygen-blocks"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_doxygen_blocks
+    }
     , {0}
 };
       
@@ -4569,6 +4576,10 @@ int main(int argc, char **argv)
                 {
                       yyerror("Either enable weak function generation or do not indicate a separate file for them.");
                 }
+                break;
+            case lo_doxygen_blocks:
+                add_doxygen_blocks
+                    = (!optarg || !strcmp(optarg,"true")) ? true : false;
                 break;
             case lo_core_logging:
                 core_logging_only 

@@ -2827,11 +2827,11 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 				, "(p%s%s%s,p%s_%s_DATA%s%s)%s\n"
 				, fsmDataType(pcmd)
 				, ((dod == dod_define) || add_doxygen_blocks) ? " pfsm_data" : ""
-				, add_doxygen_blocks ? "/**<Pointer to the FSM's data*/" : ""
+				, add_doxygen_blocks ? " /**< Pointer to the FSM's data*/" : ""
 				, fsmType(pcmd)
 				, event_name_cp
 				, ((dod == dod_define) || add_doxygen_blocks) ? " pdata" : ""
-				, add_doxygen_blocks ? "/**<Pointer to the event's data*/" : ""
+				, add_doxygen_blocks ? " /**< Pointer to the event's data*/" : ""
 				, dod == dod_define ? "\n{" : ";"
 				);
 	}
