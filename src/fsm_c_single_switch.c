@@ -98,6 +98,7 @@ static void writeCSingleSwitchMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO 
 	pfsmcswog->fsmcog.pcmd->pmi = pmi;
 	chooseWorkerFunctions(pfsmcswog);
 
+	writeCFilePreambles(&(pfsmcswog->fsmcog));
 	writeCSingleSwitchMachineInternal(pfsmcswog);
 
 	if (pmi->machine_list)
@@ -552,6 +553,7 @@ static void writeCSingleSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_IN
 
 	chooseWorkerFunctions(pfsmcswog);
 
+	writeCFilePreambles(&(pfsmcswog->fsmcog));
 	writeCSingleSwitchSubMachineInternal(pfsmcswog);
 
 	if (pmi->machine_list)

@@ -439,6 +439,7 @@ static void writeCSwitchMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
    pfsmcog->cfsmliw   = writeSwitchFSMLoopInnards;
    chooseWorkerFunctions(pfsmcog);
 
+   writeCFilePreambles(pfsmcog);
    writeCSwitchMachineInternal(pfsmcog);
 
    if (pmi->machine_list)
@@ -469,6 +470,7 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
 
    chooseWorkerFunctions(pfsmcog);
 
+   writeCFilePreambles(pfsmcog);
    writeCSwitchSubMachineInternal(pfsmcog);
 
    if (pmi->machine_list)

@@ -196,7 +196,7 @@ void defineWeakUserTransitionFns(pFSMCOutputGenerator);
 void writeStateTransitions(pCMachineData,pMACHINE_INFO);
 void writeDebugInfo(pCMachineData,pMACHINE_INFO);
 void destroyCMachineData(pCMachineData,int);
-void writeCFilePreambles(pCMachineData,bool);
+void writeCFilePreambles(pFSMCOutputGenerator);
 bool assignExternalEventValues(pMACHINE_INFO);
 bool declare_transition_fn_for_when_actions_return_states(pLIST_ELEMENT,void*);
 bool declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);

@@ -449,6 +449,7 @@ static void writeCSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	chooseWorkerFunctions(pfsmcog);
 
+	writeCFilePreambles(pfsmcog);
 	writeCSubMachineInternal(pfsmcog);
 
 	if (pmi->machine_list)
@@ -470,6 +471,7 @@ static void writeCMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	chooseWorkerFunctions(pfsmcog);
 
+	writeCFilePreambles(pfsmcog);
 	writeCMachineInternal(pfsmcog);
 
 	if (pmi->machine_list)

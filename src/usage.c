@@ -230,6 +230,23 @@ void usage(void)
 			, item_end
 			);
 	fprintf(stdout
+			,"%s--add-doxygen-blocks=%strue|false*%s%sDoxygen headers will be added to user%s"
+			, item_start
+			, lt
+			, gt
+			, expl_start
+			, list_start
+			);
+	fprintf(stdout
+			, "%sfunction declarations and to the machine header files (%smachine%s.h and %ssub-machine_priv%s.h).%s"
+			, inner_item_start
+			, lt
+			, gt
+			, lt
+			, gt
+			, list_item_end
+			);
+	fprintf(stdout
 			,"%s--weak-fns-separate-file=%strue|false*%s%sWeak functions, if generated, will be put into a separate file.%s"
 			, item_start
 			, lt
