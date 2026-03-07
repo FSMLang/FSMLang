@@ -2717,7 +2717,7 @@ static void print_entry_or_exit_fn_signature(pID_INFO pstate, pITERATOR_CALLBACK
            , pich->ih.pmi->data                   ? "p"                      : "void"
            , pich->ih.pmi->data                   ? fsmDataType(pich->pcmd)  : ""
 		   , data_param
-		   , add_doxygen_blocks                   ? "/**<Pointer to the FSM's data*/" : ""
+		   , add_doxygen_blocks                   ? " /**< Pointer to the FSM's data*/" : ""
            , pich->define                         ? ""                       : ";"
           );
 }
