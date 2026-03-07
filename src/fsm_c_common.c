@@ -3253,7 +3253,7 @@ void print_transition_fn_declaration_for_when_actions_return_states(pCMachineDat
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
-			, add_doxygen_blocks ? " pfsm /** < Pointer to FSM instance.*/" : ""
+			, add_doxygen_blocks ? " pfsm /**< Pointer to FSM instance.*/" : ""
 			);
 }
 
@@ -3266,7 +3266,7 @@ static void print_state_only_transition_fn_declaration_for_when_actions_return_s
 			, ufMachineName(pcmd)
 			, name
 			, fsmType(pcmd)
-			, add_doxygen_blocks ? " pfsm /** < Pointer to FSM instance.*/" : ""
+			, add_doxygen_blocks ? " pfsm /**< Pointer to FSM instance.*/" : ""
 			);
 }
 
