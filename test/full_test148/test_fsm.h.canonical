@@ -19,7 +19,7 @@
 #include "test.h"
 
 #endif
-#define FSM_VERSION "2.2.2"
+#define FSM_VERSION "2.3"
 
 #ifndef NO_CONVENIENCE_MACROS
 #undef UFMN
