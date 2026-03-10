@@ -556,5 +556,25 @@
 	Code for the c switch implementation of machines having actions which
 	return void is now generated correctly for the 'transition only' cases.
 */
-const char rev_string[] = "2.2.2";
+
+/*
+	Revision 2.3
+
+	--weak-fn-separate-file=&lt;true*|false&gt; puts weak functions into a separate
+	file (&lt;filename&gt;_weak_fns.c).
+
+	Guard functions are now included when weak functions are created.
+
+	A new style of C output, which comibines events and state into the operand of a
+	single switch statement is available using -tss.
+
+	The _DEBUG macro is named consistently in sub-machine files.
+
+	A bug in a <i>cwalk...</i> function causing a hard-fault when reporting errors
+	has been fixed.
+
+	Doxygen comments are supported through the use of --add-doxygen-blocks=&lt;true*|false&gt;. FSMLang doc comments are added to the C code output.
+
+*/
+const char rev_string[] = "2.3";
 
