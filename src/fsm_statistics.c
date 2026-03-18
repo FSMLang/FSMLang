@@ -43,7 +43,8 @@
 
 #define name_separator(A) ((A)->first ? "" : ", ")
 
-bool print_action_array = false;
+bool print_action_array        = false;
+int  find_on_sub_machine_depth = -1;
 
 static int  initMachineStatisticsWriter(pFSMOutputGenerator,char*);
 static void writeMachineStatistics(pFSMOutputGenerator,pMACHINE_INFO);
@@ -56,6 +57,7 @@ static bool write_states(pLIST_ELEMENT,void*);
 static bool print_pid_name(pLIST_ELEMENT,void*);
 static bool compute_pid_name_len(pLIST_ELEMENT,void*);
 static bool write_action_array_pointers(pLIST_ELEMENT,void*);
+static void do_find_on_sub_machine_depth(pMACHINE_INFO);
 
 FSMOutputGenerator MachineStatisticsWriter = {
    initMachineStatisticsWriter
@@ -111,7 +113,11 @@ static void writeMachineStatistics(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    FSMLANG_MAYBE_UNUSED(pfsmog);
    LIST_ELEMENT elem = { .mbr = pmi , .next = NULL };
 
-   if (!(output_generated_file_names_only))
+   if (find_on_sub_machine_depth > -1)
+   {
+	   do_find_on_sub_machine_depth(pmi);
+   }
+   else if (!(output_generated_file_names_only))
    {
 	   (void)write_machine_statistics(&elem, NULL);
    }
@@ -540,5 +546,15 @@ static bool write_matrix(pLIST_ELEMENT pelem, void *data)
 	}
 
 	return false;
+}
+
+static void do_find_on_sub_machine_depth(pMACHINE_INFO pmi)
+{
+	if (pmi->sub_machine_depth == find_on_sub_machine_depth)
+	{
+		printf("%s.fsm\n"
+			   , inputFileName
+			   );
+	}
 }
 

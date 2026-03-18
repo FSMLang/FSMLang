@@ -52,6 +52,7 @@ if (!(A))                 \
 
 #define NO_EVENT      -1   //this is used as the "order" of noEvent.
 #define NO_TRANSITION -1   //this is used as the "order" of noTransition.
+#define createFileName(A, B) joinStrings((A), (B))
 
 
 /**
@@ -381,7 +382,7 @@ void freeMachineInfo(pMACHINE_INFO);
 
 /* other general utilities */
 FILE *openFile(char *, char *);
-char *createFileName(char *,char *);
+char *joinStrings(char *,char *);
 char *eventNameByIndex(pMACHINE_INFO,int);
 pID_INFO eventPidByIndex(pMACHINE_INFO,int);
 char *stateNameByIndex(pMACHINE_INFO,int);
@@ -434,6 +435,7 @@ void parser_debug_print_event_sequences(pMACHINE_INFO,FILE*);
 /* general use data */
 extern char                 *me;	/* main will set this to the program name (argv[0]) */
 extern char                 *inputFileName;
+extern char                 *inputFilePath;
 extern bool                 generate_instance;
 extern unsigned             num_instances;
 extern bool                 compact_action_array;
@@ -467,6 +469,7 @@ extern bool                 inhibiting_states_share_events;
 extern bool                 include_uml_objects;
 extern bool                 weak_fn_separate_file;
 extern bool                 add_doxygen_blocks;
+extern int                  find_on_sub_machine_depth;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

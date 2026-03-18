@@ -97,7 +97,8 @@ static bool print_sharing_sub_machine(pLIST_ELEMENT,void*);
 
 /* the general use data */
 char     *me = "I don't know who I am, but I'm";
-char     *inputFileName = "";
+char     *inputFileName                            = NULL;
+char     *inputFilePath                            = NULL;
 bool     generate_instance                         = true;
 unsigned num_instances                             = 1;
 bool     compact_action_array                      = false;
@@ -281,32 +282,42 @@ FILE *openFile(char *fileName, char *mode)
 
 }
 
-char *createFileName(char *base, char *ext)
+char *joinStrings(char *str1, char *str2)
 {
 
-	char	*cp;
+	char	*cp = NULL;
+	size_t  str1len, str2len;
 
-	if (base) {
+	str1len = str1 ? strlen(str1) : 0;
+	str2len = str2 ? strlen(str2) : 0;
+	
+	if (str1 || str2) {
 
-		if ((cp = (char *) malloc(strlen(base)+strlen(ext)+1)) != NULL) {
+		if ((cp = (char *) malloc(str1len+str2len+1)) != NULL) {
 
-			strcpy(cp,base);
-			strcat(cp,ext);
+			*cp = 0;
+
+			if (str1)
+			{
+				strcat(cp, str1);
+			}
+
+			if (str2)
+			{
+				strcat(cp, str2);
+			}
 
 		}
 		else {
 
-	    fprintf(stderr,"%s : unable to create filename from %s and %s\n",
- 	     me , base, ext);
+			fprintf(stderr
+					,"%s : unable to join strings %s and %s\n"
+					, me 
+					, str1
+					, str2
+					);
 
 		}
-
-
-	}
-	else {
-
-		fprintf(stderr,"%s : why should I create a filename from nothing?\n",
-			me);
 
 	}
 

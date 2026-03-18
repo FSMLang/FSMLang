@@ -587,13 +587,20 @@ int newfile(char *filename)
 		return 0;
 	}
 
-	if (NULL == (bs->f = fopen(filename, "r")))
+
+	if (
+		(NULL == (bs->filename = joinStrings(inputFilePath, filename)))
+		|| (NULL == (bs->f = fopen(bs->filename, "r")))
+		)
 	{
 		fprintf(stderr
 				 , "%s: Failed to open input file %s\n"
 				 , me
-				 , filename
+				 , bs->filename
 				);
+
+		CHECK_AND_FREE(bs->f);
+		CHECK_AND_FREE(bs);
 		return 0;
 	}
 
@@ -606,7 +613,6 @@ int newfile(char *filename)
 
 	/* Setup new entry. */
 	bs->bs       = yy_create_buffer(bs->f, YY_BUF_SIZE);
-	bs->filename = strdup(filename);
 	
 	yy_switch_to_buffer(bs->bs);
 

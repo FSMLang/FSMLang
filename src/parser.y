@@ -36,6 +36,7 @@
 #include "fsm_rst.h"
 #include "usage.h"
 #include "fsm_c_single_switch.h"
+#include "fsm_python_transitions.h"
 
 #include "list.h"
 
@@ -2448,6 +2449,7 @@ typedef enum {
  , lo_include_uml_objects
  , lo_weak_fn_separate_file
  , lo_doxygen_blocks
+ , lo_find_on_sub_machine_depth
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2639,6 +2641,12 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_doxygen_blocks
+    }
+		, {
+        .name      = "find-on-sub-machine-depth"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_find_on_sub_machine_depth
     }
     , {0}
 };
@@ -2854,6 +2862,9 @@ int main(int argc, char **argv)
 									}
                 }
                 break;
+            case lo_find_on_sub_machine_depth:
+                find_on_sub_machine_depth = optarg ? atoi(optarg) : 0;
+                break;
             default:
                 usage();
                 return(0);
@@ -2904,7 +2915,19 @@ int main(int argc, char **argv)
 							break;
 
 						case 'p':
-							fpfsmogf = generatePlantUMLMachineWriter;
+              switch (optarg[1])
+              {
+                case 0:
+							    fpfsmogf = generatePlantUMLMachineWriter;
+                  break;
+                case 'y':
+							    fpfsmogf = generatePyTransitionsWriter;
+                  break;
+								default:
+						      usage();
+						      return (1);
+									break;
+              }
 							break;
 
 						case 'e':
@@ -3021,9 +3044,14 @@ int main(int argc, char **argv)
 
 		/* get the base file name */
 		if (!outFileBase) {
+
+       size_t inputFilePathLen;
+
 			/* use the base input file name */
 			*cp1 = 0;
 			cwk_path_get_basename(inputFileName, (const char**)&outFileBase, NULL);
+      cwk_path_get_dirname(inputFileName, &inputFilePathLen);
+      inputFilePath = strndup(inputFileName, inputFilePathLen);
 		}
 
 		#ifndef PARSER_DEBUG
@@ -3055,9 +3083,14 @@ int main(int argc, char **argv)
 		}
 		#endif
 
+
+    CHECK_AND_FREE(inputFileName);
+    CHECK_AND_FREE(inputFilePath);
+
 	}
 
-	return (good == 1 ? 0 : 1);
+	//return (good == 1 ? 0 : 1);
+  return 0;
 
 }
 
@@ -3066,12 +3099,13 @@ void yyerror(char *s)
 	const char *basename;
 	const char *ext;
 
-  fprintf(stderr,"%s%s%s: %s\n"
+  fprintf(stderr,"%s%s%s: %s.fsm: %s\n"
 					, (cwk_path_get_basename(me, &basename, NULL), basename)
 					, cwk_path_has_extension(me) ? "." : ""
 					, cwk_path_has_extension(me)
 						 ? (cwk_path_get_extension(me, &ext, NULL), ext)
 						 : ""
+          , inputFileName
 					,s
 					);
   fprintf(stderr,"\tline %d : %s\n",lineno,yytext);

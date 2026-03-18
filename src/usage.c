@@ -141,6 +141,12 @@ void usage(void)
 			, help_fmt == 'r' ? list_item_end : item_end
 			);
 	fprintf(stdout
+			,"%s'py'%sgets you python output based on the PyTransitions package,%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
+			);
+	fprintf(stdout
 			,"%s'h'%sgets you html output%s"
 			, help_fmt == 'r' ? item_start : inner_item_start
       , expl_start
