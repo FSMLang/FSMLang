@@ -119,7 +119,9 @@ _codeql_build_dir/
 _codeql_detected_source_root
 
 # Generated files
-linux/
+linux/*.[ocdh]
+linux/*.output
+linux/fsm
 
 # Test executables (no extension on Linux)
 test/unit/*/test
