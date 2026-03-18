@@ -92,13 +92,6 @@ bool  css_content_internal = false;
 bool  include_svg_img      = false;
 char *css_content_filename = "fsmlang.css";
 
-
-static void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good);
-static void closeHTMLFileNameWriter(pFSMOutputGenerator pfsmog, int good);
-static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi);
-static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi);
-static int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName);
-static int initHTMLFileNameWriter (pFSMOutputGenerator pfsmog, char *baseFileName);
 static bool print_sub_machine_row(pLIST_ELEMENT,void*);
 static bool print_event_sequence_html(pLIST_ELEMENT,void*);
 static bool print_event_sequence_puml(pLIST_ELEMENT,void*);
