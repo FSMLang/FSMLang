@@ -3089,8 +3089,7 @@ int main(int argc, char **argv)
 
 	}
 
-	//return (good == 1 ? 0 : 1);
-  return 0;
+	return (good == 1 ? 0 : 1);
 
 }
 
