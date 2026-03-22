@@ -227,20 +227,21 @@ struct _data_field_
 
 struct _iterator_helper_
 {
-   FILE          *fout;
-   pMACHINE_INFO pmi;
-   pID_INFO      pid;
-   pACTION_INFO  pai;
-   bool          error;
-   bool          first;
-   int           event;
-   int           state;
-   unsigned      *counter0;
-   unsigned      *counter1;
-   unsigned      tab_level;
-   bool          found;
+   FILE             *fout;
+   pMACHINE_INFO    pmi;
+   pID_INFO         pid;
+   pACTION_INFO     pai;
+   bool             error;
+   bool             first;
+   int              event;
+   int              state;
+   unsigned         *counter0;
+   unsigned         *counter1;
+   unsigned         tab_level;
+   bool             found;
    LIST_ITERATOR_FN pfn_sub_iterator;
-   char          *str;                  //!< for general use
+   char             *str;                  //!< for general use
+	pLIST_ELEMENT   pOtherElem;            //!< for general use
 };
 
 
