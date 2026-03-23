@@ -369,13 +369,15 @@ int allocateActionArray2(pACTION_INFO*** array, unsigned num_events, unsigned nu
 
 static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
 {
+	pACTION_INFO curr_pai;
+
    pACTION_ARRAY_POPULATION_HELPER paaph      = (pACTION_ARRAY_POPULATION_HELPER) data;
    pID_INFO                        pstate     = (pID_INFO)      pelem->mbr;
    pSTATE_DATA                     psd        = &pstate->type_data.state_data;
    pEVENT_DATA                     ped        = &paaph->pevent->type_data.event_data;
+   pACTION_INFO                    new_pai    = paaph->pai;
    pID_INFO                        action     = paaph->pai->action;
    pID_INFO                        transition = paaph->pai->transition;
-
 
    #ifdef PARSER_DEBUG
    fprintf(paaph->fout, "\t\tadd_to_action_array: state: %s\n"
@@ -383,20 +385,46 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
            );
    #endif
 
-   if (paaph->pmi->actionArray[paaph->pevent->order][pstate->order])
+   if (NULL != (curr_pai = paaph->pmi->actionArray[paaph->pevent->order][pstate->order]))
    {
-      fprintf(stderr
-              ,"Machine %s: Won't insert action %s into slot: event %s, state %s because it is already occupied by %s\n"
-              , paaph->pmi->name->name
-              , action->name ? action->name : "transition"
-              , paaph->pevent->name
-              , pstate->name
-              , paaph->pmi->actionArray[paaph->pevent->order][pstate->order]->action->name
-			    ? paaph->pmi->actionArray[paaph->pevent->order][pstate->order]->action->name 
-				: "transition"
-              );
+	   if ((action == curr_pai->action)
+		   && curr_pai->transition
+		   && transition
+		   && transition->type_data.transition_data.is_conditional
+		   )
+	   {
+		   #ifdef PARSER_DEBUG
+		   fprintf(paaph->fout
+				   , "\t\t\tadding to additional transitions list\n"
+				   );
+		   #endif
 
-      paaph->error = true;
+		   pLIST *ppadditional_transitions
+			   = &curr_pai->transition->type_data.transition_data.padditional_transitions;
+
+		   if (!ppadditional_transitions)
+		   {
+			   *ppadditional_transitions = init_list();
+		   }
+
+		   add_to_list(*ppadditional_transitions , new_pai);
+
+	   }
+	   else
+	   {
+		   fprintf(stderr
+				  ,"Machine %s: Won't insert action %s into slot: event %s, state %s because it is already occupied by %s\n"
+				  , paaph->pmi->name->name
+				  , strlen(action->name) ? action->name : "transition"
+				  , paaph->pevent->name
+				  , pstate->name
+				  , paaph->pmi->actionArray[paaph->pevent->order][pstate->order]->action->name
+					? paaph->pmi->actionArray[paaph->pevent->order][pstate->order]->action->name 
+					: "transition"
+				  );
+
+		  paaph->error = true;
+	   }
    }
    else
    {

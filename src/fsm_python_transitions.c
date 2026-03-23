@@ -373,7 +373,10 @@ static bool print_trigger(pLIST_ELEMENT pelem, void *data)
 	pID_INFO         pevent = (pID_INFO) pelem->mbr;
 	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
 
-	if (pih->pai->action && strlen(pih->pai->action->name))
+	if (
+		(pih->pai->action && strlen(pih->pai->action->name))
+		|| pih->pai->transition->type_data.transition_data.is_conditional
+		)
 	{
 		print_transition_as_dict(pevent, pih);
 	}
@@ -465,13 +468,30 @@ static void print_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 			, pih->pai->transition ? pih->pai->transition->name : "None"
 			);
 
-	fprintf(pih->fout
-			, "\t%*.*s  , 'before': '%s'\n"
-			, transitions_str_len
-			, transitions_str_len
-			, " "
-			, pih->pai->action->name
-			);
+	if (pih->pai->action->name && strlen(pih->pai->action->name))
+	{
+		fprintf(pih->fout
+				, "\t%*.*s  , 'before': '%s'\n"
+				, transitions_str_len
+				, transitions_str_len
+				, " "
+				, pih->pai->action->name
+				);
+	}
+
+	if (
+		pih->pai->transition
+		&& pih->pai->transition->type_data.transition_data.is_conditional
+		)
+	{
+		fprintf(pih->fout
+				, "\t%*.*s , 'conditions': ['%s']\n"
+				, transitions_str_len
+				, transitions_str_len
+				, " "
+				, pih->pai->transition->type_data.transition_data.condition_fn->name
+				);
+	}
 
 	fprintf(pih->fout
 			, "\t%*.*s}\n"

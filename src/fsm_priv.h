@@ -195,6 +195,7 @@ struct _transition_data_
 {
 	bool     is_conditional;
 	pID_INFO condition_fn;
+	pLIST    padditional_transitions;
 };
 
 union _pid_type_data_
