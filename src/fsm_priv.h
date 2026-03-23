@@ -134,6 +134,7 @@ typedef struct _user_event_data_         USER_EVENT_DATA,         *pUSER_EVENT_D
 typedef struct _native_info_             NATIVE_INFO,             *pNATIVE_INFO;
 typedef struct _event_sequence_node_     EVENT_SEQUENCE_NODE,     *pEVENT_SEQUENCE_NODE;
 typedef struct _event_sequence_          EVENT_SEQUENCE,          *pEVENT_SEQUENCE;
+typedef struct _transition_data_         TRANSITION_DATA,         *pTRANSITION_DATA;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
@@ -190,11 +191,18 @@ struct _action_data_
 	pLIST           action_returns_decl;
 };
 
+struct _transition_data_
+{
+	bool     is_conditional;
+	pID_INFO condition_fn;
+};
+
 union _pid_type_data_
 {
-   EVENT_DATA    event_data;
-   STATE_DATA    state_data;
-   ACTION_DATA   action_data;
+   EVENT_DATA      event_data;
+   STATE_DATA      state_data;
+   ACTION_DATA     action_data;
+   TRANSITION_DATA transition_data;
 };
 
 typedef enum

@@ -95,6 +95,7 @@ void yyerror(char *);
 %token <charData> ACTION_KEY 
 %token <charData> TRANSITION_KEY 
 %token <charData> GUARD_KEY 
+%token <charData> CONDITION_KEY 
 
 %token <charData>	PARENT
 %token <charData> NATIVE_KEY
@@ -129,6 +130,7 @@ void yyerror(char *);
 %type <paction_decl>             action_decl_list
 %type <action_info>              transition_matrix
 %type <action_info>              transition_matrix_start
+%type <action_info>              guard_matrix_start
 %type <action_info>              transition_matrix_list
 %type <plist>                    machine_data
 %type <plist>                    data_block
@@ -997,7 +999,9 @@ transition_matrix_start: matrix TRANSITION_KEY
 						pid_info->type_data.action_data.actionInfo = $$;
 
         }
-    | matrix GUARD_KEY
+        ;
+
+guard_matrix_start: matrix GUARD_KEY
         {
 						pID_INFO pid_info;
 
@@ -1055,6 +1059,38 @@ transition_matrix:	transition_matrix_start STATE ';'
 						$$->transition = $2;
 
 					}
+   | transition_matrix_start STATE CONDITION_KEY ID ';'
+					{
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition matrix with new "
+                    "conditional transition function\n"
+                    );
+						#endif
+
+           set_id_type($4,TRANSITION_FN);
+           $2->type_data.transition_data.is_conditional = true;
+           $2->type_data.transition_data.condition_fn = $4;
+
+						$$->transition = $2;
+
+					}
+   | transition_matrix_start STATE CONDITION_KEY TRANSITION_FN ';'
+					{
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition matrix with transition function\n"
+                    );
+						#endif
+
+           if (!$2->type_data.transition_data.is_conditional)
+            yyerror("Transition function is not conditional.");
+
+           $2->type_data.transition_data.condition_fn = $4;
+
+						$$->transition = $2;
+
+					}
    | transition_matrix_start ID ';'
 					{
 
@@ -1077,7 +1113,28 @@ transition_matrix:	transition_matrix_start STATE ';'
 						$$->transition = $2;
 
         }
+   | guard_matrix_start ID ';'
+					{
 
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition matrix with new transition function\n");
+						#endif
+
+           set_id_type($2,TRANSITION_FN);
+
+						$$->transition = $2;
+
+					}
+   | guard_matrix_start TRANSITION_FN ';'
+					{
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition matrix with known transition function\n");
+						#endif
+
+						$$->transition = $2;
+
+        }
 	;
 
 action_decl:	action_decl_list ';'
@@ -1213,6 +1270,35 @@ transition: TRANSITION_KEY STATE
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition to known state\n");
 						#endif
+
+						$$ = $2;
+
+					}
+  | TRANSITION_KEY STATE CONDITION_KEY ID
+					{
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a conditional transition with new function\n");
+						#endif
+
+           set_id_type($4,TRANSITION_FN);
+           $2->type_data.transition_data.is_conditional = true;
+           $2->type_data.transition_data.condition_fn = $4;
+
+						$$ = $2;
+
+					}
+  | TRANSITION_KEY STATE CONDITION_KEY TRANSITION_FN
+					{
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a conditional transition with existing function\n");
+						#endif
+
+           if (!$2->type_data.transition_data.is_conditional)
+            yyerror("Transition function is not conditional.");
+
+           $2->type_data.transition_data.condition_fn = $4;
 
 						$$ = $2;
 

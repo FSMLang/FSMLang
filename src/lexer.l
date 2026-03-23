@@ -349,6 +349,16 @@ guard	{
 							#endif
 						}
 
+condition	{ 
+							#ifndef LEX_DEBUG
+             yylval.charData = currDocCmnt ? currDocCmnt : NULL;
+             currDocCmnt     = NULL;
+							return CONDITION_KEY;
+							#else
+							printf("%s\n",strings[CONDITION_KEY]);
+							#endif
+						}
+
 action	{ 
 					#ifndef LEX_DEBUG
          yylval.charData = currDocCmnt ? currDocCmnt : NULL;
