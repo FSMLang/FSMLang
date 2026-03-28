@@ -210,7 +210,11 @@ jobs:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           TAG="${{ needs.resolve-upload-url.outputs.tag }}"
-          for f in "artifacts/fsm-${TAG}-linux" "artifacts/fsm-${TAG}-linux.sha256" "artifacts/fsm-${TAG}-linux.meta.txt"; do
+          for f in "artifacts/fsm-${TAG}-linux" \
+                   "artifacts/fsm-${TAG}-linux.sha256" \
+                   "artifacts/fsm-${TAG}-linux-cmake-src.tar.gz" \
+                   "artifacts/fsm-${TAG}-linux-cmake-src.tar.gz.sha256" \
+          ; do
             gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign -a "$f"
           done
 
@@ -231,6 +235,8 @@ jobs:
             "fsm-${TAG}-linux.asc" \
             "fsm-${TAG}-linux-cmake-src.tar.gz" \
             "fsm-${TAG}-linux-cmake-src.tar.gz.sha256" \
+            "fsm-${TAG}-linux-cmake-src.tar.gz.asc" \
+            "fsm-${TAG}-linux-cmake-src.tar.gz.sha256.asc" \
           ; do
             asset_id=$(printf '%s' "$resp" | jq -r --arg NAME "$NAME" '.assets[] | select(.name==$NAME) .id // empty')
             if [ -n "$asset_id" ]; then
@@ -281,6 +287,24 @@ jobs:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
           asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux-cmake-src.tar.gz.sha256"
           asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux-cmake-src.tar.gz.sha256"
+          asset_content_type: text/plain
+
+      - name: Upload Linux CMake step source package to Release
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux-cmake-src.tar.gz.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux-cmake-src.tar.gz.asc"
+          asset_content_type: application/gzip
+
+      - name: Upload Linux CMake step source package checksum to Release
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux-cmake-src.tar.gz.sha256.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux-cmake-src.tar.gz.sha256.asc"
           asset_content_type: text/plain
 
       - name: Upload Linux signature to Release (only if signing)
