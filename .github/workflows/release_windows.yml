@@ -120,6 +120,62 @@ jobs:
           $hash = Get-FileHash -Algorithm SHA256 "artifacts\fsm-$tag-windows.exe"
           "$($hash.Hash)  fsm-$tag-windows.exe" | Out-File -Encoding ascii "artifacts\fsm-$tag-windows.exe.sha256"
 
+          # --- CMake step source package ----------------------
+          $pkgName = "fsm-$tag-windows-cmake-src"
+          $pkgDir = Join-Path "artifacts" $pkgName
+
+          if (Test-Path $pkgDir) { Remove-Item -Recurse -Force $pkgDir }
+          New-Item -ItemType Directory -Path (Join-Path $pkgDir "bin") -Force | Out-Null
+
+          # Include pre-built binary in bin/
+          Copy-Item -Path "artifacts\fsm-$tag-windows.exe" -Destination (Join-Path $pkgDir "bin\fsm.exe") -Force
+
+          # Minimal CMake project that installs the bundled binary
+          @'
+cmake_minimum_required(VERSION 3.15)
+project(FSMLangTools LANGUAGES NONE)
+
+option(FSMLANGTOOLS_INSTALL_BINARY "Install the bundled fsm binary" ON)
+
+if(FSMLANGTOOLS_INSTALL_BINARY)
+  install(PROGRAMS "${CMAKE_CURRENT_LIST_DIR}/bin/fsm.exe" DESTINATION bin)
+endif()
+'@ | Out-File -Encoding ascii (Join-Path $pkgDir "CMakeLists.txt")
+
+          @'
+# FSMLang (CMake step package)
+
+This archive is intended to be consumed from CMake as a simple step/package.
+
+## Using FetchContent (example)
+
+```cmake
+include(FetchContent)
+
+FetchContent_Declare(
+  fsmlang_tools
+  URL https://github.com/FSMLang/FSMLang/releases/download/<TAG>/fsm-<TAG>-windows-cmake-src.tar.gz
+)
+FetchContent_MakeAvailable(fsmlang_tools)
+
+add_subdirectory(${fsmlang_tools_SOURCE_DIR} fsmlang_tools)
+
+Then run:
+- `cmake --build .`
+- `cmake --install .`
+
+'@ Out-File -Encoding ascii (Join-Path $pkgDir "README.cmake.md")
+
+    # Create .tar.gz (requires tar.exe, available on windows-latest)
+    $tgzPath = "artifacts\${pkgName}.tar.gz"
+    if (Test-Path $tgzPath) { Remove-Item -Force $tgzPath }
+    tar -C artifacts -czf $tgzPath $pkgName
+
+    # sha256 for the archive
+    $tgzHash = Get-FileHash -Algorithm SHA256 $tgzPath
+    "$($tgzHash.Hash)  ${pkgName}.tar.gz" | Out-File -Encoding ascii "artifacts\${pkgName}.tar.gz.sha256"
+    # --- end CMake step source package -------------------
+
       - name: Upload Exe
         uses: actions/upload-artifact@v4
         with:
@@ -137,6 +193,18 @@ jobs:
         with:
           name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256
           path: artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256
+
+      - name: Upload CMake step source package (tar.gz)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz
+          path: artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz
+
+      - name: Upload CMake step source package checksum (tar.gz.sha256)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.sha256
+          path: artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.sha256
 
   sign-and-publish:
     name: Sign Windows Artificts and Upload to Release
@@ -163,6 +231,44 @@ jobs:
           name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.sha256
           path: artifacts/
 
+      - name: Download Windows CMake step source package (tar.gz)
+        uses: actions/download-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz
+          path: artifacts/
+
+      - name: Download Windows CMake step source package checksum (sha256)
+        uses: actions/download-artifact@v4
+        with:
+          name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.sha256
+          path: artifacts/
+
+      - name: Install jq (for deletion step)
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Delete existing Windows release assets (if present)
+        run: |
+          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
+          echo "Checking release assets for tag $TAG"
+          resp=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/releases/tags/${TAG}")
+          for NAME in \
+            "fsm-${TAG}-windows.exe" \
+            "fsm-${TAG}-windows.exe.sha256" \
+            "fsm-${TAG}-windows.meta.txt" \
+            "fsm-${TAG}-windows-cmake-src.tar.gz" \
+            "fsm-${TAG}-windows-cmake-src.tar.gz.sha256" \
+          ; do
+            asset_id=$(printf '%s' "$resp" | jq -r --arg NAME "$NAME" '.assets[] | select(.name==$NAME) .id // empty')
+            if [ -n "$asset_id" ]; then
+              echo "Deleting existing asset $NAME (id $asset_id)"
+              curl -s -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/assets/$asset_id"
+            else
+              echo "No existing asset named $NAME"
+            fi
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Upload Windows binary to Release
         uses: actions/upload-release-asset@v1
         with:
@@ -185,6 +291,22 @@ jobs:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
           asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.meta.txt"
           asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.meta.txt"
+          asset_content_type: text/plain
+
+      - name: Upload Windows CMake step source package to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz"
+          asset_content_type: application/gzip
+
+      - name: Upload Windows CMake step source package checksum to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.sha256"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.sha256"
           asset_content_type: text/plain
 
       - name: Upload Windows signature to Release (only if signing)
@@ -241,6 +363,8 @@ jobs:
           - Windows binary: fsm-${TAG}-windows.exe
           - Windows checksum: fsm-${TAG}-windows.exe.sha256
           - Windows metadata: fsm-${TAG}-windows.meta.txt
+          - Windows CMake step source package: fsm-${TAG}-windows-cmake-src.tar.gz
+          - Windows CMake step source package checksum: fsm-${TAG}-windows-cmake-src.tar.gz.sha256
           - Windows signature (optional): fsm-${TAG}-windows.exe.asc
           - Windows checksum signature (optional): fsm-${TAG}-windows.exe.sha256.asc
           - Windows metadata signature (optional): fsm-${TAG}-windows.meta.txt.asc
@@ -251,6 +375,8 @@ jobs:
           - Windows binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe
           - Windows checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe.sha256
           - Windows metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.meta.txt
+          - Windows CMake step source package: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows-cmake-src.tar.gz
+          - Windows CMake step source package checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows-cmake-src.tar.gz.sha256
           
           EOF
 
