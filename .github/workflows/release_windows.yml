@@ -159,12 +159,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(fsmlang_tools)
 
 add_subdirectory(${fsmlang_tools_SOURCE_DIR} fsmlang_tools)
+```
 
 Then run:
 - `cmake --build .`
 - `cmake --install .`
 
-'@ Out-File -Encoding ascii (Join-Path $pkgDir "README.cmake.md")
+'@ | Out-File -Encoding ascii (Join-Path $pkgDir "README.cmake.md")
 
     # Create .tar.gz (requires tar.exe, available on windows-latest)
     $tgzPath = "artifacts\${pkgName}.tar.gz"
