@@ -37,16 +37,25 @@ ID_INFO a2 = {
 ID_INFO a3 = {
 	.name = "a3"
 };
-ID_INFO t1 = {
+ID_INFO pid_t1 = {
 	.name = "t1"
 	, .type = TRANSITION_FN
 };
-ID_INFO t2 = {
+TRANSITION_DATA t1 = {
+	.name = &pid_t1
+};
+ID_INFO pid_t2 = {
 	.name = "t2"
 	, .type = TRANSITION_FN
 };
-ID_INFO t3 = {
+TRANSITION_DATA t2 = {
+	.name = &pid_t2
+};
+ID_INFO pid_t3 = {
 	.name = "t3"
 	, .type = TRANSITION_FN
+};
+TRANSITION_DATA t3 = {
+	.name = &pid_t3
 };
 

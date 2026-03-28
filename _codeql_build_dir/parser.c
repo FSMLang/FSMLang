@@ -2201,7 +2201,7 @@ yyreduce:
 
 			if ((yyvsp[0].action_info)->transition)
 			{
-				switch ((yyvsp[0].action_info)->transition->type)
+				switch ((yyvsp[0].action_info)->transition->name->type)
 				{
  				case STATE:
 						if (NULL == add_unique_to_list((yyval.pactions_and_transitions)->transition_list, (yyvsp[0].action_info)->transition))
@@ -2305,7 +2305,7 @@ yyreduce:
 
 			if ((yyvsp[0].action_info)->transition)
 			{
-				switch ((yyvsp[0].action_info)->transition->type)
+				switch ((yyvsp[0].action_info)->transition->name->type)
 				{
  				case STATE:
 						if (NULL == add_unique_to_list((yyval.pactions_and_transitions)->transition_list, (yyvsp[0].action_info)->transition))
@@ -2546,7 +2546,7 @@ yyreduce:
 						if ((yyvsp[0].action_info)->transition)
 						{
 
-							switch ((yyvsp[0].action_info)->transition->type)
+							switch ((yyvsp[0].action_info)->transition->name->type)
 							{
  							case STATE:
 									if (NULL == add_unique_to_list((yyval.paction_decl)->transition_list, (yyvsp[0].action_info)->transition))
@@ -2587,7 +2587,7 @@ yyreduce:
 
 						if ((yyvsp[0].action_info)->transition)
 						{
-							switch ((yyvsp[0].action_info)->transition->type)
+							switch ((yyvsp[0].action_info)->transition->name->type)
 							{
  							case STATE:
 									if (NULL == add_unique_to_list((yyval.paction_decl)->transition_list, (yyvsp[0].action_info)->transition))

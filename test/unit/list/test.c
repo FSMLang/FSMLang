@@ -26,43 +26,52 @@ struct _comparitor_helper_
 bool comparitor         (pLIST_ELEMENT,void*);
 bool print_id_info_name (pLIST_ELEMENT,void*);
 bool print_pelem        (pLIST_ELEMENT,void*);
+bool match_on_name      (pLIST_ELEMENT,void*);
 ORDER_ENUM alphabetical (pLIST_ELEMENT,void*);
 
-bool add_to_list_test  (void);
-bool join_lists        (void);
-bool finder_test_0     (void);
-bool finder_test_1     (void);
-bool finder_test_2     (void);
-bool finder_test_3     (void);
-bool finder_test_4     (void);
-bool finder_test_5     (void);
-bool copy_test_1       (void);
-bool copy_test_2       (void);
-bool copy_test_3       (void);
-bool copy_test_4       (void);
-bool copy_test_5       (void);
-bool copy_test_6       (void);
-bool remove_head       (void);
-bool remove_tail       (void);
-bool remove_middle     (void);
-bool remove_first      (void);
-bool remove_last       (void);
-bool remove_second     (void);
-bool remove_too_many   (void);
-bool reverse_iterate   (void);
-bool reverse_find_tl   (void);
-bool reverse_find_hd   (void);
-bool reverse_find_mid  (void);
-bool find_member       (void);
-bool do_not_find_member(void);
-bool add_ordered_middle(void);
-bool add_ordered_end   (void);
-bool add_ordered_first (void);
-bool add_ordered_empty (void);
+bool add_to_list_test                     (void);
+bool add_unique_to_list_test              (void);
+bool add_unique_to_list_with_test_test    (void);
+bool add_unique_to_list_with_test_test_new(void);
+bool join_lists                           (void);
+bool join_lists_unique                    (void);
+bool finder_test_0                        (void);
+bool finder_test_1                        (void);
+bool finder_test_2                        (void);
+bool finder_test_3                        (void);
+bool finder_test_4                        (void);
+bool finder_test_5                        (void);
+bool copy_test_1                          (void);
+bool copy_test_2                          (void);
+bool copy_test_3                          (void);
+bool copy_test_4                          (void);
+bool copy_test_5                          (void);
+bool copy_test_6                          (void);
+bool remove_head                          (void);
+bool remove_tail                          (void);
+bool remove_middle                        (void);
+bool remove_first                         (void);
+bool remove_last                          (void);
+bool remove_second                        (void);
+bool remove_too_many                      (void);
+bool reverse_iterate                      (void);
+bool reverse_find_tl                      (void);
+bool reverse_find_hd                      (void);
+bool reverse_find_mid                     (void);
+bool find_member                          (void);
+bool do_not_find_member                   (void);
+bool add_ordered_middle                   (void);
+bool add_ordered_end                      (void);
+bool add_ordered_first                    (void);
+bool add_ordered_empty                    (void);
 
 TEST_FN tests[] = {
 	add_to_list_test
+	, add_unique_to_list_test
+	, add_unique_to_list_with_test_test
+	, add_unique_to_list_with_test_test_new
 	, join_lists
+	, join_lists_unique
 	, finder_test_0
 	, finder_test_1
 	, finder_test_2
@@ -188,6 +197,15 @@ bool anti_comparitor(pLIST_ELEMENT pelem, void *data)
    return !pch->identical;
 }
 
+bool match_on_name(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO pon_list = (pID_INFO) pelem->mbr;
+	pID_INFO pnew     = (pID_INFO) data;
+
+	// true means we've found our match
+	return !strcmp(pon_list->name, pnew->name);
+}
+
 bool add_to_list_test()
 {
 	unsigned id_info_counter;
@@ -208,6 +226,92 @@ bool add_to_list_test()
 	iterate_list(pthe_list,print_id_info_name,pthe_list);
 
 	return id_info_counter == pthe_list->count;
+
+}
+
+bool add_unique_to_list_test()
+{
+	unsigned id_info_counter;
+	pLIST_ELEMENT pelem;
+
+	printf("\n%s\n", __func__);
+ 
+	/* initialize the first list */
+	pLIST pthe_list = init_list();
+
+	/* load up the list */
+	for (id_info_counter = 0; id_info_counter < id_info_count_0; id_info_counter++)
+	{
+		add_to_list(pthe_list, &id_infos_0[id_info_counter]);
+	}
+	
+	pelem = add_unique_to_list(pthe_list, &id_infos_0[0]);
+
+	printf("id info list count %u\n", pthe_list->count);
+
+	iterate_list(pthe_list,print_id_info_name,pthe_list);
+
+	return (id_info_counter == pthe_list->count)
+          && (pelem == pthe_list->head)
+          ;
+
+}
+
+bool add_unique_to_list_with_test_test()
+{
+	unsigned id_info_counter;
+	pLIST_ELEMENT pelem;
+	ID_INFO new_id = {.name = "0 - three" };
+
+	printf("\n%s\n", __func__);
+ 
+	/* initialize the first list */
+	pLIST pthe_list = init_list();
+
+	/* load up the list */
+	for (id_info_counter = 0; id_info_counter < id_info_count_0; id_info_counter++)
+	{
+		add_to_list(pthe_list, &id_infos_0[id_info_counter]);
+	}
+	
+	pelem = add_unique_to_list_with_test(pthe_list, &new_id, match_on_name);
+
+	printf("id info list count %u\n", pthe_list->count);
+
+	iterate_list(pthe_list,print_id_info_name,pthe_list);
+
+	return (id_info_counter == pthe_list->count)
+          && (pelem == pthe_list->tail)
+          ;
+
+}
+
+bool add_unique_to_list_with_test_test_new()
+{
+	unsigned id_info_counter;
+	pLIST_ELEMENT pelem;
+	ID_INFO new_id = {.name = "1 - three" };
+
+	printf("\n%s\n", __func__);
+ 
+	/* initialize the first list */
+	pLIST pthe_list = init_list();
+
+	/* load up the list */
+	for (id_info_counter = 0; id_info_counter < id_info_count_0; id_info_counter++)
+	{
+		add_to_list(pthe_list, &id_infos_0[id_info_counter]);
+	}
+	
+	pelem = add_unique_to_list_with_test(pthe_list, &new_id, match_on_name);
+
+	printf("id info list count %u\n", pthe_list->count);
+
+	iterate_list(pthe_list,print_id_info_name,pthe_list);
+
+	return ((id_info_counter + 1) == pthe_list->count)
+          && (pelem == pthe_list->tail)
+          ;
 
 }
 
@@ -266,6 +370,60 @@ bool join_lists()
 						&& (pthe_second_list->tail  == NULL)
 						&& (pthe_second_list->count == 0)
 						&& (pthe_first_list->count  == (id_info_counter_0 + id_info_counter_1))
+         );
+}
+
+bool join_lists_unique()
+{
+	unsigned id_info_counter_0;
+ 
+	printf("\n%s\n", __func__);
+
+	/* initialize the first list */
+	pLIST pthe_first_list = init_list();
+
+	/* load up the list */
+	for (id_info_counter_0 = 0; id_info_counter_0 < id_info_count_0; id_info_counter_0++)
+	{
+		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
+	}
+	
+	printf("id info list count %u\n", pthe_first_list->count);
+
+	iterate_list(pthe_first_list,print_id_info_name,pthe_first_list);
+
+	/* initialize the second list */
+	pLIST pthe_second_list = init_list();
+
+	/* load up the list with the same data */
+	for (id_info_counter_0 = 0; id_info_counter_0 < id_info_count_0; id_info_counter_0++)
+	{
+		add_to_list(pthe_second_list, &id_infos_0[id_info_counter_0]);
+	}
+	
+	printf("id info list count %u\n", pthe_second_list->count);
+
+	iterate_list(pthe_second_list,print_id_info_name,pthe_second_list);
+
+	printf("join the lists\n");
+	pLIST pdest = move_list_unique(pthe_first_list, pthe_second_list);
+
+	iterate_list(pthe_first_list,print_id_info_name,pthe_first_list);
+
+	printf("pdest %p; pthe_first_list %p\n"
+					, (void*) pdest
+					, (void*) pthe_first_list
+				);
+
+	printf("pthe_second_list:\n\thead: %p\n\ttail: %p\n\tcount: %u\n"
+					, (void*) pthe_second_list->head
+					, (void*) pthe_second_list->tail
+					, pthe_second_list->count
+					);
+
+	return (
+						   (pdest == pthe_first_list)
+						&& (pthe_first_list->count  == id_info_counter_0)
          );
 }
 
