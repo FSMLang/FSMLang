@@ -336,6 +336,8 @@ jobs:
           - Linux binary: fsm-${TAG}-linux
           - Linux checksum: fsm-${TAG}-linux.sha256
           - Linux metadata: fsm-${TAG}-linux.meta.txt
+          - Linux CMake step source package: fsm-${TAG}-linux-cmake-src.tar.gz
+          - Linux CMake step source package checksum: fsm-${TAG}-linux-cmake-src.tar.gz.sha256
           - Linux signature (optional): fsm-${TAG}-linux.asc
           - Linux checksum signature (optional): fsm-${TAG}-linux.sha256.asc
           - Linux metadata signature (optional): fsm-${TAG}-linux.meta.txt.asc
@@ -346,6 +348,8 @@ jobs:
           - Linux binary: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux
           - Linux checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.sha256
           - Linux metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux.meta.txt
+          - Linux CMake step source package: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux-cmake-src.tar.gz
+          - Linux CMake step source package checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-linux-cmake-src.tar.gz.sha256
           
           EOF
 
