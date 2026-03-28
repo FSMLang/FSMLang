@@ -9,6 +9,18 @@ from transitions import Machine
 
 class NarcolepticSuperhero(object):
 
+
+
+	@property
+	def choose_asleep(self):
+		return True
+
+
+	@property
+	def choose_hanging_out(self):
+		return False
+
+
 	states = ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
 	transitions = [
 	               {'trigger': 'distress_call'
@@ -27,9 +39,13 @@ class NarcolepticSuperhero(object):
 	               , {'trigger': 'clean_up'
 	                 , 'source': 'sweaty'
 	                 , 'dest': 'asleep'
-	                 , 'conditions': ['is_exhausted']
+	                 , 'conditions': ['choose_asleep']
 	                 }
-	               , ['clean_up', 'sweaty', 'hanging_out']
+	               , {'trigger': 'clean_up'
+	                 , 'source': 'sweaty'
+	                 , 'dest': 'hanging_out'
+	                 , 'conditions': ['choose_hanging_out']
+	                 }
 	               ]
 
 	def __init__(self):
@@ -42,9 +58,4 @@ class NarcolepticSuperhero(object):
 
 	def update_journal(self):
 		print('update_journal')
-
-
-	@property
-	def is_exhausted(self):
-		return True
 
