@@ -384,6 +384,7 @@ Then run:
           asset_content_type: text/plain
 
       - name: Upload Windows CMake step source package signature (only if signing) to Release
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
@@ -392,6 +393,7 @@ Then run:
           asset_content_type: text/plain
 
       - name: Upload Windows CMake step source package checksum signature (only if signing) to Release
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
