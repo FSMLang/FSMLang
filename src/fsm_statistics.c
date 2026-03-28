@@ -548,9 +548,21 @@ static bool write_matrix(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
+/**
+ * Print our name iff our sub-machine depth matches that
+ * requested.
+ * 
+ * @author Steven Stanton (3/28/2026)
+ * 
+ * @param pmi    Pointer to our machine info.
+ *
+ * It is required that the caller ensure that
+ * find_on_sub_machine_depth is greater than
+ * -1.
+ */
 static void do_find_on_sub_machine_depth(pMACHINE_INFO pmi)
 {
-	if (pmi->sub_machine_depth == find_on_sub_machine_depth)
+	if (pmi->sub_machine_depth == (unsigned) find_on_sub_machine_depth)
 	{
 		printf("%s.fsm\n"
 			   , inputFileName
