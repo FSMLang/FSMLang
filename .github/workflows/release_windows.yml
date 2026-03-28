@@ -82,14 +82,6 @@ jobs:
           ref: refs/tags/${{ needs.resolve-upload-url.outputs.tag }}
           fetch-depth: 0
 
-      - name: Check if signing is enabled (Windows)
-        id: check_signing
-        shell: pwsh
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-        run: |
-          if ($env:GPG_PRIVATE_KEY) { "sign=true" >> $env:GITHUB_OUTPUT } else { "sign=false" >> $env:GITHUB_OUTPUT }
-
       - name: Install packages (Windows)
         run: choco install winflexbison3 -y --execution-timeout=5400
 
@@ -214,6 +206,14 @@ Then run:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: Check if signing is enabled (Windows)
+        id: check_signing
+        shell: pwsh
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          if ($env:GPG_PRIVATE_KEY) { "sign=true" >> $env:GITHUB_OUTPUT } else { "sign=false" >> $env:GITHUB_OUTPUT }
+
       - name: Install GnuPG (only if signing)
         if: ${{ steps.check_signing.outputs.sign == 'true' }}
         run: sudo apt-get update && sudo apt-get install -y gnupg
