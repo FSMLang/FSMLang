@@ -441,8 +441,8 @@ Then run:
           - Windows signature (optional): fsm-${TAG}-windows.exe.asc
           - Windows checksum signature (optional): fsm-${TAG}-windows.exe.sha256.asc
           - Windows metadata signature (optional): fsm-${TAG}-windows.meta.txt.asc
-          - Windows CMake step source package signature (optional): fsm-${TAG}-windows-cmake-src.tar.gz
-          - Windows CMake step source package checksum signature (optional): fsm-${TAG}-windows-cmake-src.tar.gz.sha256
+          - Windows CMake step source package signature (optional): fsm-${TAG}-windows-cmake-src.tar.gz.asc
+          - Windows CMake step source package checksum signature (optional): fsm-${TAG}-windows-cmake-src.tar.gz.sha256.asc
           
           Download URLs (GitHub release assets)
           -------------------------------------
