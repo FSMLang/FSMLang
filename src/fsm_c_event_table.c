@@ -781,7 +781,7 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_are(FI
 				);
 
 		print_transition_for_assignment_to_state_var(pmi
-													 , pai->transition
+													 , pai->transition->name
 													 , pevent->name
 													 , fout
 													 );
@@ -844,7 +844,7 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_arv(FI
 				);
 
 		print_transition_for_assignment_to_state_var(pmi
-													 , pai->transition
+													 , pai->transition->name
 													 , pevent->name
 													 , fout
 													 );
@@ -897,7 +897,7 @@ static void print_event_table_handler_body_for_single_state_or_pai_events_ars(FI
 				);
 
 		print_transition_for_assignment_to_state_var(pmi
-													 , pai->transition
+													 , pai->transition->name
 													 , pevent->name
 													 , fout
 													 );
@@ -1160,7 +1160,7 @@ static bool print_event_table_handler_state_case_are(pLIST_ELEMENT pelem, void *
 					  : "pfsm->state"
 					);
 			print_transition_for_assignment_to_state_var(pich->pcmd->pmi
-														 , pai->transition
+														 , pai->transition->name
 														 , pevent->name
 														 , fout);
 			fprintf(fout, ";\n");
@@ -1244,7 +1244,7 @@ static bool print_event_table_handler_state_case_arv(pLIST_ELEMENT pelem, void *
 					  : "pfsm->state"
 					);
 			print_transition_for_assignment_to_state_var(pich->pcmd->pmi
-														 , pai->transition
+														 , pai->transition->name
 														 , pevent->name
 														 , fout);
 			fprintf(fout, ";\n");
@@ -1310,7 +1310,7 @@ static bool print_event_table_handler_state_case_ars(pLIST_ELEMENT pelem, void *
 					, "\t\t\tstate = "
 					);
 			print_transition_for_assignment_to_state_var(pich->pcmd->pmi
-														 , pai->transition
+														 , pai->transition->name
 														 , pevent->name
 														 , fout);
 			fprintf(fout, ";\n");

@@ -83,6 +83,7 @@ void yyerror(char *);
  pNATIVE_INFO             pnative_info;
  pEVENT_SEQUENCE          psequence;
  pEVENT_SEQUENCE_NODE     pevent_sequence_node;
+ pTRANSITION_DATA         ptransition;
 }
 
 %token ON NAMESPACE STATE_KEY EVENT_KEY PROLOGUE_KEY EPILOGUE_KEY
@@ -105,6 +106,7 @@ void yyerror(char *);
 %token <pid_info> EVENT
 %token <pid_info> ACTION
 %token <pid_info> TRANSITION_FN
+%token <pid_info> TRANSITION_CONDITION
 %token <pid_info> ID
 %token <charData> NUMERIC_STRING
 %token <pid_info> TYPE_NAME
@@ -122,7 +124,7 @@ void yyerror(char *);
 %type <plist>                    state_decl_list
 %type <plist>                    event_decl_list
 %type <pstate_and_event_decls>   state_and_event_decls
-%type <pid_info>                 transition
+%type <ptransition>              transition
 %type <pid_info>                 external_designation
 %type <action_info>              action_matrix
 %type <action_info>              action
@@ -834,15 +836,21 @@ actions_and_transitions:
 
 			if ($1->transition)
 			{
-				switch ($1->transition->type)
+				switch ($1->transition->name->type)
 				{
  				case STATE:
-						if (NULL == add_unique_to_list($$->transition_list, $1->transition))
+						if (NULL == add_unique_to_list_with_test($$->transition_list
+                                                     , $1->transition
+                                                     , match_transition
+                                                     ))
  						yyerror("out of memory");
  					break;
 
  				case TRANSITION_FN:
-						if (NULL == add_unique_to_list($$->transition_fn_list, $1->transition))
+						if (NULL == add_unique_to_list_with_test($$->transition_fn_list
+                                                     , $1->transition
+                                                     , match_transition
+                                                     ))
  						yyerror("out of memory");
  					break;
 
@@ -902,10 +910,16 @@ actions_and_transitions:
  		move_list($1->action_info_list, $2->action_info_list);
  		free($2->action_info_list);
 
- 		move_list_unique($1->transition_list, $2->transition_list);
+ 		move_list_unique_with_test($1->transition_list
+                               , $2->transition_list
+                               , match_transition
+                               );
  		free_list($2->transition_list);
 
- 		move_list_unique($1->transition_fn_list, $2->transition_fn_list);
+ 		move_list_unique_with_test($1->transition_fn_list
+                               , $2->transition_fn_list
+                               , match_transition
+                               );
  		free_list($2->transition_fn_list);
 
  		free($2);
@@ -922,15 +936,21 @@ actions_and_transitions:
 
 			if ($2->transition)
 			{
-				switch ($2->transition->type)
+				switch ($2->transition->name->type)
 				{
  				case STATE:
-						if (NULL == add_unique_to_list($$->transition_list, $2->transition))
+						if (NULL == add_unique_to_list_with_test($$->transition_list
+                                                     , $2->transition
+                                                     , match_transition
+                                                     ))
  						yyerror("out of memory");
  					break;
 
  				case TRANSITION_FN:
-						if (NULL == add_unique_to_list($$->transition_fn_list, $2->transition))
+						if (NULL == add_unique_to_list_with_test($$->transition_fn_list
+                                                     , $2->transition
+                                                     , match_transition
+                                                     ))
  						yyerror("out of memory");
  					break;
 
@@ -1056,7 +1076,14 @@ transition_matrix:	transition_matrix_start STATE ';'
 
            $$ = $1;
 
-						$$->transition = $2;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->transition->name = $2;
 
 					}
    | transition_matrix_start STATE CONDITION_KEY ID ';'
@@ -1068,27 +1095,36 @@ transition_matrix:	transition_matrix_start STATE ';'
                     );
 						#endif
 
-           set_id_type($4,TRANSITION_FN);
-           $2->type_data.transition_data.is_conditional = true;
-           $2->type_data.transition_data.condition_fn = $4;
+           set_id_type($4,TRANSITION_CONDITION);
 
-						$$->transition = $2;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->transition->name = $2;
+						$$->transition->condition_fn = $4;
 
 					}
-   | transition_matrix_start STATE CONDITION_KEY TRANSITION_FN ';'
+   | transition_matrix_start STATE CONDITION_KEY TRANSITION_CONDITION ';'
 					{
 
 						#ifdef PARSER_DEBUG
-						fprintf(yyout,"found a transition matrix with transition function\n"
+						fprintf(yyout,"found a transition matrix with condition function\n"
                     );
 						#endif
 
-           if (!$2->type_data.transition_data.is_conditional)
-            yyerror("Transition function is not conditional.");
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
 
-           $2->type_data.transition_data.condition_fn = $4;
+							yyerror("out of memory");
 
-						$$->transition = $2;
+						$$->transition->name = $2;
+						$$->transition->condition_fn = $4;
 
 					}
    | transition_matrix_start ID ';'
@@ -1100,7 +1136,14 @@ transition_matrix:	transition_matrix_start STATE ';'
 
            set_id_type($2,TRANSITION_FN);
 
-						$$->transition = $2;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->transition->name = $2;
 
 					}
    | transition_matrix_start TRANSITION_FN ';'
@@ -1110,7 +1153,14 @@ transition_matrix:	transition_matrix_start STATE ';'
 						fprintf(yyout,"found a transition matrix with known transition function\n");
 						#endif
 
-						$$->transition = $2;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->transition->name = $2;
 
         }
    | guard_matrix_start ID ';'
@@ -1122,7 +1172,14 @@ transition_matrix:	transition_matrix_start STATE ';'
 
            set_id_type($2,TRANSITION_FN);
 
-						$$->transition = $2;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->transition->name = $2;
 
 					}
    | guard_matrix_start TRANSITION_FN ';'
@@ -1132,7 +1189,14 @@ transition_matrix:	transition_matrix_start STATE ';'
 						fprintf(yyout,"found a transition matrix with known transition function\n");
 						#endif
 
-						$$->transition = $2;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->transition->name = $2;
 
         }
 	;
@@ -1182,15 +1246,21 @@ action_decl_list: ACTION_KEY action
 						if ($2->transition)
 						{
 
-							switch ($2->transition->type)
+							switch ($2->transition->name->type)
 							{
  							case STATE:
-									if (NULL == add_unique_to_list($$->transition_list, $2->transition))
+						      if (NULL == add_unique_to_list_with_test($$->transition_list
+                                                           , $2->transition
+                                                           , match_transition
+                                                           ))
  									yyerror("out of memory");
  								break;
 
  							case TRANSITION_FN:
-									if (NULL == add_unique_to_list($$->transition_fn_list, $2->transition))
+						      if (NULL == add_unique_to_list_with_test($$->transition_fn_list
+                                                           , $2->transition
+                                                           , match_transition
+                                                           ))
  									yyerror("out of memory");
  								break;
 
@@ -1220,15 +1290,21 @@ action_decl_list: ACTION_KEY action
 
 						if ($3->transition)
 						{
-							switch ($3->transition->type)
+							switch ($3->transition->name->type)
 							{
  							case STATE:
-									if (NULL == add_unique_to_list($$->transition_list, $3->transition))
- 									yyerror("out of memory");
+						      if (NULL == add_unique_to_list_with_test($$->transition_list
+                                                           , $3->transition
+                                                           , match_transition
+                                                           ))
+ 									      yyerror("out of memory");
  								break;
 
  							case TRANSITION_FN:
-									if (NULL == add_unique_to_list($$->transition_fn_list, $3->transition))
+						    if (NULL == add_unique_to_list_with_test($$->transition_fn_list
+                                                         , $3->transition
+                                                         , match_transition
+                                                         ))
  									yyerror("out of memory");
  								break;
 
@@ -1271,7 +1347,14 @@ transition: TRANSITION_KEY STATE
 						fprintf(yyout,"found a transition to known state\n");
 						#endif
 
-						$$ = $2;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$ = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->name = $2;
 
 					}
   | TRANSITION_KEY STATE CONDITION_KEY ID
@@ -1281,26 +1364,35 @@ transition: TRANSITION_KEY STATE
 						fprintf(yyout,"found a conditional transition with new function\n");
 						#endif
 
-           set_id_type($4,TRANSITION_FN);
-           $2->type_data.transition_data.is_conditional = true;
-           $2->type_data.transition_data.condition_fn = $4;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$ = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
 
-						$$ = $2;
+							yyerror("out of memory");
+
+           set_id_type($4,TRANSITION_CONDITION);
+
+						$$->name = $2;
+            $$->condition_fn = $4;
 
 					}
-  | TRANSITION_KEY STATE CONDITION_KEY TRANSITION_FN
+  | TRANSITION_KEY STATE CONDITION_KEY TRANSITION_CONDITION
 					{
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a conditional transition with existing function\n");
 						#endif
 
-           if (!$2->type_data.transition_data.is_conditional)
-            yyerror("Transition function is not conditional.");
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$ = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
 
-           $2->type_data.transition_data.condition_fn = $4;
+							yyerror("out of memory");
 
-						$$ = $2;
+						$$->name = $2;
+            $$->condition_fn = $4;
 
 					}
   | TRANSITION_KEY ID
@@ -1310,8 +1402,16 @@ transition: TRANSITION_KEY STATE
 						fprintf(yyout,"found a transition with new function\n");
 						#endif
 
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$ = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
            set_id_type($2,TRANSITION_FN);
-						$$ = $2;
+
+						$$->name = $2;
 
 					}
   | TRANSITION_KEY TRANSITION_FN
@@ -1321,7 +1421,14 @@ transition: TRANSITION_KEY STATE
 						fprintf(yyout,"found a transition with known function\n");
 						#endif
 
-						$$ = $2;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$ = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->name = $2;
 
 					}
   | GUARD_KEY ID
@@ -1331,8 +1438,16 @@ transition: TRANSITION_KEY STATE
 						fprintf(yyout,"found a transition with new function\n");
 						#endif
 
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$ = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
            set_id_type($2,TRANSITION_FN);
-						$$ = $2;
+           
+						$$->name = $2;
 
 					}
   | GUARD_KEY TRANSITION_FN
@@ -1342,7 +1457,14 @@ transition: TRANSITION_KEY STATE
 						fprintf(yyout,"found a transition with known function\n");
 						#endif
 
-						$$ = $2;
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (($$ = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						$$->name = $2;
 
 					}
 	;

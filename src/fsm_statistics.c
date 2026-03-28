@@ -538,7 +538,7 @@ static bool write_matrix(pLIST_ELEMENT pelem, void *data)
 		if (pai->transition)
 		{
 			printf(" transition %s"
-				   , pai->transition->name
+				   , pai->transition->name->name
 				   );
 		}
 

@@ -40,6 +40,7 @@
 #include "fsm_python_transitions.h"
 #include "util_file_inclusion.h"
 #include "action_info_list.h"
+#include "y.tab.h"
 
 
 #if defined (CYGWIN) || defined (LINUX)
@@ -66,7 +67,11 @@ static bool print_consolidated_action_info(pLIST_ELEMENT,void*);
 static bool print_matrices(pLIST_ELEMENT,void*);
 static bool print_trigger(pLIST_ELEMENT,void*);
 static bool print_action_stubs(pLIST_ELEMENT,void*);
+static bool print_any_conditional_stubs(pLIST_ELEMENT,void*);
+static bool print_transition_fn_return_option(pLIST_ELEMENT,void*);
 static void print_transition_as_dict(pID_INFO,pITERATOR_HELPER);
+static void print_simple_transition_as_dict(pID_INFO,pITERATOR_HELPER);
+static void print_transition_fn_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_transition_as_list(pID_INFO,pITERATOR_HELPER);
 
 typedef struct _fsm_pytransitions_output_generator_ FSMPyTransitionsOutputGenerator, *pFSMPyTransitionsOutputGenerator;
@@ -236,14 +241,14 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 	}
 
 	fprintf(fout
-			, "from Transitions import Machine\n"
+			, "from transitions import Machine\n"
 			);
 
-	if (pmi->native_impl_prologue)
+	if (pmi->native_prologue)
 	{
 		fprintf(fout
 				, "%s\n"
-				, pmi->native_impl_prologue
+				, pmi->native_prologue
 			   );
 	}
 
@@ -251,6 +256,15 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 			, "\nclass %s(object):\n\n"
 			, pmi->name->name
 			);
+
+	// Write any native implementation block
+	if (pmi->native_impl_prologue)
+	{
+		fprintf(fout
+				, "\n%s\n"
+				, pmi->native_impl_prologue
+				);
+	}
 
 	// Write the states
 	fprintf(fout
@@ -293,8 +307,10 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 			);
 
 	fprintf(fout
-			, "\t\tself.machine = Machine(states=self.states, "
-			  "transitions=self.transitions, initial='%s')\n"
+			, "\t\tself.machine = Machine(model=self, states=%s.states, "
+			  "transitions=%s.transitions, initial='%s')\n"
+			, pmi->name->name
+			, pmi->name->name
 			, stateNameByIndex(pmi, 0)
 			);
 
@@ -307,6 +323,11 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 	{
 		iterate_list(pmi->action_list
 					 , print_action_stubs
+					 , &ih
+					 );
+
+		iterate_list(pmi->transition_list
+					 , print_any_conditional_stubs
 					 , &ih
 					 );
 	}
@@ -375,7 +396,8 @@ static bool print_trigger(pLIST_ELEMENT pelem, void *data)
 
 	if (
 		(pih->pai->action && strlen(pih->pai->action->name))
-		|| pih->pai->transition->type_data.transition_data.is_conditional
+		|| pih->pai->transition->condition_fn
+		|| (pih->pai->transition->name->type == TRANSITION_FN)
 		)
 	{
 		print_transition_as_dict(pevent, pih);
@@ -419,12 +441,26 @@ static void print_transition_as_list(pID_INFO pevent, pITERATOR_HELPER pih)
 
 	fprintf(pih->fout
 			, ", '%s']\n"
-			, pih->pai->transition ? pih->pai->transition->name : "None"
+			, pih->pai->transition ? pih->pai->transition->name->name : "None"
 			);
 
 }
 
 static void print_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
+{
+	if (!pih->pai->transition
+		|| (pih->pai->transition && pih->pai->transition->name->type == STATE)
+		)
+	{
+		print_simple_transition_as_dict(pevent, pih);
+	}
+	else
+	{
+		print_transition_fn_as_dict(pevent, pih);
+	}
+}
+
+static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 {
 	pMATRIX_INFO     pmi    = (pMATRIX_INFO) pih->pOtherElem->mbr;
 
@@ -456,16 +492,20 @@ static void print_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 	if (pmi->state_list->count > 1)
 	{
 		fprintf(pih->fout
-				, "]\n"
+				, "]"
 				);
 	}
+
+	fprintf(pih->fout
+			, "\n"
+			);
 
 	fprintf(pih->fout
 			, "\t%*.*s  , 'dest': '%s'\n"
 			, transitions_str_len
 			, transitions_str_len
 			, " "
-			, pih->pai->transition ? pih->pai->transition->name : "None"
+			, pih->pai->transition ? pih->pai->transition->name->name : "None"
 			);
 
 	if (pih->pai->action->name && strlen(pih->pai->action->name))
@@ -481,25 +521,114 @@ static void print_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 
 	if (
 		pih->pai->transition
-		&& pih->pai->transition->type_data.transition_data.is_conditional
+		&& pih->pai->transition->condition_fn
 		)
 	{
 		fprintf(pih->fout
-				, "\t%*.*s , 'conditions': ['%s']\n"
+				, "\t%*.*s  , 'conditions': ['%s']\n"
 				, transitions_str_len
 				, transitions_str_len
 				, " "
-				, pih->pai->transition->type_data.transition_data.condition_fn->name
+				, pih->pai->transition->condition_fn->name
 				);
 	}
 
 	fprintf(pih->fout
-			, "\t%*.*s}\n"
+			, "\t%*.*s  }\n"
 			, transitions_str_len
 			, transitions_str_len
 			, " "
 			);
 
+}
+
+static void print_transition_fn_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
+{
+	pih->pid = pevent;
+	iterate_list(pih->pai->transition->name->transition_fn_returns_decl
+				 , print_transition_fn_return_option
+				 , pih
+				 );
+}
+
+static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO) pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+	pMATRIX_INFO     pmi    = (pMATRIX_INFO) pih->pOtherElem->mbr;
+	pID_INFO         pevent = pih->pid;
+
+	fprintf(pih->fout
+			, "\t%*.*s%s{'trigger': '%s'\n"
+			, transitions_str_len
+			, transitions_str_len
+			, " "
+			, pih->first ? "" : ", "
+			, pevent->name
+			);
+
+	fprintf(pih->fout
+			, "\t%*.*s  , 'source': %s"
+			, transitions_str_len
+			, transitions_str_len
+			, " "
+			, pmi->state_list->count > 1 ? "[" : ""
+			);
+
+	// To avoid creating our own callback helper, we re-use "first"
+	pih->first = true;
+	iterate_list(pmi->state_list
+				 , print_states
+				 , pih
+				 );
+	pih->first = false;
+
+	if (pmi->state_list->count > 1)
+	{
+		fprintf(pih->fout
+				, "]"
+				);
+	}
+
+	fprintf(pih->fout
+			, "\n"
+			);
+
+	fprintf(pih->fout
+			, "\t%*.*s  , 'dest': '%s'\n"
+			, transitions_str_len
+			, transitions_str_len
+			, " "
+			, pstate->name
+			);
+
+	if (pih->pai->action->name && strlen(pih->pai->action->name))
+	{
+		fprintf(pih->fout
+				, "\t%*.*s  , 'before': '%s'\n"
+				, transitions_str_len
+				, transitions_str_len
+				, " "
+				, pih->pai->action->name
+				);
+	}
+
+	fprintf(pih->fout
+			, "\t%*.*s  , 'conditions': ['choose_%s']\n"
+			, transitions_str_len
+			, transitions_str_len
+			, " "
+			, pstate->name
+			);
+
+	fprintf(pih->fout
+			, "\t%*.*s  }\n"
+			, transitions_str_len
+			, transitions_str_len
+			, " "
+			);
+
+	return false;
 }
 
 static bool print_action_stubs(pLIST_ELEMENT pelem, void *data)
@@ -513,6 +642,22 @@ static bool print_action_stubs(pLIST_ELEMENT pelem, void *data)
 				, "\n\tdef %s(self):\n\t\tprint('%s')\n\n"
 				, paction->name
 				, paction->name
+				);
+	}
+
+	return false;
+}
+
+static bool print_any_conditional_stubs(pLIST_ELEMENT pelem, void *data)
+{
+	pTRANSITION_DATA ptransition = (pTRANSITION_DATA) pelem->mbr;
+	pITERATOR_HELPER pih         = (pITERATOR_HELPER) data;
+
+	if (ptransition->condition_fn)
+	{
+		fprintf(pih->fout
+				, "\n\t@property\n\tdef %s(self):\n\t\treturn True\n\n"
+				, ptransition->condition_fn->name
 				);
 	}
 

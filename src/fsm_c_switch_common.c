@@ -45,7 +45,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-static bool            cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT,void*);
+static bool            cswitch_sub_machine_declare_transition_fn_are(pLIST_ELEMENT,void*);
 
 void cswitchMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 {
@@ -96,12 +96,12 @@ void cswitchMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
                 );
 
          iterate_list(pmi->transition_fn_list
-                      , declare_transition_fn_for_when_actions_return_states
+                      , declare_transition_fn_ars
                       , &ich
                       );
 
          iterate_list(pmi->transition_list
-                      , declare_state_only_transition_functions_for_when_actions_return_states
+                      , declare_state_only_transition_functions_ars
                       , &ich
                       );
       }
@@ -112,7 +112,7 @@ void cswitchMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
       if (pmi->transition_fn_list->count)
       {
          iterate_list(pmi->transition_fn_list
-                      , declare_transition_fn_for_when_actions_return_events
+                      , declare_transition_fn_are
                       , &ich
                       );
       }
@@ -377,10 +377,10 @@ void cswitchSubMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
    {
       if (pmi->transition_fn_list->count)
       {
-         print_transition_fn_declaration_for_when_actions_return_states(pcmd, pcmd->hFile, "noTransition");
+         print_transition_fn_declaration_ars(pcmd, pcmd->hFile, "noTransition");
 
          iterate_list(pmi->transition_fn_list
-                      , declare_transition_fn_for_when_actions_return_states
+                      , declare_transition_fn_ars
                       , &ich
                       );
       }
@@ -391,7 +391,7 @@ void cswitchSubMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
       if (pmi->transition_fn_list->count)
       {
          iterate_list(pmi->transition_fn_list
-                      , cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events
+                      , cswitch_sub_machine_declare_transition_fn_are
                       , &ich
                       );
       }
@@ -417,14 +417,14 @@ void cswitchSubMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 
 }
 
-static bool cswitch_sub_machine_declare_transition_fn_for_when_actions_return_events(pLIST_ELEMENT pelem, void *data)
+static bool cswitch_sub_machine_declare_transition_fn_are(pLIST_ELEMENT pelem, void *data)
 {
-   pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
-   pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+   pITERATOR_CALLBACK_HELPER pich        = ((pITERATOR_CALLBACK_HELPER)data);
+   pTRANSITION_DATA          ptransition = ((pTRANSITION_DATA)pelem->mbr);
 
    fprintf(pich->pcmd->hFile
 		   , "TR_FN_RETURN_TYPE UFMN(%s)(p%s,%s);\n"
-		   , pid_info->name
+		   , ptransition->name->name
 		   , fsmType(pich->pcmd)
 		   , eventType(pich->pcmd)
 		   );

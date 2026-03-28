@@ -193,9 +193,8 @@ struct _action_data_
 
 struct _transition_data_
 {
-	bool     is_conditional;
+	pID_INFO name;
 	pID_INFO condition_fn;
-	pLIST    padditional_transitions;
 };
 
 union _pid_type_data_
@@ -203,7 +202,6 @@ union _pid_type_data_
    EVENT_DATA      event_data;
    STATE_DATA      state_data;
    ACTION_DATA     action_data;
-   TRANSITION_DATA transition_data;
 };
 
 typedef enum
@@ -315,11 +313,12 @@ struct _matrix_info_ {
 
 struct _action_info_
 {
-	pID_INFO     action;
-	pMATRIX_INFO matrix;
-	pID_INFO     transition;
-	pACTION_INFO nextAction;
-	char         *docCmnt;
+	pID_INFO         action;
+	pMATRIX_INFO     matrix;
+	pTRANSITION_DATA transition;
+	pACTION_INFO     nextAction;
+	char             *docCmnt;
+	pLIST            padditional_transitions;
 }; 
 
 
@@ -537,8 +536,9 @@ bool print_sub_machine_event_names(pLIST_ELEMENT,void*);
 bool print_data_field(pLIST_ELEMENT,void*);
 bool print_event_sequence(pLIST_ELEMENT,void*);
 bool print_event_sequence_event(pLIST_ELEMENT,void*);
+bool match_transition(pLIST_ELEMENT,void*);
 char *create_string_from_file(FILE*,unsigned long*);
-pID_INFO get_transition(pMACHINE_INFO,unsigned,unsigned);
+pTRANSITION_DATA get_transition(pMACHINE_INFO,unsigned,unsigned);
 pID_INFO get_action(pMACHINE_INFO,unsigned,unsigned);
 char *create_sequence_name(unsigned);
 
