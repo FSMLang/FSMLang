@@ -139,14 +139,14 @@ The events :
 
 The actions :
 	x1
-		which occurs in these events
+		which occurs for these events
 				y1
-		and states
+		in these states
 				z1
 	x2
-		which occurs in these events
+		which occurs for these events
 				y2
-		and states
+		in these states
 				z1
 				z2
 		and transitions to state z1
@@ -200,15 +200,15 @@ The events :
 
 The actions :
 	aa1
-		which occurs in these events
+		which occurs for these events
 				ee1
-		and states
+		in these states
 				ss1
 		and transitions to state ss2
 	aa2
-		which occurs in these events
+		which occurs for these events
 				ee2
-		and states
+		in these states
 				ss1
 		and transitions to state ss3
 
@@ -281,15 +281,15 @@ The events :
 
 The actions :
 	aaa1
-		which occurs in these events
+		which occurs for these events
 				eee1
-		and states
+		in these states
 				sss1
 		and transitions to state sss2
 	aaa2
-		which occurs in these events
+		which occurs for these events
 				eee2
-		and states
+		in these states
 				sss1
 		and transitions to state sss3
 

@@ -110,30 +110,30 @@ The events :
 
 The actions :
 	a1
-		which occurs in these events
+		which occurs for these events
 				e1
 				e2
-		and states
+		in these states
 				s1
 				s2
 		and transitions to state s2
 	a2
-		which occurs in these events
+		which occurs for these events
 				e3
-		and states
+		in these states
 				s1
 				s2
 		and transitions to state s2
 	a3
-		which occurs in these events
+		which occurs for these events
 				e1
 				e2
-		and states
+		in these states
 				s3
 	a4
-		which occurs in these events
+		which occurs for these events
 				e4
-		and states
+		in these states
 				s4
 		and transitions to state s2
 
@@ -256,30 +256,30 @@ The events :
 
 The actions :
 	anmA1
-		which occurs in these events
+		which occurs for these events
 				anmE1
 				anmE2
-		and states
+		in these states
 				anmS1
 				anmS2
 	anmA2
-		which occurs in these events
+		which occurs for these events
 				anmE3
-		and states
+		in these states
 				anmS1
 				anmS2
 		and transitions to state anmS2
 	anmA3
-		which occurs in these events
+		which occurs for these events
 				anmE1
 				anmE2
-		and states
+		in these states
 				anmS3
 		and transitions to state anmS2
 	anmA4
-		which occurs in these events
+		which occurs for these events
 				anmE4
-		and states
+		in these states
 				anmS4
 		and transitions to state anmS2
 

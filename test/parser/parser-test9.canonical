@@ -96,23 +96,23 @@ The events :
 
 The actions :
 	a1
-		which occurs in these events
+		which occurs for these events
 				e1
-		and states
+		in these states
 				s1
 		and transitions to state s1
 	a2
-		which occurs in these events
+		which occurs for these events
 				e1
-		and states
+		in these states
 				s2
 				s3
 		and transitions using function transitionFn
 	noAction
-		which occurs in these events
+		which occurs for these events
 				e2
 				e3
-		and states
+		in these states
 				s1
 				s2
 				s3

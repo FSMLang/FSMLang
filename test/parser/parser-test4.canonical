@@ -79,15 +79,15 @@ The events :
 
 The actions :
 	processMessage
-		which occurs in these events
+		which occurs for these events
 				goodMessage
-		and states
+		in these states
 				initial
 				working
 	sendErrorIndication
-		which occurs in these events
+		which occurs for these events
 				badMessage
-		and states
+		in these states
 				initial
 				working
 

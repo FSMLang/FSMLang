@@ -67,19 +67,19 @@ The events :
 
 The actions :
 	processMessage
-		which occurs in these events
+		which occurs for these events
 				goodMessage
-		and states
+		in these states
 				working
-		and which occurs in these events
+		and which occurs for these events
 				goodMessage
-		and states
+		in these states
 				initial
 		and transitions to state working
 	sendErrorIndication
-		which occurs in these events
+		which occurs for these events
 				badMessage
-		and states
+		in these states
 				initial
 				working
 		and transitions to state initial
