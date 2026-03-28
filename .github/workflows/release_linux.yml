@@ -366,6 +366,8 @@ jobs:
           - Linux signature (optional): fsm-${TAG}-linux.asc
           - Linux checksum signature (optional): fsm-${TAG}-linux.sha256.asc
           - Linux metadata signature (optional): fsm-${TAG}-linux.meta.txt.asc
+          - Linux CMake step source package signature (optional): fsm-${TAG}-linux-cmake-src.tar.gz.asc
+          - Linux CMake step source package checksum signature (optional): fsm-${TAG}-linux-cmake-src.tar.gz.sha256.asc
           
           Download URLs (GitHub release assets)
           -------------------------------------
