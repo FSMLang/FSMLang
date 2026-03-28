@@ -212,6 +212,7 @@ jobs:
           TAG="${{ needs.resolve-upload-url.outputs.tag }}"
           for f in "artifacts/fsm-${TAG}-linux" \
                    "artifacts/fsm-${TAG}-linux.sha256" \
+                   "artifacts/fsm-${TAG}-linux.meta.txt" \
                    "artifacts/fsm-${TAG}-linux-cmake-src.tar.gz" \
                    "artifacts/fsm-${TAG}-linux-cmake-src.tar.gz.sha256" \
           ; do
@@ -289,16 +290,16 @@ jobs:
           asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux-cmake-src.tar.gz.sha256"
           asset_content_type: text/plain
 
-      - name: Upload Linux CMake step source package to Release
+      - name: Upload Linux CMake step source package signature to Release
         if: ${{ steps.check_signing.outputs.sign == 'true' }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
           asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux-cmake-src.tar.gz.asc"
           asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-linux-cmake-src.tar.gz.asc"
-          asset_content_type: application/gzip
+          asset_content_type: text/plain
 
-      - name: Upload Linux CMake step source package checksum to Release
+      - name: Upload Linux CMake step source package checksum signature to Release
         if: ${{ steps.check_signing.outputs.sign == 'true' }}
         uses: actions/upload-release-asset@v1
         with:
