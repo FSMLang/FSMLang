@@ -277,7 +277,7 @@ Then run:
           name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.sha256
           path: artifacts/
 
-      - name: Create GPG detached signatures for Linux artifacts (only if signing)
+      - name: Create GPG detached signatures for Windows artifacts (only if signing)
         if: ${{ steps.check_signing.outputs.sign == 'true' }}
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}

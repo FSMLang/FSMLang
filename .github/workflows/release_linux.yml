@@ -156,8 +156,6 @@ jobs:
             URL https://github.com/FSMLang/FSMLang/releases/download/<TAG>/fsm-<TAG>-linux-cmake-src.tar.gz
           )
           FetchContent_MakeAvailable(fsmlang_tools)
-
-          add_subdirectory(${fsmlang_tools_SOURCE_DIR} fsmlang_tools)
           ```
 
           Then run:
