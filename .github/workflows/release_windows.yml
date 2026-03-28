@@ -167,15 +167,15 @@ Then run:
 
 '@ | Out-File -Encoding ascii (Join-Path $pkgDir "README.cmake.md")
 
-    # Create .tar.gz (requires tar.exe, available on windows-latest)
-    $tgzPath = "artifacts\${pkgName}.tar.gz"
-    if (Test-Path $tgzPath) { Remove-Item -Force $tgzPath }
-    tar -C artifacts -czf $tgzPath $pkgName
+          # Create .tar.gz (requires tar.exe, available on windows-latest)
+          $tgzPath = "artifacts\${pkgName}.tar.gz"
+          if (Test-Path $tgzPath) { Remove-Item -Force $tgzPath }
+          tar -C artifacts -czf $tgzPath $pkgName
 
-    # sha256 for the archive
-    $tgzHash = Get-FileHash -Algorithm SHA256 $tgzPath
-    "$($tgzHash.Hash)  ${pkgName}.tar.gz" | Out-File -Encoding ascii "artifacts\${pkgName}.tar.gz.sha256"
-    # --- end CMake step source package -------------------
+          # sha256 for the archive
+          $tgzHash = Get-FileHash -Algorithm SHA256 $tgzPath
+          "$($tgzHash.Hash)  ${pkgName}.tar.gz" | Out-File -Encoding ascii "artifacts\${pkgName}.tar.gz.sha256"
+          # --- end CMake step source package -------------------
 
       - name: Upload Exe
         uses: actions/upload-artifact@v4
@@ -214,6 +214,41 @@ Then run:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: Install GnuPG (only if signing)
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        run: sudo apt-get update && sudo apt-get install -y gnupg
+
+      - name: Import GPG private key (Linux) (only if signing)
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          set -e
+          # Try raw ASCII-armored first (normalize CRLF), validate with gpg --list-packets
+          printf '%s\n' "$GPG_PRIVATE_KEY" | sed 's/\r$//' > private.key.raw
+          if gpg --list-packets private.key.raw >/dev/null 2>&1; then
+            mv private.key.raw private.key
+          else
+            rm -f private.key.raw
+            # Try base64 decode
+            if printf '%s' "$GPG_PRIVATE_KEY" | base64 --decode > private.key.b64 2>/dev/null; then
+              if gpg --list-packets private.key.b64 >/dev/null 2>&1; then
+                mv private.key.b64 private.key
+              else
+                rm -f private.key.b64
+                echo "ERROR: decoded secret is not valid OpenPGP data. Ensure the secret contains a valid base64-encoded private key or an ASCII-armored private key." >&2
+                exit 2
+              fi
+            else
+              echo "ERROR: secret is neither valid ASCII-armored OpenPGP data nor valid base64-encoded data." >&2
+              exit 2
+            fi
+          fi
+
+          # Import the validated private.key and clean up
+          gpg --batch --import private.key
+          rm -f private.key
+
       - name: Download Exe
         uses: actions/download-artifact@v4
         with:
@@ -244,6 +279,21 @@ Then run:
           name: fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.sha256
           path: artifacts/
 
+      - name: Create GPG detached signatures for Linux artifacts (only if signing)
+        if: ${{ steps.check_signing.outputs.sign == 'true' }}
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: |
+          TAG="${{ needs.resolve-upload-url.outputs.tag }}"
+          for f in "artifacts/fsm-${TAG}-windows.exe" \
+                   "artifacts/fsm-${TAG}-windows.exe.sha256" \
+                   "artifacts/fsm-${TAG}-windows.meta.txt" \
+                   "artifacts/fsm-${TAG}-windows-cmake-src.tar.gz" \
+                   "artifacts/fsm-${TAG}-windows-cmake-src.tar.gz.sha256" \
+          ; do
+            gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign -a "$f"
+          done
+
       - name: Install jq (for deletion step)
         run: sudo apt-get update && sudo apt-get install -y jq
 
@@ -258,6 +308,11 @@ Then run:
             "fsm-${TAG}-windows.meta.txt" \
             "fsm-${TAG}-windows-cmake-src.tar.gz" \
             "fsm-${TAG}-windows-cmake-src.tar.gz.sha256" \
+            "fsm-${TAG}-windows.exe.asc" \
+            "fsm-${TAG}-windows.exe.sha256.asc" \
+            "fsm-${TAG}-windows.meta.txt.asc" \
+            "fsm-${TAG}-windows-cmake-src.tar.gz.asc" \
+            "fsm-${TAG}-windows-cmake-src.tar.gz.sha256.asc" \
           ; do
             asset_id=$(printf '%s' "$resp" | jq -r --arg NAME "$NAME" '.assets[] | select(.name==$NAME) .id // empty')
             if [ -n "$asset_id" ]; then
@@ -324,10 +379,25 @@ Then run:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
-          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.asc"
-          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.asc"
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows.exe.asc"
           asset_content_type: text/plain
 
+      - name: Upload Windows CMake step source package signature (only if signing) to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.asc"
+          asset_content_type: text/plain
+
+      - name: Upload Windows CMake step source package checksum signature (only if signing) to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.resolve-upload-url.outputs.upload_url }}
+          asset_path: "artifacts/fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.sha256.asc"
+          asset_name: "fsm-${{ needs.resolve-upload-url.outputs.tag }}-windows-cmake-src.tar.gz.sha256.asc"
+          asset_content_type: text/plain
 
   generate-rst-and-publish:
     name: Produce ReStructuredText release index, upload to Release, and publish to gh-pages
@@ -369,6 +439,8 @@ Then run:
           - Windows signature (optional): fsm-${TAG}-windows.exe.asc
           - Windows checksum signature (optional): fsm-${TAG}-windows.exe.sha256.asc
           - Windows metadata signature (optional): fsm-${TAG}-windows.meta.txt.asc
+          - Windows CMake step source package signature (optional): fsm-${TAG}-windows-cmake-src.tar.gz
+          - Windows CMake step source package checksum signature (optional): fsm-${TAG}-windows-cmake-src.tar.gz.sha256
           
           Download URLs (GitHub release assets)
           -------------------------------------
@@ -378,6 +450,11 @@ Then run:
           - Windows metadata: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.meta.txt
           - Windows CMake step source package: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows-cmake-src.tar.gz
           - Windows CMake step source package checksum: https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows-cmake-src.tar.gz.sha256
+          - Windows binary signature (optional): https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe.asc
+          - Windows checksum signature (optional): https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.exe.sha256.asc
+          - Windows metadata signature (optional): https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows.meta.txt.asc
+          - Windows CMake step source package signature (optional): https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows-cmake-src.tar.gz.asc
+          - Windows CMake step source package checksum signature (optional): https://github.com/${REPO}/releases/download/${TAG}/fsm-${TAG}-windows-cmake-src.tar.gz.sha256.asc
           
           EOF
 
