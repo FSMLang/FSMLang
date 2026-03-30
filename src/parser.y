@@ -7,14 +7,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <cwalk.h>
 
 #if defined (LINUX) || defined (CYGWIN)
-#include <stdlib.h>
-#include <string.h>
 #include <strings.h>
-#include <stdlib.h>
 #endif
 
 #if defined (LINUX)
@@ -59,6 +57,23 @@ fpFSMOutputGeneratorFactory fpfsmogf     = NULL;
 pSTATE_AND_EVENT_DECLS      psedecls     = NULL;
 
 void yyerror(char *);
+
+/* MinGW/Windows doesn't reliably provide strndup. */
+#if defined(_WIN32) && !defined(__CYGWIN__)
+static char *fsm_strndup(const char *s, size_t n)
+{
+    size_t len = 0;
+    while (len < n && s[len] != '\0') len++;
+
+    char *out = (char *)malloc(len + 1);
+    if (!out) return NULL;
+
+    memcpy(out, s, len);
+    out[len] = '\0';
+    return out;
+}
+#define strndup fsm_strndup
+#endif
 
 %}
 
