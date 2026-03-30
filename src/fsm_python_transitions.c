@@ -194,7 +194,7 @@ static int initPyTransitionsWriter(pFSMOutputGenerator pfsmog, char *baseFileNam
 	pFSMPyTransitionsOutputGenerator pfsmpytog
 		= (pFSMPyTransitionsOutputGenerator) pfsmog;
 
-	if (NULL != (pfsmpytog->ptd = calloc(1, sizeof(pPyTransitionsData))))
+	if (NULL != (pfsmpytog->ptd = calloc(1, sizeof(PyTransitionsData))))
 	{
 		if (!baseFileName)
 		{
