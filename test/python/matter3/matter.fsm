@@ -1,0 +1,38 @@
+machine Matter
+   actions return void;
+   native impl
+{
+	def become_solid(self):
+  		print("Entering solid state: I am now a solid block of ice.")
+
+	def become_not_solid(self):
+		print("Exiting solid state: I am no longer a solid.")
+
+	def on_enter_liquid(self):
+		print("Entering liquid state: I am now a liquid puddle.")
+
+	def on_exit_liquid(self):
+		print("Exiting liquid state: I am no longer a liquid.")
+
+	def on_enter_gas(self):
+		print("Entering gas state: I am now a gas, vaporizing into the air.")
+
+	def on_exit_gas(self):
+		print("Exiting gas state: I am no longer a gas.")
+
+}
+{
+	state solid
+           on entry: become_solid
+           on exit: become_not_solid
+         , liquid
+         , gas
+         ;
+
+	event melt, evaporate, freeze, condense;
+
+	transition[melt, solid] liquid;
+	transition[evaporate, liquid] gas;
+	transition[freeze, liquid] solid;
+	transition[condense, gas] liquid;
+}
