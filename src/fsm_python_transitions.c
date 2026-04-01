@@ -62,12 +62,16 @@ static int initPyTransitionsFN(pFSMOutputGenerator,char *);
 static void writePyTransitionsFN(pFSMOutputGenerator,pMACHINE_INFO);
 static void closePyTransitionsFN(pFSMOutputGenerator,int);
 
-static bool print_states(pLIST_ELEMENT,void*);
+static bool print_state_names(pLIST_ELEMENT,void*);
+static bool print_state_declarations(pLIST_ELEMENT,void*);
 static bool print_consolidated_action_info(pLIST_ELEMENT,void*);
 static bool print_matrices(pLIST_ELEMENT,void*);
 static bool print_trigger(pLIST_ELEMENT,void*);
 static bool print_action_stubs(pLIST_ELEMENT,void*);
-static bool print_any_conditional_stubs(pLIST_ELEMENT,void*);
+static bool print_entry_exit_stubs(pLIST_ELEMENT,void*);
+static bool print_transition_stubs(pLIST_ELEMENT,void*);
+static bool print_transition_fn_stubs(pLIST_ELEMENT,void*);
+static bool print_transition_fn_return_stubs(pLIST_ELEMENT,void*);
 static bool print_transition_fn_return_option(pLIST_ELEMENT,void*);
 static void print_transition_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_simple_transition_as_dict(pID_INFO,pITERATOR_HELPER);
@@ -102,6 +106,9 @@ static FSMPyTransitionsOutputGenerator PyTransitionsMachineWriter = {
 
 static char *transitions_str = "transitions = [";
 static int transitions_str_len;
+
+static char *states_str = "states = [";
+static int states_str_len;
 
 pFSMOutputGenerator generatePyTransitionsWriter(pFSMOutputGenerator parent)
 {
@@ -267,18 +274,23 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 	}
 
 	// Write the states
+	states_str_len = strlen(states_str);
 	fprintf(fout
-			, "\tstates = ["
+			, "\t%s"
+			, states_str
 			);
 
 	ih.first = true;
 	iterate_list(pmi->state_list
-				 , print_states
+				 , print_state_declarations
 				 , &ih
 				 );
 
 	fprintf(fout
-			, "]\n"
+			, "\t%*.*s]\n"
+			, states_str_len
+			, states_str_len
+			, "  "
 			);
 
 	// Write the transitions
@@ -308,10 +320,22 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 
 	fprintf(fout
 			, "\t\tself.machine = Machine(model=self, states=%s.states, "
-			  "transitions=%s.transitions, initial='%s')\n"
+			  "transitions=%s.transitions, initial='%s'"
 			, pmi->name->name
 			, pmi->name->name
 			, stateNameByIndex(pmi, 0)
+			);
+
+	if (pmi->machineTransition)
+	{
+		fprintf(fout
+				, ", after_state_change='%s'"
+				, pmi->machineTransition->name
+				);
+	}
+
+	fprintf(fout
+			, ")\n"
 			);
 
 	fprintf(fout
@@ -321,16 +345,43 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 	// Write action stubs
 	if (generate_weak_fns)
 	{
+
+		if (pmi->machineTransition)
+		{
+			fprintf(fout
+					, "\tdef %s(self):\n\t\tprint('%s')\n"
+					, pmi->machineTransition->name
+					, pmi->machineTransition->name
+					);
+		}
+
 		iterate_list(pmi->action_list
 					 , print_action_stubs
 					 , &ih
 					 );
 
+		if (pmi->states_with_entry_fns_count
+			|| pmi->states_with_exit_fns_count)
+		{
+			iterate_list(pmi->state_list
+						 , print_entry_exit_stubs
+						 , &ih
+						 );
+		}
+
 		iterate_list(pmi->transition_list
-					 , print_any_conditional_stubs
+					 , print_transition_stubs
 					 , &ih
 					 );
+
+		iterate_list(pmi->transition_fn_list
+					 , print_transition_fn_stubs
+					 , &ih
+					 );
+
 	}
+
+	fprintf(fout, "\n");
 }
 
 static void closePyTransitionsWriter(pFSMOutputGenerator pfsmog, int good)
@@ -347,7 +398,7 @@ static void closePyTransitionsWriter(pFSMOutputGenerator pfsmog, int good)
 
 }
 
-static bool print_states(pLIST_ELEMENT pelem, void *data)
+static bool print_state_names(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO         pstate = (pID_INFO) pelem->mbr;
 	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
@@ -357,6 +408,68 @@ static bool print_states(pLIST_ELEMENT pelem, void *data)
 			, pih->first ? (pih->first = false, "") : " ,"
 			, pstate->name
 			);
+
+	return false;
+}
+
+static bool print_state_declarations(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO) pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+	pSTATE_DATA      psd    = &(pstate->type_data.state_data);
+
+	if (psd->entry_fn || psd->exit_fn)
+	{
+		if (pih->first)
+		{
+			pih->first = false;
+			fprintf(pih->fout
+					, "  {'name':"
+					);
+		}
+		else
+		{
+			fprintf(pih->fout
+					, "\t%*.*s{'name':"
+					, states_str_len + 4
+					, states_str_len + 4
+					, " , "
+					);
+		}
+		fprintf(pih->fout
+				, " '%s'"
+				, pstate->name
+				);
+
+		if (psd->entry_fn)
+		{
+			fprintf(pih->fout
+					, ", 'on_enter': ['%s']"
+					, psd->entry_fn->name
+					);
+		}
+
+		if (psd->exit_fn)
+		{
+			fprintf(pih->fout
+					, ", 'on_exit': ['%s']"
+					, psd->exit_fn->name
+					);
+		}
+
+		fprintf(pih->fout, "}\n");
+	}
+	else
+	{
+		fprintf(pih->fout
+				, "\t%*.*s%s'%s'\n"
+				, states_str_len
+				, states_str_len
+				, " "
+				, pih->first ? (pih->first = false, "") : " ,"
+				, pstate->name
+				);
+	}
 
 	return false;
 }
@@ -412,7 +525,7 @@ static bool print_trigger(pLIST_ELEMENT pelem, void *data)
 
 static void print_transition_as_list(pID_INFO pevent, pITERATOR_HELPER pih)
 {
-	pMATRIX_INFO     pmi    = (pMATRIX_INFO) pih->pOtherElem->mbr;
+	pMATRIX_INFO pmi = (pMATRIX_INFO) pih->pOtherElem->mbr;
 
 	fprintf(pih->fout
 			, "\t%*.*s%s['%s', %s"
@@ -427,7 +540,7 @@ static void print_transition_as_list(pID_INFO pevent, pITERATOR_HELPER pih)
 	// To avoid creating our own callback helper, we re-use "first"
 	pih->first = true;
 	iterate_list(pmi->state_list
-				 , print_states
+				 , print_state_names
 				 , pih
 				 );
 	pih->first = false;
@@ -439,10 +552,19 @@ static void print_transition_as_list(pID_INFO pevent, pITERATOR_HELPER pih)
 				);
 	}
 
-	fprintf(pih->fout
-			, ", '%s']\n"
-			, pih->pai->transition ? pih->pai->transition->name->name : "None"
-			);
+	if (pih->pai->transition)
+	{
+		fprintf(pih->fout
+				, ", '%s']\n"
+				, pih->pai->transition->name->name
+				);
+	}
+	else
+	{
+		fprintf(pih->fout
+				, ", None]\n"
+				);
+	}
 
 }
 
@@ -462,7 +584,8 @@ static void print_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 
 static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 {
-	pMATRIX_INFO     pmi    = (pMATRIX_INFO) pih->pOtherElem->mbr;
+	pMATRIX_INFO pmi    = (pMATRIX_INFO) pih->pOtherElem->mbr;
+	bool         action_present = (pih->pai->action && strlen(pih->pai->action->name));
 
 	fprintf(pih->fout
 			, "\t%*.*s%s{'trigger': '%s'\n"
@@ -484,7 +607,7 @@ static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pi
 	// To avoid creating our own callback helper, we re-use "first"
 	pih->first = true;
 	iterate_list(pmi->state_list
-				 , print_states
+				 , print_state_names
 				 , pih
 				 );
 	pih->first = false;
@@ -501,14 +624,27 @@ static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pi
 			);
 
 	fprintf(pih->fout
-			, "\t%*.*s  , 'dest': '%s'\n"
+			, "\t%*.*s  , 'dest': "
 			, transitions_str_len
 			, transitions_str_len
 			, " "
-			, pih->pai->transition ? pih->pai->transition->name->name : "None"
 			);
+	if (pih->pai->transition)
+	{
+		fprintf(pih->fout
+				, "'%s'"
+				, pih->pai->transition->name->name
+			   );
+	}
+	else
+	{
+		fprintf(pih->fout
+				, "None"
+			   );
+	}
+	fprintf(pih->fout, "\n");
 
-	if (pih->pai->action->name && strlen(pih->pai->action->name))
+	if (action_present)
 	{
 		fprintf(pih->fout
 				, "\t%*.*s  , 'before': '%s'\n"
@@ -557,6 +693,7 @@ static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
 	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
 	pMATRIX_INFO     pmi    = (pMATRIX_INFO) pih->pOtherElem->mbr;
 	pID_INFO         pevent = pih->pid;
+	bool             action_present = (pih->pai->action && strlen(pih->pai->action->name));
 
 	fprintf(pih->fout
 			, "\t%*.*s%s{'trigger': '%s'\n"
@@ -578,7 +715,7 @@ static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
 	// To avoid creating our own callback helper, we re-use "first"
 	pih->first = true;
 	iterate_list(pmi->state_list
-				 , print_states
+				 , print_state_names
 				 , pih
 				 );
 	pih->first = false;
@@ -602,7 +739,7 @@ static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
 			, pstate->name
 			);
 
-	if (pih->pai->action->name && strlen(pih->pai->action->name))
+	if (action_present)
 	{
 		fprintf(pih->fout
 				, "\t%*.*s  , 'before': '%s'\n"
@@ -648,7 +785,34 @@ static bool print_action_stubs(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
-static bool print_any_conditional_stubs(pLIST_ELEMENT pelem, void *data)
+static bool print_entry_exit_stubs(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = ((pID_INFO)pelem->mbr);
+	pITERATOR_HELPER pih    = ((pITERATOR_HELPER)data);
+	pSTATE_DATA      psd    = &(pstate->type_data.state_data);
+
+	if (psd->entry_fn)
+	{
+		fprintf(pih->fout
+				, "\n\tdef %s(self):\n\t\tprint('%s')\n\n"
+				, psd->entry_fn->name
+				, psd->entry_fn->name
+				);
+	}
+
+	if (psd->exit_fn)
+	{
+		fprintf(pih->fout
+				, "\n\tdef %s(self):\n\t\tprint('%s')\n\n"
+				, psd->exit_fn->name
+				, psd->exit_fn->name
+				);
+	}
+
+	return false;
+}
+
+static bool print_transition_stubs(pLIST_ELEMENT pelem, void *data)
 {
 	pTRANSITION_DATA ptransition = (pTRANSITION_DATA) pelem->mbr;
 	pITERATOR_HELPER pih         = (pITERATOR_HELPER) data;
@@ -660,6 +824,35 @@ static bool print_any_conditional_stubs(pLIST_ELEMENT pelem, void *data)
 				, ptransition->condition_fn->name
 				);
 	}
+
+	return false;
+}
+
+static bool print_transition_fn_stubs(pLIST_ELEMENT pelem, void *data)
+{
+	pTRANSITION_DATA ptransition = (pTRANSITION_DATA) pelem->mbr;
+	pITERATOR_HELPER pih         = (pITERATOR_HELPER) data;
+
+	if (ptransition->name->transition_fn_returns_decl)
+	{
+		iterate_list(ptransition->name->transition_fn_returns_decl
+					 , print_transition_fn_return_stubs
+					 , pih
+					 );
+	}
+
+	return false;
+}
+
+static bool print_transition_fn_return_stubs(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO pid         = (pID_INFO) pelem->mbr;
+	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
+
+	fprintf(pih->fout
+			, "\n\t@property\n\tdef choose_%s(self):\n\t\treturn True\n"
+			, pid->name
+			);
 
 	return false;
 }
