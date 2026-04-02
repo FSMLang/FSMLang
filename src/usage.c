@@ -711,7 +711,7 @@ fprintf(stdout
 	   , list_item_end
 	   );
 	fprintf(stdout
-			,"%s--find-on-top-level-machine-data=%strue*|false%s%sReturn file name iff the top-level machine has data.  Useful only with -M%s"
+			,"%s--find-on-top-level-machine-data=%strue*|false%s%sReturn file name iff the top-level machine has data.  Useful only with -M -s%s"
 			, item_start
 			, lt
 			, gt
@@ -719,7 +719,7 @@ fprintf(stdout
 			, item_end
 			);
 	fprintf(stdout
-			,"%s--find-on-event-data=%strue*|false%s%sReturn file name iff at least one event has data.  Useful only with -M%s"
+			,"%s--find-on-event-data=%strue*|false%s%sReturn file name iff at least one event has data.  Useful only with -M -s%s"
 			, item_start
 			, lt
 			, gt
