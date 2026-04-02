@@ -2870,11 +2870,31 @@ int main(int argc, char **argv)
                 break;
 			      case lo_find_on_top_level_machine_data:
 				      if (!optarg || !strcmp(optarg, "true"))
+				      {
 					      find_on_top_level_machine_data = true;
+					      if (find_on_event_data)
+					      {
+						      yyerror("--find-on-top-level-machine-data and --find-on-event-data are mutually exclusive.");
+					      }
+				      }
+				      else if (!strcmp(optarg, "false"))
+				      {
+					      find_on_top_level_machine_data = false;
+				      }
 				      break;
 			      case lo_find_on_event_data:
 				      if (!optarg || !strcmp(optarg, "true"))
+				      {
 					      find_on_event_data = true;
+					      if (find_on_top_level_machine_data)
+					      {
+						      yyerror("--find-on-top-level-machine-data and --find-on-event-data are mutually exclusive.");
+					      }
+				      }
+				      else if (!strcmp(optarg, "false"))
+				      {
+					      find_on_event_data = false;
+				      }
 				      break;
             default:
                 usage();
