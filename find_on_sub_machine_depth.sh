@@ -31,5 +31,5 @@ find test/full_test* \
      -path 'test/full_test40' -o \
      -path 'test/full_test39'    \
    \) -prune -o \
-  -type f -name '*.fsm' -exec $FSM -s --find-on-sub-machine-depth=$arg '{}' \;
+  -type f -name '*.fsm' -exec $FSM -s -M --find-on-sub-machine-depth=$arg '{}' \;
 
