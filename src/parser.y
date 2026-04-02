@@ -2448,6 +2448,8 @@ typedef enum {
  , lo_include_uml_objects
  , lo_weak_fn_separate_file
  , lo_doxygen_blocks
+ , lo_find_on_top_level_machine_data
+ , lo_find_on_event_data
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2639,6 +2641,18 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_doxygen_blocks
+    }
+		, {
+        .name      = "find-on-top-level-machine-data"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_find_on_top_level_machine_data
+    }
+		, {
+        .name      = "find-on-event-data"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_find_on_event_data
     }
     , {0}
 };
@@ -2854,6 +2868,34 @@ int main(int argc, char **argv)
 									}
                 }
                 break;
+			      case lo_find_on_top_level_machine_data:
+				      if (!optarg || !strcmp(optarg, "true"))
+				      {
+					      find_on_top_level_machine_data = true;
+					      if (find_on_event_data)
+					      {
+						      yyerror("--find-on-top-level-machine-data and --find-on-event-data are mutually exclusive.");
+					      }
+				      }
+				      else if (!strcmp(optarg, "false"))
+				      {
+					      find_on_top_level_machine_data = false;
+				      }
+				      break;
+			      case lo_find_on_event_data:
+				      if (!optarg || !strcmp(optarg, "true"))
+				      {
+					      find_on_event_data = true;
+					      if (find_on_top_level_machine_data)
+					      {
+						      yyerror("--find-on-top-level-machine-data and --find-on-event-data are mutually exclusive.");
+					      }
+				      }
+				      else if (!strcmp(optarg, "false"))
+				      {
+					      find_on_event_data = false;
+				      }
+				      break;
             default:
                 usage();
                 return(0);
