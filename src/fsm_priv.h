@@ -479,6 +479,8 @@ extern bool                 include_uml_objects;
 extern bool                 weak_fn_separate_file;
 extern bool                 add_doxygen_blocks;
 extern int                  find_on_sub_machine_depth;
+extern bool                 find_on_top_level_machine_data;
+extern bool                 find_on_event_data;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

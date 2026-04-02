@@ -43,8 +43,10 @@
 
 #define name_separator(A) ((A)->first ? "" : ", ")
 
-bool print_action_array        = false;
-int  find_on_sub_machine_depth = -1;
+bool print_action_array             = false;
+int  find_on_sub_machine_depth      = -1;
+bool find_on_top_level_machine_data = false;
+bool find_on_event_data             = false;
 
 static int  initMachineStatisticsWriter(pFSMOutputGenerator,char*);
 static void writeMachineStatistics(pFSMOutputGenerator,pMACHINE_INFO);
@@ -58,6 +60,8 @@ static bool print_pid_name(pLIST_ELEMENT,void*);
 static bool compute_pid_name_len(pLIST_ELEMENT,void*);
 static bool write_action_array_pointers(pLIST_ELEMENT,void*);
 static void do_find_on_sub_machine_depth(pMACHINE_INFO);
+static void do_find_on_top_level_machine_data(pMACHINE_INFO);
+static void do_find_on_event_data(pMACHINE_INFO);
 
 FSMOutputGenerator MachineStatisticsWriter = {
    initMachineStatisticsWriter
@@ -113,13 +117,21 @@ static void writeMachineStatistics(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    FSMLANG_MAYBE_UNUSED(pfsmog);
    LIST_ELEMENT elem = { .mbr = pmi , .next = NULL };
 
-   if (find_on_sub_machine_depth > -1)
-   {
-	   do_find_on_sub_machine_depth(pmi);
-   }
-   else if (!(output_generated_file_names_only))
+   if (!(output_generated_file_names_only))
    {
 	   (void)write_machine_statistics(&elem, NULL);
+   }
+   else if (find_on_top_level_machine_data)
+   {
+	   do_find_on_top_level_machine_data(pmi);
+   }
+   else if (find_on_event_data)
+   {
+	   do_find_on_event_data(pmi);
+   }
+   else if (find_on_sub_machine_depth > -1)
+   {
+	   do_find_on_sub_machine_depth(pmi);
    }
 
 }
@@ -563,6 +575,44 @@ static bool write_matrix(pLIST_ELEMENT pelem, void *data)
 static void do_find_on_sub_machine_depth(pMACHINE_INFO pmi)
 {
 	if (pmi->sub_machine_depth == (unsigned) find_on_sub_machine_depth)
+	{
+		printf("%s.fsm\n"
+			   , inputFileName
+			   );
+	}
+}
+
+/**
+ * Print our name iff our top-level machine has data.
+ * 
+ * @author Steven Stanton (4/1/2026)
+ * 
+ * @param pmi    Pointer to our machine info.
+ *
+ */
+static void do_find_on_top_level_machine_data(pMACHINE_INFO pmi)
+{
+
+	if (pmi->data)
+	{
+		printf("%s.fsm\n"
+			   , inputFileName
+			   );
+	}
+}
+
+/**
+ * Print our name iff our top-level machine has an event with
+ * data.
+ * 
+ * @author Steven Stanton (4/1/2026)
+ * 
+ * @param pmi    Pointer to our machine info.
+ *
+ */
+static void do_find_on_event_data(pMACHINE_INFO pmi)
+{
+	if (pmi->data_block_count)
 	{
 		printf("%s.fsm\n"
 			   , inputFileName
