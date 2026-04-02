@@ -120,16 +120,13 @@ static void writeMachineStatistics(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    {
 	   (void)write_machine_statistics(&elem, NULL);
    }
-   else
+   else if (find_on_top_level_machine_data)
    {
-	   if (find_on_top_level_machine_data)
-	   {
-		   do_find_on_top_level_machine_data(pmi);
-	   }
-	   if (find_on_event_data)
-	   {
-		   do_find_on_event_data(pmi);
-	   }
+	   do_find_on_top_level_machine_data(pmi);
+   }
+   else if (find_on_event_data)
+   {
+	   do_find_on_event_data(pmi);
    }
 
 }
