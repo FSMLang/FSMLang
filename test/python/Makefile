@@ -1,5 +1,5 @@
 #
-# manages plantuml tests
+# manages python tests
 #
 #
  

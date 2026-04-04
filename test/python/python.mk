@@ -4,11 +4,12 @@
 #
 #
 
-.PHONY: $(TESTS)
 .SECONDEXPANSION:
 
 FSMS = $(shell find . -name "*.fsm" -printf "%P ")
 TESTS = $(basename $(FSMS))
+
+.PHONY: $(TESTS)
 
 NO_RUNTEST=TRUE
 include $(OUTPUT_DIR)/../test/test.mk
