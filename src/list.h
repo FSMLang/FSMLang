@@ -97,18 +97,18 @@ pLIST_ELEMENT add_unique_to_list(pLIST,void*);
 pLIST_ELEMENT add_unique_to_list_with_test(pLIST,void*,LIST_ITERATOR_FN);
 
 /**
- * Add an element to a list, if not already there; determine
- * "already there" through the supplied test function.
+ * Add an element to a list in order, if not already there; determine
+ * "already there" through the supplied ordering function.
  * 
  * @author Steven Stanton (3/24/2026)
  * 
  * @param pLIST    List to which to possibly add the new member.
- * @param ORDER_FN The member to possibly add.
+ * @param void*    The member to possibly add.
+ * @param ORDER_FN Function used to order list elements and determine
+ *                 whether the member is already on the list.
  * 
- * @return pLIST_ELEMENT The function which will determine
- *  	   whether the member is already on the list.	A
- *  	   pointer to the eng or new list element containing the
- *  	   member.
+ * @return pLIST_ELEMENT A pointer to the existing or new list element
+ *                       containing the member.
  */
 pLIST_ELEMENT add_to_list_ordered(pLIST,void*,ORDER_FN);
 
