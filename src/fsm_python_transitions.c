@@ -1065,14 +1065,16 @@ static bool print_translator_stubs(pLIST_ELEMENT pelem, void *data)
 			if (translator_name)
 			{
 				fprintf(pih->fout
-						, "\n\tdef %s(self, event=None):\n\t\tself.data = event.kwargs if event else {}\n\n"
+						, "\n\tdef %s(self, event=None):\n\t\tself.data['%s'] = event.kwargs if event else {}\n\n"
 						, translator_name
+						, pevent->name
 						);
 			}
 			else
 			{
 				fprintf(pih->fout
-						, "\n\tdef translate_%s(self, event=None):\n\t\tself.data = event.kwargs if event else {}\n\n"
+						, "\n\tdef translate_%s(self, event=None):\n\t\tself.data['%s'] = event.kwargs if event else {}\n\n"
+						, pevent->name
 						, pevent->name
 						);
 			}

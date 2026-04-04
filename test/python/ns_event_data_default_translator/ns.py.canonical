@@ -32,5 +32,5 @@ class NarcolepticSuperhero(object):
 
 
 	def translate_distress_call(self, event=None):
-		self.data = event.kwargs if event else {}
+		self.data['distress_call'] = event.kwargs if event else {}
 
