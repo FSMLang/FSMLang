@@ -196,8 +196,7 @@ static void closePyTransitionsFN(pFSMOutputGenerator pfsmog, int good)
 	CHECK_AND_FREE(pfsmpytog->ptd->fileName);
 	CHECK_AND_FREE(pfsmpytog->ptd->baseName);
 
-	free(pfsmpytog->ptd);
-	pfsmpytog->ptd = NULL;
+	CHECK_AND_FREE(pfsmpytog->ptd);
 
 	(void) good;
 }
