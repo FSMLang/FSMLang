@@ -457,13 +457,25 @@ static void closePyTransitionsWriter(pFSMOutputGenerator pfsmog, int good)
 	pFSMPyTransitionsOutputGenerator pfsmpytog
 		= (pFSMPyTransitionsOutputGenerator) pfsmog;
 
-	fclose(pfsmpytog->ptd->file);
+	if (!pfsmpytog || !pfsmpytog->ptd)
+	{
+		return;
+	}
 
-	if (!good)
+	if (pfsmpytog->ptd->file && pfsmpytog->ptd->file != stdout)
+	{
+		fclose(pfsmpytog->ptd->file);
+	}
+
+	if (!good && pfsmpytog->ptd->fileName)
 	{
 		unlink(pfsmpytog->ptd->fileName);
 	}
 
+	free(pfsmpytog->ptd->fileName);
+	free(pfsmpytog->ptd->baseName);
+	free(pfsmpytog->ptd);
+	pfsmpytog->ptd = NULL;
 }
 
 static bool print_state_names(pLIST_ELEMENT pelem, void *data)
