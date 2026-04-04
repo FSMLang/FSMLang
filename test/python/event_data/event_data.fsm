@@ -1,0 +1,20 @@
+machine MyMachine
+{
+	data
+	{
+		int placeholder;
+	}
+
+	state idle, running, stopped;
+
+	event launch data translator translate_launch_data {int speed;};
+	event halt data
+	{
+		int code;
+	};
+	event reset;
+
+	action do_launch[launch, idle] transition running;
+	action do_halt[halt, running] transition stopped;
+	transition [reset, stopped] idle;
+}

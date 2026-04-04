@@ -128,5 +128,8 @@ test/unit/*/test
 
 # Test detritus
 test/*/*.result
+test/python/*/*.py
+test/python/*/*.result
+test/python/*/fsmout
 
 
