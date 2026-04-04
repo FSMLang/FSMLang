@@ -1,0 +1,21 @@
+machine NarcolepticSuperhero
+   actions return void;
+   native impl
+{
+	def init_data(self):
+		self.mission_count = 0
+
+}
+{
+	data {
+		int mission_count;
+	}
+
+	state asleep, saving_the_world;
+
+	event distress_call, complete_mission;
+
+	action change_into_costume[distress_call, asleep] transition saving_the_world;
+	transition [complete_mission, saving_the_world] asleep;
+
+}

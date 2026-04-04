@@ -355,6 +355,13 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 				);
 	}
 
+	if (pmi->data)
+	{
+		fprintf(fout
+				, "\t\tself.init_data()\n"
+				);
+	}
+
 	fprintf(fout
 			, "\t\tself.machine = Machine(model=self, states=%s.states, "
 			  "transitions=%s.transitions, initial='%s'"
