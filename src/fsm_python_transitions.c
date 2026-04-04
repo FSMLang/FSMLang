@@ -68,7 +68,9 @@ static bool print_consolidated_action_info(pLIST_ELEMENT,void*);
 static bool print_matrices(pLIST_ELEMENT,void*);
 static bool print_trigger(pLIST_ELEMENT,void*);
 static bool print_action_stubs(pLIST_ELEMENT,void*);
+static bool print_event_data_action_stubs(pLIST_ELEMENT,void*);
 static bool print_entry_exit_stubs(pLIST_ELEMENT,void*);
+static bool print_event_data_entry_exit_stubs(pLIST_ELEMENT,void*);
 static bool print_transition_stubs(pLIST_ELEMENT,void*);
 static bool print_transition_fn_stubs(pLIST_ELEMENT,void*);
 static bool print_transition_fn_return_stubs(pLIST_ELEMENT,void*);
@@ -77,6 +79,7 @@ static void print_transition_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_simple_transition_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_transition_fn_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_transition_as_list(pID_INFO,pITERATOR_HELPER);
+static bool print_translator_stubs(pLIST_ELEMENT,void*);
 
 typedef struct _fsm_pytransitions_output_generator_ FSMPyTransitionsOutputGenerator, *pFSMPyTransitionsOutputGenerator;
 typedef struct _pytransitions_machine_data_ PyTransitionsData, *pPyTransitionsData;
@@ -86,6 +89,7 @@ struct _pytransitions_machine_data_ {
   char	        *fileName;
   char          *baseName;
   pMACHINE_INFO pmi;
+  bool           uses_event_data;
 };
 
 struct _fsm_pytransitions_output_generator_
@@ -236,8 +240,9 @@ static int initPyTransitionsWriter(pFSMOutputGenerator pfsmog, char *baseFileNam
 
 static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 {
-	FILE            *fout = ((pFSMPyTransitionsOutputGenerator)pfsmog)->ptd->file;
-	ITERATOR_HELPER ih    = {.fout = fout };
+	pPyTransitionsData ptd  = ((pFSMPyTransitionsOutputGenerator)pfsmog)->ptd;
+	FILE              *fout = ptd->file;
+	ITERATOR_HELPER ih      = {.fout = fout };
 
 	if (pmi->native_prologue)
 	{
@@ -275,23 +280,44 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 
 	// Write the states
 	states_str_len = strlen(states_str);
-	fprintf(fout
-			, "\t%s"
-			, states_str
-			);
 
-	ih.first = true;
-	iterate_list(pmi->state_list
-				 , print_state_declarations
-				 , &ih
-				 );
+	if (pmi->states_with_entry_fns_count || pmi->states_with_exit_fns_count)
+	{
+		// Mixed or all-dict format: multi-line
+		fprintf(fout
+				, "\t%s"
+				, states_str
+				);
 
-	fprintf(fout
-			, "\t%*.*s]\n"
-			, states_str_len
-			, states_str_len
-			, "  "
-			);
+		ih.first = true;
+		iterate_list(pmi->state_list
+					 , print_state_declarations
+					 , &ih
+					 );
+
+		fprintf(fout
+				, "\t%*.*s]\n"
+				, states_str_len
+				, states_str_len
+				, "  "
+				);
+	}
+	else
+	{
+		// All plain strings: single-line format
+		fprintf(fout
+				, "\t%s"
+				, states_str
+				);
+
+		ih.first = true;
+		iterate_list(pmi->state_list
+					 , print_state_names
+					 , &ih
+					 );
+
+		fprintf(fout, "]\n");
+	}
 
 	// Write the transitions
 	transitions_str_len = strlen(transitions_str);
@@ -301,11 +327,15 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 			);
 
 	pLIST pconsolidated = consolidate_action_info_list(pmi->action_info_list);
+	ih.found = false;
 	ih.first = true;
 	iterate_list(pconsolidated
 				 , print_consolidated_action_info
 				 , &ih
 				 );
+
+	// ih.found is set to true if any data-bearing event was used in a transition
+	ptd->uses_event_data = ih.found;
 
 	fprintf(fout
 			, "\t%*.*s]\n"
@@ -317,6 +347,13 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 	fprintf(fout
 			, "\n\tdef __init__(self):\n"
 			);
+
+	if (ptd->uses_event_data)
+	{
+		fprintf(fout
+				, "\t\tself.data = {}\n"
+				);
+	}
 
 	fprintf(fout
 			, "\t\tself.machine = Machine(model=self, states=%s.states, "
@@ -334,12 +371,15 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 				);
 	}
 
-	fprintf(fout
-			, ")\n"
-			);
+	if (ptd->uses_event_data)
+	{
+		fprintf(fout
+				, ", send_event=True"
+				);
+	}
 
 	fprintf(fout
-			, "\n"
+			, ")\n\n"
 			);
 
 	// Write action stubs
@@ -349,24 +389,45 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 		if (pmi->machineTransition)
 		{
 			fprintf(fout
-					, "\tdef %s(self):\n\t\tprint('%s')\n"
+					, "\tdef %s(self%s):\n\t\tprint('%s')\n"
 					, pmi->machineTransition->name
+					, ptd->uses_event_data ? ", event=None" : ""
 					, pmi->machineTransition->name
 					);
 		}
 
-		iterate_list(pmi->action_list
-					 , print_action_stubs
-					 , &ih
-					 );
+		if (ptd->uses_event_data)
+		{
+			iterate_list(pmi->action_list
+						 , print_event_data_action_stubs
+						 , &ih
+						 );
+		}
+		else
+		{
+			iterate_list(pmi->action_list
+						 , print_action_stubs
+						 , &ih
+						 );
+		}
 
 		if (pmi->states_with_entry_fns_count
 			|| pmi->states_with_exit_fns_count)
 		{
-			iterate_list(pmi->state_list
-						 , print_entry_exit_stubs
-						 , &ih
-						 );
+			if (ptd->uses_event_data)
+			{
+				iterate_list(pmi->state_list
+							 , print_event_data_entry_exit_stubs
+							 , &ih
+							 );
+			}
+			else
+			{
+				iterate_list(pmi->state_list
+							 , print_entry_exit_stubs
+							 , &ih
+							 );
+			}
 		}
 
 		iterate_list(pmi->transition_list
@@ -379,9 +440,16 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 					 , &ih
 					 );
 
+		if (ptd->uses_event_data)
+		{
+			iterate_list(pconsolidated
+						 , print_translator_stubs
+						 , &ih
+						 );
+		}
+
 	}
 
-	fprintf(fout, "\n");
 }
 
 static void closePyTransitionsWriter(pFSMOutputGenerator pfsmog, int good)
@@ -506,11 +574,18 @@ static bool print_trigger(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO         pevent = (pID_INFO) pelem->mbr;
 	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+	bool             is_data_bearing = (pevent->type_data.event_data.puser_event_data != NULL);
+
+	if (is_data_bearing)
+	{
+		pih->found = true;
+	}
 
 	if (
 		(pih->pai->action && strlen(pih->pai->action->name))
 		|| pih->pai->transition->condition_fn
 		|| (pih->pai->transition->name->type == TRANSITION_FN)
+		|| is_data_bearing
 		)
 	{
 		print_transition_as_dict(pevent, pih);
@@ -584,8 +659,9 @@ static void print_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 
 static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 {
-	pMATRIX_INFO pmi    = (pMATRIX_INFO) pih->pOtherElem->mbr;
-	bool         action_present = (pih->pai->action && strlen(pih->pai->action->name));
+	pMATRIX_INFO     pmi           = (pMATRIX_INFO) pih->pOtherElem->mbr;
+	bool             action_present = (pih->pai->action && strlen(pih->pai->action->name));
+	pUSER_EVENT_DATA pued          = pevent->type_data.event_data.puser_event_data;
 
 	fprintf(pih->fout
 			, "\t%*.*s%s{'trigger': '%s'\n"
@@ -644,6 +720,32 @@ static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pi
 	}
 	fprintf(pih->fout, "\n");
 
+	if (pued)
+	{
+		const char *translator_name = (pued->translator) ? pued->translator->name : NULL;
+
+		if (translator_name)
+		{
+			fprintf(pih->fout
+					, "\t%*.*s  , 'prepare': '%s'\n"
+					, transitions_str_len
+					, transitions_str_len
+					, " "
+					, translator_name
+					);
+		}
+		else
+		{
+			fprintf(pih->fout
+					, "\t%*.*s  , 'prepare': 'translate_%s'\n"
+					, transitions_str_len
+					, transitions_str_len
+					, " "
+					, pevent->name
+					);
+		}
+	}
+
 	if (action_present)
 	{
 		fprintf(pih->fout
@@ -694,6 +796,7 @@ static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
 	pMATRIX_INFO     pmi    = (pMATRIX_INFO) pih->pOtherElem->mbr;
 	pID_INFO         pevent = pih->pid;
 	bool             action_present = (pih->pai->action && strlen(pih->pai->action->name));
+	pUSER_EVENT_DATA pued   = pevent->type_data.event_data.puser_event_data;
 
 	fprintf(pih->fout
 			, "\t%*.*s%s{'trigger': '%s'\n"
@@ -738,6 +841,32 @@ static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
 			, " "
 			, pstate->name
 			);
+
+	if (pued)
+	{
+		const char *translator_name = (pued->translator) ? pued->translator->name : NULL;
+
+		if (translator_name)
+		{
+			fprintf(pih->fout
+					, "\t%*.*s  , 'prepare': '%s'\n"
+					, transitions_str_len
+					, transitions_str_len
+					, " "
+					, translator_name
+					);
+		}
+		else
+		{
+			fprintf(pih->fout
+					, "\t%*.*s  , 'prepare': 'translate_%s'\n"
+					, transitions_str_len
+					, transitions_str_len
+					, " "
+					, pevent->name
+					);
+		}
+	}
 
 	if (action_present)
 	{
@@ -850,10 +979,109 @@ static bool print_transition_fn_return_stubs(pLIST_ELEMENT pelem, void *data)
 	pITERATOR_HELPER pih = (pITERATOR_HELPER) data;
 
 	fprintf(pih->fout
-			, "\n\t@property\n\tdef choose_%s(self):\n\t\treturn True\n"
+			, "\n\t@property\n\tdef choose_%s(self):\n\t\treturn True\n\n"
 			, pid->name
 			);
 
 	return false;
 }
 
+static bool print_event_data_action_stubs(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         paction = ((pID_INFO)pelem->mbr);
+	pITERATOR_HELPER pih     = ((pITERATOR_HELPER)data);
+
+	if (paction->name && strlen(paction->name))
+	{
+		fprintf(pih->fout
+				, "\n\tdef %s(self, event=None):\n\t\tprint('%s')\n\n"
+				, paction->name
+				, paction->name
+				);
+	}
+
+	return false;
+}
+
+static bool print_event_data_entry_exit_stubs(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = ((pID_INFO)pelem->mbr);
+	pITERATOR_HELPER pih    = ((pITERATOR_HELPER)data);
+	pSTATE_DATA      psd    = &(pstate->type_data.state_data);
+
+	if (psd->entry_fn)
+	{
+		fprintf(pih->fout
+				, "\n\tdef %s(self, event=None):\n\t\tprint('%s')\n\n"
+				, psd->entry_fn->name
+				, psd->entry_fn->name
+				);
+	}
+
+	if (psd->exit_fn)
+	{
+		fprintf(pih->fout
+				, "\n\tdef %s(self, event=None):\n\t\tprint('%s')\n\n"
+				, psd->exit_fn->name
+				, psd->exit_fn->name
+				);
+	}
+
+	return false;
+}
+
+static bool print_translator_stubs(pLIST_ELEMENT pelem, void *data)
+{
+	pCONSOLIDATED_ACTION_INFO pcai = (pCONSOLIDATED_ACTION_INFO) pelem->mbr;
+	pITERATOR_HELPER          pih  = (pITERATOR_HELPER) data;
+	pMATRIX_INFO              pmi;
+	pLIST_ELEMENT             event_elem;
+	pID_INFO                  pevent;
+	pUSER_EVENT_DATA          pued;
+	const char               *translator_name;
+
+	if (!pcai->matrices || !pcai->matrices->head)
+	{
+		return false;
+	}
+
+	pmi = (pMATRIX_INFO) pcai->matrices->head->mbr;
+
+	if (!pmi->event_list || !pmi->event_list->head)
+	{
+		return false;
+	}
+
+	event_elem = pmi->event_list->head;
+	while (event_elem)
+	{
+		pevent = (pID_INFO) event_elem->mbr;
+		pued   = pevent->type_data.event_data.puser_event_data;
+
+		if (pued)
+		{
+			translator_name = (pued->translator) ? pued->translator->name : NULL;
+
+			if (translator_name)
+			{
+				fprintf(pih->fout
+						, "\n\tdef %s(self, event=None):\n\t\tself.data['%s'] = event.kwargs if event else {}\n\n"
+						, translator_name
+						, pevent->name
+						);
+			}
+			else
+			{
+				fprintf(pih->fout
+						, "\n\tdef translate_%s(self, event=None):\n\t\tself.data['%s'] = event.kwargs if event else {}\n\n"
+						, pevent->name
+						, pevent->name
+						);
+			}
+		}
+
+		event_elem = event_elem->next;
+	}
+
+	return false;
+}

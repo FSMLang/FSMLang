@@ -9,28 +9,18 @@ from transitions import Machine
 
 class NarcolepticSuperhero(object):
 
-
-
-	@property
-	def choose_asleep(self):
-		return True
-
-
-	@property
-	def choose_hanging_out(self):
-		return False
-
-
 	states = ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
 	transitions = [
 	               {'trigger': 'distress_call'
 	                 , 'source': ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
 	                 , 'dest': 'saving_the_world'
+	                 , 'prepare': 'translate_distress_call'
 	                 , 'before': 'change_into_super_secret_costume'
 	                 }
 	               , {'trigger': 'complete_mission'
 	                 , 'source': 'saving_the_world'
 	                 , 'dest': 'sweaty'
+	                 , 'prepare': 'handle_mission'
 	                 , 'before': 'update_journal'
 	                 }
 	               , ['wake_up', 'asleep', 'hanging_out']
@@ -39,33 +29,33 @@ class NarcolepticSuperhero(object):
 	               , {'trigger': 'clean_up'
 	                 , 'source': 'sweaty'
 	                 , 'dest': 'asleep'
-	                 , 'conditions': ['choose_asleep']
+	                 , 'conditions': ['is_exhausted']
 	                 }
-	               , {'trigger': 'clean_up'
-	                 , 'source': 'sweaty'
-	                 , 'dest': 'hanging_out'
-	                 , 'conditions': ['choose_hanging_out']
-	                 }
+	               , ['clean_up', 'sweaty', 'hanging_out']
 	               ]
 
 	def __init__(self):
-		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep')
+		self.data = {}
+		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep', send_event=True)
 
 
-	def change_into_super_secret_costume(self):
+	def change_into_super_secret_costume(self, event=None):
 		print('change_into_super_secret_costume')
 
 
-	def update_journal(self):
+	def update_journal(self, event=None):
 		print('update_journal')
 
 
 	@property
-	def choose_asleep(self):
+	def is_exhausted(self):
 		return True
 
 
-	@property
-	def choose_hanging_out(self):
-		return True
+	def translate_distress_call(self, event=None):
+		self.data['distress_call'] = event.kwargs if event else {}
+
+
+	def handle_mission(self, event=None):
+		self.data['complete_mission'] = event.kwargs if event else {}
 
