@@ -609,8 +609,13 @@ int newfile(char *filename)
 				 , bs->filename
 				);
 
-		CHECK_AND_FREE(bs->f);
-		CHECK_AND_FREE(bs);
+		if (bs->f && bs->f != stdout)
+		{
+			fclose(bs->f);
+		}
+
+		CHECK_AND_FREE(bs->filename);
+		free(bs);
 		return 0;
 	}
 
