@@ -1,0 +1,21 @@
+machine MachineData
+   actions return void;
+   native impl
+{
+	def data_init(self):
+		self.count = 0
+
+}
+{
+	data
+	{
+		int count;
+	}
+
+	state idle, active;
+
+	event activate, deactivate;
+
+	transition[activate, idle] active;
+	transition[deactivate, active] idle;
+}

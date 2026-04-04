@@ -371,9 +371,18 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 				);
 	}
 
-	fprintf(fout
-			, ")\n\n"
-			);
+	if (pmi->data)
+	{
+		fprintf(fout
+				, ")\n\t\tself.data_init()\n\n"
+				);
+	}
+	else
+	{
+		fprintf(fout
+				, ")\n\n"
+				);
+	}
 
 	// Write action stubs
 	if (generate_weak_fns)
