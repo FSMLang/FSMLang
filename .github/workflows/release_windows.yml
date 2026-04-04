@@ -123,39 +123,41 @@ jobs:
           Copy-Item -Path "artifacts\fsm-$tag-windows.exe" -Destination (Join-Path $pkgDir "bin\fsm.exe") -Force
 
           # Minimal CMake project that installs the bundled binary
-          @'
-cmake_minimum_required(VERSION 3.15)
-project(FSMLangTools LANGUAGES NONE)
+          $cmakeLines = @(
+            'cmake_minimum_required(VERSION 3.15)'
+            'project(FSMLangTools LANGUAGES NONE)'
+            ''
+            'option(FSMLANGTOOLS_INSTALL_BINARY "Install the bundled fsm binary" ON)'
+            ''
+            'if(FSMLANGTOOLS_INSTALL_BINARY)'
+            '  install(PROGRAMS "${CMAKE_CURRENT_LIST_DIR}/bin/fsm.exe" DESTINATION bin)'
+            'endif()'
+          )
+          $cmakeLines | Out-File -Encoding ascii (Join-Path $pkgDir "CMakeLists.txt")
 
-option(FSMLANGTOOLS_INSTALL_BINARY "Install the bundled fsm binary" ON)
-
-if(FSMLANGTOOLS_INSTALL_BINARY)
-  install(PROGRAMS "${CMAKE_CURRENT_LIST_DIR}/bin/fsm.exe" DESTINATION bin)
-endif()
-'@ | Out-File -Encoding ascii (Join-Path $pkgDir "CMakeLists.txt")
-
-          @'
-# FSMLang (CMake step package)
-
-This archive is intended to be consumed from CMake as a simple step/package.
-
-## Using FetchContent (example)
-
-```cmake
-include(FetchContent)
-
-FetchContent_Declare(
-  fsmlang_tools
-  URL https://github.com/FSMLang/FSMLang/releases/download/<TAG>/fsm-<TAG>-windows-cmake-src.tar.gz
-)
-FetchContent_MakeAvailable(fsmlang_tools)
-```
-
-Then run:
-- `cmake --build .`
-- `cmake --install .`
-
-'@ | Out-File -Encoding ascii (Join-Path $pkgDir "README.cmake.md")
+          $readmeLines = @(
+            '# FSMLang (CMake step package)'
+            ''
+            'This archive is intended to be consumed from CMake as a simple step/package.'
+            ''
+            '## Using FetchContent (example)'
+            ''
+            '```cmake'
+            'include(FetchContent)'
+            ''
+            'FetchContent_Declare('
+            '  fsmlang_tools'
+            '  URL https://github.com/FSMLang/FSMLang/releases/download/<TAG>/fsm-<TAG>-windows-cmake-src.tar.gz'
+            ')'
+            'FetchContent_MakeAvailable(fsmlang_tools)'
+            '```'
+            ''
+            'Then run:'
+            '- `cmake --build .`'
+            '- `cmake --install .`'
+            ''
+          )
+          $readmeLines | Out-File -Encoding ascii (Join-Path $pkgDir "README.cmake.md")
 
           # Create .tar.gz (requires tar.exe, available on windows-latest)
           $tgzPath = "artifacts\${pkgName}.tar.gz"
