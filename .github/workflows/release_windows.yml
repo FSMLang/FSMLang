@@ -135,7 +135,7 @@ jobs:
           )
           $cmakeLines | Out-File -Encoding ascii (Join-Path $pkgDir "CMakeLists.txt")
 
-          $cmakeLines = @(
+          $readmeLines = @(
             '# FSMLang (CMake step package)'
             ''
             'This archive is intended to be consumed from CMake as a simple step/package.'
@@ -157,7 +157,7 @@ jobs:
             '- `cmake --install .`'
             ''
           )
-          $cmakeLines | Out-File -Encoding ascii (Join-Path $pkgDir "README.cmake.md")
+          $readmeLines | Out-File -Encoding ascii (Join-Path $pkgDir "README.cmake.md")
 
           # Create .tar.gz (requires tar.exe, available on windows-latest)
           $tgzPath = "artifacts\${pkgName}.tar.gz"
