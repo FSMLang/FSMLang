@@ -313,8 +313,8 @@ char *joinStrings(char *str1, char *str2)
 			fprintf(stderr
 					,"%s : unable to join strings %s and %s\n"
 					, me 
-					, str1
-					, str2
+					, str1 ? str1 : "(null)"
+					, str2 ? str2 : "(null)"
 					);
 
 		}
