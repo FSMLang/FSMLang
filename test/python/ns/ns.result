@@ -1,0 +1,11 @@
+12,17c12
+< 	states = [	          'asleep'
+< 	           ,'hanging_out'
+< 	           ,'hungry'
+< 	           ,'sweaty'
+< 	           ,'saving_the_world'
+< 	          ]
+---
+> 	states = ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
+55d49
+< 

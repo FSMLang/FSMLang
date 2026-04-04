@@ -77,14 +77,12 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <cwalk.h>
 
 #if defined (LINUX) || defined (CYGWIN)
-#include <stdlib.h>
-#include <string.h>
 #include <strings.h>
-#include <stdlib.h>
 #endif
 
 #if defined (LINUX)
@@ -106,6 +104,7 @@
 #include "fsm_rst.h"
 #include "usage.h"
 #include "fsm_c_single_switch.h"
+#include "fsm_python_transitions.h"
 
 #include "list.h"
 
@@ -129,8 +128,25 @@ pSTATE_AND_EVENT_DECLS      psedecls     = NULL;
 
 void yyerror(char *);
 
+/* MinGW/Windows doesn't reliably provide strndup. */
+#if defined(_WIN32) && !defined(__CYGWIN__)
+static char *fsm_strndup(const char *s, size_t n)
+{
+    size_t len = 0;
+    while (len < n && s[len] != '\0') len++;
 
-#line 134 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+    char *out = (char *)malloc(len + 1);
+    if (!out) return NULL;
+
+    memcpy(out, s, len);
+    out[len] = '\0';
+    return out;
+}
+#define strndup fsm_strndup
+#endif
+
+
+#line 150 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -193,83 +209,86 @@ enum yysymbol_kind_t
   YYSYMBOL_ACTION_KEY = 32,                /* ACTION_KEY  */
   YYSYMBOL_TRANSITION_KEY = 33,            /* TRANSITION_KEY  */
   YYSYMBOL_GUARD_KEY = 34,                 /* GUARD_KEY  */
-  YYSYMBOL_PARENT = 35,                    /* PARENT  */
-  YYSYMBOL_NATIVE_KEY = 36,                /* NATIVE_KEY  */
-  YYSYMBOL_NATIVE_BLOCK = 37,              /* NATIVE_BLOCK  */
-  YYSYMBOL_MACHINE = 38,                   /* MACHINE  */
-  YYSYMBOL_STATE = 39,                     /* STATE  */
-  YYSYMBOL_EVENT = 40,                     /* EVENT  */
-  YYSYMBOL_ACTION = 41,                    /* ACTION  */
-  YYSYMBOL_TRANSITION_FN = 42,             /* TRANSITION_FN  */
-  YYSYMBOL_ID = 43,                        /* ID  */
-  YYSYMBOL_NUMERIC_STRING = 44,            /* NUMERIC_STRING  */
-  YYSYMBOL_TYPE_NAME = 45,                 /* TYPE_NAME  */
-  YYSYMBOL_46_ = 46,                       /* '{'  */
-  YYSYMBOL_47_ = 47,                       /* '}'  */
-  YYSYMBOL_48_ = 48,                       /* ';'  */
-  YYSYMBOL_49_ = 49,                       /* ','  */
-  YYSYMBOL_50_ = 50,                       /* '['  */
-  YYSYMBOL_51_ = 51,                       /* ']'  */
-  YYSYMBOL_52_ = 52,                       /* '('  */
-  YYSYMBOL_53_ = 53,                       /* ')'  */
-  YYSYMBOL_54_ = 54,                       /* '='  */
-  YYSYMBOL_55_ = 55,                       /* '*'  */
-  YYSYMBOL_YYACCEPT = 56,                  /* $accept  */
-  YYSYMBOL_fsmlang = 57,                   /* fsmlang  */
-  YYSYMBOL_machine_prefix = 58,            /* machine_prefix  */
-  YYSYMBOL_machine = 59,                   /* machine  */
-  YYSYMBOL_60_1 = 60,                      /* $@1  */
-  YYSYMBOL_machine_qualifier = 61,         /* machine_qualifier  */
-  YYSYMBOL_machine_transition_decl = 62,   /* machine_transition_decl  */
-  YYSYMBOL_action_return_spec = 63,        /* action_return_spec  */
-  YYSYMBOL_machine_modifier = 64,          /* machine_modifier  */
-  YYSYMBOL_statement_decl_list = 65,       /* statement_decl_list  */
-  YYSYMBOL_sequence_start = 66,            /* sequence_start  */
-  YYSYMBOL_sequence_node = 67,             /* sequence_node  */
-  YYSYMBOL_sequence_nodes = 68,            /* sequence_nodes  */
-  YYSYMBOL_sequence = 69,                  /* sequence  */
-  YYSYMBOL_sequences = 70,                 /* sequences  */
-  YYSYMBOL_machine_list = 71,              /* machine_list  */
-  YYSYMBOL_actions_and_transitions = 72,   /* actions_and_transitions  */
-  YYSYMBOL_transition_matrix_list = 73,    /* transition_matrix_list  */
-  YYSYMBOL_transition_matrix_start = 74,   /* transition_matrix_start  */
-  YYSYMBOL_transition_matrix = 75,         /* transition_matrix  */
-  YYSYMBOL_action_decl = 76,               /* action_decl  */
-  YYSYMBOL_action_decl_list = 77,          /* action_decl_list  */
-  YYSYMBOL_action = 78,                    /* action  */
-  YYSYMBOL_transition = 79,                /* transition  */
-  YYSYMBOL_action_matrix = 80,             /* action_matrix  */
-  YYSYMBOL_matrix = 81,                    /* matrix  */
-  YYSYMBOL_state_vector = 82,              /* state_vector  */
-  YYSYMBOL_state_comma_list = 83,          /* state_comma_list  */
-  YYSYMBOL_event_vector = 84,              /* event_vector  */
-  YYSYMBOL_event_comma_list = 85,          /* event_comma_list  */
-  YYSYMBOL_state_and_event_decls = 86,     /* state_and_event_decls  */
-  YYSYMBOL_state_decl = 87,                /* state_decl  */
-  YYSYMBOL_state = 88,                     /* state  */
-  YYSYMBOL_state_decl_list = 89,           /* state_decl_list  */
-  YYSYMBOL_event_decl = 90,                /* event_decl  */
-  YYSYMBOL_parent_namespace = 91,          /* parent_namespace  */
-  YYSYMBOL_user_event_data = 92,           /* user_event_data  */
-  YYSYMBOL_event_decl_list = 93,           /* event_decl_list  */
-  YYSYMBOL_external_designation = 94,      /* external_designation  */
-  YYSYMBOL_native = 95,                    /* native  */
-  YYSYMBOL_native_prologue = 96,           /* native_prologue  */
-  YYSYMBOL_native_epilogue = 97,           /* native_epilogue  */
-  YYSYMBOL_native_impl = 98,               /* native_impl  */
-  YYSYMBOL_native_impl_prologue = 99,      /* native_impl_prologue  */
-  YYSYMBOL_native_impl_epilogue = 100,     /* native_impl_epilogue  */
-  YYSYMBOL_machine_data = 101,             /* machine_data  */
-  YYSYMBOL_data_block = 102,               /* data_block  */
-  YYSYMBOL_data_fields = 103,              /* data_fields  */
-  YYSYMBOL_data_type = 104,                /* data_type  */
-  YYSYMBOL_data_field = 105,               /* data_field  */
-  YYSYMBOL_data_field_dimension = 106,     /* data_field_dimension  */
-  YYSYMBOL_namespace = 107,                /* namespace  */
-  YYSYMBOL_namespace_event_ref = 108,      /* namespace_event_ref  */
-  YYSYMBOL_returns_comma_list = 109,       /* returns_comma_list  */
-  YYSYMBOL_action_return_decl = 110,       /* action_return_decl  */
-  YYSYMBOL_transition_fn_return_decl = 111 /* transition_fn_return_decl  */
+  YYSYMBOL_CONDITION_KEY = 35,             /* CONDITION_KEY  */
+  YYSYMBOL_PARENT = 36,                    /* PARENT  */
+  YYSYMBOL_NATIVE_KEY = 37,                /* NATIVE_KEY  */
+  YYSYMBOL_NATIVE_BLOCK = 38,              /* NATIVE_BLOCK  */
+  YYSYMBOL_MACHINE = 39,                   /* MACHINE  */
+  YYSYMBOL_STATE = 40,                     /* STATE  */
+  YYSYMBOL_EVENT = 41,                     /* EVENT  */
+  YYSYMBOL_ACTION = 42,                    /* ACTION  */
+  YYSYMBOL_TRANSITION_FN = 43,             /* TRANSITION_FN  */
+  YYSYMBOL_TRANSITION_CONDITION = 44,      /* TRANSITION_CONDITION  */
+  YYSYMBOL_ID = 45,                        /* ID  */
+  YYSYMBOL_NUMERIC_STRING = 46,            /* NUMERIC_STRING  */
+  YYSYMBOL_TYPE_NAME = 47,                 /* TYPE_NAME  */
+  YYSYMBOL_48_ = 48,                       /* '{'  */
+  YYSYMBOL_49_ = 49,                       /* '}'  */
+  YYSYMBOL_50_ = 50,                       /* ';'  */
+  YYSYMBOL_51_ = 51,                       /* ','  */
+  YYSYMBOL_52_ = 52,                       /* '['  */
+  YYSYMBOL_53_ = 53,                       /* ']'  */
+  YYSYMBOL_54_ = 54,                       /* '('  */
+  YYSYMBOL_55_ = 55,                       /* ')'  */
+  YYSYMBOL_56_ = 56,                       /* '='  */
+  YYSYMBOL_57_ = 57,                       /* '*'  */
+  YYSYMBOL_YYACCEPT = 58,                  /* $accept  */
+  YYSYMBOL_fsmlang = 59,                   /* fsmlang  */
+  YYSYMBOL_machine_prefix = 60,            /* machine_prefix  */
+  YYSYMBOL_machine = 61,                   /* machine  */
+  YYSYMBOL_62_1 = 62,                      /* $@1  */
+  YYSYMBOL_machine_qualifier = 63,         /* machine_qualifier  */
+  YYSYMBOL_machine_transition_decl = 64,   /* machine_transition_decl  */
+  YYSYMBOL_action_return_spec = 65,        /* action_return_spec  */
+  YYSYMBOL_machine_modifier = 66,          /* machine_modifier  */
+  YYSYMBOL_statement_decl_list = 67,       /* statement_decl_list  */
+  YYSYMBOL_sequence_start = 68,            /* sequence_start  */
+  YYSYMBOL_sequence_node = 69,             /* sequence_node  */
+  YYSYMBOL_sequence_nodes = 70,            /* sequence_nodes  */
+  YYSYMBOL_sequence = 71,                  /* sequence  */
+  YYSYMBOL_sequences = 72,                 /* sequences  */
+  YYSYMBOL_machine_list = 73,              /* machine_list  */
+  YYSYMBOL_actions_and_transitions = 74,   /* actions_and_transitions  */
+  YYSYMBOL_transition_matrix_list = 75,    /* transition_matrix_list  */
+  YYSYMBOL_transition_matrix_start = 76,   /* transition_matrix_start  */
+  YYSYMBOL_guard_matrix_start = 77,        /* guard_matrix_start  */
+  YYSYMBOL_transition_matrix = 78,         /* transition_matrix  */
+  YYSYMBOL_action_decl = 79,               /* action_decl  */
+  YYSYMBOL_action_decl_list = 80,          /* action_decl_list  */
+  YYSYMBOL_action = 81,                    /* action  */
+  YYSYMBOL_transition = 82,                /* transition  */
+  YYSYMBOL_action_matrix = 83,             /* action_matrix  */
+  YYSYMBOL_matrix = 84,                    /* matrix  */
+  YYSYMBOL_state_vector = 85,              /* state_vector  */
+  YYSYMBOL_state_comma_list = 86,          /* state_comma_list  */
+  YYSYMBOL_event_vector = 87,              /* event_vector  */
+  YYSYMBOL_event_comma_list = 88,          /* event_comma_list  */
+  YYSYMBOL_state_and_event_decls = 89,     /* state_and_event_decls  */
+  YYSYMBOL_state_decl = 90,                /* state_decl  */
+  YYSYMBOL_state = 91,                     /* state  */
+  YYSYMBOL_state_decl_list = 92,           /* state_decl_list  */
+  YYSYMBOL_event_decl = 93,                /* event_decl  */
+  YYSYMBOL_parent_namespace = 94,          /* parent_namespace  */
+  YYSYMBOL_user_event_data = 95,           /* user_event_data  */
+  YYSYMBOL_event_decl_list = 96,           /* event_decl_list  */
+  YYSYMBOL_external_designation = 97,      /* external_designation  */
+  YYSYMBOL_native = 98,                    /* native  */
+  YYSYMBOL_native_prologue = 99,           /* native_prologue  */
+  YYSYMBOL_native_epilogue = 100,          /* native_epilogue  */
+  YYSYMBOL_native_impl = 101,              /* native_impl  */
+  YYSYMBOL_native_impl_prologue = 102,     /* native_impl_prologue  */
+  YYSYMBOL_native_impl_epilogue = 103,     /* native_impl_epilogue  */
+  YYSYMBOL_machine_data = 104,             /* machine_data  */
+  YYSYMBOL_data_block = 105,               /* data_block  */
+  YYSYMBOL_data_fields = 106,              /* data_fields  */
+  YYSYMBOL_data_type = 107,                /* data_type  */
+  YYSYMBOL_data_field = 108,               /* data_field  */
+  YYSYMBOL_data_field_dimension = 109,     /* data_field_dimension  */
+  YYSYMBOL_namespace = 110,                /* namespace  */
+  YYSYMBOL_namespace_event_ref = 111,      /* namespace_event_ref  */
+  YYSYMBOL_returns_comma_list = 112,       /* returns_comma_list  */
+  YYSYMBOL_action_return_decl = 113,       /* action_return_decl  */
+  YYSYMBOL_transition_fn_return_decl = 114 /* transition_fn_return_decl  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -386,7 +405,7 @@ typedef int yytype_uint16;
 
 
 /* Stored state numbers (used for stacks). */
-typedef yytype_uint8 yy_state_t;
+typedef yytype_int16 yy_state_t;
 
 /* State numbers in computations.  */
 typedef int yy_state_fast_t;
@@ -597,19 +616,19 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  5
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   257
+#define YYLAST   266
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  56
+#define YYNTOKENS  58
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  56
+#define YYNNTS  57
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  143
+#define YYNRULES  149
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  253
+#define YYNSTATES  266
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   300
+#define YYMAXUTOK   302
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -627,15 +646,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      52,    53,    55,     2,    49,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,    48,
-       2,    54,     2,     2,     2,     2,     2,     2,     2,     2,
+      54,    55,    57,     2,    51,     2,     2,     2,     2,     2,
+       2,     2,     2,     2,     2,     2,     2,     2,     2,    50,
+       2,    56,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    50,     2,    51,     2,     2,     2,     2,     2,     2,
+       2,    52,     2,    53,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,    46,     2,    47,     2,     2,     2,     2,
+       2,     2,     2,    48,     2,    49,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -653,28 +672,28 @@ static const yytype_int8 yytranslate[] =
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
       25,    26,    27,    28,    29,    30,    31,    32,    33,    34,
       35,    36,    37,    38,    39,    40,    41,    42,    43,    44,
-      45
+      45,    46,    47
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   163,   163,   181,   201,   229,   228,   466,   470,   478,
-     485,   493,   502,   511,   526,   534,   545,   549,   556,   559,
-     565,   577,   589,   605,   622,   629,   636,   644,   653,   666,
-     676,   683,   693,   707,   722,   744,   756,   768,   789,   809,
-     850,   871,   892,   910,   938,   942,   949,   955,   977,   999,
-    1021,  1045,  1057,  1069,  1082,  1096,  1148,  1185,  1195,  1209,
-    1219,  1230,  1240,  1251,  1263,  1288,  1312,  1332,  1341,  1355,
-    1371,  1385,  1401,  1410,  1424,  1441,  1459,  1478,  1487,  1496,
-    1503,  1513,  1528,  1555,  1569,  1583,  1601,  1615,  1635,  1650,
-    1668,  1682,  1694,  1695,  1711,  1725,  1739,  1760,  1801,  1825,
-    1867,  1870,  1881,  1884,  1904,  1926,  1934,  1946,  1958,  1965,
-    1972,  1982,  1995,  2003,  2013,  2024,  2026,  2037,  2049,  2061,
-    2076,  2089,  2102,  2115,  2133,  2155,  2176,  2180,  2184,  2191,
-    2192,  2201,  2212,  2222,  2232,  2240,  2251,  2270,  2289,  2305,
-    2321,  2340,  2361,  2380
+       0,   183,   183,   201,   221,   249,   248,   486,   490,   498,
+     505,   513,   522,   531,   546,   554,   565,   569,   576,   579,
+     585,   597,   609,   625,   642,   649,   656,   664,   673,   686,
+     696,   703,   713,   727,   742,   764,   776,   788,   809,   829,
+     876,   897,   918,   942,   976,   980,   987,   993,  1015,  1039,
+    1061,  1085,  1104,  1126,  1145,  1164,  1181,  1200,  1219,  1233,
+    1291,  1334,  1344,  1358,  1375,  1395,  1413,  1432,  1449,  1468,
+    1487,  1512,  1536,  1556,  1565,  1579,  1595,  1609,  1625,  1634,
+    1648,  1665,  1683,  1702,  1711,  1720,  1727,  1737,  1752,  1779,
+    1793,  1807,  1825,  1839,  1859,  1874,  1892,  1906,  1918,  1919,
+    1935,  1949,  1963,  1984,  2025,  2049,  2091,  2094,  2105,  2108,
+    2128,  2150,  2158,  2170,  2182,  2189,  2196,  2206,  2219,  2227,
+    2237,  2248,  2250,  2261,  2273,  2285,  2300,  2313,  2326,  2339,
+    2357,  2379,  2400,  2404,  2408,  2415,  2416,  2425,  2436,  2446,
+    2456,  2464,  2475,  2494,  2513,  2529,  2545,  2564,  2585,  2604
 };
 #endif
 
@@ -696,20 +715,21 @@ static const char *const yytname[] =
   "STATES", "EVENTS", "RETURNS", "EXTERNAL", "VOID", "IMPLEMENTATION_KEY",
   "INHIBITS", "SUBMACHINES", "ALL", "ENTRY", "EXIT", "STRUCT_KEY",
   "UNION_KEY", "START_KEY", "EVENT_SEQ", "END_KEY", "SEQUENCE_KEY",
-  "ACTION_KEY", "TRANSITION_KEY", "GUARD_KEY", "PARENT", "NATIVE_KEY",
-  "NATIVE_BLOCK", "MACHINE", "STATE", "EVENT", "ACTION", "TRANSITION_FN",
-  "ID", "NUMERIC_STRING", "TYPE_NAME", "'{'", "'}'", "';'", "','", "'['",
-  "']'", "'('", "')'", "'='", "'*'", "$accept", "fsmlang",
-  "machine_prefix", "machine", "$@1", "machine_qualifier",
-  "machine_transition_decl", "action_return_spec", "machine_modifier",
-  "statement_decl_list", "sequence_start", "sequence_node",
-  "sequence_nodes", "sequence", "sequences", "machine_list",
-  "actions_and_transitions", "transition_matrix_list",
-  "transition_matrix_start", "transition_matrix", "action_decl",
-  "action_decl_list", "action", "transition", "action_matrix", "matrix",
-  "state_vector", "state_comma_list", "event_vector", "event_comma_list",
-  "state_and_event_decls", "state_decl", "state", "state_decl_list",
-  "event_decl", "parent_namespace", "user_event_data", "event_decl_list",
+  "ACTION_KEY", "TRANSITION_KEY", "GUARD_KEY", "CONDITION_KEY", "PARENT",
+  "NATIVE_KEY", "NATIVE_BLOCK", "MACHINE", "STATE", "EVENT", "ACTION",
+  "TRANSITION_FN", "TRANSITION_CONDITION", "ID", "NUMERIC_STRING",
+  "TYPE_NAME", "'{'", "'}'", "';'", "','", "'['", "']'", "'('", "')'",
+  "'='", "'*'", "$accept", "fsmlang", "machine_prefix", "machine", "$@1",
+  "machine_qualifier", "machine_transition_decl", "action_return_spec",
+  "machine_modifier", "statement_decl_list", "sequence_start",
+  "sequence_node", "sequence_nodes", "sequence", "sequences",
+  "machine_list", "actions_and_transitions", "transition_matrix_list",
+  "transition_matrix_start", "guard_matrix_start", "transition_matrix",
+  "action_decl", "action_decl_list", "action", "transition",
+  "action_matrix", "matrix", "state_vector", "state_comma_list",
+  "event_vector", "event_comma_list", "state_and_event_decls",
+  "state_decl", "state", "state_decl_list", "event_decl",
+  "parent_namespace", "user_event_data", "event_decl_list",
   "external_designation", "native", "native_prologue", "native_epilogue",
   "native_impl", "native_impl_prologue", "native_impl_epilogue",
   "machine_data", "data_block", "data_fields", "data_type", "data_field",
@@ -724,12 +744,12 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-143)
+#define YYPACT_NINF (-149)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-103)
+#define YYTABLE_NINF (-109)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -738,32 +758,33 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-    -143,    29,    35,  -143,    13,  -143,  -143,    14,  -143,    11,
-      60,  -143,  -143,    92,   103,   144,    14,  -143,  -143,   106,
-    -143,  -143,   145,   146,  -143,  -143,   137,   115,    23,   121,
-    -143,  -143,   106,  -143,  -143,  -143,  -143,   133,   136,   138,
-     139,   148,   151,  -143,   127,  -143,  -143,  -143,  -143,  -143,
-    -143,   147,    -9,   149,    33,     5,  -143,    62,  -143,    98,
-     143,  -143,    40,   185,   140,   152,    49,  -143,  -143,  -143,
-      72,  -143,   160,    85,   150,   150,   176,   179,    25,  -143,
-       9,    63,  -143,    -7,  -143,  -143,   102,   119,  -143,  -143,
-    -143,  -143,  -143,   147,  -143,    31,     5,   130,   175,  -143,
-     155,   190,   190,   156,   157,  -143,  -143,    -3,    65,  -143,
-     162,   171,   177,  -143,     3,  -143,   150,   150,  -143,   123,
-    -143,  -143,    83,   167,  -143,    67,   158,  -143,  -143,  -143,
-    -143,  -143,   161,   163,   164,  -143,    85,  -143,  -143,    40,
-     140,   168,    63,   170,   172,  -143,  -143,    12,  -143,  -143,
-      49,    49,  -143,  -143,    95,  -143,  -143,   178,   180,   181,
-    -143,   174,  -143,  -143,    96,   116,  -143,   206,   112,   114,
-     182,  -143,   183,   117,    89,   120,   186,   165,   173,   184,
-     -11,  -143,  -143,  -143,  -143,   190,   190,  -143,  -143,   187,
-    -143,    36,    46,  -143,    58,   188,  -143,  -143,   189,  -143,
-    -143,  -143,  -143,  -143,  -143,  -143,  -143,  -143,  -143,  -143,
-     122,  -143,  -143,  -143,   124,   126,  -143,   128,  -143,  -143,
-      88,  -143,    75,   191,  -143,  -143,   149,  -143,  -143,   192,
-     193,  -143,  -143,  -143,  -143,  -143,  -143,  -143,  -143,  -143,
-    -143,  -143,  -143,   194,   196,   195,  -143,  -143,  -143,  -143,
-    -143,    91,  -143
+    -149,    34,    32,  -149,    18,  -149,  -149,    16,  -149,     8,
+      39,  -149,  -149,    48,   113,   114,    16,  -149,  -149,   126,
+    -149,  -149,   144,   149,  -149,  -149,    96,   130,    14,   143,
+    -149,  -149,   126,  -149,  -149,  -149,  -149,   140,   145,   146,
+     147,   154,   155,  -149,   142,  -149,  -149,  -149,  -149,  -149,
+    -149,   153,    74,   151,    -5,     6,  -149,   -23,  -149,    56,
+     108,  -149,    62,   190,   148,   159,    37,  -149,  -149,  -149,
+      67,  -149,   170,    98,   150,   150,   186,   188,    61,  -149,
+      25,    -1,  -149,    92,   107,  -149,  -149,   109,   124,  -149,
+    -149,  -149,  -149,  -149,   153,  -149,    75,     6,   137,   184,
+    -149,   162,   199,   199,   161,   163,  -149,  -149,    -2,    64,
+    -149,   172,   177,   185,  -149,    38,  -149,   150,   150,  -149,
+     131,  -149,  -149,    89,   174,  -149,    46,   164,  -149,  -149,
+    -149,  -149,  -149,   -15,   166,   167,   168,   169,  -149,    98,
+    -149,  -149,    62,   148,   179,    -1,   176,   178,  -149,  -149,
+      13,  -149,  -149,    37,    37,  -149,  -149,   104,  -149,  -149,
+     182,   187,   189,  -149,   183,  -149,  -149,    93,   110,  -149,
+     221,   116,   118,   191,  -149,   192,   120,   103,   122,   194,
+     171,   181,   195,    26,   132,  -149,  -149,  -149,  -149,  -149,
+    -149,   199,   199,  -149,  -149,   193,  -149,    49,    52,  -149,
+      78,   180,  -149,  -149,   196,  -149,   200,  -149,  -149,  -149,
+    -149,  -149,  -149,  -149,  -149,  -149,   128,  -149,  -149,  -149,
+     133,   135,  -149,   138,  -149,  -149,    19,  -149,    77,   175,
+     197,   198,  -149,  -149,   151,  -149,  -149,   201,   202,  -149,
+    -149,  -149,   136,  -149,  -149,  -149,  -149,  -149,  -149,  -149,
+    -149,  -149,   203,   205,   204,  -149,  -149,  -149,  -149,  -149,
+    -149,  -149,  -149,  -149,    71,  -149
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -771,54 +792,55 @@ static const yytype_int16 yypact[] =
    means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-     102,   102,     0,     2,    18,     1,     3,     7,    19,     0,
-       0,   103,   104,     0,     0,     0,     5,     8,     9,    10,
-     108,   109,     0,     0,   105,     4,     0,     0,     0,     0,
-      11,    12,    13,   110,   111,   106,   107,     0,     0,     0,
-       0,     0,     0,   112,     0,    14,    16,    15,    17,   113,
-     114,     0,     0,     0,     0,   102,    77,     0,    78,     0,
-       0,    82,    88,     0,   100,     0,     0,   115,    23,     6,
+     108,   108,     0,     2,    18,     1,     3,     7,    19,     0,
+       0,   109,   110,     0,     0,     0,     5,     8,     9,    10,
+     114,   115,     0,     0,   111,     4,     0,     0,     0,     0,
+      11,    12,    13,   116,   117,   112,   113,     0,     0,     0,
+       0,     0,     0,   118,     0,    14,    16,    15,    17,   119,
+     120,     0,     0,     0,     0,   108,    83,     0,    84,     0,
+       0,    88,    94,     0,   106,     0,     0,   121,    23,     6,
        0,    33,    22,     0,     0,     0,     0,     0,     0,    35,
-      37,    20,    39,     0,    46,    38,     0,     0,    79,    80,
-      40,    41,    81,     0,    90,     0,   102,     0,     0,    91,
-       0,    92,    92,     0,     0,   119,   120,     0,     0,   117,
-       0,    27,    24,    29,     0,    34,     0,     0,    55,    57,
-      48,    50,     0,     0,    74,     0,     0,    36,    43,    42,
-      44,    45,     0,     0,     0,    54,     0,    47,    49,    89,
-     100,     0,    21,    84,    86,    83,   101,     0,    96,    97,
-       0,     0,   116,   118,     0,   123,    26,     0,     0,     0,
-      31,     0,    65,    64,     0,     0,    58,     0,     0,     0,
-       0,   129,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,    51,    53,    52,    56,    92,    92,    85,    87,     0,
-      95,     0,     0,   125,     0,     0,    28,    25,     0,    30,
-      59,    61,    60,    63,    62,   130,   141,    70,   138,   133,
-       0,   131,   139,   132,     0,     0,   143,     0,    72,    75,
-       0,    69,     0,     0,    98,    99,    93,   121,   122,     0,
-       0,   126,   124,    32,   140,    71,   136,   135,   137,   134,
-     142,    76,    73,     0,     0,     0,    66,    94,   128,   127,
-      67,     0,    68
+      37,    20,    39,     0,     0,    46,    38,     0,     0,    85,
+      86,    40,    41,    87,     0,    96,     0,   108,     0,     0,
+      97,     0,    98,    98,     0,     0,   125,   126,     0,     0,
+     123,     0,    27,    24,    29,     0,    34,     0,     0,    59,
+      61,    48,    50,     0,     0,    80,     0,     0,    36,    43,
+      42,    44,    45,     0,     0,     0,     0,     0,    58,     0,
+      47,    49,    95,   106,     0,    21,    90,    92,    89,   107,
+       0,   102,   103,     0,     0,   122,   124,     0,   129,    26,
+       0,     0,     0,    31,     0,    71,    70,     0,     0,    62,
+       0,     0,     0,     0,   135,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,     0,    51,    55,    54,    57,    56,
+      60,    98,    98,    91,    93,     0,   101,     0,     0,   131,
+       0,     0,    28,    25,     0,    30,    63,    67,    66,    69,
+      68,   136,   147,    76,   144,   139,     0,   137,   145,   138,
+       0,     0,   149,     0,    78,    81,     0,    75,     0,     0,
+       0,     0,   104,   105,    99,   127,   128,     0,     0,   132,
+     130,    32,     0,   146,    77,   142,   141,   143,   140,   148,
+      82,    79,     0,     0,     0,    72,    53,    52,   100,   134,
+     133,    65,    64,    73,     0,    74
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-    -143,  -143,  -143,     2,  -143,  -143,   200,   210,  -143,  -143,
-    -143,    66,  -143,   159,  -143,  -143,   132,   -75,  -143,  -143,
-     -74,  -143,    93,  -143,  -143,   -60,  -143,  -123,  -143,  -143,
-     197,   -43,   142,  -143,   -42,   -36,   -98,  -143,    99,  -143,
-    -143,  -143,   216,    84,    87,  -143,  -142,    28,  -143,  -106,
-    -143,  -143,    59,  -143,   -73,   -72
+    -149,  -149,  -149,     5,  -149,  -149,   223,   224,  -149,  -149,
+    -149,    73,  -149,   173,  -149,  -149,   152,   -78,  -149,  -149,
+    -149,   -74,  -149,   102,  -149,  -149,   -61,  -149,  -124,  -149,
+    -149,   206,   -38,   156,  -149,   -37,   -42,   -99,  -149,    99,
+    -149,  -149,  -149,   227,    84,    86,  -149,  -148,    21,  -149,
+    -107,  -149,  -149,    76,  -149,   -73,   -72
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_uint8 yydefgoto[] =
 {
        0,     1,     2,    79,    29,    16,    17,    18,    10,    54,
-      70,   113,   114,    71,    72,    80,    81,    82,    83,    84,
-      85,    86,   118,   166,   119,    87,   223,   170,   126,   179,
-      55,    56,    62,    57,    58,   171,   148,    59,   101,     4,
-      11,    12,    19,    20,    21,    60,    67,   107,   108,   109,
-     195,   172,   173,   174,    90,    91
+      70,   114,   115,    71,    72,    80,    81,    82,    83,    84,
+      85,    86,    87,   119,   169,   120,    88,   229,   173,   127,
+     182,    55,    56,    62,    57,    58,   174,   151,    59,   102,
+       4,    11,    12,    19,    20,    21,    60,    67,   108,   109,
+     110,   201,   175,   176,   177,    91,    92
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -826,114 +848,117 @@ static const yytype_uint8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int16 yytable[] =
 {
-     176,   153,     3,     6,   149,   190,   128,   129,   130,   131,
-      51,    52,    88,    89,   120,   121,    65,    13,    22,    23,
-    -102,  -102,   189,   103,   104,     8,    63,    14,   221,     5,
-      41,    42,   132,   159,    64,   133,   134,    73,    74,    75,
-     105,   222,   106,    97,   152,  -102,    76,    77,    24,     9,
-      15,   160,   161,    88,    89,    78,   162,   163,    66,   141,
-      43,    98,   103,   104,    68,   124,    63,   128,   129,   130,
-     131,    25,   103,   104,   140,   103,   104,   125,     7,   105,
-      69,   106,   127,   227,   247,   153,   153,   224,   225,   105,
-     177,   106,   105,   228,   106,    73,    74,    75,   243,   245,
-     110,   229,   230,    33,    76,    77,    34,   178,   154,   231,
-      92,    93,   111,    78,   244,   112,    33,    27,    63,    34,
-     155,   167,   168,   169,    63,    26,   116,   167,   117,   214,
-      38,    39,    51,    52,    40,   200,    53,   241,   201,   202,
-     235,   242,    15,   193,   252,   194,    94,    95,    51,    52,
-     135,   136,   137,   138,   143,   144,   164,   165,   203,   204,
-     206,   207,   208,   209,    28,   212,   213,    44,   216,   207,
-     234,   235,   236,   237,   238,   239,   240,   235,   191,   192,
-      37,    45,    35,    36,    46,    49,    47,    48,    50,    99,
-      61,    68,   102,   122,   100,    66,   123,   145,   146,   147,
-      78,   156,   150,   151,   157,   158,   175,   180,   186,   181,
-     205,   182,   183,   187,   111,   188,    30,   196,   218,   197,
-     198,   210,   219,   211,   220,   217,    31,   199,   142,   184,
-     226,   115,    32,   215,   251,   139,   232,   233,     0,   185,
-       0,     0,   246,   248,   249,   207,     0,   250,     0,     0,
-       0,     0,     0,     0,     0,     0,     0,    96
+     179,   156,   196,   129,   152,     3,     6,   130,   131,   132,
+      65,    51,    52,   121,   122,    22,    23,    89,    90,    13,
+     184,    41,    42,   195,   104,   105,    68,    93,    94,    14,
+       8,    73,    74,    75,     5,   185,  -108,  -108,    73,    74,
+      75,    76,    77,   106,    69,   107,    24,   155,    76,    77,
+      25,    78,    43,    15,   144,     9,   165,   166,    78,    89,
+      90,    66,  -108,   104,   105,    98,   227,   129,   162,   180,
+     250,   130,   131,   132,   251,   104,   105,     7,   104,   105,
+     228,    26,   106,    99,   107,   128,   258,   181,   163,   164,
+     156,   156,   232,   233,   106,   111,   107,   106,   235,   107,
+     252,   236,   125,    33,   254,    34,    95,    96,   112,   157,
+      63,    63,   113,    51,    52,   126,    33,   253,    34,    64,
+     143,   158,   244,   237,   238,    63,   265,    27,   170,   171,
+     172,   239,   133,   206,    28,   134,   207,   135,   208,    63,
+     117,    37,   170,   118,   220,    38,    39,    51,    52,    40,
+     136,    53,   137,   209,   199,   210,   200,   140,   141,   138,
+     139,   146,   147,    15,   167,   168,   212,   213,   214,   215,
+     218,   219,   222,   213,   197,   198,   230,   231,   243,   244,
+     261,   262,    35,   245,   246,   247,   248,    36,   249,   244,
+      45,    44,    49,    50,   100,    46,    47,    48,    61,    66,
+     103,    68,    78,   123,   101,   124,   148,   149,   150,   153,
+     160,   154,   159,   161,   178,   183,   186,   187,   188,   189,
+     192,   193,   202,   194,   112,   211,   224,   203,   255,   204,
+     240,   216,   225,   217,   223,   242,   226,   205,   234,    30,
+      31,   190,   191,    32,   264,   116,   241,   256,   257,   145,
+     142,     0,     0,   221,   259,   260,   213,     0,   263,     0,
+       0,     0,     0,     0,     0,     0,    97
 };
 
 static const yytype_int16 yycheck[] =
 {
-     123,   107,     0,     1,   102,   147,    81,    81,    81,    81,
-       5,     6,    55,    55,    74,    75,    52,     3,     7,     8,
-      11,    12,    10,    26,    27,    12,    35,    13,    39,     0,
-       7,     8,    39,    30,    43,    42,    43,    32,    33,    34,
-      43,    52,    45,     3,    47,    36,    41,    42,    37,    36,
-      36,    48,    49,    96,    96,    50,   116,   117,    46,    95,
-      37,    21,    26,    27,    31,    40,    35,   142,   142,   142,
-     142,    11,    26,    27,    43,    26,    27,    52,    43,    43,
-      47,    45,    80,    47,   226,   191,   192,   185,   186,    43,
-      23,    45,    43,    47,    45,    32,    33,    34,    23,   222,
-      28,    43,    44,    19,    41,    42,    19,    40,    43,    51,
-      48,    49,    40,    50,    39,    43,    32,    14,    35,    32,
-      55,    38,    39,    40,    35,    33,    41,    38,    43,    40,
-      15,    16,     5,     6,    19,    39,     9,    49,    42,    43,
-      49,    53,    36,    48,    53,    50,    48,    49,     5,     6,
-      48,    49,    33,    34,    24,    25,    33,    34,    42,    43,
-      48,    49,    48,    49,    20,    48,    49,    46,    48,    49,
-      48,    49,    48,    49,    48,    49,    48,    49,   150,   151,
-      43,    48,    37,    37,    48,    37,    48,    48,    37,     4,
-      43,    31,    40,    17,    54,    46,    17,    22,    43,     9,
-      50,    39,    46,    46,    33,    28,    39,    49,    40,    48,
-       4,    48,    48,    43,    40,    43,    16,    39,    53,    39,
-      39,    39,    49,    40,    40,    39,    16,   161,    96,   136,
-      43,    72,    16,   174,    39,    93,    48,    48,    -1,   140,
-      -1,    -1,    51,    51,    51,    49,    -1,    53,    -1,    -1,
-      -1,    -1,    -1,    -1,    -1,    -1,    -1,    60
+     124,   108,   150,    81,   103,     0,     1,    81,    81,    81,
+      52,     5,     6,    74,    75,     7,     8,    55,    55,     3,
+      35,     7,     8,    10,    26,    27,    31,    50,    51,    13,
+      12,    32,    33,    34,     0,    50,    11,    12,    32,    33,
+      34,    42,    43,    45,    49,    47,    38,    49,    42,    43,
+      11,    52,    38,    37,    96,    37,   117,   118,    52,    97,
+      97,    48,    37,    26,    27,     3,    40,   145,    30,    23,
+      51,   145,   145,   145,    55,    26,    27,    45,    26,    27,
+      54,    33,    45,    21,    47,    80,   234,    41,    50,    51,
+     197,   198,   191,   192,    45,    28,    47,    45,    49,    47,
+      23,    49,    41,    19,   228,    19,    50,    51,    41,    45,
+      36,    36,    45,     5,     6,    54,    32,    40,    32,    45,
+      45,    57,    51,    45,    46,    36,    55,    14,    39,    40,
+      41,    53,    40,    40,    20,    43,    43,    45,    45,    36,
+      42,    45,    39,    45,    41,    15,    16,     5,     6,    19,
+      43,     9,    45,    43,    50,    45,    52,    33,    34,    50,
+      51,    24,    25,    37,    33,    34,    50,    51,    50,    51,
+      50,    51,    50,    51,   153,   154,    44,    45,    50,    51,
+      44,    45,    38,    50,    51,    50,    51,    38,    50,    51,
+      50,    48,    38,    38,     4,    50,    50,    50,    45,    48,
+      41,    31,    52,    17,    56,    17,    22,    45,     9,    48,
+      33,    48,    40,    28,    40,    51,    50,    50,    50,    50,
+      41,    45,    40,    45,    41,     4,    55,    40,    53,    40,
+      50,    40,    51,    41,    40,    35,    41,   164,    45,    16,
+      16,   139,   143,    16,    40,    72,    50,    50,    50,    97,
+      94,    -1,    -1,   177,    53,    53,    51,    -1,    55,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    60
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    57,    58,    59,    95,     0,    59,    43,    12,    36,
-      64,    96,    97,     3,    13,    36,    61,    62,    63,    98,
-      99,   100,     7,     8,    37,    11,    33,    14,    20,    60,
-      62,    63,    98,    99,   100,    37,    37,    43,    15,    16,
-      19,     7,     8,    37,    46,    48,    48,    48,    48,    37,
-      37,     5,     6,     9,    65,    86,    87,    89,    90,    93,
-     101,    43,    88,    35,    43,    91,    46,   102,    31,    47,
-      66,    69,    70,    32,    33,    34,    41,    42,    50,    59,
-      71,    72,    73,    74,    75,    76,    77,    81,    87,    90,
-     110,   111,    48,    49,    48,    49,    86,     3,    21,     4,
-      54,    94,    40,    26,    27,    43,    45,   103,   104,   105,
-      28,    40,    43,    67,    68,    69,    41,    43,    78,    80,
-      81,    81,    17,    17,    40,    52,    84,    59,    73,    76,
-     110,   111,    39,    42,    43,    48,    49,    33,    34,    88,
-      43,    91,    72,    24,    25,    22,    43,     9,    92,    92,
-      46,    46,    47,   105,    43,    55,    39,    33,    28,    30,
-      48,    49,    81,    81,    33,    34,    79,    38,    39,    40,
-      83,    91,   107,   108,   109,    39,    83,    23,    40,    85,
-      49,    48,    48,    48,    78,    94,    40,    43,    43,    10,
-     102,   103,   103,    48,    50,   106,    39,    39,    39,    67,
-      39,    42,    43,    42,    43,     4,    48,    49,    48,    49,
-      39,    40,    48,    49,    40,   108,    48,    39,    53,    49,
-      40,    39,    52,    82,    92,    92,    43,    47,    47,    43,
-      44,    51,    48,    48,    48,    49,    48,    49,    48,    49,
-      48,    49,    53,    23,    39,    83,    51,   102,    51,    51,
-      53,    39,    53
+       0,    59,    60,    61,    98,     0,    61,    45,    12,    37,
+      66,    99,   100,     3,    13,    37,    63,    64,    65,   101,
+     102,   103,     7,     8,    38,    11,    33,    14,    20,    62,
+      64,    65,   101,   102,   103,    38,    38,    45,    15,    16,
+      19,     7,     8,    38,    48,    50,    50,    50,    50,    38,
+      38,     5,     6,     9,    67,    89,    90,    92,    93,    96,
+     104,    45,    91,    36,    45,    94,    48,   105,    31,    49,
+      68,    71,    72,    32,    33,    34,    42,    43,    52,    61,
+      73,    74,    75,    76,    77,    78,    79,    80,    84,    90,
+      93,   113,   114,    50,    51,    50,    51,    89,     3,    21,
+       4,    56,    97,    41,    26,    27,    45,    47,   106,   107,
+     108,    28,    41,    45,    69,    70,    71,    42,    45,    81,
+      83,    84,    84,    17,    17,    41,    54,    87,    61,    75,
+      79,   113,   114,    40,    43,    45,    43,    45,    50,    51,
+      33,    34,    91,    45,    94,    74,    24,    25,    22,    45,
+       9,    95,    95,    48,    48,    49,   108,    45,    57,    40,
+      33,    28,    30,    50,    51,    84,    84,    33,    34,    82,
+      39,    40,    41,    86,    94,   110,   111,   112,    40,    86,
+      23,    41,    88,    51,    35,    50,    50,    50,    50,    50,
+      81,    97,    41,    45,    45,    10,   105,   106,   106,    50,
+      52,   109,    40,    40,    40,    69,    40,    43,    45,    43,
+      45,     4,    50,    51,    50,    51,    40,    41,    50,    51,
+      41,   111,    50,    40,    55,    51,    41,    40,    54,    85,
+      44,    45,    95,    95,    45,    49,    49,    45,    46,    53,
+      50,    50,    35,    50,    51,    50,    51,    50,    51,    50,
+      51,    55,    23,    40,    86,    53,    50,    50,   105,    53,
+      53,    44,    45,    55,    40,    55
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    56,    57,    57,    58,    60,    59,    61,    61,    61,
-      61,    61,    61,    61,    62,    63,    63,    63,    64,    64,
-      65,    65,    65,    66,    66,    66,    66,    67,    67,    68,
-      68,    69,    69,    70,    70,    71,    71,    72,    72,    72,
-      72,    72,    72,    72,    72,    72,    73,    74,    74,    74,
-      74,    75,    75,    75,    76,    77,    77,    78,    78,    79,
-      79,    79,    79,    79,    80,    80,    81,    82,    82,    82,
-      83,    83,    84,    84,    84,    85,    85,    86,    86,    86,
-      86,    87,    88,    88,    88,    88,    88,    88,    89,    89,
-      90,    91,    92,    92,    92,    92,    93,    93,    93,    93,
-      94,    94,    95,    95,    95,    96,    96,    97,    98,    98,
-      98,    98,    99,    99,   100,   101,   102,   103,   103,   104,
-     104,   104,   104,   104,   105,   105,   106,   106,   106,   107,
-     107,   108,   109,   109,   109,   109,   110,   110,   110,   110,
-     110,   110,   111,   111
+       0,    58,    59,    59,    60,    62,    61,    63,    63,    63,
+      63,    63,    63,    63,    64,    65,    65,    65,    66,    66,
+      67,    67,    67,    68,    68,    68,    68,    69,    69,    70,
+      70,    71,    71,    72,    72,    73,    73,    74,    74,    74,
+      74,    74,    74,    74,    74,    74,    75,    76,    76,    77,
+      77,    78,    78,    78,    78,    78,    78,    78,    79,    80,
+      80,    81,    81,    82,    82,    82,    82,    82,    82,    82,
+      83,    83,    84,    85,    85,    85,    86,    86,    87,    87,
+      87,    88,    88,    89,    89,    89,    89,    90,    91,    91,
+      91,    91,    91,    91,    92,    92,    93,    94,    95,    95,
+      95,    95,    96,    96,    96,    96,    97,    97,    98,    98,
+      98,    99,    99,   100,   101,   101,   101,   101,   102,   102,
+     103,   104,   105,   106,   106,   107,   107,   107,   107,   107,
+     108,   108,   109,   109,   109,   110,   110,   111,   112,   112,
+     112,   112,   113,   113,   113,   113,   113,   113,   114,   114
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -944,16 +969,16 @@ static const yytype_int8 yyr2[] =
        2,     3,     2,     1,     2,     4,     3,     1,     3,     1,
        3,     3,     5,     1,     2,     1,     2,     1,     1,     1,
        1,     1,     2,     2,     2,     2,     1,     2,     2,     2,
-       2,     3,     3,     3,     2,     2,     3,     1,     2,     2,
-       2,     2,     2,     2,     2,     2,     5,     3,     4,     1,
-       2,     3,     3,     4,     1,     2,     3,     1,     1,     2,
-       2,     2,     1,     3,     3,     4,     3,     4,     2,     3,
-       2,     2,     0,     3,     4,     2,     4,     4,     5,     5,
-       0,     2,     0,     2,     2,     2,     3,     3,     1,     1,
-       2,     2,     3,     4,     4,     2,     3,     1,     2,     1,
-       1,     4,     4,     2,     4,     3,     2,     3,     3,     1,
-       2,     2,     2,     2,     3,     3,     5,     5,     4,     4,
-       5,     4,     5,     4
+       2,     3,     5,     5,     3,     3,     3,     3,     2,     2,
+       3,     1,     2,     2,     4,     4,     2,     2,     2,     2,
+       2,     2,     5,     3,     4,     1,     2,     3,     3,     4,
+       1,     2,     3,     1,     1,     2,     2,     2,     1,     3,
+       3,     4,     3,     4,     2,     3,     2,     2,     0,     3,
+       4,     2,     4,     4,     5,     5,     0,     2,     0,     2,
+       2,     2,     3,     3,     1,     1,     2,     2,     3,     4,
+       4,     2,     3,     1,     2,     1,     1,     4,     4,     2,
+       4,     3,     2,     3,     3,     1,     2,     2,     2,     2,
+       3,     3,     5,     5,     4,     4,     5,     4,     5,     4
 };
 
 
@@ -1417,7 +1442,7 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* fsmlang: machine  */
-#line 164 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 184 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         { 
 
 						#ifdef PARSER_DEBUG
@@ -1435,11 +1460,11 @@ yyreduce:
 						free_ids(id_list);
 
 					}
-#line 1439 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1464 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 3: /* fsmlang: fsmlang machine  */
-#line 182 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 202 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         { 
 
 						#ifdef PARSER_DEBUG
@@ -1457,11 +1482,11 @@ yyreduce:
 						free_ids(id_list);
 
 					}
-#line 1461 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1486 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 4: /* machine_prefix: native machine_modifier MACHINE_KEY  */
-#line 202 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 222 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
 
 				if (((yyval.pmachine_prefix) = (pMACHINE_PREFIX)calloc(1,sizeof(MACHINE_PREFIX))) == NULL)
@@ -1486,11 +1511,11 @@ yyreduce:
 				pmachineInfo             = (yyval.pmachine_prefix)->pmachineInfo;
 
    }
-#line 1490 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1515 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 5: /* $@1: %empty  */
-#line 229 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 249 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
          {
             if (!((yyvsp[0].pmachine_qualifier)->modFlags & ACTIONS_RETURN_FLAGS))
             {
@@ -1511,11 +1536,11 @@ yyreduce:
 						pid_state->order          = NO_TRANSITION;  // This makes it easier to detect.
 
          }
-#line 1515 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1540 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 6: /* machine: machine_prefix ID machine_qualifier $@1 '{' statement_decl_list '}'  */
-#line 250 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 270 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						(yyval.pmachineInfo)                     = (yyvsp[-6].pmachine_prefix)->pmachineInfo;
@@ -1729,20 +1754,20 @@ yyreduce:
 						#endif
 
 					}
-#line 1733 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1758 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 7: /* machine_qualifier: %empty  */
-#line 466 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 486 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
     					if (NULL == ((yyval.pmachine_qualifier) = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
     						yyerror("Out of memory");
         }
-#line 1742 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1767 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 8: /* machine_qualifier: machine_transition_decl  */
-#line 471 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 491 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                      {
  					if (NULL == ((yyval.pmachine_qualifier) = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
  						yyerror("Out of memory");
@@ -1750,22 +1775,22 @@ yyreduce:
  					(yyval.pmachine_qualifier)->machineTransition = (yyvsp[0].pid_info);
  				
 		     }
-#line 1754 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1779 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 9: /* machine_qualifier: action_return_spec  */
-#line 479 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 499 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                      {
  					if (NULL == ((yyval.pmachine_qualifier) = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
  						yyerror("Out of memory");
 
  					(yyval.pmachine_qualifier)->modFlags = (yyvsp[0].mod_flags);
 		     }
-#line 1765 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1790 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 10: /* machine_qualifier: native_impl  */
-#line 486 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 506 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                      {
  					if (NULL == ((yyval.pmachine_qualifier) = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
  						yyerror("Out of memory");
@@ -1773,11 +1798,11 @@ yyreduce:
  					(yyval.pmachine_qualifier)->native_impl_prologue = (yyvsp[0].pnative_info)->prologue;
  					(yyval.pmachine_qualifier)->native_impl_epilogue = (yyvsp[0].pnative_info)->epilogue;
 		     }
-#line 1777 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1802 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 11: /* machine_qualifier: machine_qualifier machine_transition_decl  */
-#line 494 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 514 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                      {
            if ((yyvsp[-1].pmachine_qualifier)->machineTransition)
              yyerror("only one machine transition declaration allowed per machine");
@@ -1786,11 +1811,11 @@ yyreduce:
 
            (yyval.pmachine_qualifier) = (yyvsp[-1].pmachine_qualifier);
 		     }
-#line 1790 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1815 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 12: /* machine_qualifier: machine_qualifier action_return_spec  */
-#line 503 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 523 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                      {
            if ((yyvsp[-1].pmachine_qualifier)->modFlags != mfNone)
              yyerror("only one action return spec allowed per machine");
@@ -1799,11 +1824,11 @@ yyreduce:
 
            (yyval.pmachine_qualifier) = (yyvsp[-1].pmachine_qualifier);
 		     }
-#line 1803 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1828 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 13: /* machine_qualifier: machine_qualifier native_impl  */
-#line 512 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 532 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                      {
            if ((yyvsp[-1].pmachine_qualifier)->native_impl_prologue)
              yyerror("only one native_prologue implementation allowed per machine");
@@ -1816,20 +1841,20 @@ yyreduce:
 
            (yyval.pmachine_qualifier) = (yyvsp[-1].pmachine_qualifier);
 		     }
-#line 1820 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1845 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 14: /* machine_transition_decl: ON TRANSITION_KEY ID ';'  */
-#line 527 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 547 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
     {
  	 		(yyval.pid_info)          = (yyvsp[-1].pid_info);
  			(yyvsp[-1].pid_info)->docCmnt = (yyvsp[-2].charData);
     }
-#line 1829 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1854 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 15: /* action_return_spec: ACTIONS RETURN EVENTS ';'  */
-#line 535 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 555 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 						pID_INFO pid_info;
            /* note that this is not added to the machine event list; it is here only to be
@@ -1840,43 +1865,43 @@ yyreduce:
 
  					(yyval.mod_flags) = 0;
         }
-#line 1844 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1869 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 16: /* action_return_spec: ACTIONS RETURN STATES ';'  */
-#line 546 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 566 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
  					(yyval.mod_flags) = mfActionsReturnStates;
 					}
-#line 1852 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1877 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 17: /* action_return_spec: ACTIONS RETURN VOID ';'  */
-#line 550 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 570 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 						(yyval.mod_flags) = mfActionsReturnVoid;
 					}
-#line 1860 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1885 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 18: /* machine_modifier: %empty  */
-#line 556 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 576 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
  		(yyval.mod_flags) = 0;
 	}
-#line 1868 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1893 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 19: /* machine_modifier: REENTRANT  */
-#line 560 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 580 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 						(yyval.mod_flags) = mfReentrant;
 					}
-#line 1876 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1901 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 20: /* statement_decl_list: state_and_event_decls actions_and_transitions  */
-#line 566 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 586 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
     	if (NULL == ((yyval.pstatement_decl_list) = (pSTATEMENT_DECL_LIST)calloc(1, sizeof(STATEMENT_DECL_LIST))))
     		yyerror("Out of memory");
@@ -1888,11 +1913,11 @@ yyreduce:
 			pmachineInfo->state_list = (yyvsp[-1].pstate_and_event_decls)->state_decls;
    
    	}
-#line 1892 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1917 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 21: /* statement_decl_list: machine_data state_and_event_decls actions_and_transitions  */
-#line 578 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 598 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
     	if (NULL == ((yyval.pstatement_decl_list) = (pSTATEMENT_DECL_LIST)calloc(1, sizeof(STATEMENT_DECL_LIST))))
     		yyerror("Out of memory");
@@ -1904,11 +1929,11 @@ yyreduce:
 			/* This allows the event sequence parser to set the proper default for the initial state. */
 			pmachineInfo->state_list = (yyvsp[-1].pstate_and_event_decls)->state_decls;
    	}
-#line 1908 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1933 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 22: /* statement_decl_list: statement_decl_list sequences  */
-#line 590 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 610 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
  {
 	#ifdef PARSER_DEBUG
 	fprintf(yyout
@@ -1922,11 +1947,11 @@ yyreduce:
 	(yyval.pstatement_decl_list)->sequences = (yyvsp[0].plist);
 
  }
-#line 1926 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1951 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 23: /* sequence_start: SEQUENCE_KEY  */
-#line 606 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 626 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		#ifdef PARSER_DEBUG
 		fprintf(yyout, "Starting an event sequence\n");
@@ -1943,42 +1968,42 @@ yyreduce:
 		(yyval.psequence)->docCmt = (yyvsp[0].charData);
 
 	}
-#line 1947 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1972 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 24: /* sequence_start: sequence_start ID  */
-#line 623 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 643 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		(yyval.psequence) = (yyvsp[-1].psequence);
 		set_id_type((yyvsp[0].pid_info),EVENT_SEQ);
 		(yyval.psequence)->name = (yyvsp[0].pid_info);
 		(yyval.psequence)->initial_state = statePidByIndex(pmachineInfo, 0);
 	}
-#line 1958 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1983 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 25: /* sequence_start: sequence_start ID START_KEY STATE  */
-#line 630 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 650 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		(yyval.psequence) = (yyvsp[-3].psequence);
 		set_id_type((yyvsp[-2].pid_info),EVENT_SEQ);
 		(yyval.psequence)->name = (yyvsp[-2].pid_info);
 		(yyval.psequence)->initial_state = (yyvsp[0].pid_info);
 	}
-#line 1969 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 1994 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 26: /* sequence_start: sequence_start START_KEY STATE  */
-#line 637 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 657 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		(yyval.psequence) = (yyvsp[-2].psequence);
 		(yyval.psequence)->initial_state = (yyvsp[0].pid_info);
 	}
-#line 1978 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2003 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 27: /* sequence_node: EVENT  */
-#line 645 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 665 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     if (((yyval.pevent_sequence_node) = (pEVENT_SEQUENCE_NODE) calloc(1, sizeof(EVENT_SEQUENCE_NODE))) == NULL)
     {
@@ -1987,11 +2012,11 @@ yyreduce:
 
     (yyval.pevent_sequence_node)->pevent = (yyvsp[0].pid_info);
   }
-#line 1991 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2016 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 28: /* sequence_node: EVENT TRANSITION_KEY STATE  */
-#line 654 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 674 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     if (((yyval.pevent_sequence_node) = (pEVENT_SEQUENCE_NODE) calloc(1, sizeof(EVENT_SEQUENCE_NODE))) == NULL)
     {
@@ -2001,11 +2026,11 @@ yyreduce:
     (yyval.pevent_sequence_node)->pevent = (yyvsp[-2].pid_info);
     (yyval.pevent_sequence_node)->pnew_state = (yyvsp[0].pid_info);
   }
-#line 2005 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2030 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 29: /* sequence_nodes: sequence_node  */
-#line 667 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 687 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     if (((yyval.plist) = init_list()) == NULL)
     {
@@ -2015,20 +2040,20 @@ yyreduce:
     add_to_list((yyval.plist), (yyvsp[0].pevent_sequence_node));
 
   }
-#line 2019 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2044 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 30: /* sequence_nodes: sequence_nodes ',' sequence_node  */
-#line 677 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 697 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     add_to_list((yyvsp[-2].plist), (yyvsp[0].pevent_sequence_node));
     (yyval.plist) = (yyvsp[-2].plist);
   }
-#line 2028 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2053 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 31: /* sequence: sequence_start sequence_nodes ';'  */
-#line 684 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 704 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		#ifdef PARSER_DEBUG
 		fprintf(yyout, "Found an event sequence\n");
@@ -2038,11 +2063,11 @@ yyreduce:
 		(yyval.psequence)->sequence = (yyvsp[-1].plist);
 
 	}
-#line 2042 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2067 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 32: /* sequence: sequence_start sequence_nodes END_KEY STATE ';'  */
-#line 694 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 714 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		#ifdef PARSER_DEBUG
 		fprintf(yyout, "Found an event sequence indicating an end state\n");
@@ -2053,11 +2078,11 @@ yyreduce:
 		(yyval.psequence)->final_state = (yyvsp[-1].pid_info);
 
 	}
-#line 2057 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2082 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 33: /* sequences: sequence  */
-#line 708 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 728 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		if (((yyval.plist) = init_list()) == NULL)
     		yyerror("Out of memory");
@@ -2072,11 +2097,11 @@ yyreduce:
 				CHECK_AND_FREE(sn);
 		}
 	}
-#line 2076 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2101 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 34: /* sequences: sequences sequence  */
-#line 723 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 743 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		#ifdef PARSER_DEBUG
 		fprintf(yyout, "Found another event sequence\n");
@@ -2094,11 +2119,11 @@ yyreduce:
 		(yyval.plist) = (yyvsp[-1].plist);
 
 	}
-#line 2098 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2123 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 35: /* machine_list: machine  */
-#line 745 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 765 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
     {
         if (NULL == ((yyval.plist) = init_list()))
             yyerror("out of memory");
@@ -2110,11 +2135,11 @@ yyreduce:
 				increase_sub_machine_depth((yyvsp[0].pmachineInfo)->parent);
 
     }
-#line 2114 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2139 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 36: /* machine_list: machine_list machine  */
-#line 757 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 777 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
     {
 
         (yyval.plist) = (yyvsp[-1].plist);
@@ -2123,11 +2148,11 @@ yyreduce:
             yyerror("out of memory");
 
     }
-#line 2127 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2152 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 37: /* actions_and_transitions: machine_list  */
-#line 769 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 789 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                 {
  		if (NULL == ((yyval.pactions_and_transitions) = (pACTIONS_AND_TRANSITIONS)calloc(1,sizeof(ACTIONS_AND_TRANSITIONS))))
  			yyerror("out of memory");
@@ -2148,11 +2173,11 @@ yyreduce:
     (yyval.pactions_and_transitions)->machine_list = (yyvsp[0].plist);
 
 		}
-#line 2152 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2177 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 38: /* actions_and_transitions: action_decl  */
-#line 790 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 810 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                 {
  		if (NULL == ((yyval.pactions_and_transitions) = (pACTIONS_AND_TRANSITIONS)calloc(1,sizeof(ACTIONS_AND_TRANSITIONS))))
  			yyerror("out of memory");
@@ -2172,11 +2197,11 @@ yyreduce:
 
  		free((yyvsp[0].paction_decl));
 		}
-#line 2176 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2201 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 39: /* actions_and_transitions: transition_matrix_list  */
-#line 810 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 830 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
           {
  		if (NULL == ((yyval.pactions_and_transitions) = (pACTIONS_AND_TRANSITIONS)calloc(1,sizeof(ACTIONS_AND_TRANSITIONS))))
  			yyerror("out of memory");
@@ -2204,12 +2229,18 @@ yyreduce:
 				switch ((yyvsp[0].action_info)->transition->name->type)
 				{
  				case STATE:
-						if (NULL == add_unique_to_list((yyval.pactions_and_transitions)->transition_list, (yyvsp[0].action_info)->transition))
+						if (NULL == add_unique_to_list_with_test((yyval.pactions_and_transitions)->transition_list
+                                                     , (yyvsp[0].action_info)->transition
+                                                     , match_transition
+                                                     ))
  						yyerror("out of memory");
  					break;
 
  				case TRANSITION_FN:
-						if (NULL == add_unique_to_list((yyval.pactions_and_transitions)->transition_fn_list, (yyvsp[0].action_info)->transition))
+						if (NULL == add_unique_to_list_with_test((yyval.pactions_and_transitions)->transition_fn_list
+                                                     , (yyvsp[0].action_info)->transition
+                                                     , match_transition
+                                                     ))
  						yyerror("out of memory");
  					break;
 
@@ -2217,11 +2248,11 @@ yyreduce:
 				}
 			}
 	  }
-#line 2221 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2252 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 40: /* actions_and_transitions: action_return_decl  */
-#line 851 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 877 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
           {
  		if (NULL == ((yyval.pactions_and_transitions) = (pACTIONS_AND_TRANSITIONS)calloc(1,sizeof(ACTIONS_AND_TRANSITIONS))))
  			yyerror("out of memory");
@@ -2242,11 +2273,11 @@ yyreduce:
  			yyerror("out of memory");
 
    }
-#line 2246 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2277 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 41: /* actions_and_transitions: transition_fn_return_decl  */
-#line 872 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 898 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
  		if (NULL == ((yyval.pactions_and_transitions) = (pACTIONS_AND_TRANSITIONS)calloc(1,sizeof(ACTIONS_AND_TRANSITIONS))))
  			yyerror("out of memory");
@@ -2267,11 +2298,11 @@ yyreduce:
  			yyerror("out of memory");
 
    }
-#line 2271 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2302 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 42: /* actions_and_transitions: actions_and_transitions action_decl  */
-#line 893 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 919 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
           {
  		(yyval.pactions_and_transitions) = (yyvsp[-1].pactions_and_transitions);
 
@@ -2281,19 +2312,25 @@ yyreduce:
  		move_list((yyvsp[-1].pactions_and_transitions)->action_info_list, (yyvsp[0].paction_decl)->action_info_list);
  		free((yyvsp[0].paction_decl)->action_info_list);
 
- 		move_list_unique((yyvsp[-1].pactions_and_transitions)->transition_list, (yyvsp[0].paction_decl)->transition_list);
+ 		move_list_unique_with_test((yyvsp[-1].pactions_and_transitions)->transition_list
+                               , (yyvsp[0].paction_decl)->transition_list
+                               , match_transition
+                               );
  		free_list((yyvsp[0].paction_decl)->transition_list);
 
- 		move_list_unique((yyvsp[-1].pactions_and_transitions)->transition_fn_list, (yyvsp[0].paction_decl)->transition_fn_list);
+ 		move_list_unique_with_test((yyvsp[-1].pactions_and_transitions)->transition_fn_list
+                               , (yyvsp[0].paction_decl)->transition_fn_list
+                               , match_transition
+                               );
  		free_list((yyvsp[0].paction_decl)->transition_fn_list);
 
  		free((yyvsp[0].paction_decl));
 	  }
-#line 2293 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2330 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 43: /* actions_and_transitions: actions_and_transitions transition_matrix_list  */
-#line 911 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 943 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
           {
  		(yyval.pactions_and_transitions)=(yyvsp[-1].pactions_and_transitions);
 
@@ -2308,12 +2345,18 @@ yyreduce:
 				switch ((yyvsp[0].action_info)->transition->name->type)
 				{
  				case STATE:
-						if (NULL == add_unique_to_list((yyval.pactions_and_transitions)->transition_list, (yyvsp[0].action_info)->transition))
+						if (NULL == add_unique_to_list_with_test((yyval.pactions_and_transitions)->transition_list
+                                                     , (yyvsp[0].action_info)->transition
+                                                     , match_transition
+                                                     ))
  						yyerror("out of memory");
  					break;
 
  				case TRANSITION_FN:
-						if (NULL == add_unique_to_list((yyval.pactions_and_transitions)->transition_fn_list, (yyvsp[0].action_info)->transition))
+						if (NULL == add_unique_to_list_with_test((yyval.pactions_and_transitions)->transition_fn_list
+                                                     , (yyvsp[0].action_info)->transition
+                                                     , match_transition
+                                                     ))
  						yyerror("out of memory");
  					break;
 
@@ -2321,35 +2364,35 @@ yyreduce:
 				}
 			}
 	  }
-#line 2325 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2368 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 44: /* actions_and_transitions: actions_and_transitions action_return_decl  */
-#line 939 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 977 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
           {
 			(yyval.pactions_and_transitions) = (yyvsp[-1].pactions_and_transitions);
 	  }
-#line 2333 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2376 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 45: /* actions_and_transitions: actions_and_transitions transition_fn_return_decl  */
-#line 943 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 981 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
           {
 			(yyval.pactions_and_transitions) = (yyvsp[-1].pactions_and_transitions);
 	  }
-#line 2341 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2384 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 46: /* transition_matrix_list: transition_matrix  */
-#line 950 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 988 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 						(yyval.action_info) = (yyvsp[0].action_info);
 					}
-#line 2349 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2392 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 47: /* transition_matrix_start: matrix TRANSITION_KEY  */
-#line 956 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 994 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 						pID_INFO pid_info;
 
@@ -2371,11 +2414,11 @@ yyreduce:
 						pid_info->type_data.action_data.actionInfo = (yyval.action_info);
 
         }
-#line 2375 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2418 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 48: /* transition_matrix_start: TRANSITION_KEY matrix  */
-#line 978 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 1016 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 						pID_INFO pid_info;
 
@@ -2397,11 +2440,11 @@ yyreduce:
 						pid_info->type_data.action_data.actionInfo = (yyval.action_info);
 
         }
-#line 2401 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2444 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 49: /* transition_matrix_start: matrix GUARD_KEY  */
-#line 1000 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 49: /* guard_matrix_start: matrix GUARD_KEY  */
+#line 1040 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 						pID_INFO pid_info;
 
@@ -2423,11 +2466,11 @@ yyreduce:
 						pid_info->type_data.action_data.actionInfo = (yyval.action_info);
 
         }
-#line 2427 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2470 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 50: /* transition_matrix_start: GUARD_KEY matrix  */
-#line 1022 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 50: /* guard_matrix_start: GUARD_KEY matrix  */
+#line 1062 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 						pID_INFO pid_info;
 
@@ -2449,11 +2492,11 @@ yyreduce:
 						pid_info->type_data.action_data.actionInfo = (yyval.action_info);
 
         }
-#line 2453 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2496 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
   case 51: /* transition_matrix: transition_matrix_start STATE ';'  */
-#line 1046 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 1086 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2462,14 +2505,70 @@ yyreduce:
 
            (yyval.action_info) = (yyvsp[-2].action_info);
 
-						(yyval.action_info)->transition = (yyvsp[-1].pid_info);
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.action_info)->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.action_info)->transition->name = (yyvsp[-1].pid_info);
 
 					}
-#line 2469 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2519 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 52: /* transition_matrix: transition_matrix_start ID ';'  */
-#line 1058 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 52: /* transition_matrix: transition_matrix_start STATE CONDITION_KEY ID ';'  */
+#line 1105 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+                                        {
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition matrix with new "
+                    "conditional transition function\n"
+                    );
+						#endif
+
+           set_id_type((yyvsp[-1].pid_info),TRANSITION_CONDITION);
+
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.action_info)->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.action_info)->transition->name = (yyvsp[-3].pid_info);
+						(yyval.action_info)->transition->condition_fn = (yyvsp[-1].pid_info);
+
+					}
+#line 2545 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+    break;
+
+  case 53: /* transition_matrix: transition_matrix_start STATE CONDITION_KEY TRANSITION_CONDITION ';'  */
+#line 1127 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+                                        {
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition matrix with condition function\n"
+                    );
+						#endif
+
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.action_info)->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.action_info)->transition->name = (yyvsp[-3].pid_info);
+						(yyval.action_info)->transition->condition_fn = (yyvsp[-1].pid_info);
+
+					}
+#line 2568 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+    break;
+
+  case 54: /* transition_matrix: transition_matrix_start ID ';'  */
+#line 1146 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2478,28 +2577,86 @@ yyreduce:
 
            set_id_type((yyvsp[-1].pid_info),TRANSITION_FN);
 
-						(yyval.action_info)->transition = (yyvsp[-1].pid_info);
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.action_info)->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.action_info)->transition->name = (yyvsp[-1].pid_info);
 
 					}
-#line 2485 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2591 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 53: /* transition_matrix: transition_matrix_start TRANSITION_FN ';'  */
-#line 1070 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 55: /* transition_matrix: transition_matrix_start TRANSITION_FN ';'  */
+#line 1165 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition matrix with known transition function\n");
 						#endif
 
-						(yyval.action_info)->transition = (yyvsp[-1].pid_info);
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.action_info)->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.action_info)->transition->name = (yyvsp[-1].pid_info);
 
         }
-#line 2499 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2612 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 54: /* action_decl: action_decl_list ';'  */
-#line 1083 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 56: /* transition_matrix: guard_matrix_start ID ';'  */
+#line 1182 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+                                        {
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition matrix with new transition function\n");
+						#endif
+
+           set_id_type((yyvsp[-1].pid_info),TRANSITION_FN);
+
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.action_info)->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.action_info)->transition->name = (yyvsp[-1].pid_info);
+
+					}
+#line 2635 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+    break;
+
+  case 57: /* transition_matrix: guard_matrix_start TRANSITION_FN ';'  */
+#line 1201 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+                                        {
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a transition matrix with known transition function\n");
+						#endif
+
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.action_info)->transition = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.action_info)->transition->name = (yyvsp[-1].pid_info);
+
+        }
+#line 2656 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+    break;
+
+  case 58: /* action_decl: action_decl_list ';'  */
+#line 1220 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2511,11 +2668,11 @@ yyreduce:
 						(yyval.paction_decl) = (yyvsp[-1].paction_decl);
 
 					}
-#line 2515 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2672 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 55: /* action_decl_list: ACTION_KEY action  */
-#line 1097 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 59: /* action_decl_list: ACTION_KEY action  */
+#line 1234 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2549,12 +2706,18 @@ yyreduce:
 							switch ((yyvsp[0].action_info)->transition->name->type)
 							{
  							case STATE:
-									if (NULL == add_unique_to_list((yyval.paction_decl)->transition_list, (yyvsp[0].action_info)->transition))
+						      if (NULL == add_unique_to_list_with_test((yyval.paction_decl)->transition_list
+                                                           , (yyvsp[0].action_info)->transition
+                                                           , match_transition
+                                                           ))
  									yyerror("out of memory");
  								break;
 
  							case TRANSITION_FN:
-									if (NULL == add_unique_to_list((yyval.paction_decl)->transition_fn_list, (yyvsp[0].action_info)->transition))
+						      if (NULL == add_unique_to_list_with_test((yyval.paction_decl)->transition_fn_list
+                                                           , (yyvsp[0].action_info)->transition
+                                                           , match_transition
+                                                           ))
  									yyerror("out of memory");
  								break;
 
@@ -2566,11 +2729,11 @@ yyreduce:
  					(yyvsp[0].action_info)->docCmnt = (yyvsp[-1].charData);
 
 					}
-#line 2570 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2733 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 56: /* action_decl_list: action_decl_list ',' action  */
-#line 1149 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 60: /* action_decl_list: action_decl_list ',' action  */
+#line 1292 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2590,12 +2753,18 @@ yyreduce:
 							switch ((yyvsp[0].action_info)->transition->name->type)
 							{
  							case STATE:
-									if (NULL == add_unique_to_list((yyval.paction_decl)->transition_list, (yyvsp[0].action_info)->transition))
- 									yyerror("out of memory");
+						      if (NULL == add_unique_to_list_with_test((yyval.paction_decl)->transition_list
+                                                           , (yyvsp[0].action_info)->transition
+                                                           , match_transition
+                                                           ))
+ 									      yyerror("out of memory");
  								break;
 
  							case TRANSITION_FN:
-									if (NULL == add_unique_to_list((yyval.paction_decl)->transition_fn_list, (yyvsp[0].action_info)->transition))
+						    if (NULL == add_unique_to_list_with_test((yyval.paction_decl)->transition_fn_list
+                                                         , (yyvsp[0].action_info)->transition
+                                                         , match_transition
+                                                         ))
  									yyerror("out of memory");
  								break;
 
@@ -2605,11 +2774,11 @@ yyreduce:
 						}
 
 					}
-#line 2609 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2778 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 57: /* action: action_matrix  */
-#line 1186 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 61: /* action: action_matrix  */
+#line 1335 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2619,99 +2788,182 @@ yyreduce:
 						(yyval.action_info) = (yyvsp[0].action_info);
 
 					}
-#line 2623 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2792 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 58: /* action: action_matrix transition  */
-#line 1196 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 62: /* action: action_matrix transition  */
+#line 1345 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found an action with transition\n");
 						#endif
 
-						(yyvsp[-1].action_info)->transition = (yyvsp[0].pid_info);
+						(yyvsp[-1].action_info)->transition = (yyvsp[0].ptransition);
 
 						(yyval.action_info) = (yyvsp[-1].action_info);
 
 					}
-#line 2639 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2808 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 59: /* transition: TRANSITION_KEY STATE  */
-#line 1210 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 63: /* transition: TRANSITION_KEY STATE  */
+#line 1359 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition to known state\n");
 						#endif
 
-						(yyval.pid_info) = (yyvsp[0].pid_info);
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.ptransition) = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.ptransition)->name = (yyvsp[0].pid_info);
 
 					}
-#line 2653 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2829 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 60: /* transition: TRANSITION_KEY ID  */
-#line 1220 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 64: /* transition: TRANSITION_KEY STATE CONDITION_KEY ID  */
+#line 1376 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+                                        {
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a conditional transition with new function\n");
+						#endif
+
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.ptransition) = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+           set_id_type((yyvsp[0].pid_info),TRANSITION_CONDITION);
+
+						(yyval.ptransition)->name = (yyvsp[-2].pid_info);
+            (yyval.ptransition)->condition_fn = (yyvsp[0].pid_info);
+
+					}
+#line 2853 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+    break;
+
+  case 65: /* transition: TRANSITION_KEY STATE CONDITION_KEY TRANSITION_CONDITION  */
+#line 1396 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+                                        {
+
+						#ifdef PARSER_DEBUG
+						fprintf(yyout,"found a conditional transition with existing function\n");
+						#endif
+
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.ptransition) = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.ptransition)->name = (yyvsp[-2].pid_info);
+            (yyval.ptransition)->condition_fn = (yyvsp[0].pid_info);
+
+					}
+#line 2875 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+    break;
+
+  case 66: /* transition: TRANSITION_KEY ID  */
+#line 1414 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition with new function\n");
 						#endif
 
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.ptransition) = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
            set_id_type((yyvsp[0].pid_info),TRANSITION_FN);
-						(yyval.pid_info) = (yyvsp[0].pid_info);
+
+						(yyval.ptransition)->name = (yyvsp[0].pid_info);
 
 					}
-#line 2668 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2898 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 61: /* transition: TRANSITION_KEY TRANSITION_FN  */
-#line 1231 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 67: /* transition: TRANSITION_KEY TRANSITION_FN  */
+#line 1433 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition with known function\n");
 						#endif
 
-						(yyval.pid_info) = (yyvsp[0].pid_info);
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.ptransition) = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.ptransition)->name = (yyvsp[0].pid_info);
 
 					}
-#line 2682 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2919 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 62: /* transition: GUARD_KEY ID  */
-#line 1241 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 68: /* transition: GUARD_KEY ID  */
+#line 1450 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition with new function\n");
 						#endif
 
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.ptransition) = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
            set_id_type((yyvsp[0].pid_info),TRANSITION_FN);
-						(yyval.pid_info) = (yyvsp[0].pid_info);
+           
+						(yyval.ptransition)->name = (yyvsp[0].pid_info);
 
 					}
-#line 2697 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2942 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 63: /* transition: GUARD_KEY TRANSITION_FN  */
-#line 1252 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 69: /* transition: GUARD_KEY TRANSITION_FN  */
+#line 1469 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a transition with known function\n");
 						#endif
 
-						(yyval.pid_info) = (yyvsp[0].pid_info);
+						/* 
+							grab an TRANSITION_DATA struct
+						*/
+						if (((yyval.ptransition) = (pTRANSITION_DATA)calloc(1,sizeof(TRANSITION_DATA))) == NULL)
+
+							yyerror("out of memory");
+
+						(yyval.ptransition)->name = (yyvsp[0].pid_info);
 
 					}
-#line 2711 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2963 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 64: /* action_matrix: ID matrix  */
-#line 1264 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 70: /* action_matrix: ID matrix  */
+#line 1488 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2736,11 +2988,11 @@ yyreduce:
 						(yyvsp[-1].pid_info)->type_data.action_data.actionInfo = (yyval.action_info);
 
 					}
-#line 2740 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 2992 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 65: /* action_matrix: ACTION matrix  */
-#line 1289 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 71: /* action_matrix: ACTION matrix  */
+#line 1513 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2762,11 +3014,11 @@ yyreduce:
 						(yyvsp[-1].pid_info)->type_data.action_data.actionInfo = (yyval.action_info);
 
 					}
-#line 2766 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3018 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 66: /* matrix: '[' event_vector ',' state_vector ']'  */
-#line 1313 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 72: /* matrix: '[' event_vector ',' state_vector ']'  */
+#line 1537 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
      {
          #ifdef PARSER_DEBUG
          fprintf(yyout,"found a matrix\n");
@@ -2783,11 +3035,11 @@ yyreduce:
          (yyval.matrix_info)->state_list = (yyvsp[-1].plist);
 
      }
-#line 2787 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3039 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 67: /* state_vector: '(' ALL ')'  */
-#line 1333 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 73: /* state_vector: '(' ALL ')'  */
+#line 1557 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                       {
  					if (((yyval.plist) = init_list()) == NULL)
 							yyerror("out of memory");
@@ -2796,11 +3048,11 @@ yyreduce:
 						fprintf(yyout,"found an all state vector\n");
  					#endif
 		      }
-#line 2800 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3052 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 68: /* state_vector: '(' state_comma_list STATE ')'  */
-#line 1342 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 74: /* state_vector: '(' state_comma_list STATE ')'  */
+#line 1566 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						(yyval.plist) = (yyvsp[-2].plist);
@@ -2814,11 +3066,11 @@ yyreduce:
 						#endif
 
 					}
-#line 2818 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3070 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 69: /* state_vector: STATE  */
-#line 1356 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 75: /* state_vector: STATE  */
+#line 1580 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2832,11 +3084,11 @@ yyreduce:
 							yyerror("out of memory");
 
 					}
-#line 2836 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3088 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 70: /* state_comma_list: STATE ','  */
-#line 1372 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 76: /* state_comma_list: STATE ','  */
+#line 1596 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2850,11 +3102,11 @@ yyreduce:
 							yyerror("out of memory");
 
 					}
-#line 2854 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3106 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 71: /* state_comma_list: state_comma_list STATE ','  */
-#line 1386 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 77: /* state_comma_list: state_comma_list STATE ','  */
+#line 1610 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2867,11 +3119,11 @@ yyreduce:
 							yyerror("out of memory");
 
 					}
-#line 2871 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3123 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 72: /* event_vector: '(' ALL ')'  */
-#line 1402 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 78: /* event_vector: '(' ALL ')'  */
+#line 1626 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                       {
  					if (((yyval.plist) = init_list()) == NULL)
 							yyerror("out of memory");
@@ -2880,11 +3132,11 @@ yyreduce:
 						fprintf(yyout,"found an all event vector\n");
  					#endif
 		      }
-#line 2884 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3136 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 73: /* event_vector: '(' event_comma_list EVENT ')'  */
-#line 1411 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 79: /* event_vector: '(' event_comma_list EVENT ')'  */
+#line 1635 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						(yyval.plist) = (yyvsp[-2].plist);
@@ -2898,11 +3150,11 @@ yyreduce:
 						#endif
 
 					}
-#line 2902 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3154 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 74: /* event_vector: EVENT  */
-#line 1425 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 80: /* event_vector: EVENT  */
+#line 1649 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2916,11 +3168,11 @@ yyreduce:
 							yyerror("out of memory");
 
 					}
-#line 2920 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3172 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 75: /* event_comma_list: EVENT ','  */
-#line 1442 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 81: /* event_comma_list: EVENT ','  */
+#line 1666 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2938,11 +3190,11 @@ yyreduce:
 							yyerror("out of memory");
 
 					}
-#line 2942 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3194 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 76: /* event_comma_list: event_comma_list EVENT ','  */
-#line 1460 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 82: /* event_comma_list: event_comma_list EVENT ','  */
+#line 1684 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -2958,11 +3210,11 @@ yyreduce:
 							yyerror("out of memory");
 
 					}
-#line 2962 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3214 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 77: /* state_and_event_decls: state_decl  */
-#line 1479 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 83: /* state_and_event_decls: state_decl  */
+#line 1703 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                 {
  	   if (NULL == ((yyval.pstate_and_event_decls) = ((pSTATE_AND_EVENT_DECLS)calloc(1,sizeof(STATE_AND_EVENT_DECLS)))))
  		    yyerror("Out of memory");
@@ -2971,11 +3223,11 @@ yyreduce:
  		 (yyval.pstate_and_event_decls)->event_decls = init_list();
       psedecls = (yyval.pstate_and_event_decls);
 		}
-#line 2975 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3227 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 78: /* state_and_event_decls: event_decl  */
-#line 1488 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 84: /* state_and_event_decls: event_decl  */
+#line 1712 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                 {
  	   if (NULL == ((yyval.pstate_and_event_decls) = ((pSTATE_AND_EVENT_DECLS)calloc(1,sizeof(STATE_AND_EVENT_DECLS)))))
  		    yyerror("Out of memory");
@@ -2984,22 +3236,22 @@ yyreduce:
  		 (yyval.pstate_and_event_decls)->state_decls = init_list();
       psedecls = (yyval.pstate_and_event_decls);
 		}
-#line 2988 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3240 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 79: /* state_and_event_decls: state_and_event_decls state_decl  */
-#line 1497 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 85: /* state_and_event_decls: state_and_event_decls state_decl  */
+#line 1721 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
           {
  		(yyval.pstate_and_event_decls) = (yyvsp[-1].pstate_and_event_decls);
 
 			(yyval.pstate_and_event_decls)->state_decls = move_list((yyval.pstate_and_event_decls)->state_decls,(yyvsp[0].plist));
       psedecls = (yyval.pstate_and_event_decls);
 	  }
-#line 2999 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3251 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 80: /* state_and_event_decls: state_and_event_decls event_decl  */
-#line 1504 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 86: /* state_and_event_decls: state_and_event_decls event_decl  */
+#line 1728 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
           {
  		(yyval.pstate_and_event_decls) = (yyvsp[-1].pstate_and_event_decls);
 
@@ -3007,11 +3259,11 @@ yyreduce:
       psedecls = (yyval.pstate_and_event_decls);
 
 	  }
-#line 3011 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3263 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 81: /* state_decl: state_decl_list ';'  */
-#line 1514 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 87: /* state_decl: state_decl_list ';'  */
+#line 1738 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -3024,11 +3276,11 @@ yyreduce:
 						(yyval.plist) = (yyvsp[-1].plist);
 
 					}
-#line 3028 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3280 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 82: /* state: ID  */
-#line 1529 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 88: /* state: ID  */
+#line 1753 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
          {
  				  (yyval.pid_info) = (yyvsp[0].pid_info);
            set_id_type((yyval.pid_info),STATE);
@@ -3055,11 +3307,11 @@ yyreduce:
 					 }
 
          }
-#line 3059 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3311 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 83: /* state: state INHIBITS SUBMACHINES  */
-#line 1556 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 89: /* state: state INHIBITS SUBMACHINES  */
+#line 1780 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
          	#ifdef PARSER_DEBUG
          	fprintf(yyout
@@ -3073,11 +3325,11 @@ yyreduce:
  					(yyval.pid_info)->type_data.state_data.state_flags |= sfInibitSubMachines;
 
 		      }
-#line 3077 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3329 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 84: /* state: state ON ENTRY  */
-#line 1570 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 90: /* state: state ON ENTRY  */
+#line 1794 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
          	#ifdef PARSER_DEBUG
          	fprintf(yyout
@@ -3091,11 +3343,11 @@ yyreduce:
  					(yyval.pid_info)->type_data.state_data.state_flags |= sfHasEntryFn;
 
 		      }
-#line 3095 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3347 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 85: /* state: state ON ENTRY ID  */
-#line 1584 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 91: /* state: state ON ENTRY ID  */
+#line 1808 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
          	#ifdef PARSER_DEBUG
          	fprintf(yyout
@@ -3113,11 +3365,11 @@ yyreduce:
  					set_id_type((yyvsp[0].pid_info), ENTRY);
 
 		      }
-#line 3117 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3369 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 86: /* state: state ON EXIT  */
-#line 1602 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 92: /* state: state ON EXIT  */
+#line 1826 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
          	#ifdef PARSER_DEBUG
          	fprintf(yyout
@@ -3131,11 +3383,11 @@ yyreduce:
  					(yyval.pid_info)->type_data.state_data.state_flags |= sfHasExitFn;
 
 		      }
-#line 3135 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3387 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 87: /* state: state ON EXIT ID  */
-#line 1616 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 93: /* state: state ON EXIT ID  */
+#line 1840 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
          	#ifdef PARSER_DEBUG
          	fprintf(yyout
@@ -3153,11 +3405,11 @@ yyreduce:
  					set_id_type((yyvsp[0].pid_info), EXIT);
 
 		      }
-#line 3157 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3409 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 88: /* state_decl_list: STATE_KEY state  */
-#line 1636 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 94: /* state_decl_list: STATE_KEY state  */
+#line 1860 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -3172,11 +3424,11 @@ yyreduce:
  						yyerror("Out of memory");
 
 					}
-#line 3176 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3428 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 89: /* state_decl_list: state_decl_list ',' state  */
-#line 1651 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 95: /* state_decl_list: state_decl_list ',' state  */
+#line 1875 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -3192,11 +3444,11 @@ yyreduce:
  						yyerror("Out of memory");
 
 					}
-#line 3196 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3448 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 90: /* event_decl: event_decl_list ';'  */
-#line 1669 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 96: /* event_decl: event_decl_list ';'  */
+#line 1893 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						(yyval.plist) = (yyvsp[-1].plist);
@@ -3208,11 +3460,11 @@ yyreduce:
 						#endif
 
 					}
-#line 3212 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3464 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 91: /* parent_namespace: PARENT NAMESPACE  */
-#line 1683 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 97: /* parent_namespace: PARENT NAMESPACE  */
+#line 1907 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     if (!pmachineInfo->parent)
         yyerror("parent namespace invoked in top-level machine");
@@ -3222,17 +3474,17 @@ yyreduce:
     /* this picks up any doc comment */
  	 (yyval.charData) = (yyvsp[-1].charData);
   }
-#line 3226 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3478 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 92: /* user_event_data: %empty  */
-#line 1694 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 98: /* user_event_data: %empty  */
+#line 1918 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                  { (yyval.puser_event_data) = NULL; }
-#line 3232 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3484 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 93: /* user_event_data: DATA_KEY TRANSLATOR_KEY ID  */
-#line 1696 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 99: /* user_event_data: DATA_KEY TRANSLATOR_KEY ID  */
+#line 1920 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
 		if (pmachineInfo->parent && !pmachineInfo->parent->data) 
 		{
@@ -3248,11 +3500,11 @@ yyreduce:
       fprintf(yyout,"found a data translator: %s\n", (yyvsp[0].pid_info)->name);
       #endif
    }
-#line 3252 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3504 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 94: /* user_event_data: DATA_KEY TRANSLATOR_KEY ID data_block  */
-#line 1712 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 100: /* user_event_data: DATA_KEY TRANSLATOR_KEY ID data_block  */
+#line 1936 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
   		if (NULL == ((yyval.puser_event_data) = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
   		   yyerror("out of memory");
@@ -3266,11 +3518,11 @@ yyreduce:
  		 parser_debug_print_data_block((yyvsp[0].plist),yyout);
       #endif
    }
-#line 3270 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3522 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 95: /* user_event_data: DATA_KEY data_block  */
-#line 1726 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 101: /* user_event_data: DATA_KEY data_block  */
+#line 1950 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
   		if (NULL == ((yyval.puser_event_data) = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
   		   yyerror("out of memory");
@@ -3282,11 +3534,11 @@ yyreduce:
  		 parser_debug_print_data_block((yyvsp[0].plist),yyout);
       #endif
    }
-#line 3286 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3538 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 96: /* event_decl_list: EVENT_KEY ID external_designation user_event_data  */
-#line 1740 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 102: /* event_decl_list: EVENT_KEY ID external_designation user_event_data  */
+#line 1964 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
  					if (NULL == ((yyval.plist) = init_list()))
@@ -3307,11 +3559,11 @@ yyreduce:
  						yyerror("Out of memory");
 
 					}
-#line 3311 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3563 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 97: /* event_decl_list: EVENT_KEY parent_namespace EVENT user_event_data  */
-#line 1761 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 103: /* event_decl_list: EVENT_KEY parent_namespace EVENT user_event_data  */
+#line 1985 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
             #ifdef PARSER_DEBUG
             fprintf(yyout,"Found a namespace event reference\n");
@@ -3352,11 +3604,11 @@ yyreduce:
                yyerror("Out of memory");
 
 					}
-#line 3356 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3608 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 98: /* event_decl_list: event_decl_list ',' ID external_designation user_event_data  */
-#line 1802 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 104: /* event_decl_list: event_decl_list ',' ID external_designation user_event_data  */
+#line 2026 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 
 						#ifdef PARSER_DEBUG
@@ -3380,11 +3632,11 @@ yyreduce:
  						yyerror("Out of memory");
 
 					}
-#line 3384 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3636 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 99: /* event_decl_list: event_decl_list ',' parent_namespace EVENT user_event_data  */
-#line 1826 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 105: /* event_decl_list: event_decl_list ',' parent_namespace EVENT user_event_data  */
+#line 2050 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
             #ifdef PARSER_DEBUG
             fprintf(yyout,"added another namespace event reference to the declaration list\n");
@@ -3424,38 +3676,38 @@ yyreduce:
                yyerror("Out of memory");
 
 					}
-#line 3428 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3680 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 100: /* external_designation: %empty  */
-#line 1867 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 106: /* external_designation: %empty  */
+#line 2091 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                        {
            (yyval.pid_info) = NULL;
      }
-#line 3436 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3688 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 101: /* external_designation: '=' ID  */
-#line 1871 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 107: /* external_designation: '=' ID  */
+#line 2095 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
  {
            #ifdef PARSER_DEBUG
            fprintf(yyout,"External designation = %s\n",(yyvsp[0].pid_info)->name);
            #endif
             (yyval.pid_info) = (yyvsp[0].pid_info);
  }
-#line 3447 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3699 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 102: /* native: %empty  */
-#line 1881 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 108: /* native: %empty  */
+#line 2105 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
 	(yyval.pnative_info) = NULL;
   }
-#line 3455 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3707 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 103: /* native: native native_prologue  */
-#line 1885 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 109: /* native: native native_prologue  */
+#line 2109 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
 	if ((yyvsp[-1].pnative_info) == NULL)
 	{
@@ -3475,11 +3727,11 @@ yyreduce:
 	(yyval.pnative_info)->prologue = (yyvsp[0].charData);
 
   }
-#line 3479 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3731 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 104: /* native: native native_epilogue  */
-#line 1905 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 110: /* native: native native_epilogue  */
+#line 2129 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
 	if ((yyvsp[-1].pnative_info) == NULL)
 	{
@@ -3498,11 +3750,11 @@ yyreduce:
 
 	(yyval.pnative_info)->epilogue = (yyvsp[0].charData);
   }
-#line 3502 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3754 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 105: /* native_prologue: NATIVE_KEY NATIVE_BLOCK  */
-#line 1927 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 111: /* native_prologue: NATIVE_KEY NATIVE_BLOCK  */
+#line 2151 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"Native\n%s\n",(yyvsp[0].charData));
@@ -3510,11 +3762,11 @@ yyreduce:
 						(yyval.charData) = (yyvsp[0].charData);
 						#endif
 					}
-#line 3514 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3766 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 106: /* native_prologue: NATIVE_KEY PROLOGUE_KEY NATIVE_BLOCK  */
-#line 1935 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 112: /* native_prologue: NATIVE_KEY PROLOGUE_KEY NATIVE_BLOCK  */
+#line 2159 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"Native prologue\n%s\n",(yyvsp[0].charData));
@@ -3522,11 +3774,11 @@ yyreduce:
 						(yyval.charData) = (yyvsp[0].charData);
 						#endif
 					}
-#line 3526 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3778 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 107: /* native_epilogue: NATIVE_KEY EPILOGUE_KEY NATIVE_BLOCK  */
-#line 1947 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 113: /* native_epilogue: NATIVE_KEY EPILOGUE_KEY NATIVE_BLOCK  */
+#line 2171 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"Native epilogue\n%s\n",(yyvsp[0].charData));
@@ -3534,33 +3786,33 @@ yyreduce:
 						(yyval.charData) = (yyvsp[0].charData);
 						#endif
 					}
-#line 3538 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3790 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 108: /* native_impl: native_impl_prologue  */
-#line 1959 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 114: /* native_impl: native_impl_prologue  */
+#line 2183 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		if (((yyval.pnative_info) = (pNATIVE_INFO) calloc(1, sizeof(NATIVE_INFO))) == NULL)
 			yyerror("out of memory");
 
 		(yyval.pnative_info)->prologue = (yyvsp[0].charData);
 	}
-#line 3549 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3801 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 109: /* native_impl: native_impl_epilogue  */
-#line 1966 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 115: /* native_impl: native_impl_epilogue  */
+#line 2190 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		if (((yyval.pnative_info) = (pNATIVE_INFO) calloc(1, sizeof(NATIVE_INFO))) == NULL)
 			yyerror("out of memory");
 
 		(yyval.pnative_info)->epilogue = (yyvsp[0].charData);
 	}
-#line 3560 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3812 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 110: /* native_impl: native_impl native_impl_prologue  */
-#line 1973 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 116: /* native_impl: native_impl native_impl_prologue  */
+#line 2197 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		if ((yyvsp[-1].pnative_info)->prologue != NULL)
 		{
@@ -3570,11 +3822,11 @@ yyreduce:
 		(yyval.pnative_info) = (yyvsp[-1].pnative_info);
 		(yyval.pnative_info)->prologue = (yyvsp[0].charData);
 	}
-#line 3574 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3826 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 111: /* native_impl: native_impl native_impl_epilogue  */
-#line 1983 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 117: /* native_impl: native_impl native_impl_epilogue  */
+#line 2207 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 		if ((yyvsp[-1].pnative_info)->epilogue != NULL)
 		{
@@ -3584,11 +3836,11 @@ yyreduce:
 		(yyval.pnative_info) = (yyvsp[-1].pnative_info);
 		(yyval.pnative_info)->epilogue = (yyvsp[0].charData);
 	}
-#line 3588 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3840 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 112: /* native_impl_prologue: NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK  */
-#line 1996 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 118: /* native_impl_prologue: NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK  */
+#line 2220 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"Native implementation\n%s\n",(yyvsp[0].charData));
@@ -3596,11 +3848,11 @@ yyreduce:
 						(yyval.charData) = (yyvsp[0].charData);
 						#endif
 					}
-#line 3600 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3852 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 113: /* native_impl_prologue: NATIVE_KEY IMPLEMENTATION_KEY PROLOGUE_KEY NATIVE_BLOCK  */
-#line 2004 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 119: /* native_impl_prologue: NATIVE_KEY IMPLEMENTATION_KEY PROLOGUE_KEY NATIVE_BLOCK  */
+#line 2228 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"Native implementation prologue\n%s\n",(yyvsp[0].charData));
@@ -3608,11 +3860,11 @@ yyreduce:
 						(yyval.charData) = (yyvsp[0].charData);
 						#endif
 					}
-#line 3612 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3864 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 114: /* native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY EPILOGUE_KEY NATIVE_BLOCK  */
-#line 2014 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 120: /* native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY EPILOGUE_KEY NATIVE_BLOCK  */
+#line 2238 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                         {
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"Native implementation\n%s\n",(yyvsp[0].charData));
@@ -3620,17 +3872,17 @@ yyreduce:
 						(yyval.charData) = (yyvsp[0].charData);
 						#endif
 					}
-#line 3624 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3876 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 115: /* machine_data: DATA_KEY data_block  */
-#line 2024 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 121: /* machine_data: DATA_KEY data_block  */
+#line 2248 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
                                   { (yyval.plist) = (yyvsp[0].plist); pmachineInfo->data = (yyval.plist); }
-#line 3630 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3882 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 116: /* data_block: '{' data_fields '}'  */
-#line 2027 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 122: /* data_block: '{' data_fields '}'  */
+#line 2251 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
         {
 			#ifdef PARSER_DEBUG
 			fprintf(yyout,"Data block done\n");
@@ -3639,11 +3891,11 @@ yyreduce:
 			(yyval.plist) = (yyvsp[-1].plist);
 
 	}
-#line 3643 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3895 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 117: /* data_fields: data_field  */
-#line 2038 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 123: /* data_fields: data_field  */
+#line 2262 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
       #ifdef PARSER_DEBUG
     	fprintf(yyout,"Starting data_fields list\n");
@@ -3655,11 +3907,11 @@ yyreduce:
     	add_to_list((yyval.plist), (yyvsp[0].pdata_field));
    
    }
-#line 3659 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3911 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 118: /* data_fields: data_fields data_field  */
-#line 2050 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 124: /* data_fields: data_fields data_field  */
+#line 2274 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
       #ifdef PARSER_DEBUG
     	fprintf(yyout,"Continuing data_fields list\n");
@@ -3669,11 +3921,11 @@ yyreduce:
     	add_to_list((yyval.plist), (yyvsp[0].pdata_field));
    
    }
-#line 3673 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3925 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 119: /* data_type: ID  */
-#line 2062 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 125: /* data_type: ID  */
+#line 2286 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
 		   #ifdef PARSER_DEBUG
 		   fprintf(yyout, "found simple data type id\n");
@@ -3688,11 +3940,11 @@ yyreduce:
     	 (yyval.pdata_type_struct)->dtu.name = (yyvsp[0].pid_info);
 
    }
-#line 3692 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3944 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 120: /* data_type: TYPE_NAME  */
-#line 2077 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 126: /* data_type: TYPE_NAME  */
+#line 2301 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
 		   #ifdef PARSER_DEBUG
 		   fprintf(yyout, "found simple data type name\n");
@@ -3705,11 +3957,11 @@ yyreduce:
     	 (yyval.pdata_type_struct)->dtu.name = (yyvsp[0].pid_info);
 
    }
-#line 3709 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3961 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 121: /* data_type: STRUCT_KEY '{' data_fields '}'  */
-#line 2090 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 127: /* data_type: STRUCT_KEY '{' data_fields '}'  */
+#line 2314 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
 		   #ifdef PARSER_DEBUG
 		   fprintf(yyout, "found struct data type\n");
@@ -3722,11 +3974,11 @@ yyreduce:
  		 (yyval.pdata_type_struct)->dtu.members = (yyvsp[-1].plist);
 
    }
-#line 3726 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3978 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 122: /* data_type: UNION_KEY '{' data_fields '}'  */
-#line 2103 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 128: /* data_type: UNION_KEY '{' data_fields '}'  */
+#line 2327 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
 		   #ifdef PARSER_DEBUG
 		   fprintf(yyout, "found union data type\n");
@@ -3739,11 +3991,11 @@ yyreduce:
  		 (yyval.pdata_type_struct)->dtu.members = (yyvsp[-1].plist);
 
    }
-#line 3743 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 3995 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 123: /* data_type: data_type '*'  */
-#line 2116 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 129: /* data_type: data_type '*'  */
+#line 2340 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
     (yyval.pdata_type_struct) = (yyvsp[-1].pdata_type_struct);
     ((yyval.pdata_type_struct)->indirection_level)++;
@@ -3758,11 +4010,11 @@ yyreduce:
             );
 		 #endif
    }
-#line 3762 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4014 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 124: /* data_field: data_type ID data_field_dimension ';'  */
-#line 2134 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 130: /* data_field: data_type ID data_field_dimension ';'  */
+#line 2358 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
 		 #ifdef PARSER_DEBUG
 		 fprintf(yyout
@@ -3784,11 +4036,11 @@ yyreduce:
  	 (yyval.pdata_field)->data_field_name = (yyvsp[-2].pid_info);
 
   }
-#line 3788 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4040 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 125: /* data_field: data_type ID ';'  */
-#line 2156 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 131: /* data_field: data_type ID ';'  */
+#line 2380 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
 		 #ifdef PARSER_DEBUG
 		 fprintf(yyout
@@ -3807,46 +4059,46 @@ yyreduce:
  	 (yyval.pdata_field)->data_field_name = (yyvsp[-1].pid_info);
 
   }
-#line 3811 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4063 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 126: /* data_field_dimension: '[' ']'  */
-#line 2177 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 132: /* data_field_dimension: '[' ']'  */
+#line 2401 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
        (yyval.charData) = NULL;
    }
-#line 3819 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4071 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 127: /* data_field_dimension: '[' NUMERIC_STRING ']'  */
-#line 2181 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 133: /* data_field_dimension: '[' NUMERIC_STRING ']'  */
+#line 2405 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
        (yyval.charData) = (yyvsp[-1].charData);
    }
-#line 3827 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4079 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 128: /* data_field_dimension: '[' ID ']'  */
-#line 2185 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 134: /* data_field_dimension: '[' ID ']'  */
+#line 2409 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
    {
        (yyval.charData) = (yyvsp[-1].pid_info)->name;
    }
-#line 3835 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4087 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 130: /* namespace: MACHINE NAMESPACE  */
-#line 2193 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 136: /* namespace: MACHINE NAMESPACE  */
+#line 2417 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     if (pmachineInfo->parent)
         yyerror("sub-machine namespace invoked in sub-machine");
 
     id_list = (yyvsp[-1].pid_info)->powningMachine->id_list;
   }
-#line 3846 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4098 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 131: /* namespace_event_ref: namespace EVENT  */
-#line 2202 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 137: /* namespace_event_ref: namespace EVENT  */
+#line 2426 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found a namespace event reference\n");
@@ -3855,11 +4107,11 @@ yyreduce:
     (yyval.pid_info) = (yyvsp[0].pid_info);
     id_list = pmachineInfo->id_list;
   }
-#line 3859 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4111 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 132: /* returns_comma_list: namespace_event_ref ','  */
-#line 2213 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 138: /* returns_comma_list: namespace_event_ref ','  */
+#line 2437 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
     {
 						/* start a list */
 						if (((yyval.plist) = init_list()) == NULL) 
@@ -3869,11 +4121,11 @@ yyreduce:
 							yyerror("out of memory");
 
     }
-#line 3873 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4125 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 133: /* returns_comma_list: EVENT ','  */
-#line 2223 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 139: /* returns_comma_list: EVENT ','  */
+#line 2447 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
     {
 						/* start a list */
 						if (((yyval.plist) = init_list()) == NULL) 
@@ -3883,11 +4135,11 @@ yyreduce:
 							yyerror("out of memory");
 
     }
-#line 3887 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4139 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 134: /* returns_comma_list: returns_comma_list namespace_event_ref ','  */
-#line 2233 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 140: /* returns_comma_list: returns_comma_list namespace_event_ref ','  */
+#line 2457 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
     {
            (yyval.plist) = (yyvsp[-2].plist);
 
@@ -3895,11 +4147,11 @@ yyreduce:
 							yyerror("out of memory");
 
     }
-#line 3899 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4151 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 135: /* returns_comma_list: returns_comma_list EVENT ','  */
-#line 2241 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 141: /* returns_comma_list: returns_comma_list EVENT ','  */
+#line 2465 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
     {
            (yyval.plist) = (yyvsp[-2].plist);
 
@@ -3907,11 +4159,11 @@ yyreduce:
 							yyerror("out of memory");
 
     }
-#line 3911 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4163 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 136: /* action_return_decl: ACTION RETURNS returns_comma_list EVENT ';'  */
-#line 2252 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 142: /* action_return_decl: ACTION RETURNS returns_comma_list EVENT ';'  */
+#line 2476 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
@@ -3930,11 +4182,11 @@ yyreduce:
  		free_list((yyvsp[-2].plist));
 
   }
-#line 3934 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4186 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 137: /* action_return_decl: ACTION RETURNS returns_comma_list namespace_event_ref ';'  */
-#line 2271 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 143: /* action_return_decl: ACTION RETURNS returns_comma_list namespace_event_ref ';'  */
+#line 2495 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
@@ -3953,11 +4205,11 @@ yyreduce:
  		free_list((yyvsp[-2].plist));
 
   }
-#line 3957 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4209 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 138: /* action_return_decl: ACTION RETURNS EVENT ';'  */
-#line 2290 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 144: /* action_return_decl: ACTION RETURNS EVENT ';'  */
+#line 2514 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
@@ -3973,11 +4225,11 @@ yyreduce:
 				yyerror("out of memory");
 
   }
-#line 3977 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4229 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 139: /* action_return_decl: ACTION RETURNS namespace_event_ref ';'  */
-#line 2306 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 145: /* action_return_decl: ACTION RETURNS namespace_event_ref ';'  */
+#line 2530 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
@@ -3993,11 +4245,11 @@ yyreduce:
 				yyerror("out of memory");
 
   }
-#line 3997 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4249 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 140: /* action_return_decl: ACTION RETURNS state_comma_list STATE ';'  */
-#line 2322 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 146: /* action_return_decl: ACTION RETURNS state_comma_list STATE ';'  */
+#line 2546 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
@@ -4016,11 +4268,11 @@ yyreduce:
  		free_list((yyvsp[-2].plist));
 
   }
-#line 4020 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4272 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 141: /* action_return_decl: ACTION RETURNS STATE ';'  */
-#line 2341 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 147: /* action_return_decl: ACTION RETURNS STATE ';'  */
+#line 2565 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
@@ -4038,11 +4290,11 @@ yyreduce:
 			add_unique_to_list((yyvsp[-3].pid_info)->type_data.action_data.action_returns_decl, (yyvsp[-1].pid_info));
 
   }
-#line 4042 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4294 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 142: /* transition_fn_return_decl: TRANSITION_FN RETURNS state_comma_list STATE ';'  */
-#line 2362 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 148: /* transition_fn_return_decl: TRANSITION_FN RETURNS state_comma_list STATE ';'  */
+#line 2586 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
 			if (add_unique_to_list((yyvsp[-2].plist), (yyvsp[-1].pid_info)) == NULL)
  			yyerror("out of memory");
@@ -4061,11 +4313,11 @@ yyreduce:
     #endif
 
   }
-#line 4065 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4317 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
-  case 143: /* transition_fn_return_decl: TRANSITION_FN RETURNS STATE ';'  */
-#line 2381 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+  case 149: /* transition_fn_return_decl: TRANSITION_FN RETURNS STATE ';'  */
+#line 2605 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found a transition_fn return declaration\n");
@@ -4080,11 +4332,11 @@ yyreduce:
 			add_unique_to_list((yyvsp[-3].pid_info)->transition_fn_returns_decl, (yyvsp[-1].pid_info));
 
   }
-#line 4084 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4336 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
     break;
 
 
-#line 4088 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
+#line 4340 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/parser.c"
 
       default: break;
     }
@@ -4277,7 +4529,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 2397 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 2621 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
 
 
 #if defined(CYGWIN) || defined (LINUX)
@@ -4332,6 +4584,9 @@ typedef enum {
  , lo_include_uml_objects
  , lo_weak_fn_separate_file
  , lo_doxygen_blocks
+ , lo_find_on_sub_machine_depth
+ , lo_find_on_top_level_machine_data
+ , lo_find_on_event_data
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -4523,6 +4778,24 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_doxygen_blocks
+    }
+		, {
+        .name      = "find-on-sub-machine-depth"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_find_on_sub_machine_depth
+    }
+		, {
+        .name      = "find-on-top-level-machine-data"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_find_on_top_level_machine_data
+    }
+		, {
+        .name      = "find-on-event-data"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_find_on_event_data
     }
     , {0}
 };
@@ -4738,6 +5011,41 @@ int main(int argc, char **argv)
 									}
                 }
                 break;
+            case lo_find_on_sub_machine_depth:
+                find_on_sub_machine_depth = optarg ? atoi(optarg) : 0;
+								if (find_on_event_data || find_on_top_level_machine_data)
+								{
+									yyerror("Only one --find-on... option is allowed");
+								}
+                break;
+			      case lo_find_on_top_level_machine_data:
+				      if (!optarg || !strcmp(optarg, "true"))
+				      {
+					      find_on_top_level_machine_data = true;
+					      if (find_on_event_data || (find_on_sub_machine_depth > -1))
+					      {
+									yyerror("Only one --find-on... option is allowed");
+					      }
+				      }
+				      else if (!strcmp(optarg, "false"))
+				      {
+					      find_on_top_level_machine_data = false;
+				      }
+				      break;
+			      case lo_find_on_event_data:
+				      if (!optarg || !strcmp(optarg, "true"))
+				      {
+					      find_on_event_data = true;
+					      if (find_on_top_level_machine_data || (find_on_sub_machine_depth > -1))
+					      {
+									yyerror("Only one --find-on... option is allowed");
+					      }
+				      }
+				      else if (!strcmp(optarg, "false"))
+				      {
+					      find_on_event_data = false;
+				      }
+				      break;
             default:
                 usage();
                 return(0);
@@ -4788,7 +5096,19 @@ int main(int argc, char **argv)
 							break;
 
 						case 'p':
-							fpfsmogf = generatePlantUMLMachineWriter;
+              switch (optarg[1])
+              {
+                case 0:
+							    fpfsmogf = generatePlantUMLMachineWriter;
+                  break;
+                case 'y':
+							    fpfsmogf = generatePyTransitionsWriter;
+                  break;
+								default:
+						      usage();
+						      return (1);
+									break;
+              }
 							break;
 
 						case 'e':
@@ -4905,9 +5225,14 @@ int main(int argc, char **argv)
 
 		/* get the base file name */
 		if (!outFileBase) {
+
+       size_t inputFilePathLen;
+
 			/* use the base input file name */
 			*cp1 = 0;
 			cwk_path_get_basename(inputFileName, (const char**)&outFileBase, NULL);
+      cwk_path_get_dirname(inputFileName, &inputFilePathLen);
+      inputFilePath = strndup(inputFileName, inputFilePathLen);
 		}
 
 		#ifndef PARSER_DEBUG
@@ -4939,6 +5264,10 @@ int main(int argc, char **argv)
 		}
 		#endif
 
+
+    CHECK_AND_FREE(inputFileName);
+    CHECK_AND_FREE(inputFilePath);
+
 	}
 
 	return (good == 1 ? 0 : 1);
@@ -4950,12 +5279,13 @@ void yyerror(char *s)
 	const char *basename;
 	const char *ext;
 
-  fprintf(stderr,"%s%s%s: %s\n"
+  fprintf(stderr,"%s%s%s: %s.fsm: %s\n"
 					, (cwk_path_get_basename(me, &basename, NULL), basename)
 					, cwk_path_has_extension(me) ? "." : ""
 					, cwk_path_has_extension(me)
 						 ? (cwk_path_get_extension(me, &ext, NULL), ext)
 						 : ""
+          , inputFileName
 					,s
 					);
   fprintf(stderr,"\tline %d : %s\n",lineno,yytext);

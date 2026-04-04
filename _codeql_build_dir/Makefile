@@ -489,6 +489,30 @@ src/fsm_plantuml.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/fsm.dir/build.make CMakeFiles/fsm.dir/src/fsm_plantuml.c.s
 .PHONY : src/fsm_plantuml.c.s
 
+src/fsm_python_transitions.o: src/fsm_python_transitions.c.o
+.PHONY : src/fsm_python_transitions.o
+
+# target to build an object file
+src/fsm_python_transitions.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fsm.dir/build.make CMakeFiles/fsm.dir/src/fsm_python_transitions.c.o
+.PHONY : src/fsm_python_transitions.c.o
+
+src/fsm_python_transitions.i: src/fsm_python_transitions.c.i
+.PHONY : src/fsm_python_transitions.i
+
+# target to preprocess a source file
+src/fsm_python_transitions.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fsm.dir/build.make CMakeFiles/fsm.dir/src/fsm_python_transitions.c.i
+.PHONY : src/fsm_python_transitions.c.i
+
+src/fsm_python_transitions.s: src/fsm_python_transitions.c.s
+.PHONY : src/fsm_python_transitions.s
+
+# target to generate assembly for a file
+src/fsm_python_transitions.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/fsm.dir/build.make CMakeFiles/fsm.dir/src/fsm_python_transitions.c.s
+.PHONY : src/fsm_python_transitions.c.s
+
 src/fsm_rst.o: src/fsm_rst.c.o
 .PHONY : src/fsm_rst.o
 
@@ -783,6 +807,9 @@ help:
 	@echo "... src/fsm_plantuml.o"
 	@echo "... src/fsm_plantuml.i"
 	@echo "... src/fsm_plantuml.s"
+	@echo "... src/fsm_python_transitions.o"
+	@echo "... src/fsm_python_transitions.i"
+	@echo "... src/fsm_python_transitions.s"
 	@echo "... src/fsm_rst.o"
 	@echo "... src/fsm_rst.i"
 	@echo "... src/fsm_rst.s"

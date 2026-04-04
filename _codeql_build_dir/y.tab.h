@@ -86,17 +86,19 @@ extern int yydebug;
     ACTION_KEY = 287,              /* ACTION_KEY  */
     TRANSITION_KEY = 288,          /* TRANSITION_KEY  */
     GUARD_KEY = 289,               /* GUARD_KEY  */
-    PARENT = 290,                  /* PARENT  */
-    NATIVE_KEY = 291,              /* NATIVE_KEY  */
-    NATIVE_BLOCK = 292,            /* NATIVE_BLOCK  */
-    MACHINE = 293,                 /* MACHINE  */
-    STATE = 294,                   /* STATE  */
-    EVENT = 295,                   /* EVENT  */
-    ACTION = 296,                  /* ACTION  */
-    TRANSITION_FN = 297,           /* TRANSITION_FN  */
-    ID = 298,                      /* ID  */
-    NUMERIC_STRING = 299,          /* NUMERIC_STRING  */
-    TYPE_NAME = 300                /* TYPE_NAME  */
+    CONDITION_KEY = 290,           /* CONDITION_KEY  */
+    PARENT = 291,                  /* PARENT  */
+    NATIVE_KEY = 292,              /* NATIVE_KEY  */
+    NATIVE_BLOCK = 293,            /* NATIVE_BLOCK  */
+    MACHINE = 294,                 /* MACHINE  */
+    STATE = 295,                   /* STATE  */
+    EVENT = 296,                   /* EVENT  */
+    ACTION = 297,                  /* ACTION  */
+    TRANSITION_FN = 298,           /* TRANSITION_FN  */
+    TRANSITION_CONDITION = 299,    /* TRANSITION_CONDITION  */
+    ID = 300,                      /* ID  */
+    NUMERIC_STRING = 301,          /* NUMERIC_STRING  */
+    TYPE_NAME = 302                /* TYPE_NAME  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -105,7 +107,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 64 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
+#line 80 "/home/runner/work/FSMLang/FSMLang/src/parser.y"
 
 	pID_INFO				        pid_info;
 	pACTION_SE_INFO	        se_info;
@@ -127,8 +129,9 @@ union YYSTYPE
  pNATIVE_INFO             pnative_info;
  pEVENT_SEQUENCE          psequence;
  pEVENT_SEQUENCE_NODE     pevent_sequence_node;
+ pTRANSITION_DATA         ptransition;
 
-#line 132 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/y.tab.h"
+#line 135 "/home/runner/work/FSMLang/FSMLang/_codeql_build_dir/y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
