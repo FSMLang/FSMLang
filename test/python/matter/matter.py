@@ -11,10 +11,10 @@ class Matter(object):
 
 
 
-	def become_solid(self):
+	def on_entry_solid(self):
   		print("Entering solid state: I am now a solid block of ice.")
 
-	def become_not_solid(self):
+	def on_exit_solid(self):
 		print("Exiting solid state: I am no longer a solid.")
 
 	def on_enter_liquid(self):
@@ -30,7 +30,7 @@ class Matter(object):
 		print("Exiting gas state: I am no longer a gas.")
 
 
-	states = [  {'name': 'solid', 'on_enter': ['become_solid'], 'on_exit': ['become_not_solid']}
+	states = [	          'solid'
 	           ,'liquid'
 	           ,'gas'
 	          ]
