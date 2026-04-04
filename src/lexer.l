@@ -615,7 +615,7 @@ int newfile(char *filename)
 		}
 
 		CHECK_AND_FREE(bs->filename);
-		free(bs);
+		CHECK_AND_FREE(bs);
 		return 0;
 	}
 
