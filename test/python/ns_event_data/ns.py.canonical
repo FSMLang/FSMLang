@@ -53,9 +53,9 @@ class NarcolepticSuperhero(object):
 
 
 	def translate_distress_call(self, event=None):
-		pass
+		self.data = event.kwargs if event else {}
 
 
 	def handle_mission(self, event=None):
-		pass
+		self.data = event.kwargs if event else {}
 
