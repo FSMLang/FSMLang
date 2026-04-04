@@ -407,7 +407,7 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
 			   *ppadditional_transitions = init_list();
 		   }
 
-		   add_to_list(*ppadditional_transitions, transition);
+		   add_unique_to_list_with_test(*ppadditional_transitions, transition, match_transition);
 	   }
 	   else
 	   {
