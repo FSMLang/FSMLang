@@ -11,26 +11,29 @@ class Matter(object):
 
 
 
-	def on_entry_solid(self):
+	def become_solid(self):
   		print("Entering solid state: I am now a solid block of ice.")
 
-	def on_exit_solid(self):
+	def become_not_solid(self):
 		print("Exiting solid state: I am no longer a solid.")
 
-	def on_enter_liquid(self):
+	def become_liquid(self):
 		print("Entering liquid state: I am now a liquid puddle.")
 
-	def on_exit_liquid(self):
+	def become_not_liquid(self):
 		print("Exiting liquid state: I am no longer a liquid.")
 
-	def on_enter_gas(self):
+	def become_gaseous(self):
 		print("Entering gas state: I am now a gas, vaporizing into the air.")
 
-	def on_exit_gas(self):
+	def become_not_gaseous(self):
 		print("Exiting gas state: I am no longer a gas.")
 
 
-	states = ['solid' ,'liquid' ,'gas']
+	states = [  {'name': 'solid', 'on_enter': ['become_solid'], 'on_exit': ['become_not_solid']}
+	            , {'name': 'liquid', 'on_enter': ['become_liquid'], 'on_exit': ['become_not_liquid']}
+	            , {'name': 'gas', 'on_enter': ['become_gaseous'], 'on_exit': ['become_not_gaseous']}
+	          ]
 	transitions = [
 	               ['melt', 'solid', 'liquid']
 	               , ['evaporate', 'liquid', 'gas']

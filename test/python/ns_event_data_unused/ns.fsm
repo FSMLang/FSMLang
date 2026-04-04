@@ -1,0 +1,12 @@
+machine NarcolepticSuperhero
+{
+	state asleep, hanging_out, hungry, sweaty, saving_the_world;
+
+	event wake_up, work_out, eat, clean_up, nap;
+	event distress_call data translator translate_distress_call {int severity; };
+
+	transition [wake_up, asleep] hanging_out;
+	transition [work_out, hanging_out] hungry;
+	transition [eat, hungry] hanging_out;
+
+}
