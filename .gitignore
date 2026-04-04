@@ -128,5 +128,9 @@ test/unit/*/test
 
 # Test detritus
 test/*/*.result
+test/python/*/*.py
+!test/python/*/*.py.canonical
+test/python/*/fsmout
+test/python/*/*.result
 
 

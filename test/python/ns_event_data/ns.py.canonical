@@ -9,21 +9,18 @@ from transitions import Machine
 
 class NarcolepticSuperhero(object):
 
-	states = [	          'asleep'
-	           ,'hanging_out'
-	           ,'hungry'
-	           ,'sweaty'
-	           ,'saving_the_world'
-	          ]
+	states = ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
 	transitions = [
 	               {'trigger': 'distress_call'
 	                 , 'source': ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
 	                 , 'dest': 'saving_the_world'
+	                 , 'prepare': 'translate_distress_call'
 	                 , 'before': 'change_into_super_secret_costume'
 	                 }
 	               , {'trigger': 'complete_mission'
 	                 , 'source': 'saving_the_world'
 	                 , 'dest': 'sweaty'
+	                 , 'prepare': 'handle_mission'
 	                 , 'before': 'update_journal'
 	                 }
 	               , ['wake_up', 'asleep', 'hanging_out']
@@ -38,14 +35,15 @@ class NarcolepticSuperhero(object):
 	               ]
 
 	def __init__(self):
-		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep')
+		self.data = {}
+		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep', send_event=True)
 
 
-	def change_into_super_secret_costume(self):
+	def change_into_super_secret_costume(self, event=None):
 		print('change_into_super_secret_costume')
 
 
-	def update_journal(self):
+	def update_journal(self, event=None):
 		print('update_journal')
 
 
@@ -53,4 +51,11 @@ class NarcolepticSuperhero(object):
 	def is_exhausted(self):
 		return True
 
+
+	def translate_distress_call(self, event=None):
+		pass
+
+
+	def handle_mission(self, event=None):
+		pass
 

@@ -5,46 +5,22 @@
 
 """
 
-
-import random
-
 from transitions import Machine
-
-import random
-
 
 class NarcolepticSuperhero(object):
 
-
-
-	@property
-	def is_exhausted(self):
-		return random.random() > 0.5
-
-	def update_journal(self):
-		if not hasattr(self, 'kittens_rescued'):
-			self.kittens_rescued = 0
-		self.kittens_rescued += 1
-
-	def change_into_super_secret_costume(self):
-		print("Beauty, eh?")
-
-
-	states = [	          'asleep'
-	           ,'hanging_out'
-	           ,'hungry'
-	           ,'sweaty'
-	           ,'saving_the_world'
-	          ]
+	states = ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
 	transitions = [
 	               {'trigger': 'distress_call'
 	                 , 'source': ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
 	                 , 'dest': 'saving_the_world'
+	                 , 'prepare': 'translate_distress_call'
 	                 , 'before': 'change_into_super_secret_costume'
 	                 }
 	               , {'trigger': 'complete_mission'
 	                 , 'source': 'saving_the_world'
 	                 , 'dest': 'sweaty'
+	                 , 'prepare': 'handle_mission'
 	                 , 'before': 'update_journal'
 	                 }
 	               , ['wake_up', 'asleep', 'hanging_out']
@@ -59,6 +35,6 @@ class NarcolepticSuperhero(object):
 	               ]
 
 	def __init__(self):
-		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep')
-
+		self.data = {}
+		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep', send_event=True)
 

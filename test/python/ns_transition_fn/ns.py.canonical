@@ -59,3 +59,13 @@ class NarcolepticSuperhero(object):
 	def update_journal(self):
 		print('update_journal')
 
+
+	@property
+	def choose_asleep(self):
+		return True
+
+
+	@property
+	def choose_hanging_out(self):
+		return True
+
