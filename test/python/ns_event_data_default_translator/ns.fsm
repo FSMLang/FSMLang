@@ -1,0 +1,13 @@
+machine NarcolepticSuperhero
+{
+	state asleep, hanging_out, hungry;
+
+	event wake_up, work_out, eat;
+	event distress_call data {int severity; };
+
+	action change_into_super_secret_costume[distress_call,(all)] transition hanging_out;
+	transition [wake_up, asleep] hanging_out;
+	transition [work_out, hanging_out] hungry;
+	transition [eat, hungry] hanging_out;
+
+}

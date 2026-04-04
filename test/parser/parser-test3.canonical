@@ -81,30 +81,30 @@ The events :
 
 The actions :
 	a1
-		which occurs in these events
+		which occurs for these events
 				e1
 				e2
-		and states
+		in these states
 				s1
 				s2
 		and transitions to state s2
 	a2
-		which occurs in these events
+		which occurs for these events
 				e2
-		and states
+		in these states
 				s1
 				s2
 		and transitions to state s2
 	a3
-		which occurs in these events
+		which occurs for these events
 				e1
 				e2
-		and states
+		in these states
 				s1
 	a4
-		which occurs in these events
+		which occurs for these events
 				e1
-		and states
+		in these states
 				s1
 		and transitions to state s2
 
@@ -198,30 +198,30 @@ The events :
 
 The actions :
 	a1
-		which occurs in these events
+		which occurs for these events
 				e1
 				e2
-		and states
+		in these states
 				s1
 				s2
 	a2
-		which occurs in these events
+		which occurs for these events
 				e2
-		and states
+		in these states
 				s1
 				s2
 		and transitions to state s2
 	a3
-		which occurs in these events
+		which occurs for these events
 				e1
 				e2
-		and states
+		in these states
 				s1
 		and transitions to state s2
 	a4
-		which occurs in these events
+		which occurs for these events
 				e1
-		and states
+		in these states
 				s1
 		and transitions to state s2
 
@@ -230,8 +230,8 @@ The 1 transitions :
 
 making a list of machines
 Machine newMachine: Won't insert action a2 into slot: event e2, state s1 because it is already occupied by a1
-test: Action array population failed
+test: parser-test3.fsm: Action array population failed
 	line 9 : }
 Machine anotherNewMachine: Won't insert action a2 into slot: event e2, state s1 because it is already occupied by a1
-test: Action array population failed
+test: parser-test3.fsm: Action array population failed
 	line 19 : }

@@ -149,8 +149,8 @@ static bool declare_action_array_member(pLIST_ELEMENT pelem, void *data)
 
 static bool declare_transition_fn_enum_member(pLIST_ELEMENT pelem, void *data)
 {
-	pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
-	pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+	pITERATOR_CALLBACK_HELPER pich        = ((pITERATOR_CALLBACK_HELPER)data);
+	pTRANSITION_DATA          ptransition = ((pTRANSITION_DATA)pelem->mbr);
 
 	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* %s */\n", __func__ );
 
@@ -158,7 +158,7 @@ static bool declare_transition_fn_enum_member(pLIST_ELEMENT pelem, void *data)
 			, "%s%s_%s_e\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
 			, fqMachineName(pich->pcmd)
-			, pid_info->name
+			, ptransition->name->name
 		   );
 
 	return false;
@@ -166,8 +166,8 @@ static bool declare_transition_fn_enum_member(pLIST_ELEMENT pelem, void *data)
 
 static bool declare_transition_enum_member(pLIST_ELEMENT pelem, void *data)
 {
-	pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
-	pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+	pITERATOR_CALLBACK_HELPER pich        = (pITERATOR_CALLBACK_HELPER) data;
+	pTRANSITION_DATA          ptransition = (pTRANSITION_DATA) pelem->mbr;
 
 	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* %s */\n", __func__ );
 
@@ -175,7 +175,7 @@ static bool declare_transition_enum_member(pLIST_ELEMENT pelem, void *data)
 			, "%s%s_transitionTo%s_e\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
 			, fqMachineName(pich->pcmd)
-			, pid_info->name
+			, ptransition->name->name
 		   );
 
 	return false;
@@ -183,15 +183,15 @@ static bool declare_transition_enum_member(pLIST_ELEMENT pelem, void *data)
 
 static bool define_transition_fn_array_member(pLIST_ELEMENT pelem, void *data)
 {
-	pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
-	pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+	pITERATOR_CALLBACK_HELPER pich        = (pITERATOR_CALLBACK_HELPER) data;
+	pTRANSITION_DATA          ptransition = (pTRANSITION_DATA) pelem->mbr;
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile , "/* %s */\n", __func__ );
 
 	fprintf(pich->pcmd->cFile
 			, "\t%sUFMN(%s)\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
-			, pid_info->name
+			, ptransition->name->name
 		   );
 
 	return false;
@@ -199,15 +199,15 @@ static bool define_transition_fn_array_member(pLIST_ELEMENT pelem, void *data)
 
 static bool define_transition_array_member(pLIST_ELEMENT pelem, void *data)
 {
-	pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
-	pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+	pITERATOR_CALLBACK_HELPER pich        = (pITERATOR_CALLBACK_HELPER) data;
+	pTRANSITION_DATA          ptransition = (pTRANSITION_DATA) pelem->mbr;
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile , "/* %s */\n", __func__ );
 
 	fprintf(pich->pcmd->cFile
 			, "\t%sUFMN(transitionTo%s)\n"
 			, pich->ih.first ? (pich->ih.first = false, "  ") : ", "
-			, pid_info->name
+			, ptransition->name->name
 		   );
 
 	return false;
@@ -1724,10 +1724,10 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 					else
 					{
 						fprintf(pcmd->cFile
-								, (pmi->actionArray[i][j]->transition->type == STATE)
+								, (pmi->actionArray[i][j]->transition->name->type == STATE)
 									? "UFMN(transitionTo%s)\n"
 									: "UFMN(%s)\n"
-								, pmi->actionArray[i][j]->transition->name
+								, pmi->actionArray[i][j]->transition->name->name
 							   );
 						CHECK_AND_FREE(cp);
 					}
@@ -1755,10 +1755,10 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 							fprintf(pcmd->cFile
 									, "%s(%s%s%s)"
 									, compact_action_array ? "THIS" : "UFMN"
-									, pmi->actionArray[i][j]->transition->type == STATE
+									, pmi->actionArray[i][j]->transition->name->type == STATE
 									  ? "transitionTo"
 									  : ""
-									, pmi->actionArray[i][j]->transition->name
+									, pmi->actionArray[i][j]->transition->name->name
 									, compact_action_array ? "_e" : ""
 								   );
 						}
@@ -1781,7 +1781,7 @@ static void defineActionArray(pCMachineData pcmd, pMACHINE_INFO pmi)
 						{
 							fprintf(pcmd->cFile
 									, "%s"
-									, stateEnumMemberPmi(pmi->actionArray[i][j]->transition->name, pmi, &cp)
+									, stateEnumMemberPmi(pmi->actionArray[i][j]->transition->name->name, pmi, &cp)
 									);
 						}
 						else

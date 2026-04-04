@@ -139,14 +139,14 @@ The events :
 
 The actions :
 	x1
-		which occurs in these events
+		which occurs for these events
 				y1
-		and states
+		in these states
 				z1
 	x2
-		which occurs in these events
+		which occurs for these events
 				y2
-		and states
+		in these states
 				z1
 				z2
 		and transitions to state z1
@@ -200,15 +200,15 @@ The events :
 
 The actions :
 	aa1
-		which occurs in these events
+		which occurs for these events
 				ee1
-		and states
+		in these states
 				ss1
 		and transitions to state ss2
 	aa2
-		which occurs in these events
+		which occurs for these events
 				ee2
-		and states
+		in these states
 				ss1
 		and transitions to state ss3
 
@@ -281,15 +281,15 @@ The events :
 
 The actions :
 	aaa1
-		which occurs in these events
+		which occurs for these events
 				eee1
-		and states
+		in these states
 				sss1
 		and transitions to state sss2
 	aaa2
-		which occurs in these events
+		which occurs for these events
 				eee2
-		and states
+		in these states
 				sss1
 		and transitions to state sss3
 
@@ -417,36 +417,36 @@ There are 3 event sequences given:
 
 The actions :
 	a1
-		which occurs in these events
+		which occurs for these events
 				e1
-		and states
+		in these states
 				s1
 		and transitions to state s1
 	a2
-		which occurs in these events
+		which occurs for these events
 				e1
-		and states
+		in these states
 				s2
 				s3
 		and transitions using function transitionFn
 		and which returns
 				noEvent
 	noAction
-		which occurs in these events
+		which occurs for these events
 				e2
 				e3
-		and states
+		in these states
 				s1
 				s2
 				s3
 		and transitions using function transitionFn1
 	doNothing
-		which occurs in these events
+		which occurs for these events
 				e1
 				e2
 				e3
 				e4
-		and states
+		in these states
 				s4
 
 The 1 transitions :

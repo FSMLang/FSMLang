@@ -1,0 +1,21 @@
+machine Matter
+   actions return void;
+{
+	state solid
+			  on entry: become_solid
+           on exit: become_not_solid
+         , liquid
+			  on entry: become_liquid
+           on exit: become_not_liquid
+         , gas
+			  on entry: become_gaseous
+           on exit: become_not_gaseous
+         ;
+
+	event melt, evaporate, freeze, condense;
+
+	transition[melt, solid] liquid;
+	transition[evaporate, liquid] gas;
+	transition[freeze, liquid] solid;
+	transition[condense, gas] liquid;
+}

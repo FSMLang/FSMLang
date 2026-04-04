@@ -92,13 +92,6 @@ bool  css_content_internal = false;
 bool  include_svg_img      = false;
 char *css_content_filename = "fsmlang.css";
 
-
-static void closeHTMLWriter(pFSMOutputGenerator pfsmog, int good);
-static void closeHTMLFileNameWriter(pFSMOutputGenerator pfsmog, int good);
-static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi);
-static void writeHTMLFileName(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi);
-static int initHTMLWriter (pFSMOutputGenerator pfsmog, char *baseFileName);
-static int initHTMLFileNameWriter (pFSMOutputGenerator pfsmog, char *baseFileName);
 static bool print_sub_machine_row(pLIST_ELEMENT,void*);
 static bool print_event_sequence_html(pLIST_ELEMENT,void*);
 static bool print_event_sequence_puml(pLIST_ELEMENT,void*);
@@ -408,7 +401,10 @@ static void print_transition_fn_table(pFSMHTMLOutputGenerator pfsmhtmlog)
 	fprintf(pfsmhtmlog->pmd->htmlFile,"<th colspan=2 align=left>Guard Functions</th>\n");
 	fprintf(pfsmhtmlog->pmd->htmlFile,"</tr>\n</thead>\n<tbody>\n");
 	
-	iterate_list(pfsmhtmlog->pmd->pmi->transition_fn_list, print_transition_fn_table_transition_fn_row, &ih);
+	iterate_list(pfsmhtmlog->pmd->pmi->transition_fn_list
+				 , print_transition_fn_table_transition_fn_row
+				 , &ih
+				 );
 
 	fprintf(pfsmhtmlog->pmd->htmlFile,"</tbody>\n</table>\n");
 
@@ -547,15 +543,15 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 		{
 		   fprintf(pih->fout
 				   , "<br/>%s"
-				   , pai->transition->name
+				   , pai->transition->name->name
 				   );
 
-		   if (pai->transition->transition_fn_returns_decl)
+		   if (pai->transition->name->transition_fn_returns_decl)
 		   {
 			  fprintf(pih->fout
 					  ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
 					  );
-			  iterate_list(pai->transition->transition_fn_returns_decl
+			  iterate_list(pai->transition->name->transition_fn_returns_decl
 						   , print_id_info_as_html_list_element
 						   , pih
 						   );
@@ -623,24 +619,24 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 
 		fprintf(pih->fout
 				, "<br/><b>%s</b> : %s"
-				, pai && pai->transition && (pai->transition->type != STATE) 
+				, pai && pai->transition && (pai->transition->name->type != STATE) 
 				    ? "guard"
 				    : "transition"
 				, pai && pai->transition
-				  ? pai->transition->name
+				  ? pai->transition->name->name
 				  : "none"
 				);
 
 		if (
 			pai
 			&& pai->transition 
-			&& pai->transition->transition_fn_returns_decl
+			&& pai->transition->name->transition_fn_returns_decl
 			)
 		{
 		   fprintf(pih->fout
 				   ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
 				   );
-		   iterate_list(pai->transition->transition_fn_returns_decl
+		   iterate_list(pai->transition->name->transition_fn_returns_decl
 						, print_id_info_as_html_list_element
 						, pih
 						);
@@ -991,30 +987,30 @@ static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
 
 static bool print_transition_fn_table_transition_fn_row(pLIST_ELEMENT pelem, void *data)
 {
-	pID_INFO         ptransition_fn = (pID_INFO)         pelem->mbr;
+	pTRANSITION_DATA ptransition_fn = (pTRANSITION_DATA) pelem->mbr;
 	pITERATOR_HELPER pih            = (pITERATOR_HELPER) data;
 
 	fprintf(pih->fout
 			,"\t<tr><td class='label'>%s</td><td>"
-			, ptransition_fn->name
+			, ptransition_fn->name->name
 			);
 
-	if (ptransition_fn->docCmnt)
+	if (ptransition_fn->name->docCmnt)
 	{
 		fprintf(pih->fout
 				, "%s"
-				, ptransition_fn->docCmnt
+				, ptransition_fn->name->docCmnt
 				);
 
 	}
 
-	if (ptransition_fn->transition_fn_returns_decl)
+	if (ptransition_fn->name->transition_fn_returns_decl)
 	{
 		fprintf(pih->fout
 				, "<p>Returns:\n\t<ul>\n"
 			   );
 
-		iterate_list(ptransition_fn->transition_fn_returns_decl
+		iterate_list(ptransition_fn->name->transition_fn_returns_decl
 					 , print_id_info_as_html_list_element
 					 , pih
 					);
@@ -1127,7 +1123,7 @@ static bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
 
 		  if (pai->transition)
 		  {
-			  print_transition(pai->transition, pih);
+			  print_transition(pai->transition->name, pih);
 		  }
 		  fprintf(pih->fout, "\t\t</li>");
 	  }

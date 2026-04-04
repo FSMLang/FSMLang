@@ -38,7 +38,7 @@ static bool print_record(pLIST_ELEMENT pelem, void *data)
 
 	if (pai->transition)
 	{
-		printf(" transition %s ", pai->transition->name);
+		printf(" transition %s ", pai->transition->name->name);
 	}
 
 	printf("\n");

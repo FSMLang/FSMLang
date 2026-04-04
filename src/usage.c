@@ -141,6 +141,12 @@ void usage(void)
 			, help_fmt == 'r' ? list_item_end : item_end
 			);
 	fprintf(stdout
+			,"%s'py'%sgets you python output based on the PyTransitions package,%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
+			);
+	fprintf(stdout
 			,"%s'h'%sgets you html output%s"
 			, help_fmt == 'r' ? item_start : inner_item_start
       , expl_start
@@ -711,20 +717,41 @@ fprintf(stdout
 	   , list_item_end
 	   );
 	fprintf(stdout
-			,"%s--find-on-top-level-machine-data=%strue*|false%s%sReturn file name iff the top-level machine has data.  Useful only with -M -s%s"
+			,"%s--find-on-top-level-machine-data=%strue*|false%s%sReturn file name iff the top-level machine has data.%s"
 			, item_start
 			, lt
 			, gt
 			, expl_start
-			, item_end
+			, list_start
 			);
 	fprintf(stdout
-			,"%s--find-on-event-data=%strue*|false%s%sReturn file name iff at least one event has data.  Useful only with -M -s%s"
+			, "%sUseful only with -M -s.  Only one --find-on... option allowed.%s"
+			, inner_item_start
+			, list_item_end
+			);
+	fprintf(stdout
+			,"%s--find-on-event-data=%strue*|false%s%sReturn file name iff at least one event has data.%s"
 			, item_start
 			, lt
 			, gt
 			, expl_start
-			, item_end
+			, list_start
+			);
+	fprintf(stdout
+			, "%sUseful only with -M -s.  Only one --find-on... option allowed.%s"
+			, inner_item_start
+			, list_item_end
+			);
+	fprintf(stdout
+			,"%s--find-on-sub-machine-depth=[int]%sReturn file name iff the top-level sub-machine depth matches.%s"
+			, item_start
+			, expl_start
+			, list_start
+			);
+	fprintf(stdout
+			, "%sUseful only with -M -s.  Only one --find-on... option allowed.%s"
+			, inner_item_start
+			, list_item_end
 			);
  fprintf(stdout
 		 ,"%s-v%sprints the version and exits%s%s"

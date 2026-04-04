@@ -52,6 +52,7 @@ if (!(A))                 \
 
 #define NO_EVENT      -1   //this is used as the "order" of noEvent.
 #define NO_TRANSITION -1   //this is used as the "order" of noTransition.
+#define createFileName(A, B) joinStrings((A), (B))
 
 
 /**
@@ -133,6 +134,7 @@ typedef struct _user_event_data_         USER_EVENT_DATA,         *pUSER_EVENT_D
 typedef struct _native_info_             NATIVE_INFO,             *pNATIVE_INFO;
 typedef struct _event_sequence_node_     EVENT_SEQUENCE_NODE,     *pEVENT_SEQUENCE_NODE;
 typedef struct _event_sequence_          EVENT_SEQUENCE,          *pEVENT_SEQUENCE;
+typedef struct _transition_data_         TRANSITION_DATA,         *pTRANSITION_DATA;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
@@ -189,11 +191,17 @@ struct _action_data_
 	pLIST           action_returns_decl;
 };
 
+struct _transition_data_
+{
+	pID_INFO name;
+	pID_INFO condition_fn;
+};
+
 union _pid_type_data_
 {
-   EVENT_DATA    event_data;
-   STATE_DATA    state_data;
-   ACTION_DATA   action_data;
+   EVENT_DATA      event_data;
+   STATE_DATA      state_data;
+   ACTION_DATA     action_data;
 };
 
 typedef enum
@@ -226,20 +234,21 @@ struct _data_field_
 
 struct _iterator_helper_
 {
-   FILE          *fout;
-   pMACHINE_INFO pmi;
-   pID_INFO      pid;
-   pACTION_INFO  pai;
-   bool          error;
-   bool          first;
-   int           event;
-   int           state;
-   unsigned      *counter0;
-   unsigned      *counter1;
-   unsigned      tab_level;
-   bool          found;
+   FILE             *fout;
+   pMACHINE_INFO    pmi;
+   pID_INFO         pid;
+   pACTION_INFO     pai;
+   bool             error;
+   bool             first;
+   int              event;
+   int              state;
+   unsigned         *counter0;
+   unsigned         *counter1;
+   unsigned         tab_level;
+   bool             found;
    LIST_ITERATOR_FN pfn_sub_iterator;
-   char          *str;                  //!< for general use
+   char             *str;                  //!< for general use
+	pLIST_ELEMENT   pOtherElem;            //!< for general use
 };
 
 
@@ -304,11 +313,12 @@ struct _matrix_info_ {
 
 struct _action_info_
 {
-	pID_INFO     action;
-	pMATRIX_INFO matrix;
-	pID_INFO     transition;
-	pACTION_INFO nextAction;
-	char         *docCmnt;
+	pID_INFO         action;
+	pMATRIX_INFO     matrix;
+	pTRANSITION_DATA transition;
+	pACTION_INFO     nextAction;
+	char             *docCmnt;
+	pLIST            padditional_transitions;
 }; 
 
 
@@ -381,7 +391,7 @@ void freeMachineInfo(pMACHINE_INFO);
 
 /* other general utilities */
 FILE *openFile(char *, char *);
-char *createFileName(char *,char *);
+char *joinStrings(char *,char *);
 char *eventNameByIndex(pMACHINE_INFO,int);
 pID_INFO eventPidByIndex(pMACHINE_INFO,int);
 char *stateNameByIndex(pMACHINE_INFO,int);
@@ -434,6 +444,7 @@ void parser_debug_print_event_sequences(pMACHINE_INFO,FILE*);
 /* general use data */
 extern char                 *me;	/* main will set this to the program name (argv[0]) */
 extern char                 *inputFileName;
+extern char                 *inputFilePath;
 extern bool                 generate_instance;
 extern unsigned             num_instances;
 extern bool                 compact_action_array;
@@ -467,6 +478,7 @@ extern bool                 inhibiting_states_share_events;
 extern bool                 include_uml_objects;
 extern bool                 weak_fn_separate_file;
 extern bool                 add_doxygen_blocks;
+extern int                  find_on_sub_machine_depth;
 extern bool                 find_on_top_level_machine_data;
 extern bool                 find_on_event_data;
 
@@ -526,8 +538,9 @@ bool print_sub_machine_event_names(pLIST_ELEMENT,void*);
 bool print_data_field(pLIST_ELEMENT,void*);
 bool print_event_sequence(pLIST_ELEMENT,void*);
 bool print_event_sequence_event(pLIST_ELEMENT,void*);
+bool match_transition(pLIST_ELEMENT,void*);
 char *create_string_from_file(FILE*,unsigned long*);
-pID_INFO get_transition(pMACHINE_INFO,unsigned,unsigned);
+pTRANSITION_DATA get_transition(pMACHINE_INFO,unsigned,unsigned);
 pID_INFO get_action(pMACHINE_INFO,unsigned,unsigned);
 char *create_sequence_name(unsigned);
 

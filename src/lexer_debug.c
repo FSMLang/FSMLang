@@ -78,5 +78,6 @@ char *strings[]  = {
   , "START_KEY"
   , "END_KEY"
   , "GUARD_KEY"
+  , "CONDITION_KEY"
 };
 

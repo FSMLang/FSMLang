@@ -26,16 +26,15 @@ endif
 
 override CFLAGS += -ggdb -DPARSER_DEBUG -D$(ARCH) -I../ -I$(VPATH) -I .
 
-FSMS = $(shell find . -name "*.fsm" -printf "%P ")
-TESTS = $(basename $(FSMS))
+TESTS = $(basename $(shell find . -name "parser-test*.fsm" -printf "%P "))
 
 echotests:
-	@echo $(TESTS)
+	@echo Passers: $(TESTS)
 
 NO_RUNTEST=TRUE
 include ../test.mk
 
-runtest: $(TESTS) 
+runtest: $(TESTS)
 	@echo "all parser tests pass"
 
 $(TESTS): test 
@@ -44,7 +43,7 @@ $(TESTS): test
 	@$(DIFF) $@.out $@.canonical
 	@echo $@ successful
 	@rm -f $@.out $@.result
-      
+
 #
 # This is not working on GitHub, though it does locally.
 #

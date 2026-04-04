@@ -15,7 +15,7 @@ extern ID_INFO s3;
 extern ID_INFO a1;
 extern ID_INFO a2;
 extern ID_INFO a3;
-extern ID_INFO t1;
-extern ID_INFO t2;
-extern ID_INFO t3;
+extern TRANSITION_DATA t1;
+extern TRANSITION_DATA t2;
+extern TRANSITION_DATA t3;
 

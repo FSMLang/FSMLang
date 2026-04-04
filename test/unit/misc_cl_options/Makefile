@@ -3,9 +3,11 @@ include $(OUTPUT_DIR)/system.mk
 test_m_c: FSM_FLAGS=-M -tc
 test_m_s: FSM_FLAGS=-M -ts
 test_m_e: FSM_FLAGS=-M -te
+test_m_pyt: FSM_FLAGS=-M -tpy
 test_md_c: FSM_FLAGS=-Md -tc
 test_md_s: FSM_FLAGS=-Md -ts
 test_md_e: FSM_FLAGS=-Md -te
+test_md_pyt: FSM_FLAGS=-Md -tpy
 test_mh_c: FSM_FLAGS=-Mh -tc
 test_mh_s: FSM_FLAGS=-Mh -ts
 test_mh_e: FSM_FLAGS=-Mh -te
@@ -39,9 +41,11 @@ LISTERS = \
         test_m_c    \
         test_m_s    \
         test_m_e    \
+        test_m_pyt  \
         test_md_c   \
         test_md_s   \
         test_md_e   \
+        test_md_pyt \
         test_mh_c   \
         test_mh_s   \
         test_mh_e   \

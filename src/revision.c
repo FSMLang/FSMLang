@@ -573,8 +573,15 @@
 	A bug in a <i>cwalk...</i> function causing a hard-fault when reporting errors
 	has been fixed.
 
-	Doxygen comments are supported through the use of --add-doxygen-blocks=&lt;true*|false&gt;. FSMLang doc comments are added to the C code output.
+	Doxygen comments are supported through the use of --add-doxygen-blocks=&lt;true*|false&gt;.
+	FSMLang doc comments are added to the C code output.
 
 */
-const char rev_string[] = "2.3";
+
+/*
+	Revision 2.4.alpha-1
+
+	Initial implementation of PyTransitions functionality.
+*/
+const char rev_string[] = "2.4.alpha-2";
 

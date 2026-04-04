@@ -34,4 +34,5 @@ clean::
 	-@rm -f *.out > /dev/null
 	-@rm -f *.stderr > /dev/null
 	-@rm -f *.result > /dev/null
+	-@rm -f *.[ch] > /dev/null
 

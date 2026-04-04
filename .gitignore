@@ -120,11 +120,17 @@ _codeql_detected_source_root
 
 # Generated files
 linux/
+!linux/Makefile
+!linux/*.mk
 
 # Test executables (no extension on Linux)
 test/unit/*/test
 
 # Test detritus
 test/*/*.result
+test/python/*/*.py
+!test/python/*/*.py.canonical
+test/python/*/fsmout
+test/python/*/*.result
 
 

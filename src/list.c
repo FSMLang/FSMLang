@@ -39,6 +39,7 @@
 typedef struct _counter_str_ COUNTER_STR, *pCOUNTER_STR;
 typedef struct _unique_exception_str_ UNIQUE_EXCEPTION_STR, *pUNIQUE_EXCEPTION_STR;
 typedef struct _order_str_ ORDER_STR, *pORDER_STR;
+typedef struct _unique_test_str_ UNIQUE_TEST_STR, *pUNIQUE_TEST_STR;
 
 struct _counter_str_
 {
@@ -60,6 +61,12 @@ struct _order_str_
 {
 	void *pmbr;
 	ORDER_FN order_fn;
+};
+
+struct _unique_test_str_
+{
+	pLIST            dest;
+	LIST_ITERATOR_FN test_fn;
 };
 
 static bool nth_record(pLIST_ELEMENT pmbr, void *data)
@@ -248,11 +255,11 @@ pLIST move_list(pLIST dest, pLIST src)
 
 static bool unique_list_mover(pLIST_ELEMENT pelem, void *data)
 {
-   pLIST pdest = (pLIST) data;
+	pUNIQUE_TEST_STR put_str = (pUNIQUE_TEST_STR) data;
 
-   add_unique_to_list(pdest, pelem->mbr);
+	add_unique_to_list_with_test(put_str->dest, pelem->mbr, put_str->test_fn);
 
-   return false;
+	return false;
 }
 
 /**********************************************************************************************************************/
@@ -278,7 +285,22 @@ pLIST move_list_unique(pLIST dest, pLIST src)
 {
    if (dest)
    {
-      iterate_list(src,unique_list_mover,dest);
+	   UNIQUE_TEST_STR uts = {.dest = dest, .test_fn = match_member};
+      iterate_list(src,unique_list_mover,&uts);
+   }
+   else
+   {
+      dest = src;
+   }
+   return dest;
+}
+
+pLIST move_list_unique_with_test(pLIST dest, pLIST src, LIST_ITERATOR_FN test_fn)
+{
+   if (dest)
+   {
+	   UNIQUE_TEST_STR uts = {.dest = dest, .test_fn = test_fn};
+      iterate_list(src,unique_list_mover,&uts);
    }
    else
    {
@@ -582,6 +604,32 @@ pLIST_ELEMENT add_unique_to_list(pLIST plist, void *pmbr)
    pLIST_ELEMENT pelem;
 
    if (NULL == (pelem = iterate_list(plist,match_member,pmbr)))
+   {
+      pelem = add_to_list(plist, pmbr);
+   }
+
+   return pelem;
+}
+
+/**
+ * Add an element to a list, if not already there; determine
+ * "already there" through the supplied test function.
+ * 
+ * @author Steven Stanton (3/24/2026)
+ * 
+ * @param plist   List to which to possibly add the new member.
+ * @param pmbr    The member to possibly add.
+ * @param test_fn The function which will determine whether the
+ *  			  member is already on the list.
+ * 
+ * @return pLIST_ELEMENT A pointer to the existing or new list
+ *  	   element containing the member.
+ */
+pLIST_ELEMENT add_unique_to_list_with_test(pLIST plist, void *pmbr, LIST_ITERATOR_FN test_fn)
+{
+   pLIST_ELEMENT pelem;
+
+   if (NULL == (pelem = iterate_list(plist,test_fn,pmbr)))
    {
       pelem = add_to_list(plist, pmbr);
    }
