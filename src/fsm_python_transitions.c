@@ -256,14 +256,6 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 			, "from transitions import Machine\n"
 			);
 
-	if (pmi->native_prologue)
-	{
-		fprintf(fout
-				, "%s\n"
-				, pmi->native_prologue
-			   );
-	}
-
 	fprintf(fout
 			, "\nclass %s(object):\n\n"
 			, pmi->name->name
