@@ -583,5 +583,5 @@
 
 	Initial implementation of PyTransitions functionality.
 */
-const char rev_string[] = "2.4.alpha-2";
+const char rev_string[] = "2.4";
 
