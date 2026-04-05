@@ -35,6 +35,7 @@ Therefore: generate a model-level `prepare_event` dispatcher and wire it into th
 ---
 
 ## High-level design (MUST)
+
 ### 1) Use `Machine(..., send_event=True, prepare_event=...)`
 When the FSM uses FSMLang event data (i.e., `pmi->data_block_count > 0` / existing event-data gating), the generated Python must:
 - set `send_event=True`, and
@@ -57,10 +58,15 @@ Each per-trigger translator function (whether explicitly named by the FSM or usi
 
 The dispatcher must **not** store any return value from translator calls.
 
-### 4) Missing translator MUST raise at runtime (Option C) (MUST)
+### 4) Translator existence and failure modes (MUST)
+
+#### When `generate_weak_fns` is OFF
 If a translator function is missing for a trigger that requires translation, the generated code must raise at runtime (Pythonic fail-fast). Concretely:
 - the dispatcher must call the resolved translator using `getattr(self, name)(e)` **without** suppressing `AttributeError`,
 - no `hasattr`, no try/except, no fallback translation.
+
+#### When `generate_weak_fns` is ON
+FSMLang MUST generate translator stubs (see “Weak-function translator stubs” below). In this mode, missing-translator exceptions are not expected because stubs exist.
 
 ---
 
@@ -108,7 +114,28 @@ Then dispatcher resolves:
 - `translator_name = self._fsm_translators.get(trigger, "translate_" + trigger)`
 
 Important:
-- Even though a fallback is present, **missing translator must still raise**; the fallback only selects a name, it does not guard the call.
+- Even though a fallback is present, missing translator behavior depends on `generate_weak_fns`:
+  - if `generate_weak_fns` is OFF, a missing translator MUST raise at runtime (per “Translator existence and failure modes”)
+  - if `generate_weak_fns` is ON, stubs must exist (per “Weak-function translator stubs”)
+
+### C2) Weak-function translator stubs (MUST when `generate_weak_fns` is ON)
+When `generate_weak_fns` is enabled (configured by the test Makefile):
+
+- FSMLang MUST generate stub methods for **all** translator names referenced by `_fsm_translators`
+  (both default `translate_<trigger>` and explicit translator names).
+- Each stub MUST:
+  1) print its own function name to stdout, and
+  2) do nothing else (no mutation of `self.data`; implicit `None` return).
+
+Required stub shape:
+
+```python
+def translate_distress_call(self, e):
+    print("translate_distress_call")
+    # intentionally empty
+```
+
+When `generate_weak_fns` is disabled, these stubs MUST NOT be generated.
 
 ### D) `self.data` container (MUST)
 When event data is enabled, the generated model must have:
@@ -147,7 +174,8 @@ Golden expectations:
   - `send_event=True`
   - `prepare_event="_fsm_prepare_event"`
   - definitions of `_fsm_get_trigger_name`, `_fsm_prepare_event`, and `_fsm_translators`
-  - a per-trigger translator method (default and/or explicit) whose body mutates `self.data` and returns nothing
+  - if `generate_weak_fns` is ON: stub translator methods that print their name
+  - if `generate_weak_fns` is OFF: translator methods are not required to appear in the generated file (and missing should raise at runtime)
 
 ---
 
@@ -192,7 +220,7 @@ def _fsm_prepare_event(self, e):
         trigger = "__unknown_trigger__"
 
     translator_name = self._fsm_translators.get(trigger, "translate_" + trigger)
-    # MUST raise if translator is missing:
+    # MUST raise if translator is missing when generate_weak_fns is OFF:
     getattr(self, translator_name)(e)
 
     return True
@@ -204,9 +232,9 @@ Per-trigger translator methods (whether generated stubs or user-provided) must m
 
 ## Pre-flight checklist (MUST be restated by agent before coding)
 1. Confirm PR number + URL.
-2. Confirm base branch is `297-modify-pytransitions-event-data-support-to-ensure-data-are-translated-exactly-once-for-the-occurance-of-an-event`.
-3. Confirm head branch name you will push commits to.
-4. Confirm you will NOT create a new branch or new PR.
-5. Confirm only allowed files/dirs will change.
+2. Confirm base branch is master.
+2b. Confirm head branch is `297-modify-pytransitions-event-data-support-to-ensure-data-are-translated-exactly-once-for-the-occurance-of-an-event`.
+3. Confirm you will NOT create a new branch or new PR.
+4. Confirm only allowed files/dirs will change.
 
 If any item is not true: STOP and ask for clarification.
