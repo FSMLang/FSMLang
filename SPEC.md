@@ -2,7 +2,7 @@
 
 ## Status / scope guardrails (MUST)
 - Repo: `FSMLang/FSMLang`
-- **Base branch (MUST):** `282-support-for-generating-python-based-fsm-code`
+- **Base branch (MUST):** `297-modify-pytransitions-event-data-support-to-ensure-data-are-translated-exactly-once-for-the-occurance-of-an-event`
 - Generator files:
   - `src/fsm_python_transitions.c`
   - `src/fsm_python_transitions.h` (only if necessary)
@@ -10,7 +10,7 @@
   - Add/modify under `test/python/<new_test_dir>/**`
   - Expected outputs are `*.py.canonical` only
 
-> If the working branch is not based on `282-support-for-generating-python-based-fsm-code`, STOP and ask for clarification.
+> If the working branch is not based on `297-modify-pytransitions-event-data-support-to-ensure-data-are-translated-exactly-once-for-the-occurance-of-an-event` STOP and ask for clarification.
 
 ### Hard non-goals
 1. No drive-by cleanups/refactors/formatting-only changes.
@@ -197,7 +197,7 @@ Per-trigger translator methods (whether generated stubs or user-provided) must m
 
 ## Pre-flight checklist (MUST be restated by agent before coding)
 1. Confirm PR number + URL.
-2. Confirm base branch is `282-support-for-generating-python-based-fsm-code`.
+2. Confirm base branch is `297-modify-pytransitions-event-data-support-to-ensure-data-are-translated-exactly-once-for-the-occurance-of-an-event`.
 3. Confirm head branch name you will push commits to.
 4. Confirm you will NOT create a new branch or new PR.
 5. Confirm only allowed files/dirs will change.
