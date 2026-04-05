@@ -14,7 +14,6 @@ class NarcolepticSuperhero(object):
 	               {'trigger': 'distress_call'
 	                 , 'source': ['asleep' ,'hanging_out' ,'hungry']
 	                 , 'dest': 'hanging_out'
-	                 , 'prepare': 'translate_distress_call'
 	                 , 'before': 'change_into_super_secret_costume'
 	                 }
 	               , ['wake_up', 'asleep', 'hanging_out']
@@ -22,15 +21,55 @@ class NarcolepticSuperhero(object):
 	               , ['eat', 'hungry', 'hanging_out']
 	               ]
 
+	_fsm_translators = {
+		"distress_call": "translate_distress_call",
+	}
+
 	def __init__(self):
 		self.data = {}
-		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep', send_event=True)
+		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep', send_event=True, prepare_event="_fsm_prepare_event")
+
+
+	def _fsm_get_trigger_name(self, e):
+		ev = getattr(e, "event", None)
+		if ev is not None:
+			name = getattr(ev, "name", None)
+			if name:
+				return name
+			name = getattr(ev, "trigger", None)
+			if name:
+				return name
+
+		for attr in ("trigger", "name", "event_name"):
+			name = getattr(e, attr, None)
+			if name:
+				return name
+
+		tr = getattr(e, "transition", None)
+		if tr is not None:
+			name = getattr(tr, "trigger", None)
+			if name:
+				return name
+
+		return None
+
+
+	def _fsm_prepare_event(self, e):
+		trigger = self._fsm_get_trigger_name(e)
+		if trigger is None:
+			trigger = "__unknown_trigger__"
+
+		translator_name = self._fsm_translators.get(trigger, "translate_" + trigger)
+		getattr(self, translator_name)(e)
+
+		return True
 
 
 	def change_into_super_secret_costume(self, event=None):
 		print('change_into_super_secret_costume')
 
 
-	def translate_distress_call(self, event=None):
-		self.data['distress_call'] = event.kwargs if event else {}
+	def translate_distress_call(self, e):
+		print("translate_distress_call")
+		# intentionally empty
 
