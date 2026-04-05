@@ -2,15 +2,22 @@
 
 ## Status / scope guardrails (MUST)
 - Repo: `FSMLang/FSMLang`
-- **Base branch (MUST):** `297-modify-pytransitions-event-data-support-to-ensure-data-are-translated-exactly-once-for-the-occurance-of-an-event`
+
+- **Merge target (base branch):** `master`
+  - This PR must target `master`.
+
+- **Working branch (head branch to push commits to):**
+  - `297-modify-pytransitions-event-data-support-to-ensure-data-are-translated-exactly-once-for-the-occurance-of-an-event`
+  - The agent MUST push commits to this branch.
+  - The agent MUST NOT create a new branch and MUST NOT open a new PR.
+
 - Generator files:
   - `src/fsm_python_transitions.c`
   - `src/fsm_python_transitions.h` (only if necessary)
+
 - Tests:
   - Add/modify under `test/python/<new_test_dir>/**`
   - Expected outputs are `*.py.canonical` only
-
-> If the working branch is not based on `297-modify-pytransitions-event-data-support-to-ensure-data-are-translated-exactly-once-for-the-occurance-of-an-event` STOP and ask for clarification.
 
 ### Hard non-goals
 1. No drive-by cleanups/refactors/formatting-only changes.
