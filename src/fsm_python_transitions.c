@@ -79,7 +79,6 @@ static void print_transition_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_simple_transition_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_transition_fn_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_transition_as_list(pID_INFO,pITERATOR_HELPER);
-static bool print_translator_stubs(pLIST_ELEMENT,void*);
 static bool print_event_translator_mapping(pLIST_ELEMENT,void*);
 static bool print_event_translator_stub(pLIST_ELEMENT,void*);
 
@@ -727,7 +726,6 @@ static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pi
 {
 	pMATRIX_INFO     pmi           = (pMATRIX_INFO) pih->pOtherElem->mbr;
 	bool             action_present = (pih->pai->action && strlen(pih->pai->action->name));
-	pUSER_EVENT_DATA pued          = pevent->type_data.event_data.puser_event_data;
 
 	fprintf(pih->fout
 			, "\t%*.*s%s{'trigger': '%s'\n"
@@ -836,7 +834,6 @@ static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
 	pMATRIX_INFO     pmi    = (pMATRIX_INFO) pih->pOtherElem->mbr;
 	pID_INFO         pevent = pih->pid;
 	bool             action_present = (pih->pai->action && strlen(pih->pai->action->name));
-	pUSER_EVENT_DATA pued   = pevent->type_data.event_data.puser_event_data;
 
 	fprintf(pih->fout
 			, "\t%*.*s%s{'trigger': '%s'\n"
@@ -1039,62 +1036,6 @@ static bool print_event_data_entry_exit_stubs(pLIST_ELEMENT pelem, void *data)
 				, psd->exit_fn->name
 				, psd->exit_fn->name
 				);
-	}
-
-	return false;
-}
-
-static bool print_translator_stubs(pLIST_ELEMENT pelem, void *data)
-{
-	pCONSOLIDATED_ACTION_INFO pcai = (pCONSOLIDATED_ACTION_INFO) pelem->mbr;
-	pITERATOR_HELPER          pih  = (pITERATOR_HELPER) data;
-	pMATRIX_INFO              pmi;
-	pLIST_ELEMENT             event_elem;
-	pID_INFO                  pevent;
-	pUSER_EVENT_DATA          pued;
-	const char               *translator_name;
-
-	if (!pcai->matrices || !pcai->matrices->head)
-	{
-		return false;
-	}
-
-	pmi = (pMATRIX_INFO) pcai->matrices->head->mbr;
-
-	if (!pmi->event_list || !pmi->event_list->head)
-	{
-		return false;
-	}
-
-	event_elem = pmi->event_list->head;
-	while (event_elem)
-	{
-		pevent = (pID_INFO) event_elem->mbr;
-		pued   = pevent->type_data.event_data.puser_event_data;
-
-		if (pued)
-		{
-			translator_name = (pued->translator) ? pued->translator->name : NULL;
-
-			if (translator_name)
-			{
-				fprintf(pih->fout
-						, "\n\tdef %s(self, e):\n\t\tprint(\"%s\")\n\t\t# intentionally empty\n\n"
-						, translator_name
-						, translator_name
-						);
-			}
-			else
-			{
-				fprintf(pih->fout
-						, "\n\tdef translate_%s(self, e):\n\t\tprint(\"translate_%s\")\n\t\t# intentionally empty\n\n"
-						, pevent->name
-						, pevent->name
-						);
-			}
-		}
-
-		event_elem = event_elem->next;
 	}
 
 	return false;
