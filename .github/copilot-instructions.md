@@ -99,7 +99,9 @@ Windows: replace `cmake -B ./build` with `cmake -B ./build -G "MinGW Makefiles"`
 
 ## Running Tests
 
-All tests require `OUTPUT_DIR` to be set to the **absolute path** of the directory containing the `fsm` binary.
+> **Linux only.** Tests have only been exercised in the Linux environment; Windows/Cygwin/Mingw builds are compile-only.
+
+All tests require `OUTPUT_DIR` to be set to the **absolute path of the architecture output directory** (e.g., the `linux/` directory). This directory must contain **both** the `fsm` binary **and** `system.mk` (the compiler/tool definitions included by every test Makefile via `include $(OUTPUT_DIR)/system.mk`). The correct value is the directory that `make Linux` targets when run from `src/`, which is `../linux` relative to `src/`, i.e., the repo-root `linux/` directory.
 
 ### All C tests (via src/Makefile)
 
