@@ -251,8 +251,7 @@ fsm [-t[c|s|e|ss|h|p|r|py]] [-o outfile] filename.fsm
 4. Inspect the generated `<name>.py`, verify it is correct.
 5. Copy it as the canonical: `cp <name>.py <name>.py.canonical`
 6. Write `Makefile` (at minimum `include ../python.mk`; add `FSM_FLAGS=...` if needed).
-7. Add the sub-directory to `test/python/Makefile`'s `SUITES` if not auto-discovered.
-8. Run `make OUTPUT_DIR=<abs_linux_dir> runtest` from `test/python/<new_dir>/` to verify.
+7. Run `make OUTPUT_DIR=<abs_linux_dir> runtest` from `test/python/<new_dir>/` to verify.
 
 ---
 
