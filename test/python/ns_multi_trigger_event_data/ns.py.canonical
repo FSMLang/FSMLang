@@ -27,6 +27,9 @@ class NarcolepticSuperhero(object):
 		"distress_call": "translate_distress_call",
 	}
 
+	_fsm_actions = {
+	}
+
 	def __init__(self):
 		self.data = {}
 		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep', send_event=True, prepare_event="_fsm_prepare_event")
@@ -61,8 +64,13 @@ class NarcolepticSuperhero(object):
 		if trigger is None:
 			trigger = "__unknown_trigger__"
 
-		translator_name = self._fsm_translators.get(trigger, "translate_" + trigger)
-		getattr(self, translator_name)(e)
+		translator_name = self._fsm_translators.get(trigger)
+		if translator_name is not None:
+			getattr(self, translator_name)(e)
+
+		action_name = self._fsm_actions.get((self.state, trigger))
+		if action_name is not None:
+			getattr(self, action_name)(e)
 
 		return True
 

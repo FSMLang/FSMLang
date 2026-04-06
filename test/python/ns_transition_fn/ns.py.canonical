@@ -23,16 +23,8 @@ class NarcolepticSuperhero(object):
 
 	states = ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
 	transitions = [
-	               {'trigger': 'distress_call'
-	                 , 'source': ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world']
-	                 , 'dest': 'saving_the_world'
-	                 , 'before': 'change_into_super_secret_costume'
-	                 }
-	               , {'trigger': 'complete_mission'
-	                 , 'source': 'saving_the_world'
-	                 , 'dest': 'sweaty'
-	                 , 'before': 'update_journal'
-	                 }
+	               ['distress_call', ['asleep' ,'hanging_out' ,'hungry' ,'sweaty' ,'saving_the_world'] , 'saving_the_world']
+	               , ['complete_mission', 'saving_the_world', 'sweaty']
 	               , ['wake_up', 'asleep', 'hanging_out']
 	               , ['work_out', 'hanging_out', 'hungry']
 	               , ['eat', 'hungry', 'hanging_out']
@@ -48,15 +40,60 @@ class NarcolepticSuperhero(object):
 	                 }
 	               ]
 
+	_fsm_actions = {
+		("asleep", "distress_call"): "change_into_super_secret_costume",
+		("hanging_out", "distress_call"): "change_into_super_secret_costume",
+		("hungry", "distress_call"): "change_into_super_secret_costume",
+		("sweaty", "distress_call"): "change_into_super_secret_costume",
+		("saving_the_world", "distress_call"): "change_into_super_secret_costume",
+		("saving_the_world", "complete_mission"): "update_journal",
+	}
+
 	def __init__(self):
-		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep')
+		self.machine = Machine(model=self, states=NarcolepticSuperhero.states, transitions=NarcolepticSuperhero.transitions, initial='asleep', send_event=True, prepare_event="_fsm_prepare_event")
 
 
-	def change_into_super_secret_costume(self):
+	def _fsm_get_trigger_name(self, e):
+		ev = getattr(e, "event", None)
+		if ev is not None:
+			name = getattr(ev, "name", None)
+			if name:
+				return name
+			name = getattr(ev, "trigger", None)
+			if name:
+				return name
+
+		for attr in ("trigger", "name", "event_name"):
+			name = getattr(e, attr, None)
+			if name:
+				return name
+
+		tr = getattr(e, "transition", None)
+		if tr is not None:
+			name = getattr(tr, "trigger", None)
+			if name:
+				return name
+
+		return None
+
+
+	def _fsm_prepare_event(self, e):
+		trigger = self._fsm_get_trigger_name(e)
+		if trigger is None:
+			trigger = "__unknown_trigger__"
+
+		action_name = self._fsm_actions.get((self.state, trigger))
+		if action_name is not None:
+			getattr(self, action_name)(e)
+
+		return True
+
+
+	def change_into_super_secret_costume(self, event=None):
 		print('change_into_super_secret_costume')
 
 
-	def update_journal(self):
+	def update_journal(self, event=None):
 		print('update_journal')
 
 

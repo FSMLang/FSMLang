@@ -14,7 +14,6 @@ class NarcolepticSuperhero(object):
 	               {'trigger': 'distress_call'
 	                 , 'source': ['asleep' ,'hanging_out' ,'hungry']
 	                 , 'dest': 'hanging_out'
-	                 , 'before': 'change_into_super_secret_costume'
 	                 }
 	               , ['wake_up', 'asleep', 'hanging_out']
 	               , ['work_out', 'hanging_out', 'hungry']
@@ -23,6 +22,12 @@ class NarcolepticSuperhero(object):
 
 	_fsm_translators = {
 		"distress_call": "translate_distress_call",
+	}
+
+	_fsm_actions = {
+		("asleep", "distress_call"): "change_into_super_secret_costume",
+		("hanging_out", "distress_call"): "change_into_super_secret_costume",
+		("hungry", "distress_call"): "change_into_super_secret_costume",
 	}
 
 	def __init__(self):
@@ -59,8 +64,13 @@ class NarcolepticSuperhero(object):
 		if trigger is None:
 			trigger = "__unknown_trigger__"
 
-		translator_name = self._fsm_translators.get(trigger, "translate_" + trigger)
-		getattr(self, translator_name)(e)
+		translator_name = self._fsm_translators.get(trigger)
+		if translator_name is not None:
+			getattr(self, translator_name)(e)
+
+		action_name = self._fsm_actions.get((self.state, trigger))
+		if action_name is not None:
+			getattr(self, action_name)(e)
 
 		return True
 
