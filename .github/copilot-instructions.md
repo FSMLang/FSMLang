@@ -168,10 +168,16 @@ machine MachineName
 
 ### Output Generator Structure
 
-Each output generator (`fsm_c.c`, `fsm_python_transitions.c`, …) provides a function:
+Each output generator (`fsm_c.c`, `fsm_python_transitions.c`, …) exports a concrete `generate*Writer` function. The signature follows this pattern:
 
 ```c
-pFSMOutputGenerator generateXxxWriter(pFSMOutputGenerator);
+pFSMOutputGenerator generate<Backend>Writer(pFSMOutputGenerator);
+
+// Examples:
+// - `generateCMachineWriter(...)` in `src/fsm_c.c`
+// - `generateCSwitchMachineWriter(...)` in `src/fsm_cswitch.c`
+// - `generatePyTransitionsWriter(...)` in `src/fsm_python_transitions.c`
+// - `generateHTMLMachineWriter(...)` in `src/fsm_html.c`
 ```
 
 The generator receives a `pMACHINE_INFO pmi` (parsed machine) and writes files via `FILE*` handles.
