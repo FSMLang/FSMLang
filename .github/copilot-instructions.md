@@ -1,5 +1,11 @@
 # FSMLang – Copilot Cloud Agent Onboarding Guide
 
+## Pull request discipline (MUST)
+- If you are asked to work on an existing PR, you MUST push commits to that PR’s existing head branch.
+- You MUST NOT create a new branch and MUST NOT open a new PR unless explicitly requested.
+- Before coding, you MUST restate: PR URL, base branch, head branch, and the list of allowed files/dirs.
+- If any of the above is unclear, STOP and ask for clarification.
+
 ## What This Repository Is
 
 FSMLang is a **finite-state-machine pre-processor / compiler** written in C.  
