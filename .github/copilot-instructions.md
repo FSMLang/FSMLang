@@ -215,7 +215,7 @@ When `--generate-weak-fns=false` is **not** set (default), weak-function stubs a
 ## CLI Flags (Selected)
 
 ```
-fsm [-tc|s|e|h|p|r|py|ss] [-o outfile] filename.fsm
+fsm [-t[c|s|e|ss|h|p|r|py]] [-o outfile] filename.fsm
 
 -tc          C array-based output (default)
 -ts          C switch-based output
