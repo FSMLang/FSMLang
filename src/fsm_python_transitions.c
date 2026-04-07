@@ -81,6 +81,13 @@ static void print_transition_fn_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_transition_as_list(pID_INFO,pITERATOR_HELPER);
 static bool print_event_translator_mapping(pLIST_ELEMENT,void*);
 static bool print_event_translator_stub(pLIST_ELEMENT,void*);
+static bool scan_consolidated(pLIST_ELEMENT,void*);
+static bool scan_matrix(pLIST_ELEMENT,void*);
+static bool scan_event(pLIST_ELEMENT,void*);
+static bool print_actions_dict_consolidated(pLIST_ELEMENT,void*);
+static bool print_actions_dict_matrix(pLIST_ELEMENT,void*);
+static bool print_actions_dict_event(pLIST_ELEMENT,void*);
+static bool print_actions_dict_state(pLIST_ELEMENT,void*);
 
 typedef struct _fsm_pytransitions_output_generator_ FSMPyTransitionsOutputGenerator, *pFSMPyTransitionsOutputGenerator;
 typedef struct _pytransitions_machine_data_ PyTransitionsData, *pPyTransitionsData;
@@ -91,6 +98,7 @@ struct _pytransitions_machine_data_ {
   char          *baseName;
   pMACHINE_INFO pmi;
   bool           uses_event_data;
+  bool           uses_actions;
 };
 
 struct _fsm_pytransitions_output_generator_
@@ -315,21 +323,32 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 
 	// Write the transitions
 	transitions_str_len = strlen(transitions_str);
+
+	pLIST pconsolidated = consolidate_action_info_list(pmi->action_info_list);
+
+	// Pre-detect uses_event_data (scan_ih.found) and uses_actions (scan_ih.error)
+	// before printing so that the transition-printing pass can suppress
+	// 'before' callbacks when action-matrix semantics are active.
+	{
+		ITERATOR_HELPER scan_ih = { .fout = NULL, .found = false, .error = false };
+		iterate_list(pconsolidated, scan_consolidated, &scan_ih);
+		ptd->uses_event_data = scan_ih.found; // true if any data-bearing event appears
+		ptd->uses_actions    = scan_ih.error; // true if any action-matrix action exists
+	}
+
 	fprintf(fout
 			, "\t%s\n"
 			, transitions_str
 			);
 
-	pLIST pconsolidated = consolidate_action_info_list(pmi->action_info_list);
-	ih.found = false;
+	// ih.error is repurposed here as "uses_prepare_event": when true, transition
+	// printing will NOT emit 'before' callbacks (actions go through _fsm_prepare_event).
+	ih.error = ptd->uses_event_data || ptd->uses_actions;
 	ih.first = true;
 	iterate_list(pconsolidated
 				 , print_consolidated_action_info
 				 , &ih
 				 );
-
-	// ih.found is set to true if any data-bearing event was used in a transition
-	ptd->uses_event_data = ih.found;
 
 	fprintf(fout
 			, "\t%*.*s]\n"
@@ -342,6 +361,13 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 	{
 		fprintf(fout, "\n\t_fsm_translators = {\n");
 		iterate_list(pmi->event_list, print_event_translator_mapping, &ih);
+		fprintf(fout, "\t}\n");
+	}
+
+	if (ptd->uses_event_data || ptd->uses_actions)
+	{
+		fprintf(fout, "\n\t_fsm_actions = {\n");
+		iterate_list(pconsolidated, print_actions_dict_consolidated, &ih);
 		fprintf(fout, "\t}\n");
 	}
 
@@ -372,7 +398,7 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 				);
 	}
 
-	if (ptd->uses_event_data)
+	if (ptd->uses_event_data || ptd->uses_actions)
 	{
 		fprintf(fout
 				, ", send_event=True"
@@ -393,7 +419,7 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 				);
 	}
 
-	if (ptd->uses_event_data)
+	if (ptd->uses_event_data || ptd->uses_actions)
 	{
 		fprintf(fout
 				, "\n\tdef _fsm_get_trigger_name(self, e):\n"
@@ -421,35 +447,60 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 				  "\n"
 				);
 
-		fprintf(fout
-				, "\n\tdef _fsm_prepare_event(self, e):\n"
-				  "\t\ttrigger = self._fsm_get_trigger_name(e)\n"
-				  "\t\tif trigger is None:\n"
-				  "\t\t\ttrigger = \"__unknown_trigger__\"\n"
-				  "\n"
-				  "\t\ttranslator_name = self._fsm_translators.get(trigger, \"translate_\" + trigger)\n"
-				  "\t\tgetattr(self, translator_name)(e)\n"
-				  "\n"
-				  "\t\treturn True\n"
-				  "\n"
-				);
+		if (ptd->uses_event_data)
+		{
+			fprintf(fout
+					, "\n\tdef _fsm_prepare_event(self, e):\n"
+					  "\t\ttrigger = self._fsm_get_trigger_name(e)\n"
+					  "\t\tif trigger is None:\n"
+					  "\t\t\ttrigger = \"__unknown_trigger__\"\n"
+					  "\n"
+					  "\t\ttranslator_name = self._fsm_translators.get(trigger)\n"
+					  "\t\tif translator_name is not None:\n"
+					  "\t\t\tgetattr(self, translator_name)(e)\n"
+					  "\n"
+					  "\t\taction_name = self._fsm_actions.get((self.state, trigger))\n"
+					  "\t\tif action_name is not None:\n"
+					  "\t\t\tgetattr(self, action_name)(e)\n"
+					  "\n"
+					  "\t\treturn True\n"
+					  "\n"
+					);
+		}
+		else
+		{
+			fprintf(fout
+					, "\n\tdef _fsm_prepare_event(self, e):\n"
+					  "\t\ttrigger = self._fsm_get_trigger_name(e)\n"
+					  "\t\tif trigger is None:\n"
+					  "\t\t\ttrigger = \"__unknown_trigger__\"\n"
+					  "\n"
+					  "\t\taction_name = self._fsm_actions.get((self.state, trigger))\n"
+					  "\t\tif action_name is not None:\n"
+					  "\t\t\tgetattr(self, action_name)(e)\n"
+					  "\n"
+					  "\t\treturn True\n"
+					  "\n"
+					);
+		}
 	}
 
 	// Write action stubs
 	if (generate_weak_fns)
 	{
+		bool uses_prepare_event = ptd->uses_event_data || ptd->uses_actions;
 
 		if (pmi->machineTransition)
 		{
 			fprintf(fout
 					, "\tdef %s(self%s):\n\t\tprint('%s')\n"
 					, pmi->machineTransition->name
-					, ptd->uses_event_data ? ", event=None" : ""
+					, uses_prepare_event ? ", event=None" : ""
 					, pmi->machineTransition->name
 					);
 		}
 
-		if (ptd->uses_event_data)
+		if (uses_prepare_event)
 		{
 			iterate_list(pmi->action_list
 						 , print_event_data_action_stubs
@@ -467,7 +518,7 @@ static void writePyTransitionsWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO p
 		if (pmi->states_with_entry_fns_count
 			|| pmi->states_with_exit_fns_count)
 		{
-			if (ptd->uses_event_data)
+			if (uses_prepare_event)
 			{
 				iterate_list(pmi->state_list
 							 , print_event_data_entry_exit_stubs
@@ -647,9 +698,11 @@ static bool print_trigger(pLIST_ELEMENT pelem, void *data)
 	}
 
 	if (
-		(pih->pai->action && strlen(pih->pai->action->name))
-		|| pih->pai->transition->condition_fn
-		|| (pih->pai->transition->name->type == TRANSITION_FN)
+		// pih->error means "uses_prepare_event": suppress action-only dict format
+		// because actions are dispatched via _fsm_prepare_event, not transition 'before'.
+		(!pih->error && pih->pai->action && strlen(pih->pai->action->name))
+		|| (pih->pai->transition && pih->pai->transition->condition_fn)
+		|| (pih->pai->transition && pih->pai->transition->name->type == TRANSITION_FN)
 		|| is_data_bearing
 		)
 	{
@@ -784,7 +837,9 @@ static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pi
 	}
 	fprintf(pih->fout, "\n");
 
-	if (action_present)
+	// pih->error means "uses_prepare_event": actions go through _fsm_prepare_event,
+	// so do not emit a 'before' callback here.
+	if (action_present && !pih->error)
 	{
 		fprintf(pih->fout
 				, "\t%*.*s  , 'before': '%s'\n"
@@ -879,7 +934,9 @@ static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
 			, pstate->name
 			);
 
-	if (action_present)
+	// pih->error means "uses_prepare_event": actions go through _fsm_prepare_event,
+	// so do not emit a 'before' callback here.
+	if (action_present && !pih->error)
 	{
 		fprintf(pih->fout
 				, "\t%*.*s  , 'before': '%s'\n"
@@ -1105,6 +1162,98 @@ static bool print_event_translator_stub(pLIST_ELEMENT pelem, void *data)
 				, pevent->name
 				);
 	}
+
+	return false;
+}
+
+static bool scan_consolidated(pLIST_ELEMENT pelem, void *data)
+{
+	pCONSOLIDATED_ACTION_INFO pcai = (pCONSOLIDATED_ACTION_INFO) pelem->mbr;
+	pITERATOR_HELPER          pih  = (pITERATOR_HELPER) data;
+
+	if (pcai->pai->action && strlen(pcai->pai->action->name))
+	{
+		pih->error = true;
+	}
+
+	iterate_list(pcai->matrices, scan_matrix, pih);
+
+	return false;
+}
+
+static bool scan_matrix(pLIST_ELEMENT pelem, void *data)
+{
+	pMATRIX_INFO     pmatrix = (pMATRIX_INFO) pelem->mbr;
+	pITERATOR_HELPER pih     = (pITERATOR_HELPER) data;
+
+	iterate_list(pmatrix->event_list, scan_event, pih);
+
+	return false;
+}
+
+static bool scan_event(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent = (pID_INFO) pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+
+	if (pevent->type_data.event_data.puser_event_data)
+	{
+		pih->found = true;
+	}
+
+	return false;
+}
+
+static bool print_actions_dict_consolidated(pLIST_ELEMENT pelem, void *data)
+{
+	pCONSOLIDATED_ACTION_INFO pcai = (pCONSOLIDATED_ACTION_INFO) pelem->mbr;
+	pITERATOR_HELPER          pih  = (pITERATOR_HELPER) data;
+
+	if (!pcai->pai->action || !strlen(pcai->pai->action->name))
+	{
+		return false;
+	}
+
+	pih->pai = pcai->pai;
+	iterate_list(pcai->matrices, print_actions_dict_matrix, pih);
+
+	return false;
+}
+
+static bool print_actions_dict_matrix(pLIST_ELEMENT pelem, void *data)
+{
+	pMATRIX_INFO     pmatrix = (pMATRIX_INFO) pelem->mbr;
+	pITERATOR_HELPER pih     = (pITERATOR_HELPER) data;
+
+	pih->pOtherElem = pelem;
+	iterate_list(pmatrix->event_list, print_actions_dict_event, pih);
+
+	return false;
+}
+
+static bool print_actions_dict_event(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent  = (pID_INFO) pelem->mbr;
+	pITERATOR_HELPER pih     = (pITERATOR_HELPER) data;
+	pMATRIX_INFO     pmatrix = (pMATRIX_INFO) pih->pOtherElem->mbr;
+
+	pih->pid = pevent;
+	iterate_list(pmatrix->state_list, print_actions_dict_state, pih);
+
+	return false;
+}
+
+static bool print_actions_dict_state(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO) pelem->mbr;
+	pITERATOR_HELPER pih    = (pITERATOR_HELPER) data;
+
+	fprintf(pih->fout
+			, "\t\t(\"%s\", \"%s\"): \"%s\",\n"
+			, pstate->name
+			, pih->pid->name
+			, pih->pai->action->name
+			);
 
 	return false;
 }
