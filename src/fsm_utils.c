@@ -386,62 +386,32 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
 
    if (NULL != (curr_pai = paaph->pmi->actionArray[paaph->pevent->order][pstate->order]))
    {
-	   if (
-		   ((action == curr_pai->action)
-			|| (!action && !curr_pai->action)
-			)
-		   && transition
-		   )
-	   {
-		   #ifdef PARSER_DEBUG
-		   fprintf(paaph->fout
-				   , "\t\t\tadding to additional transitions list\n"
-				   );
-		   #endif
+	   #ifdef PARSER_DEBUG_EXTRA
+	   fprintf(stdout
+			   , "action: %p; curr_pai->action: %p\n"
+			   , (void*)action
+			   , (void*)curr_pai->action
+			   );
+	   fprintf(stdout
+			   , "transition: %p (%s); curr_pai->transition: %p (%s)\n"
+			   , (void*)transition
+			   , transition ? transition->name->name : ""
+			   , (void*)curr_pai->transition
+			   , curr_pai->transition ? curr_pai->transition->name->name : ""
+			   );
+	   #endif
+	   fprintf(stderr
+			  ,"Machine %s: Won't insert action %s into slot: event %s, state %s because it is already occupied by %s\n"
+			  , paaph->pmi->name->name
+			  , strlen(action->name) ? action->name : "transition"
+			  , paaph->pevent->name
+			  , pstate->name
+			  , (curr_pai->action && strlen(curr_pai->action->name))
+				? curr_pai->action->name 
+				: "transition"
+			  );
 
-		   pLIST *ppadditional_transitions
-			   = &curr_pai->padditional_transitions;
-
-		   if (!*ppadditional_transitions)
-		   {
-			   *ppadditional_transitions = init_list();
-		   }
-
-		   add_unique_to_list_with_test(*ppadditional_transitions, transition, match_transition);
-	   }
-	   else
-	   {
-		   #ifdef PARSER_DEBUG_EXTRA
-		   fprintf(stdout
-				   , "action: %p; curr_pai->action: %p\n"
-				   , (void*)action
-				   , (void*)curr_pai->action
-				   );
-		   fprintf(stdout
-				   , "transition: %p (%s); curr_pai->transition: %p (%s)\n"
-				   , (void*)transition
-				   , transition ? transition->name->name : ""
-				   , (void*)curr_pai->transition
-				   , curr_pai->transition ? curr_pai->transition->name->name : ""
-				   );
-		   fprintf(stdout
-				   , "transition->condition_fn: %p\n"
-				   , (void*)transition->condition_fn
-				   );
-		   #endif
-		   fprintf(stderr
-				  ,"Machine %s: Won't insert action %s into slot: event %s, state %s because it is already occupied by %s\n"
-				  , paaph->pmi->name->name
-				  , strlen(action->name) ? action->name : "transition"
-				  , paaph->pevent->name
-				  , pstate->name
-				  , (curr_pai->action && strlen(curr_pai->action->name))
-					? curr_pai->action->name 
-					: "transition"
-				  );
-
-		  paaph->error = true;
-	   }
+	  paaph->error = true;
    }
    else
    {
@@ -1791,15 +1761,7 @@ bool match_transition(pLIST_ELEMENT pelem, void *data)
 	pTRANSITION_DATA pon_list = (pTRANSITION_DATA) pelem->mbr;
 	pTRANSITION_DATA pnew     = (pTRANSITION_DATA) data;
 
-	return (!strcmp(pon_list->name->name, pnew->name->name)
-            && ((pon_list->condition_fn == NULL)
-                == (pnew->condition_fn == NULL))
-            && !strcmp(
-                pon_list->condition_fn ? pon_list->condition_fn->name : dummy
-                , pnew->condition_fn ? pnew->condition_fn->name : dummy
-                      )
-            )
-            ;
+	return !strcmp(pon_list->name->name, pnew->name->name);
 }
 
 #ifdef PARSER_DEBUG
@@ -1995,12 +1957,6 @@ static bool print_full_action_info(pLIST_ELEMENT pelem, void *data)
             case STATE:
                 fprintf(phelper->fout,"\t\tand transitions to state %s\n"
                ,pai->transition->name->name);
-				if (pai->transition->condition_fn)
-				{
-					fprintf(phelper->fout, "\t\t\twhen %s is true.\n"
-							, pai->transition->condition_fn->name
-							);
-				}
 				break;
             case TRANSITION_FN:
                 fprintf(phelper->fout,"\t\tand transitions using function %s\n"

@@ -13,5 +13,6 @@ machine anotherNewMachine
 	state	s1,s2;
 	event	e1,e2;
 	action a2[e2,(s1,s2)] transition s2;
-	action a2[e2,(s1,s2)] transition s1 condition c1;
+	transition [e1, s1] guardFn;
+	guardFn returns s2 when c1, s1 otherwise;
 }

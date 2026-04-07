@@ -349,13 +349,19 @@ guard	{
 							#endif
 						}
 
-condition	{ 
+when	{
 							#ifndef LEX_DEBUG
-             yylval.charData = currDocCmnt ? currDocCmnt : NULL;
-             currDocCmnt     = NULL;
-							return CONDITION_KEY;
+							return WHEN_KEY;
 							#else
-							printf("%s\n",strings[CONDITION_KEY]);
+							printf("%s\n",strings[WHEN_KEY]);
+							#endif
+						}
+
+otherwise	{
+							#ifndef LEX_DEBUG
+							return OTHERWISE_KEY;
+							#else
+							printf("%s\n",strings[OTHERWISE_KEY]);
 							#endif
 						}
 

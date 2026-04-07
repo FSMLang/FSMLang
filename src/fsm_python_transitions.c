@@ -74,7 +74,9 @@ static bool print_event_data_entry_exit_stubs(pLIST_ELEMENT,void*);
 static bool print_transition_stubs(pLIST_ELEMENT,void*);
 static bool print_transition_fn_stubs(pLIST_ELEMENT,void*);
 static bool print_transition_fn_return_stubs(pLIST_ELEMENT,void*);
+static bool print_transition_fn_return_cond_stubs(pLIST_ELEMENT,void*);
 static bool print_transition_fn_return_option(pLIST_ELEMENT,void*);
+static bool print_transition_fn_return_cond_option(pLIST_ELEMENT,void*);
 static void print_transition_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_simple_transition_as_dict(pID_INFO,pITERATOR_HELPER);
 static void print_transition_fn_as_dict(pID_INFO,pITERATOR_HELPER);
@@ -701,7 +703,6 @@ static bool print_trigger(pLIST_ELEMENT pelem, void *data)
 		// pih->error means "uses_prepare_event": suppress action-only dict format
 		// because actions are dispatched via _fsm_prepare_event, not transition 'before'.
 		(!pih->error && pih->pai->action && strlen(pih->pai->action->name))
-		|| (pih->pai->transition && pih->pai->transition->condition_fn)
 		|| (pih->pai->transition && pih->pai->transition->name->type == TRANSITION_FN)
 		|| is_data_bearing
 		)
@@ -850,20 +851,6 @@ static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pi
 				);
 	}
 
-	if (
-		pih->pai->transition
-		&& pih->pai->transition->condition_fn
-		)
-	{
-		fprintf(pih->fout
-				, "\t%*.*s  , 'conditions': ['%s']\n"
-				, transitions_str_len
-				, transitions_str_len
-				, " "
-				, pih->pai->transition->condition_fn->name
-				);
-	}
-
 	fprintf(pih->fout
 			, "\t%*.*s  }\n"
 			, transitions_str_len
@@ -876,10 +863,22 @@ static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pi
 static void print_transition_fn_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 {
 	pih->pid = pevent;
-	iterate_list(pih->pai->transition->name->transition_fn_returns_decl
-				 , print_transition_fn_return_option
-				 , pih
-				 );
+	if (pih->pai->transition->name->transition_fn_returns_cond_decl)
+	{
+		/* Mode B: use when/otherwise choices */
+		iterate_list(pih->pai->transition->name->transition_fn_returns_cond_decl
+					 , print_transition_fn_return_cond_option
+					 , pih
+					 );
+	}
+	else
+	{
+		/* Mode A: use plain state list with synthesized choose_<state> conditions */
+		iterate_list(pih->pai->transition->name->transition_fn_returns_decl
+					 , print_transition_fn_return_option
+					 , pih
+					 );
+	}
 }
 
 static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
@@ -965,6 +964,104 @@ static bool print_transition_fn_return_option(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
+static bool print_transition_fn_return_cond_option(pLIST_ELEMENT pelem, void *data)
+{
+	pRETURN_CHOICE_DATA prcd         = (pRETURN_CHOICE_DATA) pelem->mbr;
+	pITERATOR_HELPER    pih          = (pITERATOR_HELPER) data;
+	pMATRIX_INFO        pmi          = (pMATRIX_INFO) pih->pOtherElem->mbr;
+	pID_INFO            pevent       = pih->pid;
+	bool                action_present = (pih->pai->action && strlen(pih->pai->action->name));
+
+	fprintf(pih->fout
+			, "\t%*.*s%s{'trigger': '%s'\n"
+			, transitions_str_len
+			, transitions_str_len
+			, " "
+			, pih->first ? "" : ", "
+			, pevent->name
+			);
+
+	fprintf(pih->fout
+			, "\t%*.*s  , 'source': %s"
+			, transitions_str_len
+			, transitions_str_len
+			, " "
+			, pmi->state_list->count > 1 ? "[" : ""
+			);
+
+	// To avoid creating our own callback helper, we re-use "first"
+	pih->first = true;
+	iterate_list(pmi->state_list
+				 , print_state_names
+				 , pih
+				 );
+	pih->first = false;
+
+	if (pmi->state_list->count > 1)
+	{
+		fprintf(pih->fout
+				, "]"
+				);
+	}
+
+	fprintf(pih->fout
+			, "\n"
+			);
+
+	fprintf(pih->fout
+			, "\t%*.*s  , 'dest': '%s'\n"
+			, transitions_str_len
+			, transitions_str_len
+			, " "
+			, prcd->state->name
+			);
+
+	// pih->error means "uses_prepare_event": actions go through _fsm_prepare_event,
+	// so do not emit a 'before' callback here.
+	if (action_present && !pih->error)
+	{
+		fprintf(pih->fout
+				, "\t%*.*s  , 'before': '%s'\n"
+				, transitions_str_len
+				, transitions_str_len
+				, " "
+				, pih->pai->action->name
+				);
+	}
+
+	if (prcd->condition_fn)
+	{
+		/* 'when <condFn>': use the named condition function directly */
+		fprintf(pih->fout
+				, "\t%*.*s  , 'conditions': ['%s']\n"
+				, transitions_str_len
+				, transitions_str_len
+				, " "
+				, prcd->condition_fn->name
+				);
+	}
+	else if (prcd->is_otherwise)
+	{
+		/* 'otherwise': synthesize choose_<state> condition */
+		fprintf(pih->fout
+				, "\t%*.*s  , 'conditions': ['choose_%s']\n"
+				, transitions_str_len
+				, transitions_str_len
+				, " "
+				, prcd->state->name
+				);
+	}
+
+	fprintf(pih->fout
+			, "\t%*.*s  }\n"
+			, transitions_str_len
+			, transitions_str_len
+			, " "
+			);
+
+	return false;
+}
+
 static bool print_action_stubs(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO         paction = ((pID_INFO)pelem->mbr);
@@ -1011,17 +1108,8 @@ static bool print_entry_exit_stubs(pLIST_ELEMENT pelem, void *data)
 
 static bool print_transition_stubs(pLIST_ELEMENT pelem, void *data)
 {
-	pTRANSITION_DATA ptransition = (pTRANSITION_DATA) pelem->mbr;
-	pITERATOR_HELPER pih         = (pITERATOR_HELPER) data;
-
-	if (ptransition->condition_fn)
-	{
-		fprintf(pih->fout
-				, "\n\t@property\n\tdef %s(self):\n\t\treturn True\n\n"
-				, ptransition->condition_fn->name
-				);
-	}
-
+	(void) pelem;
+	(void) data;
 	return false;
 }
 
@@ -1030,8 +1118,17 @@ static bool print_transition_fn_stubs(pLIST_ELEMENT pelem, void *data)
 	pTRANSITION_DATA ptransition = (pTRANSITION_DATA) pelem->mbr;
 	pITERATOR_HELPER pih         = (pITERATOR_HELPER) data;
 
-	if (ptransition->name->transition_fn_returns_decl)
+	if (ptransition->name->transition_fn_returns_cond_decl)
 	{
+		/* Mode B: generate stubs from when/otherwise choices */
+		iterate_list(ptransition->name->transition_fn_returns_cond_decl
+					 , print_transition_fn_return_cond_stubs
+					 , pih
+					 );
+	}
+	else if (ptransition->name->transition_fn_returns_decl)
+	{
+		/* Mode A: generate choose_<state> stubs */
 		iterate_list(ptransition->name->transition_fn_returns_decl
 					 , print_transition_fn_return_stubs
 					 , pih
@@ -1050,6 +1147,31 @@ static bool print_transition_fn_return_stubs(pLIST_ELEMENT pelem, void *data)
 			, "\n\t@property\n\tdef choose_%s(self):\n\t\treturn True\n\n"
 			, pid->name
 			);
+
+	return false;
+}
+
+static bool print_transition_fn_return_cond_stubs(pLIST_ELEMENT pelem, void *data)
+{
+	pRETURN_CHOICE_DATA prcd = (pRETURN_CHOICE_DATA) pelem->mbr;
+	pITERATOR_HELPER    pih  = (pITERATOR_HELPER) data;
+
+	if (prcd->condition_fn)
+	{
+		/* 'when <condFn>': generate a stub for condFn */
+		fprintf(pih->fout
+				, "\n\t@property\n\tdef %s(self):\n\t\treturn True\n\n"
+				, prcd->condition_fn->name
+				);
+	}
+	else if (prcd->is_otherwise)
+	{
+		/* 'otherwise': generate choose_<state> stub */
+		fprintf(pih->fout
+				, "\n\t@property\n\tdef choose_%s(self):\n\t\treturn True\n\n"
+				, prcd->state->name
+				);
+	}
 
 	return false;
 }

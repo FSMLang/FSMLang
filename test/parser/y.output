@@ -1,0 +1,2866 @@
+Terminals unused in grammar
+
+    EXTERNAL
+    EVENT_SEQ
+
+
+State 7 conflicts: 3 shift/reduce
+State 19 conflicts: 1 shift/reduce
+State 32 conflicts: 1 shift/reduce
+State 72 conflicts: 1 shift/reduce
+State 113 conflicts: 1 shift/reduce
+
+
+Grammar
+
+    0 $accept: fsmlang $end
+
+    1 fsmlang: machine
+    2        | fsmlang machine
+
+    3 machine_prefix: native machine_modifier MACHINE_KEY
+
+    4 $@1: ε
+
+    5 machine: machine_prefix ID machine_qualifier $@1 '{' statement_decl_list '}'
+
+    6 machine_qualifier: ε
+    7                  | machine_transition_decl
+    8                  | action_return_spec
+    9                  | native_impl
+   10                  | machine_qualifier machine_transition_decl
+   11                  | machine_qualifier action_return_spec
+   12                  | machine_qualifier native_impl
+
+   13 machine_transition_decl: ON TRANSITION_KEY ID ';'
+
+   14 action_return_spec: ACTIONS RETURN EVENTS ';'
+   15                   | ACTIONS RETURN STATES ';'
+   16                   | ACTIONS RETURN VOID ';'
+
+   17 machine_modifier: ε
+   18                 | REENTRANT
+
+   19 statement_decl_list: state_and_event_decls actions_and_transitions
+   20                    | machine_data state_and_event_decls actions_and_transitions
+   21                    | statement_decl_list sequences
+
+   22 sequence_start: SEQUENCE_KEY
+   23               | sequence_start ID
+   24               | sequence_start ID START_KEY STATE
+   25               | sequence_start START_KEY STATE
+
+   26 sequence_node: EVENT
+   27              | EVENT TRANSITION_KEY STATE
+
+   28 sequence_nodes: sequence_node
+   29               | sequence_nodes ',' sequence_node
+
+   30 sequence: sequence_start sequence_nodes ';'
+   31         | sequence_start sequence_nodes END_KEY STATE ';'
+
+   32 sequences: sequence
+   33          | sequences sequence
+
+   34 machine_list: machine
+   35             | machine_list machine
+
+   36 actions_and_transitions: machine_list
+   37                        | action_decl
+   38                        | transition_matrix_list
+   39                        | action_return_decl
+   40                        | transition_fn_return_decl
+   41                        | actions_and_transitions action_decl
+   42                        | actions_and_transitions transition_matrix_list
+   43                        | actions_and_transitions action_return_decl
+   44                        | actions_and_transitions transition_fn_return_decl
+
+   45 transition_matrix_list: transition_matrix
+
+   46 transition_matrix_start: matrix TRANSITION_KEY
+   47                        | TRANSITION_KEY matrix
+
+   48 guard_matrix_start: matrix GUARD_KEY
+   49                   | GUARD_KEY matrix
+
+   50 transition_matrix: transition_matrix_start STATE ';'
+   51                  | transition_matrix_start ID ';'
+   52                  | transition_matrix_start TRANSITION_FN ';'
+   53                  | guard_matrix_start ID ';'
+   54                  | guard_matrix_start TRANSITION_FN ';'
+
+   55 action_decl: action_decl_list ';'
+
+   56 action_decl_list: ACTION_KEY action
+   57                 | action_decl_list ',' action
+
+   58 action: action_matrix
+   59       | action_matrix transition
+
+   60 transition: TRANSITION_KEY STATE
+   61           | TRANSITION_KEY ID
+   62           | TRANSITION_KEY TRANSITION_FN
+   63           | GUARD_KEY ID
+   64           | GUARD_KEY TRANSITION_FN
+
+   65 action_matrix: ID matrix
+   66              | ACTION matrix
+
+   67 matrix: '[' event_vector ',' state_vector ']'
+
+   68 state_vector: '(' ALL ')'
+   69             | '(' state_comma_list STATE ')'
+   70             | STATE
+
+   71 state_comma_list: STATE ','
+   72                 | state_comma_list STATE ','
+
+   73 event_vector: '(' ALL ')'
+   74             | '(' event_comma_list EVENT ')'
+   75             | EVENT
+
+   76 event_comma_list: EVENT ','
+   77                 | event_comma_list EVENT ','
+
+   78 state_and_event_decls: state_decl
+   79                      | event_decl
+   80                      | state_and_event_decls state_decl
+   81                      | state_and_event_decls event_decl
+
+   82 state_decl: state_decl_list ';'
+
+   83 state: ID
+   84      | state INHIBITS SUBMACHINES
+   85      | state ON ENTRY
+   86      | state ON ENTRY ID
+   87      | state ON EXIT
+   88      | state ON EXIT ID
+
+   89 state_decl_list: STATE_KEY state
+   90                | state_decl_list ',' state
+
+   91 event_decl: event_decl_list ';'
+
+   92 parent_namespace: PARENT NAMESPACE
+
+   93 user_event_data: ε
+   94                | DATA_KEY TRANSLATOR_KEY ID
+   95                | DATA_KEY TRANSLATOR_KEY ID data_block
+   96                | DATA_KEY data_block
+
+   97 event_decl_list: EVENT_KEY ID external_designation user_event_data
+   98                | EVENT_KEY parent_namespace EVENT user_event_data
+   99                | event_decl_list ',' ID external_designation user_event_data
+  100                | event_decl_list ',' parent_namespace EVENT user_event_data
+
+  101 external_designation: ε
+  102                     | '=' ID
+
+  103 native: ε
+  104       | native native_prologue
+  105       | native native_epilogue
+
+  106 native_prologue: NATIVE_KEY NATIVE_BLOCK
+  107                | NATIVE_KEY PROLOGUE_KEY NATIVE_BLOCK
+
+  108 native_epilogue: NATIVE_KEY EPILOGUE_KEY NATIVE_BLOCK
+
+  109 native_impl: native_impl_prologue
+  110            | native_impl_epilogue
+  111            | native_impl native_impl_prologue
+  112            | native_impl native_impl_epilogue
+
+  113 native_impl_prologue: NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK
+  114                     | NATIVE_KEY IMPLEMENTATION_KEY PROLOGUE_KEY NATIVE_BLOCK
+
+  115 native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY EPILOGUE_KEY NATIVE_BLOCK
+
+  116 machine_data: DATA_KEY data_block
+
+  117 data_block: '{' data_fields '}'
+
+  118 data_fields: data_field
+  119            | data_fields data_field
+
+  120 data_type: ID
+  121          | TYPE_NAME
+  122          | STRUCT_KEY '{' data_fields '}'
+  123          | UNION_KEY '{' data_fields '}'
+  124          | data_type '*'
+
+  125 data_field: data_type ID data_field_dimension ';'
+  126           | data_type ID ';'
+
+  127 data_field_dimension: '[' ']'
+  128                     | '[' NUMERIC_STRING ']'
+  129                     | '[' ID ']'
+
+  130 namespace: parent_namespace
+  131          | MACHINE NAMESPACE
+
+  132 namespace_event_ref: namespace EVENT
+
+  133 returns_comma_list: namespace_event_ref ','
+  134                   | EVENT ','
+  135                   | returns_comma_list namespace_event_ref ','
+  136                   | returns_comma_list EVENT ','
+
+  137 action_return_decl: ACTION RETURNS returns_comma_list EVENT ';'
+  138                   | ACTION RETURNS returns_comma_list namespace_event_ref ';'
+  139                   | ACTION RETURNS EVENT ';'
+  140                   | ACTION RETURNS namespace_event_ref ';'
+  141                   | ACTION RETURNS state_comma_list STATE ';'
+  142                   | ACTION RETURNS STATE ';'
+
+  143 transition_fn_return_decl: TRANSITION_FN RETURNS state_comma_list STATE ';'
+  144                          | TRANSITION_FN RETURNS STATE ';'
+  145                          | TRANSITION_FN RETURNS return_choice_cond_list return_choice_cond ';'
+  146                          | TRANSITION_FN RETURNS return_choice_cond ';'
+
+  147 return_choice_cond_list: return_choice_cond ','
+  148                        | return_choice_cond_list return_choice_cond ','
+
+  149 return_choice_cond: STATE WHEN_KEY ID
+  150                   | STATE WHEN_KEY TRANSITION_FN
+  151                   | STATE OTHERWISE_KEY
+
+
+Terminals, with rules where they appear
+
+    $end (0) 0
+    '(' (40) 68 69 73 74
+    ')' (41) 68 69 73 74
+    '*' (42) 124
+    ',' (44) 29 57 67 71 72 76 77 90 99 100 133 134 135 136 147 148
+    ';' (59) 13 14 15 16 30 31 50 51 52 53 54 55 82 91 125 126 137 138 139 140 141 142 143 144 145 146
+    '=' (61) 102
+    '[' (91) 67 127 128 129
+    ']' (93) 67 127 128 129
+    '{' (123) 5 117 122 123
+    '}' (125) 5 117 122 123
+    error (256)
+    ON (258) 13 85 86 87 88
+    NAMESPACE (259) 92 131
+    STATE_KEY (260) 89
+    EVENT_KEY (261) 97 98
+    PROLOGUE_KEY (262) 107 114
+    EPILOGUE_KEY (263) 108 115
+    DATA_KEY (264) 94 95 96 116
+    TRANSLATOR_KEY (265) 94 95
+    MACHINE_KEY (266) 3
+    REENTRANT (267) 18
+    ACTIONS (268) 14 15 16
+    RETURN (269) 14 15 16
+    STATES (270) 15
+    EVENTS (271) 14
+    RETURNS (272) 137 138 139 140 141 142 143 144 145 146
+    EXTERNAL (273)
+    VOID (274) 16
+    IMPLEMENTATION_KEY (275) 113 114 115
+    INHIBITS (276) 84
+    SUBMACHINES (277) 84
+    ALL (278) 68 73
+    ENTRY (279) 85 86
+    EXIT (280) 87 88
+    STRUCT_KEY (281) 122
+    UNION_KEY (282) 123
+    START_KEY (283) 24 25
+    EVENT_SEQ (284)
+    END_KEY (285) 31
+    SEQUENCE_KEY <charData> (286) 22
+    ACTION_KEY <charData> (287) 56
+    TRANSITION_KEY <charData> (288) 13 27 46 47 60 61 62
+    GUARD_KEY <charData> (289) 48 49 63 64
+    WHEN_KEY (290) 149 150
+    OTHERWISE_KEY (291) 151
+    PARENT <charData> (292) 92
+    NATIVE_KEY <charData> (293) 106 107 108 113 114 115
+    NATIVE_BLOCK <charData> (294) 106 107 108 113 114 115
+    MACHINE <pid_info> (295) 131
+    STATE <pid_info> (296) 24 25 27 31 50 60 69 70 71 72 141 142 143 144 149 150 151
+    EVENT <pid_info> (297) 26 27 74 75 76 77 98 100 132 134 136 137 139
+    ACTION <pid_info> (298) 66 137 138 139 140 141 142
+    TRANSITION_FN <pid_info> (299) 52 54 62 64 143 144 145 146 150
+    ID <pid_info> (300) 5 13 23 24 51 53 61 63 65 83 86 88 94 95 97 99 102 120 125 126 129 149
+    NUMERIC_STRING <charData> (301) 128
+    TYPE_NAME <pid_info> (302) 121
+
+
+Nonterminals, with rules where they appear
+
+    $accept (58)
+        on left: 0
+    fsmlang (59)
+        on left: 1 2
+        on right: 0 2
+    machine_prefix <pmachine_prefix> (60)
+        on left: 3
+        on right: 5
+    machine <pmachineInfo> (61)
+        on left: 5
+        on right: 1 2 34 35
+    $@1 (62)
+        on left: 4
+        on right: 5
+    machine_qualifier <pmachine_qualifier> (63)
+        on left: 6 7 8 9 10 11 12
+        on right: 5 10 11 12
+    machine_transition_decl <pid_info> (64)
+        on left: 13
+        on right: 7 10
+    action_return_spec <mod_flags> (65)
+        on left: 14 15 16
+        on right: 8 11
+    machine_modifier <mod_flags> (66)
+        on left: 17 18
+        on right: 3
+    statement_decl_list <pstatement_decl_list> (67)
+        on left: 19 20 21
+        on right: 5 21
+    sequence_start <psequence> (68)
+        on left: 22 23 24 25
+        on right: 23 24 25 30 31
+    sequence_node <pevent_sequence_node> (69)
+        on left: 26 27
+        on right: 28 29
+    sequence_nodes <plist> (70)
+        on left: 28 29
+        on right: 29 30 31
+    sequence <psequence> (71)
+        on left: 30 31
+        on right: 32 33
+    sequences <plist> (72)
+        on left: 32 33
+        on right: 21 33
+    machine_list <plist> (73)
+        on left: 34 35
+        on right: 35 36
+    actions_and_transitions <pactions_and_transitions> (74)
+        on left: 36 37 38 39 40 41 42 43 44
+        on right: 19 20 41 42 43 44
+    transition_matrix_list <action_info> (75)
+        on left: 45
+        on right: 38 42
+    transition_matrix_start <action_info> (76)
+        on left: 46 47
+        on right: 50 51 52
+    guard_matrix_start <action_info> (77)
+        on left: 48 49
+        on right: 53 54
+    transition_matrix <action_info> (78)
+        on left: 50 51 52 53 54
+        on right: 45
+    action_decl <paction_decl> (79)
+        on left: 55
+        on right: 37 41
+    action_decl_list <paction_decl> (80)
+        on left: 56 57
+        on right: 55 57
+    action <action_info> (81)
+        on left: 58 59
+        on right: 56 57
+    transition <ptransition> (82)
+        on left: 60 61 62 63 64
+        on right: 59
+    action_matrix <action_info> (83)
+        on left: 65 66
+        on right: 58 59
+    matrix <matrix_info> (84)
+        on left: 67
+        on right: 46 47 48 49 65 66
+    state_vector <plist> (85)
+        on left: 68 69 70
+        on right: 67
+    state_comma_list <plist> (86)
+        on left: 71 72
+        on right: 69 72 141 143
+    event_vector <plist> (87)
+        on left: 73 74 75
+        on right: 67
+    event_comma_list <plist> (88)
+        on left: 76 77
+        on right: 74 77
+    state_and_event_decls <pstate_and_event_decls> (89)
+        on left: 78 79 80 81
+        on right: 19 20 80 81
+    state_decl <plist> (90)
+        on left: 82
+        on right: 78 80
+    state <pid_info> (91)
+        on left: 83 84 85 86 87 88
+        on right: 84 85 86 87 88 89 90
+    state_decl_list <plist> (92)
+        on left: 89 90
+        on right: 82 90
+    event_decl <plist> (93)
+        on left: 91
+        on right: 79 81
+    parent_namespace <charData> (94)
+        on left: 92
+        on right: 98 100 130
+    user_event_data <puser_event_data> (95)
+        on left: 93 94 95 96
+        on right: 97 98 99 100
+    event_decl_list <plist> (96)
+        on left: 97 98 99 100
+        on right: 91 99 100
+    external_designation <pid_info> (97)
+        on left: 101 102
+        on right: 97 99
+    native <pnative_info> (98)
+        on left: 103 104 105
+        on right: 3 104 105
+    native_prologue <charData> (99)
+        on left: 106 107
+        on right: 104
+    native_epilogue <charData> (100)
+        on left: 108
+        on right: 105
+    native_impl <pnative_info> (101)
+        on left: 109 110 111 112
+        on right: 9 12 111 112
+    native_impl_prologue <charData> (102)
+        on left: 113 114
+        on right: 109 111
+    native_impl_epilogue <charData> (103)
+        on left: 115
+        on right: 110 112
+    machine_data <plist> (104)
+        on left: 116
+        on right: 20
+    data_block <plist> (105)
+        on left: 117
+        on right: 95 96 116
+    data_fields <plist> (106)
+        on left: 118 119
+        on right: 117 119 122 123
+    data_type <pdata_type_struct> (107)
+        on left: 120 121 122 123 124
+        on right: 124 125 126
+    data_field <pdata_field> (108)
+        on left: 125 126
+        on right: 118 119
+    data_field_dimension <charData> (109)
+        on left: 127 128 129
+        on right: 125
+    namespace (110)
+        on left: 130 131
+        on right: 132
+    namespace_event_ref <pid_info> (111)
+        on left: 132
+        on right: 133 135 138 140
+    returns_comma_list <plist> (112)
+        on left: 133 134 135 136
+        on right: 135 136 137 138
+    action_return_decl (113)
+        on left: 137 138 139 140 141 142
+        on right: 39 43
+    transition_fn_return_decl (114)
+        on left: 143 144 145 146
+        on right: 40 44
+    return_choice_cond_list <plist> (115)
+        on left: 147 148
+        on right: 145 148
+    return_choice_cond <preturn_choice> (116)
+        on left: 149 150 151
+        on right: 145 146 147 148
+
+
+State 0
+
+    0 $accept: • fsmlang $end
+
+    $default  reduce using rule 103 (native)
+
+    fsmlang         go to state 1
+    machine_prefix  go to state 2
+    machine         go to state 3
+    native          go to state 4
+
+
+State 1
+
+    0 $accept: fsmlang • $end
+    2 fsmlang: fsmlang • machine
+
+    $end  shift, and go to state 5
+
+    $default  reduce using rule 103 (native)
+
+    machine_prefix  go to state 2
+    machine         go to state 6
+    native          go to state 4
+
+
+State 2
+
+    5 machine: machine_prefix • ID machine_qualifier $@1 '{' statement_decl_list '}'
+
+    ID  shift, and go to state 7
+
+
+State 3
+
+    1 fsmlang: machine •
+
+    $default  reduce using rule 1 (fsmlang)
+
+
+State 4
+
+    3 machine_prefix: native • machine_modifier MACHINE_KEY
+  104 native: native • native_prologue
+  105       | native • native_epilogue
+
+    REENTRANT   shift, and go to state 8
+    NATIVE_KEY  shift, and go to state 9
+
+    $default  reduce using rule 17 (machine_modifier)
+
+    machine_modifier  go to state 10
+    native_prologue   go to state 11
+    native_epilogue   go to state 12
+
+
+State 5
+
+    0 $accept: fsmlang $end •
+
+    $default  accept
+
+
+State 6
+
+    2 fsmlang: fsmlang machine •
+
+    $default  reduce using rule 2 (fsmlang)
+
+
+State 7
+
+    5 machine: machine_prefix ID • machine_qualifier $@1 '{' statement_decl_list '}'
+
+    ON          shift, and go to state 13
+    ACTIONS     shift, and go to state 14
+    NATIVE_KEY  shift, and go to state 15
+
+    ON          [reduce using rule 6 (machine_qualifier)]
+    ACTIONS     [reduce using rule 6 (machine_qualifier)]
+    NATIVE_KEY  [reduce using rule 6 (machine_qualifier)]
+    $default    reduce using rule 6 (machine_qualifier)
+
+    machine_qualifier        go to state 16
+    machine_transition_decl  go to state 17
+    action_return_spec       go to state 18
+    native_impl              go to state 19
+    native_impl_prologue     go to state 20
+    native_impl_epilogue     go to state 21
+
+
+State 8
+
+   18 machine_modifier: REENTRANT •
+
+    $default  reduce using rule 18 (machine_modifier)
+
+
+State 9
+
+  106 native_prologue: NATIVE_KEY • NATIVE_BLOCK
+  107                | NATIVE_KEY • PROLOGUE_KEY NATIVE_BLOCK
+  108 native_epilogue: NATIVE_KEY • EPILOGUE_KEY NATIVE_BLOCK
+
+    PROLOGUE_KEY  shift, and go to state 22
+    EPILOGUE_KEY  shift, and go to state 23
+    NATIVE_BLOCK  shift, and go to state 24
+
+
+State 10
+
+    3 machine_prefix: native machine_modifier • MACHINE_KEY
+
+    MACHINE_KEY  shift, and go to state 25
+
+
+State 11
+
+  104 native: native native_prologue •
+
+    $default  reduce using rule 104 (native)
+
+
+State 12
+
+  105 native: native native_epilogue •
+
+    $default  reduce using rule 105 (native)
+
+
+State 13
+
+   13 machine_transition_decl: ON • TRANSITION_KEY ID ';'
+
+    TRANSITION_KEY  shift, and go to state 26
+
+
+State 14
+
+   14 action_return_spec: ACTIONS • RETURN EVENTS ';'
+   15                   | ACTIONS • RETURN STATES ';'
+   16                   | ACTIONS • RETURN VOID ';'
+
+    RETURN  shift, and go to state 27
+
+
+State 15
+
+  113 native_impl_prologue: NATIVE_KEY • IMPLEMENTATION_KEY NATIVE_BLOCK
+  114                     | NATIVE_KEY • IMPLEMENTATION_KEY PROLOGUE_KEY NATIVE_BLOCK
+  115 native_impl_epilogue: NATIVE_KEY • IMPLEMENTATION_KEY EPILOGUE_KEY NATIVE_BLOCK
+
+    IMPLEMENTATION_KEY  shift, and go to state 28
+
+
+State 16
+
+    5 machine: machine_prefix ID machine_qualifier • $@1 '{' statement_decl_list '}'
+   10 machine_qualifier: machine_qualifier • machine_transition_decl
+   11                  | machine_qualifier • action_return_spec
+   12                  | machine_qualifier • native_impl
+
+    ON          shift, and go to state 13
+    ACTIONS     shift, and go to state 14
+    NATIVE_KEY  shift, and go to state 15
+
+    $default  reduce using rule 4 ($@1)
+
+    $@1                      go to state 29
+    machine_transition_decl  go to state 30
+    action_return_spec       go to state 31
+    native_impl              go to state 32
+    native_impl_prologue     go to state 20
+    native_impl_epilogue     go to state 21
+
+
+State 17
+
+    7 machine_qualifier: machine_transition_decl •
+
+    $default  reduce using rule 7 (machine_qualifier)
+
+
+State 18
+
+    8 machine_qualifier: action_return_spec •
+
+    $default  reduce using rule 8 (machine_qualifier)
+
+
+State 19
+
+    9 machine_qualifier: native_impl •
+  111 native_impl: native_impl • native_impl_prologue
+  112            | native_impl • native_impl_epilogue
+
+    NATIVE_KEY  shift, and go to state 15
+
+    NATIVE_KEY  [reduce using rule 9 (machine_qualifier)]
+    $default    reduce using rule 9 (machine_qualifier)
+
+    native_impl_prologue  go to state 33
+    native_impl_epilogue  go to state 34
+
+
+State 20
+
+  109 native_impl: native_impl_prologue •
+
+    $default  reduce using rule 109 (native_impl)
+
+
+State 21
+
+  110 native_impl: native_impl_epilogue •
+
+    $default  reduce using rule 110 (native_impl)
+
+
+State 22
+
+  107 native_prologue: NATIVE_KEY PROLOGUE_KEY • NATIVE_BLOCK
+
+    NATIVE_BLOCK  shift, and go to state 35
+
+
+State 23
+
+  108 native_epilogue: NATIVE_KEY EPILOGUE_KEY • NATIVE_BLOCK
+
+    NATIVE_BLOCK  shift, and go to state 36
+
+
+State 24
+
+  106 native_prologue: NATIVE_KEY NATIVE_BLOCK •
+
+    $default  reduce using rule 106 (native_prologue)
+
+
+State 25
+
+    3 machine_prefix: native machine_modifier MACHINE_KEY •
+
+    $default  reduce using rule 3 (machine_prefix)
+
+
+State 26
+
+   13 machine_transition_decl: ON TRANSITION_KEY • ID ';'
+
+    ID  shift, and go to state 37
+
+
+State 27
+
+   14 action_return_spec: ACTIONS RETURN • EVENTS ';'
+   15                   | ACTIONS RETURN • STATES ';'
+   16                   | ACTIONS RETURN • VOID ';'
+
+    STATES  shift, and go to state 38
+    EVENTS  shift, and go to state 39
+    VOID    shift, and go to state 40
+
+
+State 28
+
+  113 native_impl_prologue: NATIVE_KEY IMPLEMENTATION_KEY • NATIVE_BLOCK
+  114                     | NATIVE_KEY IMPLEMENTATION_KEY • PROLOGUE_KEY NATIVE_BLOCK
+  115 native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY • EPILOGUE_KEY NATIVE_BLOCK
+
+    PROLOGUE_KEY  shift, and go to state 41
+    EPILOGUE_KEY  shift, and go to state 42
+    NATIVE_BLOCK  shift, and go to state 43
+
+
+State 29
+
+    5 machine: machine_prefix ID machine_qualifier $@1 • '{' statement_decl_list '}'
+
+    '{'  shift, and go to state 44
+
+
+State 30
+
+   10 machine_qualifier: machine_qualifier machine_transition_decl •
+
+    $default  reduce using rule 10 (machine_qualifier)
+
+
+State 31
+
+   11 machine_qualifier: machine_qualifier action_return_spec •
+
+    $default  reduce using rule 11 (machine_qualifier)
+
+
+State 32
+
+   12 machine_qualifier: machine_qualifier native_impl •
+  111 native_impl: native_impl • native_impl_prologue
+  112            | native_impl • native_impl_epilogue
+
+    NATIVE_KEY  shift, and go to state 15
+
+    NATIVE_KEY  [reduce using rule 12 (machine_qualifier)]
+    $default    reduce using rule 12 (machine_qualifier)
+
+    native_impl_prologue  go to state 33
+    native_impl_epilogue  go to state 34
+
+
+State 33
+
+  111 native_impl: native_impl native_impl_prologue •
+
+    $default  reduce using rule 111 (native_impl)
+
+
+State 34
+
+  112 native_impl: native_impl native_impl_epilogue •
+
+    $default  reduce using rule 112 (native_impl)
+
+
+State 35
+
+  107 native_prologue: NATIVE_KEY PROLOGUE_KEY NATIVE_BLOCK •
+
+    $default  reduce using rule 107 (native_prologue)
+
+
+State 36
+
+  108 native_epilogue: NATIVE_KEY EPILOGUE_KEY NATIVE_BLOCK •
+
+    $default  reduce using rule 108 (native_epilogue)
+
+
+State 37
+
+   13 machine_transition_decl: ON TRANSITION_KEY ID • ';'
+
+    ';'  shift, and go to state 45
+
+
+State 38
+
+   15 action_return_spec: ACTIONS RETURN STATES • ';'
+
+    ';'  shift, and go to state 46
+
+
+State 39
+
+   14 action_return_spec: ACTIONS RETURN EVENTS • ';'
+
+    ';'  shift, and go to state 47
+
+
+State 40
+
+   16 action_return_spec: ACTIONS RETURN VOID • ';'
+
+    ';'  shift, and go to state 48
+
+
+State 41
+
+  114 native_impl_prologue: NATIVE_KEY IMPLEMENTATION_KEY PROLOGUE_KEY • NATIVE_BLOCK
+
+    NATIVE_BLOCK  shift, and go to state 49
+
+
+State 42
+
+  115 native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY EPILOGUE_KEY • NATIVE_BLOCK
+
+    NATIVE_BLOCK  shift, and go to state 50
+
+
+State 43
+
+  113 native_impl_prologue: NATIVE_KEY IMPLEMENTATION_KEY NATIVE_BLOCK •
+
+    $default  reduce using rule 113 (native_impl_prologue)
+
+
+State 44
+
+    5 machine: machine_prefix ID machine_qualifier $@1 '{' • statement_decl_list '}'
+
+    STATE_KEY  shift, and go to state 51
+    EVENT_KEY  shift, and go to state 52
+    DATA_KEY   shift, and go to state 53
+
+    statement_decl_list    go to state 54
+    state_and_event_decls  go to state 55
+    state_decl             go to state 56
+    state_decl_list        go to state 57
+    event_decl             go to state 58
+    event_decl_list        go to state 59
+    machine_data           go to state 60
+
+
+State 45
+
+   13 machine_transition_decl: ON TRANSITION_KEY ID ';' •
+
+    $default  reduce using rule 13 (machine_transition_decl)
+
+
+State 46
+
+   15 action_return_spec: ACTIONS RETURN STATES ';' •
+
+    $default  reduce using rule 15 (action_return_spec)
+
+
+State 47
+
+   14 action_return_spec: ACTIONS RETURN EVENTS ';' •
+
+    $default  reduce using rule 14 (action_return_spec)
+
+
+State 48
+
+   16 action_return_spec: ACTIONS RETURN VOID ';' •
+
+    $default  reduce using rule 16 (action_return_spec)
+
+
+State 49
+
+  114 native_impl_prologue: NATIVE_KEY IMPLEMENTATION_KEY PROLOGUE_KEY NATIVE_BLOCK •
+
+    $default  reduce using rule 114 (native_impl_prologue)
+
+
+State 50
+
+  115 native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY EPILOGUE_KEY NATIVE_BLOCK •
+
+    $default  reduce using rule 115 (native_impl_epilogue)
+
+
+State 51
+
+   89 state_decl_list: STATE_KEY • state
+
+    ID  shift, and go to state 61
+
+    state  go to state 62
+
+
+State 52
+
+   97 event_decl_list: EVENT_KEY • ID external_designation user_event_data
+   98                | EVENT_KEY • parent_namespace EVENT user_event_data
+
+    PARENT  shift, and go to state 63
+    ID      shift, and go to state 64
+
+    parent_namespace  go to state 65
+
+
+State 53
+
+  116 machine_data: DATA_KEY • data_block
+
+    '{'  shift, and go to state 66
+
+    data_block  go to state 67
+
+
+State 54
+
+    5 machine: machine_prefix ID machine_qualifier $@1 '{' statement_decl_list • '}'
+   21 statement_decl_list: statement_decl_list • sequences
+
+    SEQUENCE_KEY  shift, and go to state 68
+    '}'           shift, and go to state 69
+
+    sequence_start  go to state 70
+    sequence        go to state 71
+    sequences       go to state 72
+
+
+State 55
+
+   19 statement_decl_list: state_and_event_decls • actions_and_transitions
+   80 state_and_event_decls: state_and_event_decls • state_decl
+   81                      | state_and_event_decls • event_decl
+
+    STATE_KEY       shift, and go to state 51
+    EVENT_KEY       shift, and go to state 52
+    ACTION_KEY      shift, and go to state 73
+    TRANSITION_KEY  shift, and go to state 74
+    GUARD_KEY       shift, and go to state 75
+    ACTION          shift, and go to state 76
+    TRANSITION_FN   shift, and go to state 77
+    '['             shift, and go to state 78
+
+    $default  reduce using rule 103 (native)
+
+    machine_prefix             go to state 2
+    machine                    go to state 79
+    machine_list               go to state 80
+    actions_and_transitions    go to state 81
+    transition_matrix_list     go to state 82
+    transition_matrix_start    go to state 83
+    guard_matrix_start         go to state 84
+    transition_matrix          go to state 85
+    action_decl                go to state 86
+    action_decl_list           go to state 87
+    matrix                     go to state 88
+    state_decl                 go to state 89
+    state_decl_list            go to state 57
+    event_decl                 go to state 90
+    event_decl_list            go to state 59
+    native                     go to state 4
+    action_return_decl         go to state 91
+    transition_fn_return_decl  go to state 92
+
+
+State 56
+
+   78 state_and_event_decls: state_decl •
+
+    $default  reduce using rule 78 (state_and_event_decls)
+
+
+State 57
+
+   82 state_decl: state_decl_list • ';'
+   90 state_decl_list: state_decl_list • ',' state
+
+    ';'  shift, and go to state 93
+    ','  shift, and go to state 94
+
+
+State 58
+
+   79 state_and_event_decls: event_decl •
+
+    $default  reduce using rule 79 (state_and_event_decls)
+
+
+State 59
+
+   91 event_decl: event_decl_list • ';'
+   99 event_decl_list: event_decl_list • ',' ID external_designation user_event_data
+  100                | event_decl_list • ',' parent_namespace EVENT user_event_data
+
+    ';'  shift, and go to state 95
+    ','  shift, and go to state 96
+
+
+State 60
+
+   20 statement_decl_list: machine_data • state_and_event_decls actions_and_transitions
+
+    STATE_KEY  shift, and go to state 51
+    EVENT_KEY  shift, and go to state 52
+
+    state_and_event_decls  go to state 97
+    state_decl             go to state 56
+    state_decl_list        go to state 57
+    event_decl             go to state 58
+    event_decl_list        go to state 59
+
+
+State 61
+
+   83 state: ID •
+
+    $default  reduce using rule 83 (state)
+
+
+State 62
+
+   84 state: state • INHIBITS SUBMACHINES
+   85      | state • ON ENTRY
+   86      | state • ON ENTRY ID
+   87      | state • ON EXIT
+   88      | state • ON EXIT ID
+   89 state_decl_list: STATE_KEY state •
+
+    ON        shift, and go to state 98
+    INHIBITS  shift, and go to state 99
+
+    $default  reduce using rule 89 (state_decl_list)
+
+
+State 63
+
+   92 parent_namespace: PARENT • NAMESPACE
+
+    NAMESPACE  shift, and go to state 100
+
+
+State 64
+
+   97 event_decl_list: EVENT_KEY ID • external_designation user_event_data
+
+    '='  shift, and go to state 101
+
+    $default  reduce using rule 101 (external_designation)
+
+    external_designation  go to state 102
+
+
+State 65
+
+   98 event_decl_list: EVENT_KEY parent_namespace • EVENT user_event_data
+
+    EVENT  shift, and go to state 103
+
+
+State 66
+
+  117 data_block: '{' • data_fields '}'
+
+    STRUCT_KEY  shift, and go to state 104
+    UNION_KEY   shift, and go to state 105
+    ID          shift, and go to state 106
+    TYPE_NAME   shift, and go to state 107
+
+    data_fields  go to state 108
+    data_type    go to state 109
+    data_field   go to state 110
+
+
+State 67
+
+  116 machine_data: DATA_KEY data_block •
+
+    $default  reduce using rule 116 (machine_data)
+
+
+State 68
+
+   22 sequence_start: SEQUENCE_KEY •
+
+    $default  reduce using rule 22 (sequence_start)
+
+
+State 69
+
+    5 machine: machine_prefix ID machine_qualifier $@1 '{' statement_decl_list '}' •
+
+    $default  reduce using rule 5 (machine)
+
+
+State 70
+
+   23 sequence_start: sequence_start • ID
+   24               | sequence_start • ID START_KEY STATE
+   25               | sequence_start • START_KEY STATE
+   30 sequence: sequence_start • sequence_nodes ';'
+   31         | sequence_start • sequence_nodes END_KEY STATE ';'
+
+    START_KEY  shift, and go to state 111
+    EVENT      shift, and go to state 112
+    ID         shift, and go to state 113
+
+    sequence_node   go to state 114
+    sequence_nodes  go to state 115
+
+
+State 71
+
+   32 sequences: sequence •
+
+    $default  reduce using rule 32 (sequences)
+
+
+State 72
+
+   21 statement_decl_list: statement_decl_list sequences •
+   33 sequences: sequences • sequence
+
+    SEQUENCE_KEY  shift, and go to state 68
+
+    SEQUENCE_KEY  [reduce using rule 21 (statement_decl_list)]
+    $default      reduce using rule 21 (statement_decl_list)
+
+    sequence_start  go to state 70
+    sequence        go to state 116
+
+
+State 73
+
+   56 action_decl_list: ACTION_KEY • action
+
+    ACTION  shift, and go to state 117
+    ID      shift, and go to state 118
+
+    action         go to state 119
+    action_matrix  go to state 120
+
+
+State 74
+
+   47 transition_matrix_start: TRANSITION_KEY • matrix
+
+    '['  shift, and go to state 78
+
+    matrix  go to state 121
+
+
+State 75
+
+   49 guard_matrix_start: GUARD_KEY • matrix
+
+    '['  shift, and go to state 78
+
+    matrix  go to state 122
+
+
+State 76
+
+  137 action_return_decl: ACTION • RETURNS returns_comma_list EVENT ';'
+  138                   | ACTION • RETURNS returns_comma_list namespace_event_ref ';'
+  139                   | ACTION • RETURNS EVENT ';'
+  140                   | ACTION • RETURNS namespace_event_ref ';'
+  141                   | ACTION • RETURNS state_comma_list STATE ';'
+  142                   | ACTION • RETURNS STATE ';'
+
+    RETURNS  shift, and go to state 123
+
+
+State 77
+
+  143 transition_fn_return_decl: TRANSITION_FN • RETURNS state_comma_list STATE ';'
+  144                          | TRANSITION_FN • RETURNS STATE ';'
+  145                          | TRANSITION_FN • RETURNS return_choice_cond_list return_choice_cond ';'
+  146                          | TRANSITION_FN • RETURNS return_choice_cond ';'
+
+    RETURNS  shift, and go to state 124
+
+
+State 78
+
+   67 matrix: '[' • event_vector ',' state_vector ']'
+
+    EVENT  shift, and go to state 125
+    '('    shift, and go to state 126
+
+    event_vector  go to state 127
+
+
+State 79
+
+   34 machine_list: machine •
+
+    $default  reduce using rule 34 (machine_list)
+
+
+State 80
+
+   35 machine_list: machine_list • machine
+   36 actions_and_transitions: machine_list •
+
+    MACHINE_KEY  reduce using rule 103 (native)
+    REENTRANT    reduce using rule 103 (native)
+    NATIVE_KEY   reduce using rule 103 (native)
+    $default     reduce using rule 36 (actions_and_transitions)
+
+    machine_prefix  go to state 2
+    machine         go to state 128
+    native          go to state 4
+
+
+State 81
+
+   19 statement_decl_list: state_and_event_decls actions_and_transitions •
+   41 actions_and_transitions: actions_and_transitions • action_decl
+   42                        | actions_and_transitions • transition_matrix_list
+   43                        | actions_and_transitions • action_return_decl
+   44                        | actions_and_transitions • transition_fn_return_decl
+
+    ACTION_KEY      shift, and go to state 73
+    TRANSITION_KEY  shift, and go to state 74
+    GUARD_KEY       shift, and go to state 75
+    ACTION          shift, and go to state 76
+    TRANSITION_FN   shift, and go to state 77
+    '['             shift, and go to state 78
+
+    $default  reduce using rule 19 (statement_decl_list)
+
+    transition_matrix_list     go to state 129
+    transition_matrix_start    go to state 83
+    guard_matrix_start         go to state 84
+    transition_matrix          go to state 85
+    action_decl                go to state 130
+    action_decl_list           go to state 87
+    matrix                     go to state 88
+    action_return_decl         go to state 131
+    transition_fn_return_decl  go to state 132
+
+
+State 82
+
+   38 actions_and_transitions: transition_matrix_list •
+
+    $default  reduce using rule 38 (actions_and_transitions)
+
+
+State 83
+
+   50 transition_matrix: transition_matrix_start • STATE ';'
+   51                  | transition_matrix_start • ID ';'
+   52                  | transition_matrix_start • TRANSITION_FN ';'
+
+    STATE          shift, and go to state 133
+    TRANSITION_FN  shift, and go to state 134
+    ID             shift, and go to state 135
+
+
+State 84
+
+   53 transition_matrix: guard_matrix_start • ID ';'
+   54                  | guard_matrix_start • TRANSITION_FN ';'
+
+    TRANSITION_FN  shift, and go to state 136
+    ID             shift, and go to state 137
+
+
+State 85
+
+   45 transition_matrix_list: transition_matrix •
+
+    $default  reduce using rule 45 (transition_matrix_list)
+
+
+State 86
+
+   37 actions_and_transitions: action_decl •
+
+    $default  reduce using rule 37 (actions_and_transitions)
+
+
+State 87
+
+   55 action_decl: action_decl_list • ';'
+   57 action_decl_list: action_decl_list • ',' action
+
+    ';'  shift, and go to state 138
+    ','  shift, and go to state 139
+
+
+State 88
+
+   46 transition_matrix_start: matrix • TRANSITION_KEY
+   48 guard_matrix_start: matrix • GUARD_KEY
+
+    TRANSITION_KEY  shift, and go to state 140
+    GUARD_KEY       shift, and go to state 141
+
+
+State 89
+
+   80 state_and_event_decls: state_and_event_decls state_decl •
+
+    $default  reduce using rule 80 (state_and_event_decls)
+
+
+State 90
+
+   81 state_and_event_decls: state_and_event_decls event_decl •
+
+    $default  reduce using rule 81 (state_and_event_decls)
+
+
+State 91
+
+   39 actions_and_transitions: action_return_decl •
+
+    $default  reduce using rule 39 (actions_and_transitions)
+
+
+State 92
+
+   40 actions_and_transitions: transition_fn_return_decl •
+
+    $default  reduce using rule 40 (actions_and_transitions)
+
+
+State 93
+
+   82 state_decl: state_decl_list ';' •
+
+    $default  reduce using rule 82 (state_decl)
+
+
+State 94
+
+   90 state_decl_list: state_decl_list ',' • state
+
+    ID  shift, and go to state 61
+
+    state  go to state 142
+
+
+State 95
+
+   91 event_decl: event_decl_list ';' •
+
+    $default  reduce using rule 91 (event_decl)
+
+
+State 96
+
+   99 event_decl_list: event_decl_list ',' • ID external_designation user_event_data
+  100                | event_decl_list ',' • parent_namespace EVENT user_event_data
+
+    PARENT  shift, and go to state 63
+    ID      shift, and go to state 143
+
+    parent_namespace  go to state 144
+
+
+State 97
+
+   20 statement_decl_list: machine_data state_and_event_decls • actions_and_transitions
+   80 state_and_event_decls: state_and_event_decls • state_decl
+   81                      | state_and_event_decls • event_decl
+
+    STATE_KEY       shift, and go to state 51
+    EVENT_KEY       shift, and go to state 52
+    ACTION_KEY      shift, and go to state 73
+    TRANSITION_KEY  shift, and go to state 74
+    GUARD_KEY       shift, and go to state 75
+    ACTION          shift, and go to state 76
+    TRANSITION_FN   shift, and go to state 77
+    '['             shift, and go to state 78
+
+    $default  reduce using rule 103 (native)
+
+    machine_prefix             go to state 2
+    machine                    go to state 79
+    machine_list               go to state 80
+    actions_and_transitions    go to state 145
+    transition_matrix_list     go to state 82
+    transition_matrix_start    go to state 83
+    guard_matrix_start         go to state 84
+    transition_matrix          go to state 85
+    action_decl                go to state 86
+    action_decl_list           go to state 87
+    matrix                     go to state 88
+    state_decl                 go to state 89
+    state_decl_list            go to state 57
+    event_decl                 go to state 90
+    event_decl_list            go to state 59
+    native                     go to state 4
+    action_return_decl         go to state 91
+    transition_fn_return_decl  go to state 92
+
+
+State 98
+
+   85 state: state ON • ENTRY
+   86      | state ON • ENTRY ID
+   87      | state ON • EXIT
+   88      | state ON • EXIT ID
+
+    ENTRY  shift, and go to state 146
+    EXIT   shift, and go to state 147
+
+
+State 99
+
+   84 state: state INHIBITS • SUBMACHINES
+
+    SUBMACHINES  shift, and go to state 148
+
+
+State 100
+
+   92 parent_namespace: PARENT NAMESPACE •
+
+    $default  reduce using rule 92 (parent_namespace)
+
+
+State 101
+
+  102 external_designation: '=' • ID
+
+    ID  shift, and go to state 149
+
+
+State 102
+
+   97 event_decl_list: EVENT_KEY ID external_designation • user_event_data
+
+    DATA_KEY  shift, and go to state 150
+
+    $default  reduce using rule 93 (user_event_data)
+
+    user_event_data  go to state 151
+
+
+State 103
+
+   98 event_decl_list: EVENT_KEY parent_namespace EVENT • user_event_data
+
+    DATA_KEY  shift, and go to state 150
+
+    $default  reduce using rule 93 (user_event_data)
+
+    user_event_data  go to state 152
+
+
+State 104
+
+  122 data_type: STRUCT_KEY • '{' data_fields '}'
+
+    '{'  shift, and go to state 153
+
+
+State 105
+
+  123 data_type: UNION_KEY • '{' data_fields '}'
+
+    '{'  shift, and go to state 154
+
+
+State 106
+
+  120 data_type: ID •
+
+    $default  reduce using rule 120 (data_type)
+
+
+State 107
+
+  121 data_type: TYPE_NAME •
+
+    $default  reduce using rule 121 (data_type)
+
+
+State 108
+
+  117 data_block: '{' data_fields • '}'
+  119 data_fields: data_fields • data_field
+
+    STRUCT_KEY  shift, and go to state 104
+    UNION_KEY   shift, and go to state 105
+    ID          shift, and go to state 106
+    TYPE_NAME   shift, and go to state 107
+    '}'         shift, and go to state 155
+
+    data_type   go to state 109
+    data_field  go to state 156
+
+
+State 109
+
+  124 data_type: data_type • '*'
+  125 data_field: data_type • ID data_field_dimension ';'
+  126           | data_type • ID ';'
+
+    ID   shift, and go to state 157
+    '*'  shift, and go to state 158
+
+
+State 110
+
+  118 data_fields: data_field •
+
+    $default  reduce using rule 118 (data_fields)
+
+
+State 111
+
+   25 sequence_start: sequence_start START_KEY • STATE
+
+    STATE  shift, and go to state 159
+
+
+State 112
+
+   26 sequence_node: EVENT •
+   27              | EVENT • TRANSITION_KEY STATE
+
+    TRANSITION_KEY  shift, and go to state 160
+
+    $default  reduce using rule 26 (sequence_node)
+
+
+State 113
+
+   23 sequence_start: sequence_start ID •
+   24               | sequence_start ID • START_KEY STATE
+
+    START_KEY  shift, and go to state 161
+
+    START_KEY  [reduce using rule 23 (sequence_start)]
+    $default   reduce using rule 23 (sequence_start)
+
+
+State 114
+
+   28 sequence_nodes: sequence_node •
+
+    $default  reduce using rule 28 (sequence_nodes)
+
+
+State 115
+
+   29 sequence_nodes: sequence_nodes • ',' sequence_node
+   30 sequence: sequence_start sequence_nodes • ';'
+   31         | sequence_start sequence_nodes • END_KEY STATE ';'
+
+    END_KEY  shift, and go to state 162
+    ';'      shift, and go to state 163
+    ','      shift, and go to state 164
+
+
+State 116
+
+   33 sequences: sequences sequence •
+
+    $default  reduce using rule 33 (sequences)
+
+
+State 117
+
+   66 action_matrix: ACTION • matrix
+
+    '['  shift, and go to state 78
+
+    matrix  go to state 165
+
+
+State 118
+
+   65 action_matrix: ID • matrix
+
+    '['  shift, and go to state 78
+
+    matrix  go to state 166
+
+
+State 119
+
+   56 action_decl_list: ACTION_KEY action •
+
+    $default  reduce using rule 56 (action_decl_list)
+
+
+State 120
+
+   58 action: action_matrix •
+   59       | action_matrix • transition
+
+    TRANSITION_KEY  shift, and go to state 167
+    GUARD_KEY       shift, and go to state 168
+
+    $default  reduce using rule 58 (action)
+
+    transition  go to state 169
+
+
+State 121
+
+   47 transition_matrix_start: TRANSITION_KEY matrix •
+
+    $default  reduce using rule 47 (transition_matrix_start)
+
+
+State 122
+
+   49 guard_matrix_start: GUARD_KEY matrix •
+
+    $default  reduce using rule 49 (guard_matrix_start)
+
+
+State 123
+
+  137 action_return_decl: ACTION RETURNS • returns_comma_list EVENT ';'
+  138                   | ACTION RETURNS • returns_comma_list namespace_event_ref ';'
+  139                   | ACTION RETURNS • EVENT ';'
+  140                   | ACTION RETURNS • namespace_event_ref ';'
+  141                   | ACTION RETURNS • state_comma_list STATE ';'
+  142                   | ACTION RETURNS • STATE ';'
+
+    PARENT   shift, and go to state 63
+    MACHINE  shift, and go to state 170
+    STATE    shift, and go to state 171
+    EVENT    shift, and go to state 172
+
+    state_comma_list     go to state 173
+    parent_namespace     go to state 174
+    namespace            go to state 175
+    namespace_event_ref  go to state 176
+    returns_comma_list   go to state 177
+
+
+State 124
+
+  143 transition_fn_return_decl: TRANSITION_FN RETURNS • state_comma_list STATE ';'
+  144                          | TRANSITION_FN RETURNS • STATE ';'
+  145                          | TRANSITION_FN RETURNS • return_choice_cond_list return_choice_cond ';'
+  146                          | TRANSITION_FN RETURNS • return_choice_cond ';'
+
+    STATE  shift, and go to state 178
+
+    state_comma_list         go to state 179
+    return_choice_cond_list  go to state 180
+    return_choice_cond       go to state 181
+
+
+State 125
+
+   75 event_vector: EVENT •
+
+    $default  reduce using rule 75 (event_vector)
+
+
+State 126
+
+   73 event_vector: '(' • ALL ')'
+   74             | '(' • event_comma_list EVENT ')'
+
+    ALL    shift, and go to state 182
+    EVENT  shift, and go to state 183
+
+    event_comma_list  go to state 184
+
+
+State 127
+
+   67 matrix: '[' event_vector • ',' state_vector ']'
+
+    ','  shift, and go to state 185
+
+
+State 128
+
+   35 machine_list: machine_list machine •
+
+    $default  reduce using rule 35 (machine_list)
+
+
+State 129
+
+   42 actions_and_transitions: actions_and_transitions transition_matrix_list •
+
+    $default  reduce using rule 42 (actions_and_transitions)
+
+
+State 130
+
+   41 actions_and_transitions: actions_and_transitions action_decl •
+
+    $default  reduce using rule 41 (actions_and_transitions)
+
+
+State 131
+
+   43 actions_and_transitions: actions_and_transitions action_return_decl •
+
+    $default  reduce using rule 43 (actions_and_transitions)
+
+
+State 132
+
+   44 actions_and_transitions: actions_and_transitions transition_fn_return_decl •
+
+    $default  reduce using rule 44 (actions_and_transitions)
+
+
+State 133
+
+   50 transition_matrix: transition_matrix_start STATE • ';'
+
+    ';'  shift, and go to state 186
+
+
+State 134
+
+   52 transition_matrix: transition_matrix_start TRANSITION_FN • ';'
+
+    ';'  shift, and go to state 187
+
+
+State 135
+
+   51 transition_matrix: transition_matrix_start ID • ';'
+
+    ';'  shift, and go to state 188
+
+
+State 136
+
+   54 transition_matrix: guard_matrix_start TRANSITION_FN • ';'
+
+    ';'  shift, and go to state 189
+
+
+State 137
+
+   53 transition_matrix: guard_matrix_start ID • ';'
+
+    ';'  shift, and go to state 190
+
+
+State 138
+
+   55 action_decl: action_decl_list ';' •
+
+    $default  reduce using rule 55 (action_decl)
+
+
+State 139
+
+   57 action_decl_list: action_decl_list ',' • action
+
+    ACTION  shift, and go to state 117
+    ID      shift, and go to state 118
+
+    action         go to state 191
+    action_matrix  go to state 120
+
+
+State 140
+
+   46 transition_matrix_start: matrix TRANSITION_KEY •
+
+    $default  reduce using rule 46 (transition_matrix_start)
+
+
+State 141
+
+   48 guard_matrix_start: matrix GUARD_KEY •
+
+    $default  reduce using rule 48 (guard_matrix_start)
+
+
+State 142
+
+   84 state: state • INHIBITS SUBMACHINES
+   85      | state • ON ENTRY
+   86      | state • ON ENTRY ID
+   87      | state • ON EXIT
+   88      | state • ON EXIT ID
+   90 state_decl_list: state_decl_list ',' state •
+
+    ON        shift, and go to state 98
+    INHIBITS  shift, and go to state 99
+
+    $default  reduce using rule 90 (state_decl_list)
+
+
+State 143
+
+   99 event_decl_list: event_decl_list ',' ID • external_designation user_event_data
+
+    '='  shift, and go to state 101
+
+    $default  reduce using rule 101 (external_designation)
+
+    external_designation  go to state 192
+
+
+State 144
+
+  100 event_decl_list: event_decl_list ',' parent_namespace • EVENT user_event_data
+
+    EVENT  shift, and go to state 193
+
+
+State 145
+
+   20 statement_decl_list: machine_data state_and_event_decls actions_and_transitions •
+   41 actions_and_transitions: actions_and_transitions • action_decl
+   42                        | actions_and_transitions • transition_matrix_list
+   43                        | actions_and_transitions • action_return_decl
+   44                        | actions_and_transitions • transition_fn_return_decl
+
+    ACTION_KEY      shift, and go to state 73
+    TRANSITION_KEY  shift, and go to state 74
+    GUARD_KEY       shift, and go to state 75
+    ACTION          shift, and go to state 76
+    TRANSITION_FN   shift, and go to state 77
+    '['             shift, and go to state 78
+
+    $default  reduce using rule 20 (statement_decl_list)
+
+    transition_matrix_list     go to state 129
+    transition_matrix_start    go to state 83
+    guard_matrix_start         go to state 84
+    transition_matrix          go to state 85
+    action_decl                go to state 130
+    action_decl_list           go to state 87
+    matrix                     go to state 88
+    action_return_decl         go to state 131
+    transition_fn_return_decl  go to state 132
+
+
+State 146
+
+   85 state: state ON ENTRY •
+   86      | state ON ENTRY • ID
+
+    ID  shift, and go to state 194
+
+    $default  reduce using rule 85 (state)
+
+
+State 147
+
+   87 state: state ON EXIT •
+   88      | state ON EXIT • ID
+
+    ID  shift, and go to state 195
+
+    $default  reduce using rule 87 (state)
+
+
+State 148
+
+   84 state: state INHIBITS SUBMACHINES •
+
+    $default  reduce using rule 84 (state)
+
+
+State 149
+
+  102 external_designation: '=' ID •
+
+    $default  reduce using rule 102 (external_designation)
+
+
+State 150
+
+   94 user_event_data: DATA_KEY • TRANSLATOR_KEY ID
+   95                | DATA_KEY • TRANSLATOR_KEY ID data_block
+   96                | DATA_KEY • data_block
+
+    TRANSLATOR_KEY  shift, and go to state 196
+    '{'             shift, and go to state 66
+
+    data_block  go to state 197
+
+
+State 151
+
+   97 event_decl_list: EVENT_KEY ID external_designation user_event_data •
+
+    $default  reduce using rule 97 (event_decl_list)
+
+
+State 152
+
+   98 event_decl_list: EVENT_KEY parent_namespace EVENT user_event_data •
+
+    $default  reduce using rule 98 (event_decl_list)
+
+
+State 153
+
+  122 data_type: STRUCT_KEY '{' • data_fields '}'
+
+    STRUCT_KEY  shift, and go to state 104
+    UNION_KEY   shift, and go to state 105
+    ID          shift, and go to state 106
+    TYPE_NAME   shift, and go to state 107
+
+    data_fields  go to state 198
+    data_type    go to state 109
+    data_field   go to state 110
+
+
+State 154
+
+  123 data_type: UNION_KEY '{' • data_fields '}'
+
+    STRUCT_KEY  shift, and go to state 104
+    UNION_KEY   shift, and go to state 105
+    ID          shift, and go to state 106
+    TYPE_NAME   shift, and go to state 107
+
+    data_fields  go to state 199
+    data_type    go to state 109
+    data_field   go to state 110
+
+
+State 155
+
+  117 data_block: '{' data_fields '}' •
+
+    $default  reduce using rule 117 (data_block)
+
+
+State 156
+
+  119 data_fields: data_fields data_field •
+
+    $default  reduce using rule 119 (data_fields)
+
+
+State 157
+
+  125 data_field: data_type ID • data_field_dimension ';'
+  126           | data_type ID • ';'
+
+    ';'  shift, and go to state 200
+    '['  shift, and go to state 201
+
+    data_field_dimension  go to state 202
+
+
+State 158
+
+  124 data_type: data_type '*' •
+
+    $default  reduce using rule 124 (data_type)
+
+
+State 159
+
+   25 sequence_start: sequence_start START_KEY STATE •
+
+    $default  reduce using rule 25 (sequence_start)
+
+
+State 160
+
+   27 sequence_node: EVENT TRANSITION_KEY • STATE
+
+    STATE  shift, and go to state 203
+
+
+State 161
+
+   24 sequence_start: sequence_start ID START_KEY • STATE
+
+    STATE  shift, and go to state 204
+
+
+State 162
+
+   31 sequence: sequence_start sequence_nodes END_KEY • STATE ';'
+
+    STATE  shift, and go to state 205
+
+
+State 163
+
+   30 sequence: sequence_start sequence_nodes ';' •
+
+    $default  reduce using rule 30 (sequence)
+
+
+State 164
+
+   29 sequence_nodes: sequence_nodes ',' • sequence_node
+
+    EVENT  shift, and go to state 112
+
+    sequence_node  go to state 206
+
+
+State 165
+
+   66 action_matrix: ACTION matrix •
+
+    $default  reduce using rule 66 (action_matrix)
+
+
+State 166
+
+   65 action_matrix: ID matrix •
+
+    $default  reduce using rule 65 (action_matrix)
+
+
+State 167
+
+   60 transition: TRANSITION_KEY • STATE
+   61           | TRANSITION_KEY • ID
+   62           | TRANSITION_KEY • TRANSITION_FN
+
+    STATE          shift, and go to state 207
+    TRANSITION_FN  shift, and go to state 208
+    ID             shift, and go to state 209
+
+
+State 168
+
+   63 transition: GUARD_KEY • ID
+   64           | GUARD_KEY • TRANSITION_FN
+
+    TRANSITION_FN  shift, and go to state 210
+    ID             shift, and go to state 211
+
+
+State 169
+
+   59 action: action_matrix transition •
+
+    $default  reduce using rule 59 (action)
+
+
+State 170
+
+  131 namespace: MACHINE • NAMESPACE
+
+    NAMESPACE  shift, and go to state 212
+
+
+State 171
+
+   71 state_comma_list: STATE • ','
+  142 action_return_decl: ACTION RETURNS STATE • ';'
+
+    ';'  shift, and go to state 213
+    ','  shift, and go to state 214
+
+
+State 172
+
+  134 returns_comma_list: EVENT • ','
+  139 action_return_decl: ACTION RETURNS EVENT • ';'
+
+    ';'  shift, and go to state 215
+    ','  shift, and go to state 216
+
+
+State 173
+
+   72 state_comma_list: state_comma_list • STATE ','
+  141 action_return_decl: ACTION RETURNS state_comma_list • STATE ';'
+
+    STATE  shift, and go to state 217
+
+
+State 174
+
+  130 namespace: parent_namespace •
+
+    $default  reduce using rule 130 (namespace)
+
+
+State 175
+
+  132 namespace_event_ref: namespace • EVENT
+
+    EVENT  shift, and go to state 218
+
+
+State 176
+
+  133 returns_comma_list: namespace_event_ref • ','
+  140 action_return_decl: ACTION RETURNS namespace_event_ref • ';'
+
+    ';'  shift, and go to state 219
+    ','  shift, and go to state 220
+
+
+State 177
+
+  135 returns_comma_list: returns_comma_list • namespace_event_ref ','
+  136                   | returns_comma_list • EVENT ','
+  137 action_return_decl: ACTION RETURNS returns_comma_list • EVENT ';'
+  138                   | ACTION RETURNS returns_comma_list • namespace_event_ref ';'
+
+    PARENT   shift, and go to state 63
+    MACHINE  shift, and go to state 170
+    EVENT    shift, and go to state 221
+
+    parent_namespace     go to state 174
+    namespace            go to state 175
+    namespace_event_ref  go to state 222
+
+
+State 178
+
+   71 state_comma_list: STATE • ','
+  144 transition_fn_return_decl: TRANSITION_FN RETURNS STATE • ';'
+  149 return_choice_cond: STATE • WHEN_KEY ID
+  150                   | STATE • WHEN_KEY TRANSITION_FN
+  151                   | STATE • OTHERWISE_KEY
+
+    WHEN_KEY       shift, and go to state 223
+    OTHERWISE_KEY  shift, and go to state 224
+    ';'            shift, and go to state 225
+    ','            shift, and go to state 214
+
+
+State 179
+
+   72 state_comma_list: state_comma_list • STATE ','
+  143 transition_fn_return_decl: TRANSITION_FN RETURNS state_comma_list • STATE ';'
+
+    STATE  shift, and go to state 226
+
+
+State 180
+
+  145 transition_fn_return_decl: TRANSITION_FN RETURNS return_choice_cond_list • return_choice_cond ';'
+  148 return_choice_cond_list: return_choice_cond_list • return_choice_cond ','
+
+    STATE  shift, and go to state 227
+
+    return_choice_cond  go to state 228
+
+
+State 181
+
+  146 transition_fn_return_decl: TRANSITION_FN RETURNS return_choice_cond • ';'
+  147 return_choice_cond_list: return_choice_cond • ','
+
+    ';'  shift, and go to state 229
+    ','  shift, and go to state 230
+
+
+State 182
+
+   73 event_vector: '(' ALL • ')'
+
+    ')'  shift, and go to state 231
+
+
+State 183
+
+   76 event_comma_list: EVENT • ','
+
+    ','  shift, and go to state 232
+
+
+State 184
+
+   74 event_vector: '(' event_comma_list • EVENT ')'
+   77 event_comma_list: event_comma_list • EVENT ','
+
+    EVENT  shift, and go to state 233
+
+
+State 185
+
+   67 matrix: '[' event_vector ',' • state_vector ']'
+
+    STATE  shift, and go to state 234
+    '('    shift, and go to state 235
+
+    state_vector  go to state 236
+
+
+State 186
+
+   50 transition_matrix: transition_matrix_start STATE ';' •
+
+    $default  reduce using rule 50 (transition_matrix)
+
+
+State 187
+
+   52 transition_matrix: transition_matrix_start TRANSITION_FN ';' •
+
+    $default  reduce using rule 52 (transition_matrix)
+
+
+State 188
+
+   51 transition_matrix: transition_matrix_start ID ';' •
+
+    $default  reduce using rule 51 (transition_matrix)
+
+
+State 189
+
+   54 transition_matrix: guard_matrix_start TRANSITION_FN ';' •
+
+    $default  reduce using rule 54 (transition_matrix)
+
+
+State 190
+
+   53 transition_matrix: guard_matrix_start ID ';' •
+
+    $default  reduce using rule 53 (transition_matrix)
+
+
+State 191
+
+   57 action_decl_list: action_decl_list ',' action •
+
+    $default  reduce using rule 57 (action_decl_list)
+
+
+State 192
+
+   99 event_decl_list: event_decl_list ',' ID external_designation • user_event_data
+
+    DATA_KEY  shift, and go to state 150
+
+    $default  reduce using rule 93 (user_event_data)
+
+    user_event_data  go to state 237
+
+
+State 193
+
+  100 event_decl_list: event_decl_list ',' parent_namespace EVENT • user_event_data
+
+    DATA_KEY  shift, and go to state 150
+
+    $default  reduce using rule 93 (user_event_data)
+
+    user_event_data  go to state 238
+
+
+State 194
+
+   86 state: state ON ENTRY ID •
+
+    $default  reduce using rule 86 (state)
+
+
+State 195
+
+   88 state: state ON EXIT ID •
+
+    $default  reduce using rule 88 (state)
+
+
+State 196
+
+   94 user_event_data: DATA_KEY TRANSLATOR_KEY • ID
+   95                | DATA_KEY TRANSLATOR_KEY • ID data_block
+
+    ID  shift, and go to state 239
+
+
+State 197
+
+   96 user_event_data: DATA_KEY data_block •
+
+    $default  reduce using rule 96 (user_event_data)
+
+
+State 198
+
+  119 data_fields: data_fields • data_field
+  122 data_type: STRUCT_KEY '{' data_fields • '}'
+
+    STRUCT_KEY  shift, and go to state 104
+    UNION_KEY   shift, and go to state 105
+    ID          shift, and go to state 106
+    TYPE_NAME   shift, and go to state 107
+    '}'         shift, and go to state 240
+
+    data_type   go to state 109
+    data_field  go to state 156
+
+
+State 199
+
+  119 data_fields: data_fields • data_field
+  123 data_type: UNION_KEY '{' data_fields • '}'
+
+    STRUCT_KEY  shift, and go to state 104
+    UNION_KEY   shift, and go to state 105
+    ID          shift, and go to state 106
+    TYPE_NAME   shift, and go to state 107
+    '}'         shift, and go to state 241
+
+    data_type   go to state 109
+    data_field  go to state 156
+
+
+State 200
+
+  126 data_field: data_type ID ';' •
+
+    $default  reduce using rule 126 (data_field)
+
+
+State 201
+
+  127 data_field_dimension: '[' • ']'
+  128                     | '[' • NUMERIC_STRING ']'
+  129                     | '[' • ID ']'
+
+    ID              shift, and go to state 242
+    NUMERIC_STRING  shift, and go to state 243
+    ']'             shift, and go to state 244
+
+
+State 202
+
+  125 data_field: data_type ID data_field_dimension • ';'
+
+    ';'  shift, and go to state 245
+
+
+State 203
+
+   27 sequence_node: EVENT TRANSITION_KEY STATE •
+
+    $default  reduce using rule 27 (sequence_node)
+
+
+State 204
+
+   24 sequence_start: sequence_start ID START_KEY STATE •
+
+    $default  reduce using rule 24 (sequence_start)
+
+
+State 205
+
+   31 sequence: sequence_start sequence_nodes END_KEY STATE • ';'
+
+    ';'  shift, and go to state 246
+
+
+State 206
+
+   29 sequence_nodes: sequence_nodes ',' sequence_node •
+
+    $default  reduce using rule 29 (sequence_nodes)
+
+
+State 207
+
+   60 transition: TRANSITION_KEY STATE •
+
+    $default  reduce using rule 60 (transition)
+
+
+State 208
+
+   62 transition: TRANSITION_KEY TRANSITION_FN •
+
+    $default  reduce using rule 62 (transition)
+
+
+State 209
+
+   61 transition: TRANSITION_KEY ID •
+
+    $default  reduce using rule 61 (transition)
+
+
+State 210
+
+   64 transition: GUARD_KEY TRANSITION_FN •
+
+    $default  reduce using rule 64 (transition)
+
+
+State 211
+
+   63 transition: GUARD_KEY ID •
+
+    $default  reduce using rule 63 (transition)
+
+
+State 212
+
+  131 namespace: MACHINE NAMESPACE •
+
+    $default  reduce using rule 131 (namespace)
+
+
+State 213
+
+  142 action_return_decl: ACTION RETURNS STATE ';' •
+
+    $default  reduce using rule 142 (action_return_decl)
+
+
+State 214
+
+   71 state_comma_list: STATE ',' •
+
+    $default  reduce using rule 71 (state_comma_list)
+
+
+State 215
+
+  139 action_return_decl: ACTION RETURNS EVENT ';' •
+
+    $default  reduce using rule 139 (action_return_decl)
+
+
+State 216
+
+  134 returns_comma_list: EVENT ',' •
+
+    $default  reduce using rule 134 (returns_comma_list)
+
+
+State 217
+
+   72 state_comma_list: state_comma_list STATE • ','
+  141 action_return_decl: ACTION RETURNS state_comma_list STATE • ';'
+
+    ';'  shift, and go to state 247
+    ','  shift, and go to state 248
+
+
+State 218
+
+  132 namespace_event_ref: namespace EVENT •
+
+    $default  reduce using rule 132 (namespace_event_ref)
+
+
+State 219
+
+  140 action_return_decl: ACTION RETURNS namespace_event_ref ';' •
+
+    $default  reduce using rule 140 (action_return_decl)
+
+
+State 220
+
+  133 returns_comma_list: namespace_event_ref ',' •
+
+    $default  reduce using rule 133 (returns_comma_list)
+
+
+State 221
+
+  136 returns_comma_list: returns_comma_list EVENT • ','
+  137 action_return_decl: ACTION RETURNS returns_comma_list EVENT • ';'
+
+    ';'  shift, and go to state 249
+    ','  shift, and go to state 250
+
+
+State 222
+
+  135 returns_comma_list: returns_comma_list namespace_event_ref • ','
+  138 action_return_decl: ACTION RETURNS returns_comma_list namespace_event_ref • ';'
+
+    ';'  shift, and go to state 251
+    ','  shift, and go to state 252
+
+
+State 223
+
+  149 return_choice_cond: STATE WHEN_KEY • ID
+  150                   | STATE WHEN_KEY • TRANSITION_FN
+
+    TRANSITION_FN  shift, and go to state 253
+    ID             shift, and go to state 254
+
+
+State 224
+
+  151 return_choice_cond: STATE OTHERWISE_KEY •
+
+    $default  reduce using rule 151 (return_choice_cond)
+
+
+State 225
+
+  144 transition_fn_return_decl: TRANSITION_FN RETURNS STATE ';' •
+
+    $default  reduce using rule 144 (transition_fn_return_decl)
+
+
+State 226
+
+   72 state_comma_list: state_comma_list STATE • ','
+  143 transition_fn_return_decl: TRANSITION_FN RETURNS state_comma_list STATE • ';'
+
+    ';'  shift, and go to state 255
+    ','  shift, and go to state 248
+
+
+State 227
+
+  149 return_choice_cond: STATE • WHEN_KEY ID
+  150                   | STATE • WHEN_KEY TRANSITION_FN
+  151                   | STATE • OTHERWISE_KEY
+
+    WHEN_KEY       shift, and go to state 223
+    OTHERWISE_KEY  shift, and go to state 224
+
+
+State 228
+
+  145 transition_fn_return_decl: TRANSITION_FN RETURNS return_choice_cond_list return_choice_cond • ';'
+  148 return_choice_cond_list: return_choice_cond_list return_choice_cond • ','
+
+    ';'  shift, and go to state 256
+    ','  shift, and go to state 257
+
+
+State 229
+
+  146 transition_fn_return_decl: TRANSITION_FN RETURNS return_choice_cond ';' •
+
+    $default  reduce using rule 146 (transition_fn_return_decl)
+
+
+State 230
+
+  147 return_choice_cond_list: return_choice_cond ',' •
+
+    $default  reduce using rule 147 (return_choice_cond_list)
+
+
+State 231
+
+   73 event_vector: '(' ALL ')' •
+
+    $default  reduce using rule 73 (event_vector)
+
+
+State 232
+
+   76 event_comma_list: EVENT ',' •
+
+    $default  reduce using rule 76 (event_comma_list)
+
+
+State 233
+
+   74 event_vector: '(' event_comma_list EVENT • ')'
+   77 event_comma_list: event_comma_list EVENT • ','
+
+    ','  shift, and go to state 258
+    ')'  shift, and go to state 259
+
+
+State 234
+
+   70 state_vector: STATE •
+
+    $default  reduce using rule 70 (state_vector)
+
+
+State 235
+
+   68 state_vector: '(' • ALL ')'
+   69             | '(' • state_comma_list STATE ')'
+
+    ALL    shift, and go to state 260
+    STATE  shift, and go to state 261
+
+    state_comma_list  go to state 262
+
+
+State 236
+
+   67 matrix: '[' event_vector ',' state_vector • ']'
+
+    ']'  shift, and go to state 263
+
+
+State 237
+
+   99 event_decl_list: event_decl_list ',' ID external_designation user_event_data •
+
+    $default  reduce using rule 99 (event_decl_list)
+
+
+State 238
+
+  100 event_decl_list: event_decl_list ',' parent_namespace EVENT user_event_data •
+
+    $default  reduce using rule 100 (event_decl_list)
+
+
+State 239
+
+   94 user_event_data: DATA_KEY TRANSLATOR_KEY ID •
+   95                | DATA_KEY TRANSLATOR_KEY ID • data_block
+
+    '{'  shift, and go to state 66
+
+    $default  reduce using rule 94 (user_event_data)
+
+    data_block  go to state 264
+
+
+State 240
+
+  122 data_type: STRUCT_KEY '{' data_fields '}' •
+
+    $default  reduce using rule 122 (data_type)
+
+
+State 241
+
+  123 data_type: UNION_KEY '{' data_fields '}' •
+
+    $default  reduce using rule 123 (data_type)
+
+
+State 242
+
+  129 data_field_dimension: '[' ID • ']'
+
+    ']'  shift, and go to state 265
+
+
+State 243
+
+  128 data_field_dimension: '[' NUMERIC_STRING • ']'
+
+    ']'  shift, and go to state 266
+
+
+State 244
+
+  127 data_field_dimension: '[' ']' •
+
+    $default  reduce using rule 127 (data_field_dimension)
+
+
+State 245
+
+  125 data_field: data_type ID data_field_dimension ';' •
+
+    $default  reduce using rule 125 (data_field)
+
+
+State 246
+
+   31 sequence: sequence_start sequence_nodes END_KEY STATE ';' •
+
+    $default  reduce using rule 31 (sequence)
+
+
+State 247
+
+  141 action_return_decl: ACTION RETURNS state_comma_list STATE ';' •
+
+    $default  reduce using rule 141 (action_return_decl)
+
+
+State 248
+
+   72 state_comma_list: state_comma_list STATE ',' •
+
+    $default  reduce using rule 72 (state_comma_list)
+
+
+State 249
+
+  137 action_return_decl: ACTION RETURNS returns_comma_list EVENT ';' •
+
+    $default  reduce using rule 137 (action_return_decl)
+
+
+State 250
+
+  136 returns_comma_list: returns_comma_list EVENT ',' •
+
+    $default  reduce using rule 136 (returns_comma_list)
+
+
+State 251
+
+  138 action_return_decl: ACTION RETURNS returns_comma_list namespace_event_ref ';' •
+
+    $default  reduce using rule 138 (action_return_decl)
+
+
+State 252
+
+  135 returns_comma_list: returns_comma_list namespace_event_ref ',' •
+
+    $default  reduce using rule 135 (returns_comma_list)
+
+
+State 253
+
+  150 return_choice_cond: STATE WHEN_KEY TRANSITION_FN •
+
+    $default  reduce using rule 150 (return_choice_cond)
+
+
+State 254
+
+  149 return_choice_cond: STATE WHEN_KEY ID •
+
+    $default  reduce using rule 149 (return_choice_cond)
+
+
+State 255
+
+  143 transition_fn_return_decl: TRANSITION_FN RETURNS state_comma_list STATE ';' •
+
+    $default  reduce using rule 143 (transition_fn_return_decl)
+
+
+State 256
+
+  145 transition_fn_return_decl: TRANSITION_FN RETURNS return_choice_cond_list return_choice_cond ';' •
+
+    $default  reduce using rule 145 (transition_fn_return_decl)
+
+
+State 257
+
+  148 return_choice_cond_list: return_choice_cond_list return_choice_cond ',' •
+
+    $default  reduce using rule 148 (return_choice_cond_list)
+
+
+State 258
+
+   77 event_comma_list: event_comma_list EVENT ',' •
+
+    $default  reduce using rule 77 (event_comma_list)
+
+
+State 259
+
+   74 event_vector: '(' event_comma_list EVENT ')' •
+
+    $default  reduce using rule 74 (event_vector)
+
+
+State 260
+
+   68 state_vector: '(' ALL • ')'
+
+    ')'  shift, and go to state 267
+
+
+State 261
+
+   71 state_comma_list: STATE • ','
+
+    ','  shift, and go to state 214
+
+
+State 262
+
+   69 state_vector: '(' state_comma_list • STATE ')'
+   72 state_comma_list: state_comma_list • STATE ','
+
+    STATE  shift, and go to state 268
+
+
+State 263
+
+   67 matrix: '[' event_vector ',' state_vector ']' •
+
+    $default  reduce using rule 67 (matrix)
+
+
+State 264
+
+   95 user_event_data: DATA_KEY TRANSLATOR_KEY ID data_block •
+
+    $default  reduce using rule 95 (user_event_data)
+
+
+State 265
+
+  129 data_field_dimension: '[' ID ']' •
+
+    $default  reduce using rule 129 (data_field_dimension)
+
+
+State 266
+
+  128 data_field_dimension: '[' NUMERIC_STRING ']' •
+
+    $default  reduce using rule 128 (data_field_dimension)
+
+
+State 267
+
+   68 state_vector: '(' ALL ')' •
+
+    $default  reduce using rule 68 (state_vector)
+
+
+State 268
+
+   69 state_vector: '(' state_comma_list STATE • ')'
+   72 state_comma_list: state_comma_list STATE • ','
+
+    ','  shift, and go to state 248
+    ')'  shift, and go to state 269
+
+
+State 269
+
+   69 state_vector: '(' state_comma_list STATE ')' •
+
+    $default  reduce using rule 69 (state_vector)

@@ -9,8 +9,8 @@ machine NarcolepticSuperhero
 	transition [wake_up, asleep] hanging_out;
 	transition [work_out, hanging_out] hungry;
 	transition [eat, hungry] hanging_out;
-	transition [clean_up, sweaty] asleep condition is_exhausted;
-	transition [clean_up, sweaty] hanging_out;
+	transition [clean_up, sweaty] decide_rest;
+	decide_rest returns asleep when is_exhausted, hanging_out otherwise;
 
 }
 

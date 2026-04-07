@@ -135,6 +135,7 @@ typedef struct _native_info_             NATIVE_INFO,             *pNATIVE_INFO;
 typedef struct _event_sequence_node_     EVENT_SEQUENCE_NODE,     *pEVENT_SEQUENCE_NODE;
 typedef struct _event_sequence_          EVENT_SEQUENCE,          *pEVENT_SEQUENCE;
 typedef struct _transition_data_         TRANSITION_DATA,         *pTRANSITION_DATA;
+typedef struct _return_choice_data_      RETURN_CHOICE_DATA,      *pRETURN_CHOICE_DATA;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
@@ -194,7 +195,18 @@ struct _action_data_
 struct _transition_data_
 {
 	pID_INFO name;
-	pID_INFO condition_fn;
+};
+
+/**
+ * One choice in a 'guardFn returns ...' declaration.
+ * Mode A: condition_fn == NULL, is_otherwise == false (plain state name).
+ * Mode B: either condition_fn != NULL ('when <condFn>') or is_otherwise == true ('otherwise').
+ */
+struct _return_choice_data_
+{
+	pID_INFO state;         /* the return state (or noTransition) */
+	pID_INFO condition_fn;  /* when <condFn>; NULL for Mode A or 'otherwise' */
+	bool     is_otherwise;  /* true only for the 'otherwise' choice */
 };
 
 union _pid_type_data_
@@ -299,6 +311,7 @@ struct _id_info_ {
   pID_INFO        pfield_type;
   pDATA_FIELD     pdata_field;
   pLIST           transition_fn_returns_decl;
+  pLIST           transition_fn_returns_cond_decl; /* Mode B: list of pRETURN_CHOICE_DATA; NULL means Mode A */
 };
 
 struct _action_se_info_ {
@@ -318,8 +331,7 @@ struct _action_info_
 	pTRANSITION_DATA transition;
 	pACTION_INFO     nextAction;
 	char             *docCmnt;
-	pLIST            padditional_transitions;
-}; 
+};
 
 
 struct _native_info_ {

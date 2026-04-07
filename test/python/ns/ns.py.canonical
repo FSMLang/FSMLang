@@ -21,7 +21,11 @@ class NarcolepticSuperhero(object):
 	                 , 'dest': 'asleep'
 	                 , 'conditions': ['is_exhausted']
 	                 }
-	               , ['clean_up', 'sweaty', 'hanging_out']
+	               , {'trigger': 'clean_up'
+	                 , 'source': 'sweaty'
+	                 , 'dest': 'hanging_out'
+	                 , 'conditions': ['choose_hanging_out']
+	                 }
 	               ]
 
 	_fsm_actions = {
@@ -83,5 +87,10 @@ class NarcolepticSuperhero(object):
 
 	@property
 	def is_exhausted(self):
+		return True
+
+
+	@property
+	def choose_hanging_out(self):
 		return True
 

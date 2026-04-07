@@ -318,9 +318,6 @@ s3 : ID
 TRANSITION_KEY
 Found : s1 of type ID
 s1 : ID
-CONDITION_KEY
-Added : conditionFn of type ID
-conditionFn : ID
 ;
 TRANSITION_KEY
 [
@@ -343,11 +340,21 @@ Found : s3 of type ID
 s3 : ID
 )
 ]
+Added : guardFn1 of type ID
+guardFn1 : ID
+;
+Found : guardFn1 of type ID
+guardFn1 : ID
+RETURNS
 Found : s2 of type ID
 s2 : ID
-CONDITION_KEY
+WHEN_KEY
 Added : conditionFn1 of type ID
 conditionFn1 : ID
+,
+Found : s1 of type ID
+s1 : ID
+OTHERWISE_KEY
 ;
 ACTION_KEY
 Added : doNothing of type ID
