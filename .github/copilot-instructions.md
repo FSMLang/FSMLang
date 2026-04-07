@@ -1,5 +1,8 @@
 # FSMLang – Copilot Cloud Agent Onboarding Guide
 
+## Output size limits (MUST)
+- Do not paste large diffs or full logs into responses. Summarize and include only the minimal failing snippet (first error and a few surrounding lines).
+
 ## Pull request discipline (MUST)
 - If you are asked to work on an existing PR, you MUST push commits to that PR’s existing head branch.
 - You MUST NOT create a new branch and MUST NOT open a new PR unless explicitly requested.

@@ -39,7 +39,11 @@ class NarcolepticSuperhero(object):
 	                 , 'dest': 'asleep'
 	                 , 'conditions': ['is_exhausted']
 	                 }
-	               , ['clean_up', 'sweaty', 'hanging_out']
+	               , {'trigger': 'clean_up'
+	                 , 'source': 'sweaty'
+	                 , 'dest': 'hanging_out'
+	                 , 'conditions': ['choose_hanging_out']
+	                 }
 	               ]
 
 	_fsm_actions = {

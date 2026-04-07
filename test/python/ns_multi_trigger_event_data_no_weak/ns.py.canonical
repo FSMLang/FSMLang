@@ -19,6 +19,7 @@ class NarcolepticSuperhero(object):
 	               , {'trigger': 'distress_call'
 	                 , 'source': 'asleep'
 	                 , 'dest': 'exhausted'
+	                 , 'conditions': ['choose_exhausted']
 	                 }
 	               , ['wake_up', 'asleep', 'hanging_out']
 	               ]

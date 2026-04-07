@@ -137,28 +137,20 @@ found an action with transition
 started an action declaration
 The actions in this list:
 	a2
-found a scalar event : e2
-found the beginning of a state comma list
-found a state vector
-	s1
-	s2
+found a scalar event : e1
+found a state scalar
 found a matrix
-found an action matrix
-found a conditional transition with new function
-found an action with transition
-started an action declaration
-The actions in this list:
-	a2
+found a transition matrix with new transition function
+Found a return choice: state when new_fn
+Found a return choice: state otherwise
+Found a Mode B transition_fn return declaration
 process_action_info: a2
 	iterate_matrix_states: event: e2
 		add_to_action_array: state: s1
 		add_to_action_array: state: s2
-process_action_info: a2
-	iterate_matrix_states: event: e2
+process_action_info: noAction
+	iterate_matrix_states: event: e1
 		add_to_action_array: state: s1
-			adding to additional transitions list
-		add_to_action_array: state: s2
-			adding to additional transitions list
 populate_action_array returning false
 found a machine named anotherNewMachine
 	with 2 events and 2 states
@@ -180,18 +172,19 @@ The actions :
 		in these states
 				s1
 				s2
-		and transitions to state s1
-			when c1 is true.
-		and which occurs for these events
-				e2
+		and transitions to state s2
+	noAction
+		which occurs for these events
+				e1
 		in these states
 				s1
-				s2
-		and transitions to state s2
+		and transitions using function guardFn
 
-The 2 transitions :
+The 1 transitions :
 	s2
-	s1
+
+The 1 transition functions :
+	guardFn
 
 making a list of machines
 Machine newMachine: Won't insert action a2 into slot: event e2, state s1 because it is already occupied by a1

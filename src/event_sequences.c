@@ -51,21 +51,20 @@ TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pes
 {
 	TRANSITION_NOTE note_on_transition = tn_none;
 
-	pTRANSITION_DATA ptransition = get_transition(pmi, pesn->pevent->order, psit->pcurr_state->order);
-	pID_INFO pid_transition = ptransition ? ptransition->name : NULL;
+	pID_INFO ptransition = get_transition(pmi, pesn->pevent->order, psit->pcurr_state->order);
 
 	if (pesn->pnew_state)
 	{
 		psit->pcurr_state = pesn->pnew_state;
-		if (pid_transition)
+		if (ptransition)
 		{
-			if (pid_transition->type == STATE && pid_transition != pesn->pnew_state)
+			if (ptransition->type == STATE && ptransition != pesn->pnew_state)
 			{
 				note_on_transition = tn_state_mismatch;
 			}
-			else if (pid_transition->type != STATE)
+			else if (ptransition->type != STATE)
 			{
-				note_on_transition = member_is_in_list(pid_transition->transition_fn_returns_decl
+				note_on_transition = member_is_in_list(ptransition->transition_fn_returns_decl
 													   , pesn->pnew_state
 													   ) ? tn_fn_match : tn_fn_mismatch;
 			}
@@ -75,16 +74,16 @@ TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pes
 			note_on_transition = tn_no_fsm_transition;
 		}
 	}
-	else if (pid_transition)
+	else if (ptransition)
 	{
-		if (STATE == pid_transition->type)
+		if (STATE == ptransition->type)
 		{
-			psit->pcurr_state = pid_transition;
+			psit->pcurr_state = ptransition;
 		}
 		else
 		{
 			pID_INFO next_state = (pID_INFO) find_nth_list_member(
-				pid_transition->transition_fn_returns_decl
+				ptransition->transition_fn_returns_decl
 				, 0
 				);
 			if (next_state)
@@ -99,7 +98,7 @@ TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pes
 		}
 	}
 
-	psit->pcurr_transition = pid_transition;
+	psit->pcurr_transition = ptransition;
 	add_unique_to_list(psit->pvisited_states, psit->pcurr_state);
 
 	return note_on_transition;

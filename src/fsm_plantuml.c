@@ -332,12 +332,12 @@ static bool print_state_name(pLIST_ELEMENT pelem, void *data)
 
 static bool print_guard_name(pLIST_ELEMENT pelem, void *data)
 {
-   pTRANSITION_DATA            pid        = (pTRANSITION_DATA) pelem->mbr;
+   pID_INFO            pid        = (pID_INFO) pelem->mbr;
    pFSMPlantUMLOutputGenerator pfsmpumlog = (pFSMPlantUMLOutputGenerator) data;
 
    fprintf(pfsmpumlog->pmd->pumlFile
 		   , "state %s <<choice>>\n"
-		   , pid->name->name
+		   , pid->name
 		   );
 
    return false;
@@ -746,7 +746,7 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 						 ? "%s --> %s : **Event:** (%s::) %s\\n**Action:** %s"
 						 : "%s --> %s : **Event:** %s%s\\n**Action:** %s"
 					   , stateNameByIndex(pmi, s)
-					   , pai->transition->name->name
+					   , pai->transition->name
 					   , pevent->type_data.event_data.shared_with_parent
 						 ? pmi->parent->name->name
 						 : ""
@@ -785,15 +785,15 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 						  );
 			   }
 
-              if (pai->transition->name->type != STATE)
+              if (pai->transition->type != STATE)
               {
                  if (!member_is_in_list(ptransition_fns_seen, pai->transition))
                  {
                     add_to_list(ptransition_fns_seen, pai->transition);
 
-                    if (pai->transition->name->transition_fn_returns_decl)
+                    if (pai->transition->transition_fn_returns_decl)
                     {
-                       ih.pid = pai->transition->name;
+                       ih.pid = pai->transition;
                        ih.fout = pfsmpumlog->pmd->pumlFile;
 
                        iterate_list(ih.pid->transition_fn_returns_decl
@@ -805,7 +805,7 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                     {
                        fprintf(stderr
                                , "**guard function:** %s\n"
-                               , pai->transition->name->name
+                               , pai->transition->name
                               );
                        yyerror("It is required to declare what the transition function returns.");
                     }

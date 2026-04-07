@@ -774,18 +774,18 @@ static bool print_event_state_case_are(pLIST_ELEMENT pelem, void *data)
 					, "%s\t\ts = "
 					, pih->str
 					);
-			if (pai->transition->name->type == STATE)
+			if (pai->transition->type == STATE)
 			{
 				fprintf(pih->fout
 						, "STATE(%s)"
-						, pai->transition->name->name
+						, pai->transition->name
 						);
 			}
 			else
 			{
 				fprintf(pih->fout
 						, "UFMN(%s)(pfsm,e)"
-						, pai->transition->name->name
+						, pai->transition->name
 						);
 			}
 
@@ -859,18 +859,18 @@ static bool print_event_state_case_arv(pLIST_ELEMENT pelem, void *data)
 					, "%s\t\ts = "
 					, pih->str
 					);
-			if (pai->transition->name->type == STATE)
+			if (pai->transition->type == STATE)
 			{
 				fprintf(pih->fout
 						, "STATE(%s)"
-						, pai->transition->name->name
+						, pai->transition->name
 						);
 			}
 			else
 			{
 				fprintf(pih->fout
 						, "UFMN(%s)(pfsm,e)"
-						, pai->transition->name->name
+						, pai->transition->name
 						);
 			}
 
@@ -934,18 +934,18 @@ static bool print_event_state_case_ars(pLIST_ELEMENT pelem, void *data)
 					, "%s\t\ts = "
 					, pih->str
 					);
-			if (pai->transition->name->type == STATE)
+			if (pai->transition->type == STATE)
 			{
 				fprintf(pih->fout
 						, "STATE(%s)"
-						, pai->transition->name->name
+						, pai->transition->name
 						);
 			}
 			else
 			{
 				fprintf(pih->fout
 						, "UFMN(%s)(pfsm,e)"
-						, pai->transition->name->name
+						, pai->transition->name
 						);
 			}
 
@@ -1191,9 +1191,9 @@ static bool print_consolidated_cases_are(pLIST_ELEMENT pelem, void *data)
 		fprintf(pich->ih.fout
 				, "%s\t\ts = %s(%s)%s;\n"
 				, pich->ih.str
-				, pcai->pai->transition->name->type == STATE ? "STATE" : "UFMN"
-				, pcai->pai->transition->name->name
-				, pcai->pai->transition->name->type == STATE ? "" : "(pfsm,e)"
+				, pcai->pai->transition->type == STATE ? "STATE" : "UFMN"
+				, pcai->pai->transition->name
+				, pcai->pai->transition->type == STATE ? "" : "(pfsm,e)"
 				);
 	}
 
@@ -1254,9 +1254,9 @@ static bool print_consolidated_cases_arv(pLIST_ELEMENT pelem, void *data)
 		fprintf(pich->ih.fout
 				, "%s\t\ts = %s(%s)%s;\n"
 				, pich->ih.str
-				, pcai->pai->transition->name->type == STATE ? "STATE" : "UFMN"
-				, pcai->pai->transition->name->name
-				, pcai->pai->transition->name->type == STATE ? "" : "(pfsm,e)"
+				, pcai->pai->transition->type == STATE ? "STATE" : "UFMN"
+				, pcai->pai->transition->name
+				, pcai->pai->transition->type == STATE ? "" : "(pfsm,e)"
 				);
 	}
 
@@ -1308,9 +1308,9 @@ static bool print_consolidated_cases_ars(pLIST_ELEMENT pelem, void *data)
 		fprintf(pich->ih.fout
 				, "%s\t\ts = %s(%s)%s;\n"
 				, pich->ih.str
-				, pcai->pai->transition->name->type == STATE ? "STATE" : "UFMN"
-				, pcai->pai->transition->name->name
-				, pcai->pai->transition->name->type == STATE ? "" : "(pfsm)"
+				, pcai->pai->transition->type == STATE ? "STATE" : "UFMN"
+				, pcai->pai->transition->name
+				, pcai->pai->transition->type == STATE ? "" : "(pfsm)"
 				);
 	}
 
