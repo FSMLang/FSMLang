@@ -94,21 +94,3 @@ class NarcolepticSuperhero(object):
 
 		return True
 
-
-	def change_into_super_secret_costume(self, event=None):
-		print('change_into_super_secret_costume')
-
-
-	def update_journal(self, event=None):
-		print('update_journal')
-
-
-	@property
-	def is_exhausted(self):
-		return True
-
-
-	@property
-	def choose_hanging_out(self):
-		return True
-
