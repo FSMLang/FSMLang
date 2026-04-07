@@ -8,7 +8,8 @@ TODO = $(filter-out $(DONE), $(EXAMPLES))
 
 .PHONY: $(EXAMPLES) $(CLEAN_EXAMPLES) clean echo_examples build_examples
 
-build_examples: $(EXAMPLES) clean
+build_examples: $(EXAMPLES)
+	@$(MAKE) clean
 
 $(EXAMPLES):
 	@$(MAKE) -C $@ check
