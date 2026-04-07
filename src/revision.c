@@ -579,9 +579,44 @@
 */
 
 /*
-	Revision 2.4.alpha-1
+	Revision 2.4
 
-	Initial implementation of PyTransitions functionality.
+	Implementation of (limited) PyTransitions functionality.
+
+	See: https://github.com/pytransitions/transitions.
+	<ul>
+		<li>These FSMLang concepts are expressed in the generated PyTransitions code:
+			<ul>
+				<li>Events, states, actions, transitions
+				    (either direct or <i>via</i> a function).
+					</li>
+				<li>Machine and event data.</li>
+			</ul>
+		</li>
+		<li>Actions and event data translators are implemented through the machine-level
+			"prepare_event" callback.  This is to make both idempotent, and, to ensure
+			the actions take place, even when there is no associated state transition.
+			</li>
+		<li>The PyTransitions concept of a conditional transition is expressed through the 
+			FSMLang concept of "transition via a guard."
+			<ul>
+				<li>The FSMLang file <i>must</i> declare the possible return values.</li>
+				<li>A Transiton having the condition, <i>choose_</i>[state] will be
+				    created for each return value.
+					</li>
+				<li>Alternatively, new keywords <i>when</i> and <i>otherwise</i> can be
+					used to give a conditional for each return value (<i>otherwise</i> does
+					not accept a conditional).
+					</li>
+				<li>In either case, the transitions will be constructed in the order given
+					by the return value list.
+					</li>
+				<li>When any return value specifies a conditional, all must specify one.
+					And, <i>otherwise</i> is mandatory.
+					</li>
+			</ul>
+		</li>
+	</ul>
 */
 const char rev_string[] = "2.4";
 
