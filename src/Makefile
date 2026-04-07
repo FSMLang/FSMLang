@@ -13,7 +13,7 @@ ARCHITECTURES=Cygwin \
 Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser : OUT_DIR=../cygwin
 Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  : OUT_DIR=../mingw
 Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : OUT_DIR=../mingwsa
-Linux  Linux.clean  Linux.test  Linux.testonly Linux.lexer  Linux.parser  : OUT_DIR=../linux
+Linux  Linux.clean  Linux.test  Linux.testonly Linux.lexer  Linux.parser Linux.examples : OUT_DIR=../linux
 
 Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser : ARCH=CYGWIN
 Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  : ARCH=CYGWIN
@@ -39,7 +39,7 @@ $(addsuffix .clean, $(ARCHITECTURES)):
 
 $(addsuffix .test, $(ARCHITECTURES)): $$(basename $$@)
 	@$(MAKE) -C $(OUT_DIR) ARCH=$(ARCH) NEED_RINDEX=$(NEED_RINDEX) WEAK_FNS=$(WEAK_FNS) test
-	@$(MAKE) -C ../examples FSM="$(shell pwd)/$(OUT_DIR)/fsm"
+	@$(MAKE) -C ../examples FSM="$(shell pwd)/$(OUT_DIR)/fsm" build_examples
 	@echo $@ complete
 
 $(addsuffix .testonly, $(ARCHITECTURES)): $$(basename $$@)
@@ -53,5 +53,5 @@ $(addsuffix .parser, $(ARCHITECTURES)):
 	@$(MAKE) ARCH=$(ARCH) OUTPUT_DIR="../$(OUT_DIR)" NEED_RINDEX=$(NEED_RINDEX) -C ../test parser
 
 $(addsuffix .examples, $(ARCHITECTURES)): $$(basename $$@)
-	@$(MAKE) -C ../examples FSM="$(OUTPUT_DIR)/fsm"
+	@$(MAKE) -C ../examples FSM="$(shell pwd)/$(OUT_DIR)/fsm" build_examples
 

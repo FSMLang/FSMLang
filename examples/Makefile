@@ -6,7 +6,9 @@ CLEAN_EXAMPLES=$(addsuffix .clean, $(EXAMPLES))
 DONE = $(shell cat done)
 TODO = $(filter-out $(DONE), $(EXAMPLES))
 
-.PHONY: $(EXAMPLES)
+.PHONY: $(EXAMPLES) $(CLEAN_EXAMPLES) clean echo_examples build_examples
+
+build_examples: $(EXAMPLES) clean
 
 $(EXAMPLES):
 	@$(MAKE) -C $@ check
