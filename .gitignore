@@ -150,3 +150,5 @@ test/parser/parser.c
 test/parser/test
 test/parser/y.output
 test/parser/y.tab.h
+test/parser/*.d.*
+test/done
