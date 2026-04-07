@@ -79,8 +79,9 @@ data
 	/**
 		A Document Comment
 	*/
-	action a2[e1,(s2,s3)] transition s2 condition conditionFn;
-	transition [(e2,e3),(s1,s2,s3)] s3 condition conditionFn1;
+	action a2[e1,(s2,s3)] transition s2;
+	transition [(e2,e3),(s1,s2,s3)] guardFn1;
+	guardFn1 returns s3 when conditionFn1, s1 otherwise;
 
 	action doNothing[(all), s4];
 

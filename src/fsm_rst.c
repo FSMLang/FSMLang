@@ -527,23 +527,23 @@ static void print_id_info_data(pID_INFO pid, FILE *fout)
 
 static bool print_transition_fn_data(pLIST_ELEMENT pelem, void *data)
 {
-	pTRANSITION_DATA       ptransition_fn   = (pTRANSITION_DATA) pelem->mbr;
+	pID_INFO       ptransition_fn   = (pID_INFO) pelem->mbr;
 	pFSMRSTOutputGenerator pfsmrstog        = (pFSMRSTOutputGenerator) data;
 
 	print_reference_anchor(FOUT(pfsmrstog)
-						   , ptransition_fn->name->name
+						   , ptransition_fn->name
 						   , PMD(pfsmrstog)
 						   );
 
-	print_id_info_data(ptransition_fn->name, FOUT(pfsmrstog));
+	print_id_info_data(ptransition_fn, FOUT(pfsmrstog));
 
-	if (ptransition_fn->name->transition_fn_returns_decl)
+	if (ptransition_fn->transition_fn_returns_decl)
 	{
 		fprintf(FOUT(pfsmrstog)
 				, "\n\nReturns:\n\n"
 				);
 
-		iterate_list(ptransition_fn->name->transition_fn_returns_decl
+		iterate_list(ptransition_fn->transition_fn_returns_decl
 					 , print_pid_as_reference_in_list
 					 , pfsmrstog
 					 );
@@ -967,9 +967,9 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 			fprintf(FOUT(prstih->pfsmrstog)
 					, "%stransition: :ref:`%s <%s.%s>`\n"
 					, strlen(pai->action->name) ? "       | " : ""
-					, pai->transition->name->name
+					, pai->transition->name
 					, fqMachineName(PMD(prstih->pfsmrstog))
-					, pai->transition->name->name
+					, pai->transition->name
 					);
 		}
 	}

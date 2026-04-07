@@ -5,8 +5,8 @@ machine NarcolepticSuperhero
 	event wake_up;
 	event distress_call data translator translate_distress_call {int severity; };
 
-	transition [distress_call, asleep] hanging_out condition is_mild;
-	transition [distress_call, asleep] exhausted;
+	transition [distress_call, asleep] decide_state;
+	decide_state returns hanging_out when is_mild, exhausted otherwise;
 	transition [wake_up, asleep] hanging_out;
 
 }

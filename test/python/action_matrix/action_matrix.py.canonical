@@ -21,7 +21,11 @@ class ActionMatrix(object):
 	                 , 'dest': 'done'
 	                 , 'conditions': ['is_finished']
 	                 }
-	               , ['halt', 'active', 'idle']
+	               , {'trigger': 'halt'
+	                 , 'source': 'active'
+	                 , 'dest': 'idle'
+	                 , 'conditions': ['choose_idle']
+	                 }
 	               ]
 
 	_fsm_translators = {
@@ -91,6 +95,11 @@ class ActionMatrix(object):
 
 	@property
 	def is_finished(self):
+		return True
+
+
+	@property
+	def choose_idle(self):
 		return True
 
 

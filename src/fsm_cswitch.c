@@ -1480,7 +1480,7 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 
 					if (compact_action_array)
 					{
-						if (pai->transition->name->type == STATE)
+						if (pai->transition->type == STATE)
 						{
 							fprintf(pich->pcmd->cFile
 									, "\t\t%s = %s_%s_stateFn;\n"
@@ -1488,7 +1488,7 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 									  ? "new_sfn" 
 									  : "pfsm->currentState"
 									, fqMachineName(pich->pcmd)
-									, pai->transition->name->name
+									, pai->transition->name
 								   );
 							fprintf(pich->pcmd->cFile
 									, "\t\t%s = %s_%s;\n"
@@ -1496,7 +1496,7 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 									  ? "new_s" 
 									  : "pfsm->state"
 									, machineName(pich->pcmd)
-									, pai->transition->name->name
+									, pai->transition->name
 								   );
 						}
 						else
@@ -1507,7 +1507,7 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 									  "\t\t\t%s = tfr.s_fn;\n"
 									  "\t\t}\n"
 									, fqMachineName(pich->pcmd)
-									, pai->transition->name->name
+									, pai->transition->name
 									, pich->pcmd->pmi->executes_fns_on_state_transitions
 									  ? "new_s" 
 									  : "pfsm->state"
@@ -1524,11 +1524,11 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 								, pich->pcmd->pmi->executes_fns_on_state_transitions
 								  ? "new_s" 
 								  : "pfsm->state"
-								, pai->transition->name->type == STATE
+								, pai->transition->type == STATE
 								  ? machineName(pich->pcmd)
 								  : fqMachineName(pich->pcmd)
-								, pai->transition->name->name
-								, pai->transition->name->type == STATE
+								, pai->transition->name
+								, pai->transition->type == STATE
 								  ? ""
 								  : "(pfsm, e)"
 							   );
@@ -1615,7 +1615,7 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 
 				   if (compact_action_array)
 				   {
-					   if (pai->transition->name->type == STATE)
+					   if (pai->transition->type == STATE)
 					   {
 						   fprintf(pich->pcmd->cFile
 								   , "\t\t%s = %s_%s_stateFn;\n"
@@ -1623,7 +1623,7 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 									 ? "new_sfn" 
 									 : "pfsm->currentState"
 								   , fqMachineName(pich->pcmd)
-								   , pai->transition->name->name
+								   , pai->transition->name
 								  );
 						   fprintf(pich->pcmd->cFile
 								   , "\t\t%s = %s_%s;\n"
@@ -1631,7 +1631,7 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 									 ? "new_s" 
 									 : "pfsm->state"
 								   , machineName(pich->pcmd)
-								   , pai->transition->name->name
+								   , pai->transition->name
 								  );
 					   }
 					   else
@@ -1642,7 +1642,7 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 								     "\t\t\t%s = tfr.s_fn;\n"
 					   			     "\t\t}\n"
 								   , fqMachineName(pich->pcmd)
-								   , pai->transition->name->name
+								   , pai->transition->name
 								   , pich->pcmd->pmi->executes_fns_on_state_transitions
 									 ? "new_s" 
 									 : "pfsm->state"
@@ -1659,11 +1659,11 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 							   , pich->pcmd->pmi->executes_fns_on_state_transitions
 								 ? "new_s" 
 								 : "pfsm->state"
-							   , pai->transition->name->type == STATE
+							   , pai->transition->type == STATE
 							     ? machineName(pich->pcmd)
 							     : fqMachineName(pich->pcmd)
-							   , pai->transition->name->name
-							   , pai->transition->name->type == STATE ? "" : "(pfsm, e)"
+							   , pai->transition->name
+							   , pai->transition->type == STATE ? "" : "(pfsm, e)"
 							  );
 				   }
 
@@ -1740,9 +1740,9 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 				{
                    fprintf(pich->pcmd->cFile
                            , "\t\tretVal = %s(%s)%s;\n"
-                           , pai->transition->name->type == STATE ? "STATE" : "UFMN"
-                           , pai->transition->name->name
-                           , pai->transition->name->type == STATE ? "" : "(pfsm)"
+                           , pai->transition->type == STATE ? "STATE" : "UFMN"
+                           , pai->transition->name
+                           , pai->transition->type == STATE ? "" : "(pfsm)"
                            );
                 }
 
@@ -2024,7 +2024,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 
 			 if (compact_action_array)
 			 {
-				 if (ped->psingle_pai->transition->name->type == STATE)
+				 if (ped->psingle_pai->transition->type == STATE)
 				 {
 					 fprintf(pich->pcmd->cFile
 							 , "\t\t%s = %s_%s_stateFn;\n"
@@ -2032,7 +2032,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 							   ? "new_sfn" 
 							   : "pfsm->currentState"
 							 , fqMachineName(pich->pcmd)
-							 , ped->psingle_pai->transition->name->name
+							 , ped->psingle_pai->transition->name
 							);
 					 fprintf(pich->pcmd->cFile
 							 , "\t\t%s = %s_%s;\n"
@@ -2040,7 +2040,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 							   ? "new_s" 
 							   : "pfsm->state"
 							 , machineName(pich->pcmd)
-							 , ped->psingle_pai->transition->name->name
+							 , ped->psingle_pai->transition->name
 							);
 				 }
 				 else
@@ -2052,7 +2052,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 							   "\t\t\t\t%s = tfr.s_fn;\n"
 							   "\t\t\t}\n"
 							 , fqMachineName(pich->pcmd)
-							 , ped->psingle_pai->transition->name->name
+							 , ped->psingle_pai->transition->name
 							 , pich->pcmd->pmi->executes_fns_on_state_transitions
 							   ? "new_s" 
 							   : "pfsm->state"
@@ -2070,8 +2070,8 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 						   ? "new_s" 
 						   : "pfsm->state"
 						 , machineName(pich->pcmd)
-						 , ped->psingle_pai->transition->name->name
-						 , ped->psingle_pai->transition->name->type == STATE ? "" : "(pfsm, e)"
+						 , ped->psingle_pai->transition->name
+						 , ped->psingle_pai->transition->type == STATE ? "" : "(pfsm, e)"
 						);
 			 }
 
@@ -2131,7 +2131,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
           {
 			  if (compact_action_array)
 			  {
-				  if (ped->psingle_pai->transition->name->type == STATE)
+				  if (ped->psingle_pai->transition->type == STATE)
 				  {
 					  fprintf(pich->pcmd->cFile
 							  , "\t\t%s = %s_%s_stateFn;\n"
@@ -2139,7 +2139,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 								? "new_sfn" 
 								: "pfsm->currentState"
 							  , fqMachineName(pich->pcmd)
-							  , ped->psingle_pai->transition->name->name
+							  , ped->psingle_pai->transition->name
 							 );
 					  fprintf(pich->pcmd->cFile
 							  , "\t\t%s = %s_%s;\n"
@@ -2147,7 +2147,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 								? "new_s" 
 								: "pfsm->state"
 							  , machineName(pich->pcmd)
-							  , ped->psingle_pai->transition->name->name
+							  , ped->psingle_pai->transition->name
 							 );
 				  }
 				  else
@@ -2159,7 +2159,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 								"\t\t\t\t%s = tfr.s_fn;\n"
 							    "\t\t\t}\n"
 							  , fqMachineName(pich->pcmd)
-							  , ped->psingle_pai->transition->name->name
+							  , ped->psingle_pai->transition->name
 							  , pich->pcmd->pmi->executes_fns_on_state_transitions
 								? "new_s" 
 								: "pfsm->state"
@@ -2175,11 +2175,11 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 						 , "\t\t\t%s = %s(%s)%s;\n"
 						 , pich->pcmd->pmi->executes_fns_on_state_transitions
 						   ? "new_s" : "pfsm->state"
-						 , ped->psingle_pai->transition->name->type == STATE
+						 , ped->psingle_pai->transition->type == STATE
 						   ? "STATE"
 						   : "UFMN"
-						 , ped->psingle_pai->transition->name->name
-						 , ped->psingle_pai->transition->name->type == STATE
+						 , ped->psingle_pai->transition->name
+						 , ped->psingle_pai->transition->type == STATE
 							? ""
 							: "(pfsm,e)"
 						 );
@@ -2248,10 +2248,10 @@ static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMEN
 		  fprintf(pich->pcmd->cFile
 				  , "\t\t\t%s %s(%s)(pfsm);\n"
 				  , s_var
-				  , (pai->transition->name->type == STATE)
+				  , (pai->transition->type == STATE)
 					? "STATE"
 					: "UFMN"
-				  , pai->transition->name->name
+				  , pai->transition->name
 				  );
 	  }
       
@@ -2555,13 +2555,13 @@ static void defineCSwitchMachineWeakUserTransitionFns(pFSMCOutputGenerator pfsmc
 
 static bool define_weak_user_transition_function(pLIST_ELEMENT pelem, void *data)
 {
-	pTRANSITION_DATA          ptransitionFn = (pTRANSITION_DATA) pelem->mbr;
+	pID_INFO          ptransitionFn = (pID_INFO) pelem->mbr;
 	pITERATOR_CALLBACK_HELPER pich          = (pITERATOR_CALLBACK_HELPER) data;
 
 	print_transition_function_signature(pich->ih.fout
 										, pich->pcmd
 										, ""
-										, ptransitionFn->name->name
+										, ptransitionFn->name
 										, true
 										);
 

@@ -41,6 +41,8 @@
 static bool compose_consolidated_list(pLIST_ELEMENT,void*);
 static bool consolidate_records(pLIST_ELEMENT,void*);
 static bool free_matrix_list(pLIST_ELEMENT,void*);
+static bool check_event_mismatch(pLIST_ELEMENT,void*);
+static bool matrices_have_same_events(pMATRIX_INFO,pMATRIX_INFO);
 
 pLIST consolidate_action_info_list(pLIST action_info_list)
 {
@@ -98,7 +100,10 @@ static bool consolidate_records(pLIST_ELEMENT pelem, void *data)
 
 	bool found = false;
 
-	if ((pcai->pai->action == pai->action) && (pcai->pai->transition == pai->transition))
+	if ((pcai->pai->action == pai->action)
+		&& (pcai->pai->transition == pai->transition)
+		&& matrices_have_same_events(pcai->pai->matrix, pai->matrix)
+		)
 	{
 		found = true;
 
@@ -109,6 +114,36 @@ static bool consolidate_records(pLIST_ELEMENT pelem, void *data)
 	}
 
 	return found;
+}
+
+static bool check_event_mismatch(pLIST_ELEMENT pelem, void *data)
+{
+	pLIST_ELEMENT other = (pLIST_ELEMENT) data;
+
+	return (pelem->mbr != other->mbr);
+}
+
+static bool matrices_have_same_events(pMATRIX_INFO m1, pMATRIX_INFO m2)
+{
+	if (m1->event_list->count != m2->event_list->count)
+	{
+		return false;
+	}
+
+	pLIST_ELEMENT e1 = m1->event_list->head;
+	pLIST_ELEMENT e2 = m2->event_list->head;
+
+	while (e1 && e2)
+	{
+		if (check_event_mismatch(e1, e2))
+		{
+			return false;
+		}
+		e1 = e1->next;
+		e2 = e2->next;
+	}
+
+	return true;
 }
 
 static bool free_matrix_list(pLIST_ELEMENT pelem, void *data)

@@ -543,15 +543,15 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 		{
 		   fprintf(pih->fout
 				   , "<br/>%s"
-				   , pai->transition->name->name
+				   , pai->transition->name
 				   );
 
-		   if (pai->transition->name->transition_fn_returns_decl)
+		   if (pai->transition->transition_fn_returns_decl)
 		   {
 			  fprintf(pih->fout
 					  ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
 					  );
-			  iterate_list(pai->transition->name->transition_fn_returns_decl
+			  iterate_list(pai->transition->transition_fn_returns_decl
 						   , print_id_info_as_html_list_element
 						   , pih
 						   );
@@ -619,24 +619,24 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 
 		fprintf(pih->fout
 				, "<br/><b>%s</b> : %s"
-				, pai && pai->transition && (pai->transition->name->type != STATE) 
+				, pai && pai->transition && (pai->transition->type != STATE) 
 				    ? "guard"
 				    : "transition"
 				, pai && pai->transition
-				  ? pai->transition->name->name
+				  ? pai->transition->name
 				  : "none"
 				);
 
 		if (
 			pai
 			&& pai->transition 
-			&& pai->transition->name->transition_fn_returns_decl
+			&& pai->transition->transition_fn_returns_decl
 			)
 		{
 		   fprintf(pih->fout
 				   ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
 				   );
-		   iterate_list(pai->transition->name->transition_fn_returns_decl
+		   iterate_list(pai->transition->transition_fn_returns_decl
 						, print_id_info_as_html_list_element
 						, pih
 						);
@@ -987,30 +987,30 @@ static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
 
 static bool print_transition_fn_table_transition_fn_row(pLIST_ELEMENT pelem, void *data)
 {
-	pTRANSITION_DATA ptransition_fn = (pTRANSITION_DATA) pelem->mbr;
+	pID_INFO ptransition_fn = (pID_INFO) pelem->mbr;
 	pITERATOR_HELPER pih            = (pITERATOR_HELPER) data;
 
 	fprintf(pih->fout
 			,"\t<tr><td class='label'>%s</td><td>"
-			, ptransition_fn->name->name
+			, ptransition_fn->name
 			);
 
-	if (ptransition_fn->name->docCmnt)
+	if (ptransition_fn->docCmnt)
 	{
 		fprintf(pih->fout
 				, "%s"
-				, ptransition_fn->name->docCmnt
+				, ptransition_fn->docCmnt
 				);
 
 	}
 
-	if (ptransition_fn->name->transition_fn_returns_decl)
+	if (ptransition_fn->transition_fn_returns_decl)
 	{
 		fprintf(pih->fout
 				, "<p>Returns:\n\t<ul>\n"
 			   );
 
-		iterate_list(ptransition_fn->name->transition_fn_returns_decl
+		iterate_list(ptransition_fn->transition_fn_returns_decl
 					 , print_id_info_as_html_list_element
 					 , pih
 					);
@@ -1123,7 +1123,7 @@ static bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
 
 		  if (pai->transition)
 		  {
-			  print_transition(pai->transition->name, pih);
+			  print_transition(pai->transition, pih);
 		  }
 		  fprintf(pih->fout, "\t\t</li>");
 	  }

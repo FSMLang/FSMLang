@@ -1656,13 +1656,13 @@ void defineWeakUserTransitionFns(pFSMCOutputGenerator pfsmcog)
 
 static bool define_weak_user_transition_function(pLIST_ELEMENT pelem, void *data)
 {
-	pTRANSITION_DATA          ptransitionFn = (pTRANSITION_DATA) pelem->mbr;
+	pID_INFO          ptransitionFn = (pID_INFO) pelem->mbr;
 	pITERATOR_CALLBACK_HELPER pich          = (pITERATOR_CALLBACK_HELPER) data;
 
 	print_transition_function_signature(pich->ih.fout
 										, pich->pcmd
 										, ""
-										, ptransitionFn->name->name
+										, ptransitionFn->name
 										, true
 										);
 
@@ -1726,18 +1726,18 @@ static bool define_transition_function_from_action_array(pLIST_ELEMENT pelem, vo
 	{
 		if (
 			(!strlen(pai->action->name))
-			&& (pai->transition->name->type == STATE)
+			&& (pai->transition->type == STATE)
 		   )
 		{
 			print_transition_function_signature(pich->pcmd->cFile
 												, pich->pcmd
 												, "transitionTo"
-												, pai->transition->name->name
+												, pai->transition->name
 												, true
 												);
 			print_transition_function_body(pich->pcmd->cFile
 										   , pich->pcmd
-										   , pai->transition->name->name
+										   , pai->transition->name
 										   );
 		}
 	}
@@ -1762,21 +1762,21 @@ static bool define_action_array_transition_functions(pLIST_ELEMENT pelem, void *
 static bool define_transition_list_functions(pLIST_ELEMENT pelem, void *data)
 {
 	pITERATOR_CALLBACK_HELPER pich        = (pITERATOR_CALLBACK_HELPER) data;
-	pTRANSITION_DATA          ptransition = (pTRANSITION_DATA) pelem->mbr;
+	pID_INFO          ptransition = (pID_INFO) pelem->mbr;
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-	if (ptransition->name->type == STATE)
+	if (ptransition->type == STATE)
 	{
 		print_transition_function_signature(pich->pcmd->cFile
 											, pich->pcmd
 											, "transitionTo"
-											, ptransition->name->name
+											, ptransition->name
 											, true
 											);
 		print_transition_function_body(pich->pcmd->cFile
 									   , pich->pcmd
-									   , ptransition->name->name
+									   , ptransition->name
 									   );
 	}
 
@@ -2584,20 +2584,20 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
 bool declare_transition_fn_ars(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich        = ((pITERATOR_CALLBACK_HELPER)data);
-   pTRANSITION_DATA          ptransition = ((pTRANSITION_DATA)pelem->mbr);
+   pID_INFO          ptransition = ((pID_INFO)pelem->mbr);
    pCMachineData             pcmd        = pich->pcmd;
 
    FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   if (add_doxygen_blocks && ptransition->name->docCmnt)
+   if (add_doxygen_blocks && ptransition->docCmnt)
    {
 	   print_doc_cmnt_as_doxygen_block(pcmd->hFile
-									   , ptransition->name->docCmnt
-									   , ptransition->name->transition_fn_returns_decl == NULL
+									   , ptransition->docCmnt
+									   , ptransition->transition_fn_returns_decl == NULL
 									   );
-	   if (ptransition->name->transition_fn_returns_decl)
+	   if (ptransition->transition_fn_returns_decl)
 	   {
-		   iterate_list(ptransition->name->transition_fn_returns_decl
+		   iterate_list(ptransition->transition_fn_returns_decl
 						, print_doxygen_return_statement
 						, pich
 						);
@@ -2605,7 +2605,7 @@ bool declare_transition_fn_ars(pLIST_ELEMENT pelem, void *data)
 		   fprintf(pcmd->hFile, "\n*/\n");
 	   }
    }
-   print_transition_fn_declaration_ars(pich->pcmd, pich->pcmd->hFile, ptransition->name->name);
+   print_transition_fn_declaration_ars(pich->pcmd, pich->pcmd->hFile, ptransition->name);
 
    return false;
 }
@@ -2613,19 +2613,19 @@ bool declare_transition_fn_ars(pLIST_ELEMENT pelem, void *data)
 bool declare_state_only_transition_functions_ars(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich        = ((pITERATOR_CALLBACK_HELPER)data);
-   pTRANSITION_DATA          ptransition = ((pTRANSITION_DATA)pelem->mbr);
+   pID_INFO          ptransition = ((pID_INFO)pelem->mbr);
 
    FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   if (add_doxygen_blocks && ptransition->name->docCmnt)
+   if (add_doxygen_blocks && ptransition->docCmnt)
    {
 	   print_doc_cmnt_as_doxygen_block(pich->pcmd->hFile
-									   , ptransition->name->docCmnt
-									   , ptransition->name->transition_fn_returns_decl == NULL
+									   , ptransition->docCmnt
+									   , ptransition->transition_fn_returns_decl == NULL
 									   );
-	   if (ptransition->name->transition_fn_returns_decl)
+	   if (ptransition->transition_fn_returns_decl)
 	   {
-		   iterate_list(ptransition->name->transition_fn_returns_decl
+		   iterate_list(ptransition->transition_fn_returns_decl
 						, print_doxygen_return_statement
 						, pich
 						);
@@ -2635,7 +2635,7 @@ bool declare_state_only_transition_functions_ars(pLIST_ELEMENT pelem, void *data
    }
    print_state_only_transition_fn_declaration_ars(pich->pcmd
 												  , pich->pcmd->hFile
-												  , ptransition->name->name
+												  , ptransition->name
 												  );
 
    return false;
@@ -2674,19 +2674,19 @@ static void print_state_only_transition_fn_declaration_are(pCMachineData pcmd, F
 bool declare_transition_fn_are(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich        = ((pITERATOR_CALLBACK_HELPER)data);
-   pTRANSITION_DATA          ptransition = ((pTRANSITION_DATA)pelem->mbr);
+   pID_INFO          ptransition = ((pID_INFO)pelem->mbr);
    pCMachineData             pcmd        = pich->pcmd;
 
-   if (add_doxygen_blocks && ptransition->name->docCmnt)
+   if (add_doxygen_blocks && ptransition->docCmnt)
    {
 	   print_doc_cmnt_as_doxygen_block(pcmd->hFile
-									   , ptransition->name->docCmnt
-									   , ptransition->name->transition_fn_returns_decl == NULL
+									   , ptransition->docCmnt
+									   , ptransition->transition_fn_returns_decl == NULL
 									   );
 
-	   if (ptransition->name->transition_fn_returns_decl)
+	   if (ptransition->transition_fn_returns_decl)
 	   {
-		   iterate_list(ptransition->name->transition_fn_returns_decl
+		   iterate_list(ptransition->transition_fn_returns_decl
 						, print_doxygen_return_statement
 						, pich
 						);
@@ -2696,7 +2696,7 @@ bool declare_transition_fn_are(pLIST_ELEMENT pelem, void *data)
    }
    print_transition_fn_declaration_are(pich->pcmd
 									   , pich->pcmd->hFile
-									   , ptransition->name->name
+									   , ptransition->name
 									   );
 
    return false;
@@ -2705,11 +2705,11 @@ bool declare_transition_fn_are(pLIST_ELEMENT pelem, void *data)
 bool declare_state_only_transition_functions_are(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich        = ((pITERATOR_CALLBACK_HELPER)data);
-   pTRANSITION_DATA          ptransition = ((pTRANSITION_DATA)pelem->mbr);
+   pID_INFO          ptransition = ((pID_INFO)pelem->mbr);
 
    print_state_only_transition_fn_declaration_are(pich->pcmd
 												  , pich->pcmd->hFile
-												  , ptransition->name->name
+												  , ptransition->name
 												  );
 
    return false;

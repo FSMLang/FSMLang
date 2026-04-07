@@ -8,7 +8,7 @@ machine ActionMatrix
 	action log_start[go, (idle, active)] transition active;
 	action log_report[report, (all)];
 
-	transition [halt, active] done condition is_finished;
-	transition [halt, active] idle;
+	transition [halt, active] decide_finish;
+	decide_finish returns done when is_finished, idle otherwise;
 
 }

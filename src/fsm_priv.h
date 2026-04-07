@@ -134,7 +134,7 @@ typedef struct _user_event_data_         USER_EVENT_DATA,         *pUSER_EVENT_D
 typedef struct _native_info_             NATIVE_INFO,             *pNATIVE_INFO;
 typedef struct _event_sequence_node_     EVENT_SEQUENCE_NODE,     *pEVENT_SEQUENCE_NODE;
 typedef struct _event_sequence_          EVENT_SEQUENCE,          *pEVENT_SEQUENCE;
-typedef struct _transition_data_         TRANSITION_DATA,         *pTRANSITION_DATA;
+typedef struct _return_choice_data_      RETURN_CHOICE_DATA,      *pRETURN_CHOICE_DATA;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
@@ -191,10 +191,16 @@ struct _action_data_
 	pLIST           action_returns_decl;
 };
 
-struct _transition_data_
+/**
+ * One choice in a 'guardFn returns ...' declaration.
+ * Mode A: condition_fn == NULL, is_otherwise == false (plain state name).
+ * Mode B: either condition_fn != NULL ('when <condFn>') or is_otherwise == true ('otherwise').
+ */
+struct _return_choice_data_
 {
-	pID_INFO name;
-	pID_INFO condition_fn;
+	pID_INFO state;         /* the return state (or noTransition) */
+	pID_INFO condition_fn;  /* when <condFn>; NULL for Mode A or 'otherwise' */
+	bool     is_otherwise;  /* true only for the 'otherwise' choice */
 };
 
 union _pid_type_data_
@@ -299,6 +305,7 @@ struct _id_info_ {
   pID_INFO        pfield_type;
   pDATA_FIELD     pdata_field;
   pLIST           transition_fn_returns_decl;
+  pLIST           transition_fn_returns_cond_decl; /* Mode B: list of pRETURN_CHOICE_DATA; NULL means Mode A */
 };
 
 struct _action_se_info_ {
@@ -315,11 +322,10 @@ struct _action_info_
 {
 	pID_INFO         action;
 	pMATRIX_INFO     matrix;
-	pTRANSITION_DATA transition;
+	pID_INFO         transition;
 	pACTION_INFO     nextAction;
 	char             *docCmnt;
-	pLIST            padditional_transitions;
-}; 
+};
 
 
 struct _native_info_ {
@@ -540,7 +546,7 @@ bool print_event_sequence(pLIST_ELEMENT,void*);
 bool print_event_sequence_event(pLIST_ELEMENT,void*);
 bool match_transition(pLIST_ELEMENT,void*);
 char *create_string_from_file(FILE*,unsigned long*);
-pTRANSITION_DATA get_transition(pMACHINE_INFO,unsigned,unsigned);
+pID_INFO get_transition(pMACHINE_INFO,unsigned,unsigned);
 pID_INFO get_action(pMACHINE_INFO,unsigned,unsigned);
 char *create_sequence_name(unsigned);
 
