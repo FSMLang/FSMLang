@@ -41,7 +41,7 @@
 static bool compose_consolidated_list(pLIST_ELEMENT,void*);
 static bool consolidate_records(pLIST_ELEMENT,void*);
 static bool free_matrix_list(pLIST_ELEMENT,void*);
-static bool check_event_match(pLIST_ELEMENT,void*);
+static bool check_event_mismatch(pLIST_ELEMENT,void*);
 static bool matrices_have_same_events(pMATRIX_INFO,pMATRIX_INFO);
 
 pLIST consolidate_action_info_list(pLIST action_info_list)
@@ -116,7 +116,7 @@ static bool consolidate_records(pLIST_ELEMENT pelem, void *data)
 	return found;
 }
 
-static bool check_event_match(pLIST_ELEMENT pelem, void *data)
+static bool check_event_mismatch(pLIST_ELEMENT pelem, void *data)
 {
 	pLIST_ELEMENT other = (pLIST_ELEMENT) data;
 
@@ -135,7 +135,7 @@ static bool matrices_have_same_events(pMATRIX_INFO m1, pMATRIX_INFO m2)
 
 	while (e1 && e2)
 	{
-		if (check_event_match(e1, e2))
+		if (check_event_mismatch(e1, e2))
 		{
 			return false;
 		}
