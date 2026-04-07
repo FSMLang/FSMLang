@@ -134,7 +134,6 @@ typedef struct _user_event_data_         USER_EVENT_DATA,         *pUSER_EVENT_D
 typedef struct _native_info_             NATIVE_INFO,             *pNATIVE_INFO;
 typedef struct _event_sequence_node_     EVENT_SEQUENCE_NODE,     *pEVENT_SEQUENCE_NODE;
 typedef struct _event_sequence_          EVENT_SEQUENCE,          *pEVENT_SEQUENCE;
-typedef struct _transition_data_         TRANSITION_DATA,         *pTRANSITION_DATA;
 typedef struct _return_choice_data_      RETURN_CHOICE_DATA,      *pRETURN_CHOICE_DATA;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
@@ -190,11 +189,6 @@ struct _action_data_
 {
 	pACTION_INFO    actionInfo;
 	pLIST           action_returns_decl;
-};
-
-struct _transition_data_
-{
-	pID_INFO name;
 };
 
 /**
@@ -328,7 +322,7 @@ struct _action_info_
 {
 	pID_INFO         action;
 	pMATRIX_INFO     matrix;
-	pTRANSITION_DATA transition;
+	pID_INFO         transition;
 	pACTION_INFO     nextAction;
 	char             *docCmnt;
 };
@@ -552,7 +546,7 @@ bool print_event_sequence(pLIST_ELEMENT,void*);
 bool print_event_sequence_event(pLIST_ELEMENT,void*);
 bool match_transition(pLIST_ELEMENT,void*);
 char *create_string_from_file(FILE*,unsigned long*);
-pTRANSITION_DATA get_transition(pMACHINE_INFO,unsigned,unsigned);
+pID_INFO get_transition(pMACHINE_INFO,unsigned,unsigned);
 pID_INFO get_action(pMACHINE_INFO,unsigned,unsigned);
 char *create_sequence_name(unsigned);
 

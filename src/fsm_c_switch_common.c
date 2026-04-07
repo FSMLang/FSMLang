@@ -420,11 +420,11 @@ void cswitchSubMachineHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 static bool cswitch_sub_machine_declare_transition_fn_are(pLIST_ELEMENT pelem, void *data)
 {
    pITERATOR_CALLBACK_HELPER pich        = ((pITERATOR_CALLBACK_HELPER)data);
-   pTRANSITION_DATA          ptransition = ((pTRANSITION_DATA)pelem->mbr);
+   pID_INFO          ptransition = ((pID_INFO)pelem->mbr);
 
    fprintf(pich->pcmd->hFile
 		   , "TR_FN_RETURN_TYPE UFMN(%s)(p%s,%s);\n"
-		   , ptransition->name->name
+		   , ptransition->name
 		   , fsmType(pich->pcmd)
 		   , eventType(pich->pcmd)
 		   );
