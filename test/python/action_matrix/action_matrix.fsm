@@ -1,0 +1,14 @@
+machine ActionMatrix
+{
+	state idle, active, done;
+
+	event go, halt;
+	event report data translator translate_report { int value; };
+
+	action log_start[go, (idle, active)] transition active;
+	action log_report[report, (all)];
+
+	transition [halt, active] done condition is_finished;
+	transition [halt, active] idle;
+
+}
