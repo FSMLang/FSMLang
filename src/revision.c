@@ -601,7 +601,7 @@
 			FSMLang concept of "transition via a guard."
 			<ul>
 				<li>The FSMLang file <i>must</i> declare the possible return values.</li>
-				<li>A Transiton having the condition, <i>choose_</i>[state] will be
+				<li>A Transition having the condition, <i>choose_</i>[state] will be
 				    created for each return value.
 					</li>
 				<li>Alternatively, new keywords <i>when</i> and <i>otherwise</i> can be
