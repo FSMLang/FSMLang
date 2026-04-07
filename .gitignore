@@ -132,6 +132,7 @@ test/python/*/*.py
 !test/python/*/*.py.canonical
 test/python/*/fsmout
 test/python/*/*.result
+test/done
 
 
 
@@ -151,4 +152,3 @@ test/parser/test
 test/parser/y.output
 test/parser/y.tab.h
 test/parser/*.d.*
-test/done
