@@ -134,3 +134,19 @@ test/python/*/fsmout
 test/python/*/*.result
 
 
+
+# Full test generated artifacts
+test/full_test*/fsmout
+test/full_test*/*.c
+test/full_test*/*.h
+test/full_test*/*.d.*
+test/full_test*/*.plantuml
+
+# Lexer/parser test generated files
+test/lexer/lexer.c
+test/lexer/test
+test/parser/lexer.c
+test/parser/parser.c
+test/parser/test
+test/parser/y.output
+test/parser/y.tab.h

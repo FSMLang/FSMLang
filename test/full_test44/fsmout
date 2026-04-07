@@ -1,2 +1,0 @@
-fsm: top_level.fsm: event user data not allowed in sub-machines
-	line 76 : }
