@@ -10,9 +10,9 @@ ARCHITECTURES=Cygwin \
 	Mingwsa      \
 	Linux
 
-Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser : OUT_DIR=../cygwin
-Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  : OUT_DIR=../mingw
-Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser  : OUT_DIR=../mingwsa
+Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser Cygwin.examples : OUT_DIR=../cygwin
+Mingw  Mingw.clean  Mingw.test  Mingw.testonly Mingw.lexer  Mingw.parser  Mingw.examples  : OUT_DIR=../mingw
+Mingwsa  Mingwsa.clean  Mingwsa.test  Mingwsa.testonly Mingwsa.lexer  Mingwsa.parser Mingwsa.examples  : OUT_DIR=../mingwsa
 Linux  Linux.clean  Linux.test  Linux.testonly Linux.lexer  Linux.parser Linux.examples : OUT_DIR=../linux
 
 Cygwin Cygwin.clean Cygwin.test Cygwin.testonly Cygwin.lexer Cygwin.parser : ARCH=CYGWIN
