@@ -1279,19 +1279,6 @@ static void writeMachineClass(pKotlinMachineData pkd)
 	pMACHINE_INFO  pmi          = pkd->pmi;
 	const char    *machine_name = pmi->name->name;
 	bool           uses_event_data = pkd->uses_event_data;
-	const char    *hooks_kwarg;
-
-	/* The default constructor argument depends on whether hooks is abstract */
-	if (generate_weak_fns)
-	{
-		/* Open class – we can supply a default */
-		hooks_kwarg = "hooks";
-	}
-	else
-	{
-		hooks_kwarg = "hooks";
-	}
-	(void)hooks_kwarg;
 
 	if (generate_weak_fns)
 	{
