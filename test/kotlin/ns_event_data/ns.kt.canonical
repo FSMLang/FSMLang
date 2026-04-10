@@ -1,3 +1,5 @@
+package io.github.fsmlang.generated.narcolepticsuperhero
+
 /**
  * ns.kt
  *
@@ -24,24 +26,20 @@ enum class NarcolepticSuperheroEvent {
     noEvent
 }
 
-data class NarcolepticSuperheroDistress_callData(
-    val severity: Int = 0
-)
-
-data class NarcolepticSuperheroComplete_missionData(
-    val result: Char = '\u0000'
-)
-
-sealed class NarcolepticSuperheroFsmEvent {
-    object Wake_up : NarcolepticSuperheroFsmEvent()
-    object Work_out : NarcolepticSuperheroFsmEvent()
-    object Eat : NarcolepticSuperheroFsmEvent()
-    object Clean_up : NarcolepticSuperheroFsmEvent()
-    object Nap : NarcolepticSuperheroFsmEvent()
-    data class Distress_call(val payload: NarcolepticSuperheroDistress_callData = NarcolepticSuperheroDistress_callData()) : NarcolepticSuperheroFsmEvent()
-    data class Complete_mission(val payload: NarcolepticSuperheroComplete_missionData = NarcolepticSuperheroComplete_missionData()) : NarcolepticSuperheroFsmEvent()
-    object NoEvent : NarcolepticSuperheroFsmEvent()
+sealed interface NarcolepticSuperheroEventData {
+    object None : NarcolepticSuperheroEventData
+    data class Distress_callPayload(
+        val severity: Int = 0
+    ) : NarcolepticSuperheroEventData
+    data class Complete_missionPayload(
+        val result: Char = '\u0000'
+    ) : NarcolepticSuperheroEventData
 }
+
+data class NarcolepticSuperheroEventStruct(
+    val event: NarcolepticSuperheroEvent,
+    val eventData: NarcolepticSuperheroEventData = NarcolepticSuperheroEventData.None
+)
 
 open class NarcolepticSuperheroUserHooks {
     open fun change_into_super_secret_costume(fsm: NarcolepticSuperhero): NarcolepticSuperheroEvent {
@@ -56,11 +54,11 @@ open class NarcolepticSuperheroUserHooks {
         println("NarcolepticSuperhero_decide_rest")
         return NarcolepticSuperheroState.noState
     }
-    open fun translate_distress_call(fsm: NarcolepticSuperhero, payload: NarcolepticSuperheroDistress_callData): NarcolepticSuperheroDistress_callData {
+    open fun translate_distress_call(fsm: NarcolepticSuperhero, payload: NarcolepticSuperheroEventData.Distress_callPayload): NarcolepticSuperheroEventData.Distress_callPayload {
         println("NarcolepticSuperhero_translate_distress_call")
         return payload
     }
-    open fun handle_mission(fsm: NarcolepticSuperhero, payload: NarcolepticSuperheroComplete_missionData): NarcolepticSuperheroComplete_missionData {
+    open fun handle_mission(fsm: NarcolepticSuperhero, payload: NarcolepticSuperheroEventData.Complete_missionPayload): NarcolepticSuperheroEventData.Complete_missionPayload {
         println("NarcolepticSuperhero_handle_mission")
         return payload
     }
@@ -70,28 +68,25 @@ class NarcolepticSuperhero(val hooks: NarcolepticSuperheroUserHooks = Narcolepti
     var state: NarcolepticSuperheroState = NarcolepticSuperheroState.asleep
     var event: NarcolepticSuperheroEvent = NarcolepticSuperheroEvent.noEvent
 
-    private fun translateEventData(event: NarcolepticSuperheroFsmEvent) {
-        when (event) {
-            is NarcolepticSuperheroFsmEvent.Distress_call -> hooks.translate_distress_call(this, event.payload)
-            is NarcolepticSuperheroFsmEvent.Complete_mission -> hooks.handle_mission(this, event.payload)
+    private fun translateEventData(eventStruct: NarcolepticSuperheroEventStruct) {
+        when (eventStruct.event) {
+            NarcolepticSuperheroEvent.distress_call -> {
+                val payload = eventStruct.eventData as? NarcolepticSuperheroEventData.Distress_callPayload
+                    ?: NarcolepticSuperheroEventData.Distress_callPayload()
+                hooks.translate_distress_call(this, payload)
+            }
+            NarcolepticSuperheroEvent.complete_mission -> {
+                val payload = eventStruct.eventData as? NarcolepticSuperheroEventData.Complete_missionPayload
+                    ?: NarcolepticSuperheroEventData.Complete_missionPayload()
+                hooks.handle_mission(this, payload)
+            }
             else -> {}
         }
     }
 
-    private fun NarcolepticSuperheroFsmEvent.toEventEnum(): NarcolepticSuperheroEvent = when (this) {
-        is NarcolepticSuperheroFsmEvent.Wake_up -> NarcolepticSuperheroEvent.wake_up
-        is NarcolepticSuperheroFsmEvent.Work_out -> NarcolepticSuperheroEvent.work_out
-        is NarcolepticSuperheroFsmEvent.Eat -> NarcolepticSuperheroEvent.eat
-        is NarcolepticSuperheroFsmEvent.Clean_up -> NarcolepticSuperheroEvent.clean_up
-        is NarcolepticSuperheroFsmEvent.Nap -> NarcolepticSuperheroEvent.nap
-        is NarcolepticSuperheroFsmEvent.Distress_call -> NarcolepticSuperheroEvent.distress_call
-        is NarcolepticSuperheroFsmEvent.Complete_mission -> NarcolepticSuperheroEvent.complete_mission
-        else -> NarcolepticSuperheroEvent.noEvent
-    }
-
-    fun dispatch(event: NarcolepticSuperheroFsmEvent) {
-        translateEventData(event)
-        var currentEvent = event.toEventEnum()
+    fun dispatch(eventStruct: NarcolepticSuperheroEventStruct) {
+        translateEventData(eventStruct)
+        var currentEvent = eventStruct.event
         this.event = currentEvent
         while (currentEvent != NarcolepticSuperheroEvent.noEvent) {
             val prevState = state

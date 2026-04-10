@@ -2622,6 +2622,7 @@ typedef enum {
  , lo_find_on_sub_machine_depth
  , lo_find_on_top_level_machine_data
  , lo_find_on_event_data
+ , lo_kotlin_package
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2831,6 +2832,12 @@ const struct option longopts[] =
         , .has_arg = optional_argument
         , .flag    = &longval
 				, .val     = lo_find_on_event_data
+    }
+    , {
+        .name      = "kotlin-package"
+        , .has_arg = required_argument
+        , .flag    = &longval
+        , .val     = lo_kotlin_package
     }
     , {0}
 };
@@ -3081,6 +3088,9 @@ int main(int argc, char **argv)
 					      find_on_event_data = false;
 				      }
 				      break;
+            case lo_kotlin_package:
+                kotlin_package = optarg;
+                break;
             default:
                 usage();
                 return(0);

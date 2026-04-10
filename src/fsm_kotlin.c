@@ -51,6 +51,14 @@
 #endif
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+/* ------------------------------------------------------------------ */
+/*  Module-level globals                                                */
+/* ------------------------------------------------------------------ */
+
+/* NULL = use default package; non-NULL = use this package string verbatim */
+char *kotlin_package = NULL;
 
 /* ------------------------------------------------------------------ */
 /*  Internal data types                                                 */
@@ -88,8 +96,7 @@ static void  closeKotlinFN(pFSMOutputGenerator, int);
 /* list iterators */
 static bool print_state_enum_entry(pLIST_ELEMENT, void *);
 static bool print_event_enum_entry(pLIST_ELEMENT, void *);
-static bool print_event_data_class(pLIST_ELEMENT, void *);
-static bool print_event_sealed_entry(pLIST_ELEMENT, void *);
+static bool print_event_data_variant(pLIST_ELEMENT, void *);
 static bool scan_event_for_data(pLIST_ELEMENT, void *);
 static bool print_action_hook(pLIST_ELEMENT, void *);
 static bool print_transition_fn_hook(pLIST_ELEMENT, void *);
@@ -101,12 +108,15 @@ static bool print_data_field_as_kotlin(pLIST_ELEMENT, void *);
 
 /* helpers */
 static void writeKotlinMachineInternal(pKotlinMachineData pkd);
+static void writePackageDeclaration(FILE *fout, const char *machine_name);
 static void writeFileHeader(FILE *fout, const char *fileName);
 static void writeStateEnum(FILE *fout, pMACHINE_INFO pmi);
 static void writeEventEnum(FILE *fout, pMACHINE_INFO pmi);
-static void writeEventDataTypes(FILE *fout, pMACHINE_INFO pmi);
+static void writeEventDataSealedInterface(FILE *fout, pMACHINE_INFO pmi);
+static void writeEventStruct(FILE *fout, pMACHINE_INFO pmi);
 static void writeHooksClass(FILE *fout, pMACHINE_INFO pmi, bool uses_event_data);
 static void writeMachineClass(pKotlinMachineData pkd);
+static void writeTranslateEventData(FILE *fout, pMACHINE_INFO pmi);
 static void writeDispatchFunction(FILE *fout, pMACHINE_INFO pmi, bool uses_event_data);
 static void writeEntryExitManager(FILE *fout, pMACHINE_INFO pmi);
 
@@ -150,6 +160,108 @@ pFSMOutputGenerator generateKotlinMachineWriter(pFSMOutputGenerator parent)
 	}
 
 	return pfsmog;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Package name sanitization                                           */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Kotlin hard keywords (used for package component safety check)
+ */
+static const char * const kotlin_keywords[] = {
+	"as", "break", "class", "continue", "do", "else", "false",
+	"for", "fun", "if", "in", "interface", "is", "null", "object",
+	"package", "return", "super", "this", "throw", "true", "try",
+	"typealias", "typeof", "val", "var", "when", "while",
+	NULL
+};
+
+static bool isKotlinKeyword(const char *word)
+{
+	for (int i = 0; kotlin_keywords[i] != NULL; i++)
+	{
+		if (strcmp(word, kotlin_keywords[i]) == 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+/*
+ * Sanitize a machine name into a safe Kotlin package identifier component.
+ * Rules (per SPEC.md):
+ *   1) lowercase
+ *   2) replace any char not in [a-z0-9_] with _
+ *   3) collapse multiple consecutive _ into one _
+ *   4) trim leading/trailing _
+ *   5) if empty, use "machine"
+ *   6) if starts with a digit, prefix with "m_"
+ *   7) if equals a Kotlin keyword, prefix with "m_"
+ *
+ * out must be at least out_size bytes.
+ */
+static void kotlinSanitizeName(const char *name, char *out, size_t out_size)
+{
+	char tmp[512];
+	size_t ti = 0;
+
+	/* Step 1+2: lowercase and replace non-[a-z0-9_] */
+	for (size_t i = 0; name[i] && ti < sizeof(tmp) - 1; i++)
+	{
+		char c = (char)tolower((unsigned char)name[i]);
+		if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_')
+		{
+			tmp[ti++] = c;
+		}
+		else
+		{
+			tmp[ti++] = '_';
+		}
+	}
+	tmp[ti] = '\0';
+
+	/* Step 3: collapse multiple _ */
+	char tmp2[512];
+	size_t ti2 = 0;
+	for (size_t i = 0; tmp[i] && ti2 < sizeof(tmp2) - 1; i++)
+	{
+		if (tmp[i] == '_' && ti2 > 0 && tmp2[ti2 - 1] == '_')
+		{
+			continue;  /* skip duplicate _ */
+		}
+		tmp2[ti2++] = tmp[i];
+	}
+	tmp2[ti2] = '\0';
+
+	/* Step 4: trim leading/trailing _ */
+	size_t start = 0;
+	while (tmp2[start] == '_') start++;
+	size_t end = strlen(tmp2);
+	while (end > start && tmp2[end - 1] == '_') end--;
+	tmp2[end] = '\0';
+	const char *trimmed = tmp2 + start;
+
+	/* Step 5: empty -> "machine" */
+	if (!trimmed[0])
+	{
+		trimmed = "machine";
+	}
+
+	/* Steps 6+7: starts with digit or is keyword -> prefix "m_" */
+	if (trimmed[0] >= '0' && trimmed[0] <= '9')
+	{
+		snprintf(out, out_size, "m_%s", trimmed);
+	}
+	else if (isKotlinKeyword(trimmed))
+	{
+		snprintf(out, out_size, "m_%s", trimmed);
+	}
+	else
+	{
+		snprintf(out, out_size, "%s", trimmed);
+	}
 }
 
 /* ------------------------------------------------------------------ */
@@ -287,17 +399,37 @@ static void writeKotlinMachineInternal(pKotlinMachineData pkd)
 		pkd->uses_event_data = scan_ih.found;
 	}
 
+	writePackageDeclaration(fout, pmi->name->name);
 	writeFileHeader(fout, pkd->fileName ? pkd->fileName : "<stdout>");
 	writeStateEnum(fout, pmi);
 	writeEventEnum(fout, pmi);
 
-	if (pkd->uses_event_data)
-	{
-		writeEventDataTypes(fout, pmi);
-	}
+	/* Always emit the EventData sealed interface and EventStruct */
+	writeEventDataSealedInterface(fout, pmi);
+	writeEventStruct(fout, pmi);
 
 	writeHooksClass(fout, pmi, pkd->uses_event_data);
 	writeMachineClass(pkd);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Package declaration                                                 */
+/* ------------------------------------------------------------------ */
+
+static void writePackageDeclaration(FILE *fout, const char *machine_name)
+{
+	if (kotlin_package)
+	{
+		/* User-supplied package: emit verbatim */
+		fprintf(fout, "package %s\n\n", kotlin_package);
+	}
+	else
+	{
+		/* Default package: io.github.fsmlang.generated.<sanitized_machine_name> */
+		char sanitized[512];
+		kotlinSanitizeName(machine_name, sanitized, sizeof(sanitized));
+		fprintf(fout, "package io.github.fsmlang.generated.%s\n\n", sanitized);
+	}
 }
 
 /* ------------------------------------------------------------------ */
@@ -363,7 +495,7 @@ static void writeEventEnum(FILE *fout, pMACHINE_INFO pmi)
 }
 
 /* ------------------------------------------------------------------ */
-/*  Event data types (data classes + sealed event class)               */
+/*  Event data sealed interface and EventStruct                         */
 /* ------------------------------------------------------------------ */
 
 static bool scan_event_for_data(pLIST_ELEMENT pelem, void *data)
@@ -381,7 +513,6 @@ static bool scan_event_for_data(pLIST_ELEMENT pelem, void *data)
 
 /*
  * Emit one Kotlin data class field from a C-style DATA_FIELD.
- * Nested structs/unions are flattened as a comment + Any? field.
  */
 static bool print_data_field_as_kotlin(pLIST_ELEMENT pelem, void *data)
 {
@@ -435,7 +566,7 @@ static bool print_data_field_as_kotlin(pLIST_ELEMENT pelem, void *data)
 		if (pdf->pdts->is_array)
 		{
 			fprintf(pih->fout
-					, "    val %s: Array<%s> = emptyArray()"
+					, "        val %s: Array<%s> = emptyArray()"
 					, field_name
 					, kotlin_type
 					);
@@ -443,7 +574,7 @@ static bool print_data_field_as_kotlin(pLIST_ELEMENT pelem, void *data)
 		else
 		{
 			const char *default_val;
-			if (strcmp(kotlin_type, "Int") == 0)     default_val = "0";
+			if (strcmp(kotlin_type, "Int") == 0)          default_val = "0";
 			else if (strcmp(kotlin_type, "Long") == 0)    default_val = "0L";
 			else if (strcmp(kotlin_type, "Char") == 0)    default_val = "'\\u0000'";
 			else if (strcmp(kotlin_type, "Float") == 0)   default_val = "0.0f";
@@ -453,7 +584,7 @@ static bool print_data_field_as_kotlin(pLIST_ELEMENT pelem, void *data)
 			else                                           default_val = "null";
 
 			fprintf(pih->fout
-					, "    val %s: %s = %s"
+					, "        val %s: %s = %s"
 					, field_name
 					, kotlin_type
 					, default_val
@@ -465,7 +596,7 @@ static bool print_data_field_as_kotlin(pLIST_ELEMENT pelem, void *data)
 	case dtt_union:
 		/* Nested structs/unions: emit a comment and use Any? */
 		fprintf(pih->fout
-				, "    /* nested struct/union */ val %s: Any? = null"
+				, "        /* nested struct/union */ val %s: Any? = null"
 				, field_name
 				);
 		break;
@@ -474,8 +605,11 @@ static bool print_data_field_as_kotlin(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
-/* Print one data class for an event that has a data block */
-static bool print_event_data_class(pLIST_ELEMENT pelem, void *data)
+/*
+ * Emit one variant inside the sealed EventData interface for a data-bearing event.
+ * The variant is a data class with all fields having Kotlin-zero defaults.
+ */
+static bool print_event_data_variant(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO         pevent = (pID_INFO)pelem->mbr;
 	pITERATOR_HELPER pih    = (pITERATOR_HELPER)data;
@@ -492,12 +626,11 @@ static bool print_event_data_class(pLIST_ELEMENT pelem, void *data)
 	cap_name[0] = (char)toupper((unsigned char)cap_name[0]);
 
 	fprintf(pih->fout
-			, "data class %s%sData(\n"
-			, pih->pmi->name->name
+			, "    data class %sPayload(\n"
 			, cap_name
 			);
 
-	/* Count fields to decide whether we need a trailing comma */
+	/* Emit fields */
 	pLIST_ELEMENT pe = pued->data_fields->head;
 	while (pe)
 	{
@@ -514,66 +647,45 @@ static bool print_event_data_class(pLIST_ELEMENT pelem, void *data)
 		}
 	}
 
-	fprintf(pih->fout, ")\n\n");
+	fprintf(pih->fout
+			, "    ) : %sEventData\n"
+			, pih->pmi->name->name
+			);
 
 	return false;
 }
 
-/* Print one entry in the sealed FsmEvent class */
-static bool print_event_sealed_entry(pLIST_ELEMENT pelem, void *data)
-{
-	pID_INFO         pevent = (pID_INFO)pelem->mbr;
-	pITERATOR_HELPER pih    = (pITERATOR_HELPER)data;
-	pUSER_EVENT_DATA pued   = pevent->type_data.event_data.puser_event_data;
-
-	if (pued && pued->data_fields)
-	{
-		/* Data-bearing event → data class variant */
-		char cap_name[256];
-		snprintf(cap_name, sizeof(cap_name), "%s", pevent->name);
-		cap_name[0] = (char)toupper((unsigned char)cap_name[0]);
-
-		fprintf(pih->fout
-				, "    data class %s(val payload: %s%sData = %s%sData()) : %sFsmEvent()\n"
-				, cap_name
-				, pih->pmi->name->name
-				, cap_name
-				, pih->pmi->name->name
-				, cap_name
-				, pih->pmi->name->name
-				);
-	}
-	else
-	{
-		/* Simple event (no payload) → object singleton */
-		char cap_name[256];
-		snprintf(cap_name, sizeof(cap_name), "%s", pevent->name);
-		cap_name[0] = (char)toupper((unsigned char)cap_name[0]);
-
-		fprintf(pih->fout
-				, "    object %s : %sFsmEvent()\n"
-				, cap_name
-				, pih->pmi->name->name
-				);
-	}
-
-	return false;
-}
-
-static void writeEventDataTypes(FILE *fout, pMACHINE_INFO pmi)
+/*
+ * Emit the sealed interface <Machine>EventData with one variant per
+ * data-bearing event plus an object None.
+ */
+static void writeEventDataSealedInterface(FILE *fout, pMACHINE_INFO pmi)
 {
 	ITERATOR_HELPER ih = { .fout = fout, .pmi = pmi };
+	const char     *machine_name = pmi->name->name;
 
-	/* First emit data classes for each data-bearing event */
-	iterate_list(pmi->event_list, print_event_data_class, &ih);
+	fprintf(fout, "sealed interface %sEventData {\n", machine_name);
+	fprintf(fout, "    object None : %sEventData\n", machine_name);
+	iterate_list(pmi->event_list, print_event_data_variant, &ih);
+	fprintf(fout, "}\n\n");
+}
 
-	/* Then emit the sealed class wrapping all events */
-	fprintf(fout, "sealed class %sFsmEvent {\n", pmi->name->name);
-	iterate_list(pmi->event_list, print_event_sealed_entry, &ih);
+/*
+ * Emit the event-struct data class.
+ */
+static void writeEventStruct(FILE *fout, pMACHINE_INFO pmi)
+{
+	const char *machine_name = pmi->name->name;
+
 	fprintf(fout,
-		"    object NoEvent : %sFsmEvent()\n"
-		"}\n\n"
-		, pmi->name->name
+		"data class %sEventStruct(\n"
+		"    val event: %sEvent,\n"
+		"    val eventData: %sEventData = %sEventData.None\n"
+		")\n\n"
+		, machine_name
+		, machine_name
+		, machine_name
+		, machine_name
 		);
 }
 
@@ -619,12 +731,23 @@ static bool print_action_hook(pLIST_ELEMENT pelem, void *data)
 
 	if (is_abstract)
 	{
-		fprintf(pih->fout
-				, "    abstract fun %s(fsm: %s): %s\n"
-				, paction->name
-				, machine_name
-				, ret_type
-				);
+		if ((pih->pmi->modFlags & ACTIONS_RETURN_FLAGS) == mfActionsReturnVoid)
+		{
+			fprintf(pih->fout
+					, "    abstract fun %s(fsm: %s)\n"
+					, paction->name
+					, machine_name
+					);
+		}
+		else
+		{
+			fprintf(pih->fout
+					, "    abstract fun %s(fsm: %s): %s\n"
+					, paction->name
+					, machine_name
+					, ret_type
+					);
+		}
 	}
 	else
 	{
@@ -766,7 +889,27 @@ static bool print_entry_exit_hooks(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
-/* Emit one event-data translator hook */
+/*
+ * Compute the translator hook name for an event.
+ * If an explicit translator was declared in the FSM, use that name.
+ * Otherwise use grab_<event>_data (per SPEC.md section 5).
+ */
+static void translatorName(const char *event_name, pUSER_EVENT_DATA pued, char *out, size_t out_size)
+{
+	if (pued && pued->translator && pued->translator->name && strlen(pued->translator->name))
+	{
+		snprintf(out, out_size, "%s", pued->translator->name);
+	}
+	else
+	{
+		snprintf(out, out_size, "grab_%s_data", event_name);
+	}
+}
+
+/*
+ * Emit one event-data translator hook.
+ * The payload type is <Machine>EventData.<EventName>Payload.
+ */
 static bool print_event_translator_hook(pLIST_ELEMENT pelem, void *data)
 {
 	pID_INFO         pevent = (pID_INFO)pelem->mbr;
@@ -775,72 +918,46 @@ static bool print_event_translator_hook(pLIST_ELEMENT pelem, void *data)
 	const char      *machine_name = pih->pmi->name->name;
 	bool             is_abstract  = !generate_weak_fns;
 
-	if (!pued)
+	if (!pued || !pued->data_fields)
 	{
 		return false;
 	}
 
-	/* Determine translator name */
-	const char *translator_name = pued->translator ? pued->translator->name : NULL;
+	char tname[256];
+	translatorName(pevent->name, pued, tname, sizeof(tname));
 
-	char default_translator_name[256];
-	if (!translator_name)
-	{
-		snprintf(default_translator_name, sizeof(default_translator_name)
-				 , "translate_%s_data"
-				 , pevent->name
-				 );
-		translator_name = default_translator_name;
-	}
-
-	/* Build the payload type name (capitalised event name + machine name + Data) */
+	/* Build payload type: <Machine>EventData.<EventName>Payload */
 	char cap_event[256];
 	snprintf(cap_event, sizeof(cap_event), "%s", pevent->name);
 	cap_event[0] = (char)toupper((unsigned char)cap_event[0]);
 
 	char payload_type[512];
-	snprintf(payload_type, sizeof(payload_type), "%s%sData", machine_name, cap_event);
+	snprintf(payload_type, sizeof(payload_type), "%sEventData.%sPayload", machine_name, cap_event);
 
 	if (is_abstract)
 	{
 		fprintf(pih->fout
 				, "    abstract fun %s(fsm: %s, payload: %s): %s\n"
-				, translator_name
+				, tname
 				, machine_name
-				, pued->data_fields ? payload_type : "Any?"
-				, pued->data_fields ? payload_type : "Any?"
+				, payload_type
+				, payload_type
 				);
 	}
 	else
 	{
-		if (pued->data_fields)
-		{
-			fprintf(pih->fout
-					, "    open fun %s(fsm: %s, payload: %s): %s {\n"
-					  "        println(\"%s_%s\")\n"
-					  "        return payload\n"
-					  "    }\n"
-					, translator_name
-					, machine_name
-					, payload_type
-					, payload_type
-					, machine_name
-					, translator_name
-					);
-		}
-		else
-		{
-			fprintf(pih->fout
-					, "    open fun %s(fsm: %s, payload: Any?): Any? {\n"
-					  "        println(\"%s_%s\")\n"
-					  "        return payload\n"
-					  "    }\n"
-					, translator_name
-					, machine_name
-					, machine_name
-					, translator_name
-					);
-		}
+		fprintf(pih->fout
+				, "    open fun %s(fsm: %s, payload: %s): %s {\n"
+				  "        println(\"%s_%s\")\n"
+				  "        return payload\n"
+				  "    }\n"
+				, tname
+				, machine_name
+				, payload_type
+				, payload_type
+				, machine_name
+				, tname
+				);
 	}
 
 	return false;
@@ -905,7 +1022,6 @@ static void writeHooksClass(FILE *fout, pMACHINE_INFO pmi, bool uses_event_data)
 
 /*
  * Write the entry/exit manager calls after a state transition.
- * For each state that has entry/exit fns, emit `when` branches.
  */
 static bool print_entry_exit_calls(pLIST_ELEMENT pelem, void *data)
 {
@@ -986,10 +1102,7 @@ static void writeEntryExitManager(FILE *fout, pMACHINE_INFO pmi)
 }
 
 /*
- * Emit a single state block inside the outer `when (state)`.
- *
- * pih->state is used to carry the event index during iteration.
- * pih->str   carries a pointer to the machine data (pKotlinMachineData).
+ * Emit a single state block inside the outer when (state).
  */
 static bool print_dispatch_state_block(pLIST_ELEMENT pelem, void *data)
 {
@@ -997,7 +1110,7 @@ static bool print_dispatch_state_block(pLIST_ELEMENT pelem, void *data)
 	pITERATOR_HELPER pih    = (pITERATOR_HELPER)data;
 	pMACHINE_INFO    pmi    = pih->pmi;
 	const char      *machine_name = pmi->name->name;
-	bool             acts_return_void = (pmi->modFlags & mfActionsReturnVoid) != 0;
+	bool             acts_return_void   = (pmi->modFlags & mfActionsReturnVoid) != 0;
 	bool             acts_return_states = (pmi->modFlags & mfActionsReturnStates) != 0;
 
 	fprintf(pih->fout
@@ -1022,9 +1135,9 @@ static bool print_dispatch_state_block(pLIST_ELEMENT pelem, void *data)
 			continue;
 		}
 
-		bool has_action = pai->action && strlen(pai->action->name);
-		bool has_transition = (pai->transition != NULL);
-		bool transition_is_fn = has_transition && (pai->transition->type == TRANSITION_FN);
+		bool has_action          = pai->action && strlen(pai->action->name);
+		bool has_transition      = (pai->transition != NULL);
+		bool transition_is_fn    = has_transition && (pai->transition->type == TRANSITION_FN);
 		bool transition_is_state = has_transition && (pai->transition->type == STATE);
 
 		fprintf(pih->fout
@@ -1094,7 +1207,7 @@ static bool print_dispatch_state_block(pLIST_ELEMENT pelem, void *data)
 		fprintf(pih->fout, "                    }\n");
 	}
 
-	/* Else branch – no cell defined for this (state, event) combination */
+	/* Else branch - no cell defined for this (state, event) combination */
 	fprintf(pih->fout
 			, "                    else -> currentEvent = %sEvent.noEvent\n"
 			  "                }\n"
@@ -1105,40 +1218,76 @@ static bool print_dispatch_state_block(pLIST_ELEMENT pelem, void *data)
 }
 
 /*
+ * Emit translateEventData: dispatches based on eventStruct.event to call
+ * the appropriate user translator hook, with zero-init fallback for
+ * missing/wrong payload variant.
+ */
+static void writeTranslateEventData(FILE *fout, pMACHINE_INFO pmi)
+{
+	const char *machine_name = pmi->name->name;
+
+	fprintf(fout,
+		"    private fun translateEventData(eventStruct: %sEventStruct) {\n"
+		"        when (eventStruct.event) {\n"
+		, machine_name
+		);
+
+	pLIST_ELEMENT pe = pmi->event_list->head;
+	while (pe)
+	{
+		pID_INFO         pevent = (pID_INFO)pe->mbr;
+		pUSER_EVENT_DATA pued   = pevent->type_data.event_data.puser_event_data;
+
+		if (pued && pued->data_fields)
+		{
+			char cap_event[256];
+			snprintf(cap_event, sizeof(cap_event), "%s", pevent->name);
+			cap_event[0] = (char)toupper((unsigned char)cap_event[0]);
+
+			char tname[256];
+			translatorName(pevent->name, pued, tname, sizeof(tname));
+
+			fprintf(fout,
+				"            %sEvent.%s -> {\n"
+				"                val payload = eventStruct.eventData as? %sEventData.%sPayload\n"
+				"                    ?: %sEventData.%sPayload()\n"
+				"                hooks.%s(this, payload)\n"
+				"            }\n"
+				, machine_name, pevent->name
+				, machine_name, cap_event
+				, machine_name, cap_event
+				, tname
+				);
+		}
+
+		pe = pe->next;
+	}
+
+	fprintf(fout,
+		"            else -> {}\n"
+		"        }\n"
+		"    }\n\n"
+		);
+}
+
+/*
  * Write the full dispatch function (single-switch style).
- * When uses_event_data is true the parameter is a sealed FsmEvent class;
- * the generated code extracts the event enum by calling toEventEnum().
+ * Always accepts a <Machine>EventStruct (event enum + payload union).
  */
 static void writeDispatchFunction(FILE *fout, pMACHINE_INFO pmi, bool uses_event_data)
 {
 	ITERATOR_HELPER  ih           = { .fout = fout, .pmi = pmi };
 	const char      *machine_name = pmi->name->name;
 
-	ih.str = (char *)(intptr_t)uses_event_data;  /* pass flag via str field */
-
-	if (uses_event_data)
-	{
-		fprintf(fout,
-			"    fun dispatch(event: %sFsmEvent) {\n"
-			"        translateEventData(event)\n"
-			"        var currentEvent = event.toEventEnum()\n"
-			, machine_name
-			);
-	}
-	else
-	{
-		fprintf(fout,
-			"    fun dispatch(eventEnum: %sEvent) {\n"
-			"        var currentEvent = eventEnum\n"
-			, machine_name
-			);
-	}
-
 	fprintf(fout,
+		"    fun dispatch(eventStruct: %sEventStruct) {\n"
+		"        translateEventData(eventStruct)\n"
+		"        var currentEvent = eventStruct.event\n"
 		"        this.event = currentEvent\n"
 		"        while (currentEvent != %sEvent.noEvent) {\n"
 		"            val prevState = state\n"
 		"            when (state) {\n"
+		, machine_name
 		, machine_name
 		);
 
@@ -1147,7 +1296,7 @@ static void writeDispatchFunction(FILE *fout, pMACHINE_INFO pmi, bool uses_event
 
 	fprintf(fout,
 		"                else -> currentEvent = %sEvent.noEvent\n"
-		"            }\n"  /* end when (state) */
+		"            }\n"
 		"            this.event = currentEvent\n"
 		, machine_name
 		);
@@ -1167,110 +1316,11 @@ static void writeDispatchFunction(FILE *fout, pMACHINE_INFO pmi, bool uses_event
 	}
 
 	fprintf(fout,
-		"        }\n"   /* end while */
-		"    }\n"       /* end dispatch */
-		);
-}
-
-/*
- * When event data is present, emit:
- *   - translateEventData(event): Unit
- *   - <MachineName>FsmEvent.toEventEnum(): <MachineName>Event
- */
-static void writeEventDataHelpers(FILE *fout, pMACHINE_INFO pmi)
-{
-	const char *machine_name = pmi->name->name;
-
-	/* translateEventData – calls per-event translator hooks */
-	fprintf(fout,
-		"    private fun translateEventData(event: %sFsmEvent) {\n"
-		"        when (event) {\n"
-		, machine_name
-		);
-
-	pLIST_ELEMENT pe = pmi->event_list->head;
-	while (pe)
-	{
-		pID_INFO         pevent = (pID_INFO)pe->mbr;
-		pUSER_EVENT_DATA pued   = pevent->type_data.event_data.puser_event_data;
-
-		char cap_event[256];
-		snprintf(cap_event, sizeof(cap_event), "%s", pevent->name);
-		cap_event[0] = (char)toupper((unsigned char)cap_event[0]);
-
-		if (pued)
-		{
-			const char *translator_name = pued->translator ? pued->translator->name : NULL;
-			char default_translator_name[256];
-			if (!translator_name)
-			{
-				snprintf(default_translator_name, sizeof(default_translator_name)
-						 , "translate_%s_data"
-						 , pevent->name
-						 );
-				translator_name = default_translator_name;
-			}
-
-			if (pued->data_fields)
-			{
-				fprintf(fout,
-					"            is %sFsmEvent.%s -> hooks.%s(this, event.payload)\n"
-					, machine_name
-					, cap_event
-					, translator_name
-					);
-			}
-			else
-			{
-				fprintf(fout,
-					"            is %sFsmEvent.%s -> hooks.%s(this, null)\n"
-					, machine_name
-					, cap_event
-					, translator_name
-					);
-			}
-		}
-
-		pe = pe->next;
-	}
-
-	fprintf(fout,
-		"            else -> {}\n"
 		"        }\n"
-		"    }\n\n"
+		"    }\n"
 		);
 
-	/* Extension function: FsmEvent → Event enum */
-	fprintf(fout,
-		"    private fun %sFsmEvent.toEventEnum(): %sEvent = when (this) {\n"
-		, machine_name
-		, machine_name
-		);
-
-	pe = pmi->event_list->head;
-	while (pe)
-	{
-		pID_INFO pevent = (pID_INFO)pe->mbr;
-		char cap_event[256];
-		snprintf(cap_event, sizeof(cap_event), "%s", pevent->name);
-		cap_event[0] = (char)toupper((unsigned char)cap_event[0]);
-
-		fprintf(fout,
-			"        is %sFsmEvent.%s -> %sEvent.%s\n"
-			, machine_name
-			, cap_event
-			, machine_name
-			, pevent->name
-			);
-
-		pe = pe->next;
-	}
-
-	fprintf(fout,
-		"        else -> %sEvent.noEvent\n"
-		"    }\n\n"
-		, machine_name
-		);
+	(void)uses_event_data;
 }
 
 static void writeMachineClass(pKotlinMachineData pkd)
@@ -1309,15 +1359,11 @@ static void writeMachineClass(pKotlinMachineData pkd)
 		, machine_name
 		);
 
-	/* Event-data helpers (translateEventData + toEventEnum extension) */
-	if (uses_event_data)
-	{
-		writeEventDataHelpers(fout, pmi);
-	}
+	/* translateEventData helper (always emit) */
+	writeTranslateEventData(fout, pmi);
 
 	/* Dispatch function */
 	writeDispatchFunction(fout, pmi, uses_event_data);
 
 	fprintf(fout, "}\n");
 }
-

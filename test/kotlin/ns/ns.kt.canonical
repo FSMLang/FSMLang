@@ -1,3 +1,5 @@
+package io.github.fsmlang.generated.narcolepticsuperhero
+
 /**
  * ns.kt
  *
@@ -24,6 +26,15 @@ enum class NarcolepticSuperheroEvent {
     noEvent
 }
 
+sealed interface NarcolepticSuperheroEventData {
+    object None : NarcolepticSuperheroEventData
+}
+
+data class NarcolepticSuperheroEventStruct(
+    val event: NarcolepticSuperheroEvent,
+    val eventData: NarcolepticSuperheroEventData = NarcolepticSuperheroEventData.None
+)
+
 open class NarcolepticSuperheroUserHooks {
     open fun change_into_super_secret_costume(fsm: NarcolepticSuperhero): NarcolepticSuperheroEvent {
         println("NarcolepticSuperhero_change_into_super_secret_costume")
@@ -43,8 +54,15 @@ class NarcolepticSuperhero(val hooks: NarcolepticSuperheroUserHooks = Narcolepti
     var state: NarcolepticSuperheroState = NarcolepticSuperheroState.asleep
     var event: NarcolepticSuperheroEvent = NarcolepticSuperheroEvent.noEvent
 
-    fun dispatch(eventEnum: NarcolepticSuperheroEvent) {
-        var currentEvent = eventEnum
+    private fun translateEventData(eventStruct: NarcolepticSuperheroEventStruct) {
+        when (eventStruct.event) {
+            else -> {}
+        }
+    }
+
+    fun dispatch(eventStruct: NarcolepticSuperheroEventStruct) {
+        translateEventData(eventStruct)
+        var currentEvent = eventStruct.event
         this.event = currentEvent
         while (currentEvent != NarcolepticSuperheroEvent.noEvent) {
             val prevState = state

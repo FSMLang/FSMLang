@@ -243,6 +243,21 @@ void usage(void)
 			, item_end
 			);
 	fprintf(stdout
+			,"%s--kotlin-package=%spkg%s%sPackage declaration for Kotlin output (-tk).%s"
+			, item_start
+			, lt
+			, gt
+			, expl_start
+			, list_start
+			);
+	fprintf(stdout
+			,"%sIf omitted, defaults to io.github.fsmlang.generated.%smachine_name%s.%s"
+			, inner_item_start
+			, lt
+			, gt
+			, list_item_end
+			);
+	fprintf(stdout
 			,"%s--add-doxygen-blocks=%strue|false*%s%sDoxygen headers will be added to user%s"
 			, item_start
 			, lt
