@@ -623,7 +623,10 @@ static bool print_event_data_variant(pLIST_ELEMENT pelem, void *data)
 	/* Capitalise first letter for the class name */
 	char cap_name[256];
 	snprintf(cap_name, sizeof(cap_name), "%s", pevent->name);
-	cap_name[0] = (char)toupper((unsigned char)cap_name[0]);
+	if (cap_name[0] != '\0')
+	{
+		cap_name[0] = (char)toupper((unsigned char)cap_name[0]);
+	}
 
 	fprintf(pih->fout
 			, "    data class %sPayload(\n"
@@ -929,7 +932,10 @@ static bool print_event_translator_hook(pLIST_ELEMENT pelem, void *data)
 	/* Build payload type: <Machine>EventData.<EventName>Payload */
 	char cap_event[256];
 	snprintf(cap_event, sizeof(cap_event), "%s", pevent->name);
-	cap_event[0] = (char)toupper((unsigned char)cap_event[0]);
+	if (cap_event[0] != '\0')
+	{
+		cap_event[0] = (char)toupper((unsigned char)cap_event[0]);
+	}
 
 	char payload_type[512];
 	snprintf(payload_type, sizeof(payload_type), "%sEventData.%sPayload", machine_name, cap_event);
@@ -1242,7 +1248,10 @@ static void writeTranslateEventData(FILE *fout, pMACHINE_INFO pmi)
 		{
 			char cap_event[256];
 			snprintf(cap_event, sizeof(cap_event), "%s", pevent->name);
-			cap_event[0] = (char)toupper((unsigned char)cap_event[0]);
+			if (cap_event[0] != '\0')
+			{
+				cap_event[0] = (char)toupper((unsigned char)cap_event[0]);
+			}
 
 			char tname[256];
 			translatorName(pevent->name, pued, tname, sizeof(tname));
