@@ -163,6 +163,13 @@ void usage(void)
 			,"%s'r'%sgets you reStructuredText output%s"
 			, help_fmt == 'r' ? item_start : inner_item_start
       , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
+			);
+
+	fprintf(stdout
+			,"%s'k'%sgets you Kotlin output (single-switch style, flat machines only)%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
 			, list_item_end
 			);
 

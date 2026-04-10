@@ -20,5 +20,6 @@ SRC =   lexer.c                \
          util_file_inclusion.c \
          fsm_c_single_switch.c \
          action_info_list.c    \
-	 fsm_python_transitions.c
+	 fsm_python_transitions.c \
+	 fsm_kotlin.c
 

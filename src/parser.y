@@ -35,6 +35,7 @@
 #include "usage.h"
 #include "fsm_c_single_switch.h"
 #include "fsm_python_transitions.h"
+#include "fsm_kotlin.h"
 
 #include "list.h"
 
@@ -3152,6 +3153,10 @@ int main(int argc, char **argv)
 						case 'r':
 							fpfsmogf = generateRSTMachineWriter;
             	break;
+
+						case 'k':
+							fpfsmogf = generateKotlinMachineWriter;
+							break;
 
 					  default:
 						  usage();
