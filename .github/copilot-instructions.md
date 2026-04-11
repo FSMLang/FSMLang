@@ -43,6 +43,7 @@ src/               C source for the fsm compiler
   fsm_plantuml.c   PlantUML generator
   fsm_rst.c        reStructuredText generator
   fsm_python_transitions.c / .h   Python/PyTransitions generator
+  fsm_kotlin.c / .h   Kotlin (single instance) generator
   usage.c          Help text and CLI flag documentation
 
 linux/             Output directory for the Linux build
