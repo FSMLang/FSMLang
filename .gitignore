@@ -146,6 +146,7 @@ test/full_test*/*.c
 test/full_test*/*.h
 test/full_test*/*.d.*
 test/full_test*/*.plantuml
+test/full_test*/*.kt
 
 # Lexer/parser test generated files
 test/lexer/lexer.c

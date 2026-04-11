@@ -1,0 +1,6 @@
+# Gradle build output
+build/
+.gradle/
+
+# Generated Kotlin sources (copied in by CI before build)
+src/main/kotlin/
