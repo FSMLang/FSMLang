@@ -16,6 +16,7 @@ else
 
 	SUITES = lexer parser unit statistics html
 	SUITES += $(FULL_TESTS)
+	SUITES += kotlin_smoke
 
 endif
 

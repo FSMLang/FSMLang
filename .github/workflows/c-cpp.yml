@@ -13,6 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Set up Java (Temurin 17)
+      # Required for kotlin_smoke, which is now part of the make Linux.testonly test suite
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '17'
     
     - name: Update Packages
       run: sudo apt install -y libfl-dev
@@ -83,18 +90,6 @@ jobs:
           cd linux
           CFLAGS="-DLINUX -I../src -I." make fsm
 
-      - name: Generate Kotlin for full_test144
+      - name: Run Kotlin smoke tests via Make
         run: |
-          cd test/full_test144
-          ../../linux/fsm -tk test_fsm.fsm
-
-      - name: Copy generated Kotlin into smoke-test sources
-        run: |
-          mkdir -p test/kotlin_smoke/src/main/kotlin/io/github/fsmlang/generated/test_fsm
-          cp test/full_test144/test_fsm.kt \
-             test/kotlin_smoke/src/main/kotlin/io/github/fsmlang/generated/test_fsm/
-
-      - name: Run Kotlin smoke tests
-        run: |
-          cd test/kotlin_smoke
-          ./gradlew test
+          make -C test/kotlin_smoke OUTPUT_DIR="$(pwd)/linux" runtest
