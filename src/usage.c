@@ -107,7 +107,7 @@ void usage(void)
   }
 
 	fprintf(stdout
-			, "%s%sUsage : %s [-tc|s|e|h|p|r] [-o outfile] %sfilename%s.fsm%s"
+			, "%s%sUsage : %s [-tc|s|e|h|p|r|k] [-o outfile] %sfilename%s.fsm%s"
 			, list_start
 			, item_start
 			, me
@@ -161,6 +161,13 @@ void usage(void)
 
 	fprintf(stdout
 			,"%s'r'%sgets you reStructuredText output%s"
+			, help_fmt == 'r' ? item_start : inner_item_start
+      , expl_start
+			, help_fmt == 'r' ? list_item_end : item_end
+			);
+
+	fprintf(stdout
+			,"%s'k'%sgets you Kotlin output (single-switch style, flat machines only)%s"
 			, help_fmt == 'r' ? item_start : inner_item_start
       , expl_start
 			, list_item_end
@@ -234,6 +241,21 @@ void usage(void)
 			, item_start
 			, expl_start
 			, item_end
+			);
+	fprintf(stdout
+			,"%s--kotlin-package=%spkg%s%sPackage declaration for Kotlin output (-tk).%s"
+			, item_start
+			, lt
+			, gt
+			, expl_start
+			, list_start
+			);
+	fprintf(stdout
+			,"%sIf omitted, defaults to io.github.fsmlang.generated.%smachine_name%s.%s"
+			, inner_item_start
+			, lt
+			, gt
+			, list_item_end
 			);
 	fprintf(stdout
 			,"%s--add-doxygen-blocks=%strue|false*%s%sDoxygen headers will be added to user%s"

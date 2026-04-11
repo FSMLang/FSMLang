@@ -132,6 +132,10 @@ test/python/*/*.py
 !test/python/*/*.py.canonical
 test/python/*/fsmout
 test/python/*/*.result
+test/kotlin/*/*.kt
+!test/kotlin/*/*.kt.canonical
+test/kotlin/*/fsmout
+test/kotlin/*/*.result
 test/done
 
 
