@@ -141,8 +141,18 @@ Generated Kotlin MUST mirror the single-switch C generator semantics for single-
 ## 8. Testing requirements
 
 Add/update tests so CI exercises `-tk`, including:
+
 - basic generation smoke/golden output
-- `--generate-weak-fns` true vs false
+- `--generate-weak-fns` true vs false (compilation coverage is sufficient if runtime behavior is otherwise exercised)
 - `-M` and `-Md` dependency output behavior
 - event payload translation hook invocation with zero-init fallback
+
+In addition, CI MUST include at least one Kotlin **behavior** smoke test that:
+- generates Kotlin for `test/full_test144`
+- compiles the generated Kotlin on Linux
+- runs a JUnit-based test that drives the FSM with the same event sequence as `test/full_test144/test.c` (single instance is sufficient for now)
+- asserts at least one observable outcome from the run (e.g., `e1_count == 4` for the full_test144 sequence)
+- includes a test case that dispatches an event requiring translation **without** payload and verifies the translator receives a zero-initialized payload (and state/data reflect that)
+
+Multi-instance parity testing is out of scope for this initial Kotlin backend and may be added later.
 
