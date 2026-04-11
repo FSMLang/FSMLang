@@ -895,7 +895,7 @@ static bool print_entry_exit_hooks(pLIST_ELEMENT pelem, void *data)
 /*
  * Compute the translator hook name for an event.
  * If an explicit translator was declared in the FSM, use that name.
- * Otherwise use grab_<event>_data (per SPEC.md section 5).
+ * Otherwise use translate_<event>_data (per SPEC.md section 5).
  */
 static void translatorName(const char *event_name, pUSER_EVENT_DATA pued, char *out, size_t out_size)
 {
@@ -905,7 +905,7 @@ static void translatorName(const char *event_name, pUSER_EVENT_DATA pued, char *
 	}
 	else
 	{
-		snprintf(out, out_size, "grab_%s_data", event_name);
+		snprintf(out, out_size, "translate_%s_data", event_name);
 	}
 }
 

@@ -107,7 +107,7 @@ void usage(void)
   }
 
 	fprintf(stdout
-			, "%s%sUsage : %s [-tc|s|e|h|p|r] [-o outfile] %sfilename%s.fsm%s"
+			, "%s%sUsage : %s [-tc|s|e|h|p|r|k] [-o outfile] %sfilename%s.fsm%s"
 			, list_start
 			, item_start
 			, me
