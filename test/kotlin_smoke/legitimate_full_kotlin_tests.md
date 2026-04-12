@@ -33,7 +33,6 @@ test/full_test74/test_fsm.fsm
 test/full_test75/test_fsm.fsm
 test/full_test81/parser-test2.fsm
 test/full_test82/parser-test2.fsm
-test/full_test83/parser-test2.fsm
 test/full_test88/test_fsm.fsm
 test/full_test99/test_empty_cells.fsm
 test/full_test109/test_fsm.fsm
