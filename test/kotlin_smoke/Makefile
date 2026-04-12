@@ -25,6 +25,7 @@ FT144_KT   := ../full_test144/test_fsm.kt
 FT144_DEST := $(GRADLE_MAIN)/test_fsm
 
 $(FT144_KT): ../full_test144/test_fsm.fsm $(FSM)
+	# fsm -tk produces <stem>.kt in the working directory; here that is test_fsm.kt
 	cd ../full_test144 && $(FSM) -tk test_fsm.fsm
 
 $(FT144_DEST)/test_fsm.kt: $(FT144_KT)
@@ -41,6 +42,7 @@ ALL_DEST_DIRS    += $(GRADLE_MAIN)/full_test$(1)
 
 $(GRADLE_MAIN)/full_test$(1)/$(basename $(2)).kt: ../full_test$(1)/$(2) $$(FSM)
 	@mkdir -p $(GRADLE_MAIN)/full_test$(1)
+	# fsm -tk writes <stem>.kt alongside the .fsm in the working directory
 	cd ../full_test$(1) && $$(FSM) -tk --kotlin-package=$(PKG_BASE).full_test$(1) $(2)
 	cp ../full_test$(1)/$(basename $(2)).kt $$@
 
