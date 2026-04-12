@@ -208,6 +208,9 @@ machine MachineName
 }
 ```
 
+Hierarchcal machines are specified by simply declaring a new machine inside of another - after the event and state declarations, but before any
+action declarations.  There is no *sub* keyword in FSMLang.
+
 ### Output Generator Structure
 
 Each output generator (`fsm_c.c`, `fsm_python_transitions.c`, …) exports a concrete `generate*Writer` function. The signature follows this pattern:
