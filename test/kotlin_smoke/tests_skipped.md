@@ -5,20 +5,21 @@ Kotlin smoke-test suite and why.
 
 ---
 
-## 1. Hard exclusions — defective fixtures
+## 1. Hard exclusions — explicitly excluded by project requirements
 
-These directories contain `.fsm` files that are intentionally malformed (they
-are parser-error or semantic-error regression tests).  The `fsm -tk` generator
-fails on them by design, so no `.kt` is produced.
+These directories are explicitly excluded from Kotlin parity smoke testing
+per project requirements (PR #309).  They exercise C code-generation features
+or sub-machine layouts that are not part of the current `-tk` single-instance
+test scope.
 
-| Directory | Reason |
-|-----------|--------|
-| `full_test12` | Intentionally malformed parser-test fixture |
-| `full_test39` | Intentionally malformed / error-only fixture |
-| `full_test40` | Intentionally malformed / error-only fixture |
-| `full_test41` | Intentionally malformed / error-only fixture |
-| `full_test42` | Intentionally malformed / error-only fixture |
-| `full_test43` | Intentionally malformed / error-only fixture |
+| Directory | Notes |
+|-----------|-------|
+| `full_test12` | Excluded per project requirements; exercises C-variant features |
+| `full_test39` | Excluded per project requirements; uses `-ts` switch-based generator |
+| `full_test40` | Excluded per project requirements; exercises C-variant features |
+| `full_test41` | Excluded per project requirements; exercises sub-machine topology with `-ts --short-debug-names --add-machine-name` |
+| `full_test42` | Excluded per project requirements; exercises C-variant features |
+| `full_test43` | Excluded per project requirements; exercises C-variant features |
 
 ---
 
