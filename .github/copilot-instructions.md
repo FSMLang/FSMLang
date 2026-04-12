@@ -181,6 +181,39 @@ cd test/kotlin_smoke
 make OUTPUT_DIR=$(pwd)/../../linux runtest
 ```
 
+### Finding tests with certain characteristics
+
+Running 
+
+```
+fsm -s -M --find-on-sub-machine-depth=N filename.fsm
+```
+where N is a non-negative integer will return filename.fsm when the top-level machine in the given file has the indicated
+depth of sub-machines.  To find flat machines (those having no sub-machines), set N=0.
+
+Example: list flat machines (depth 0) under test/full_test*
+```bash
+find test -path 'test/full_test*/*.fsm' -print \
+  | while read -r f; do linux/fsm -s -M --find-on-sub-machine-depth=0 "$f"; done \
+  | sed '/^$/d'
+```
+
+similarly, `--find-on-top-level-machine-data` will find machines having data at the top-level, and
+`--find-on-event-data` will find machines having at least one event with data.
+
+Only one --find-on... option can be used at a time. To apply multiple predicates, run multiple passes and intersect the resulting filename lists (e.g., capture stdout to files and use comm / grep -Fxf), or use xargs/a loop to re-run fsm on the filtered list.
+
+The tool indicates success by writing the input file name to stdout; the exit code is always 0, so stdout must be read rather than looking for an
+error exit.
+
+The `-s` option activates the FSMLang statistics module, which normally (without the `-M` option) would print useful machine statistics to stdout.
+
+The `-M` option is what restricts the output to just the file name.  This usage is similar to what `-M` does for other generator options.
+
+find_on_sub_machine_depth.sh, in the root of the repo, shows an example of a good way to use the --find-on... features.  It also shows that some
+full_test directories must be skipped because they contain intentionally defective .fsm files.
+
+
 ---
 
 ## Key Design Conventions
