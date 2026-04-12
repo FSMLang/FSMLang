@@ -182,6 +182,10 @@ The Make-based Kotlin smoke step MUST include at least the `.fsm` files listed i
 2) **Automated eligibility detection (incremental additions)**
 In addition to the baseline manifest, the Make-based Kotlin smoke step MAY include newly eligible `.fsm` files discovered automatically, provided they satisfy the eligibility rules specified in this document (single-level, standalone C `main`, not doc-only output, no `-i0`, does not expect weak functions, single-instance only, etc.).
 
+To discover new eligible `.fsm` files, use this command line:
+`fsm -s -M --find-on-sub-machine-depth=0 <name>.fsm`
+This will return output `<name>.fsm` when the file contains a machine with no sub-machines.
+
 3) **Cleanup rule**
 Kotlin smoke test material (JUnit tests, hook implementations, Makefile rules, etc.) for full_tests NOT in the baseline manifest MUST NOT be kept around “accidentally”:
 - any such material should be deleted during cleanup,
