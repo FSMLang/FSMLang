@@ -14,7 +14,7 @@ ifneq ("$(wildcard relevant.lst)", "")
 
 else
 
-	SUITES = lexer parser unit statistics html python
+	SUITES = lexer parser unit statistics html python kotlin
 	SUITES += $(FULL_TESTS)
 	SUITES += kotlin_smoke
 
