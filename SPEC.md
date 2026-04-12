@@ -166,47 +166,31 @@ I.e., `make Linux.test` MUST cause:
 
 Multi-instance parity testing is out of scope for the initial Kotlin backend and may be added later.
 
-### 8.3 Kotlin full_test parity coverage (incremental)
+### 8.3 Kotlin full_test parity: baseline manifest + automated discovery
 
-Kotlin behavior smoke tests SHOULD be added incrementally to cover all applicable `test/full_test*` directories, subject to the inclusion/exclusion rules below.
+To keep Kotlin smoke coverage stable while still allowing incremental growth:
 
-#### Inclusion rules (a full_test directory is eligible only if all are true)
-A `test/full_test<N>/` directory is eligible for Kotlin parity smoke testing only if:
+1) **Baseline manifest**
+The repository MUST maintain a baseline list of Kotlin parity full_tests at:
 
-1) It contains at least one `.fsm` file that is a **single-level FSM**, as determined by:
-   - `fsm -s -M --find-on-sub-machine-depth=0 <name>.fsm`
-   - The file is single-level if the command outputs the `.fsm` filename.
+- `test/kotlin_smoke/legitimate_full_kotlin_tests.md`
 
-2) The directory uses a standalone C driver file containing `int main` (typically `test.c` but not required to be named `test.c`).
-   - Directories where `main` is defined in the `.fsm` itself are not eligible.
+This file documents the known-good, intended Kotlin parity tests (as `.fsm` paths).
 
-3) The test is not “documentation-only” output:
-   - Directories whose Makefile specifies only `-th` (HTML) and/or `-tp` (PlantUML) and/or `-tr` (reStructuredText) outputs are not eligible.
+The Make-based Kotlin smoke step MUST include at least the `.fsm` files listed in this manifest.
 
-4) The directory does not use `-i0` in `FSM_FLAGS` (these tests do not create a real machine instance and require different semantics).
+2) **Automated eligibility detection (incremental additions)**
+In addition to the baseline manifest, the Make-based Kotlin smoke step MAY include newly eligible `.fsm` files discovered automatically, provided they satisfy the eligibility rules specified in this document (single-level, standalone C `main`, not doc-only output, no `-i0`, does not expect weak functions, single-instance only, etc.).
 
-5) The directory does not expect weak functions to be generated (tests requiring weak-fn generation are currently out of scope for Kotlin behavior parity).
+3) **Cleanup rule**
+Kotlin smoke test material (JUnit tests, hook implementations, Makefile rules, etc.) for full_tests NOT in the baseline manifest MUST NOT be kept around “accidentally”:
+- any such material should be deleted during cleanup,
+- and thereafter added only when a test is intentionally promoted into Kotlin parity coverage (via manifest update and/or passing automated eligibility).
 
-6) Kotlin tests are single-instance only for now (Kotlin multi-instance parity may be added later).
-
-#### Exclusion rules / known-bad fixtures
-The following directories contain intentionally defective `.fsm` inputs and MUST be skipped:
-- `test/full_test12`
-- `test/full_test39` through `test/full_test43` (inclusive)
-
-#### Package uniqueness requirement for Kotlin parity runs
-Because machine and/or output filenames are not globally unique across `full_test*` directories, Kotlin parity smoke tests MUST ensure uniqueness by using `--kotlin-package` when generating Kotlin sources. The package should incorporate the full_test directory name (e.g., `io.github.fsmlang.generated.full_test144`) so that multiple generated machines can coexist in a single Gradle test project.
-
-#### Coverage tracking (tests_skipped.md)
-The Kotlin smoke harness MUST maintain a coverage report at:
+4) **Coverage reporting**
+The Kotlin smoke harness MUST maintain:
 - `test/kotlin_smoke/tests_skipped.md`
 
-This file MUST list:
-- all `test/full_test*` directories that are outside the hard exclusions above, but were skipped by the Kotlin smoke selection rules
-- the reason each directory was skipped
-
-It SHOULD separate:
-- hard exclusions (intentionally defective fixtures)
-- not applicable (documentation-only output)
-- out of scope (multi-instance, `-i0`, weak-fns expectation, non-single-level)
-- currently unsupported (parity not attainable yet)
+This file SHOULD:
+- state that `legitimate_full_kotlin_tests.md` is the baseline,
+- list other full_test directories/files that were considered by automated discovery but skipped, including reasons.
