@@ -157,3 +157,5 @@ test/parser/test
 test/parser/y.output
 test/parser/y.tab.h
 test/parser/*.d.*
+# Root-level generated artifacts (produced when running fsm from repo root)
+/*.kt
