@@ -174,7 +174,7 @@ Kotlin behavior smoke tests SHOULD be added incrementally to cover all applicabl
 A `test/full_test<N>/` directory is eligible for Kotlin parity smoke testing only if:
 
 1) It contains at least one `.fsm` file that is a **single-level FSM**, as determined by:
-   - `fsm -s --find-on-sub-machine-depth=0 <name>.fsm`
+   - `fsm -s -M --find-on-sub-machine-depth=0 <name>.fsm`
    - The file is single-level if the command outputs the `.fsm` filename.
 
 2) The directory uses a standalone C driver file containing `int main` (typically `test.c` but not required to be named `test.c`).
