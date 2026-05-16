@@ -24,6 +24,7 @@ It reads `.fsm` source files and generates implementation code in several target
 | `-tp` | PlantUML diagrams |
 | `-tr` | reStructuredText documentation |
 | `-tpy` | Python (PyTransitions package) |
+| `-tk` | Kotlin (single-instance) |
 
 The executable produced is `fsm`. Source lives in `src/`.
 
@@ -42,6 +43,7 @@ src/               C source for the fsm compiler
   fsm_plantuml.c   PlantUML generator
   fsm_rst.c        reStructuredText generator
   fsm_python_transitions.c / .h   Python/PyTransitions generator
+  fsm_kotlin.c / .h   Kotlin (single instance) generator
   usage.c          Help text and CLI flag documentation
 
 linux/             Output directory for the Linux build
@@ -66,6 +68,10 @@ test/              Test suites
                      <name>.fsm          – input
                      <name>.py.canonical – expected output (gold file)
                      Makefile            – sets FSM_FLAGS, includes python.mk
+  kotlin/          Kotlin golden-output consistency tests
+    kotlin.mk      Common rules for all kotlin golden tests
+    <name>/        Each sub-dir is one test (Makefile + <name>.kt.canonical)
+  kotlin_smoke/    Kotlin -tk smoke tests (Gradle/JUnit; generated .kt copied in by Make)
 
 fsmrules.mk        Make rules for .fsm → .c / .h / .html / .plantuml / .rst / .py
 depends.mk         Compiler/linker flag dependency rules
@@ -81,8 +87,10 @@ simpleCommunicator.fsm  Canonical simple example
 ### Preferred: Make (Linux)
 
 ```bash
-# Install prerequisite
-sudo apt install -y libfl-dev
+# Install prerequisites
+sudo apt install -y libfl-dev   # Flex runtime library (required for linking)
+sudo apt install -y openjdk-17-jdk  # JDK 17 (required for Kotlin smoke tests)
+java -version                   # verify: openjdk 17 …
 
 # Build the fsm binary into linux/
 cd src
@@ -148,6 +156,64 @@ cd test/full_test42          # example
 make OUTPUT_DIR=$(pwd)/../../linux runtest
 ```
 
+### Kotlin smoke tests
+
+The Kotlin smoke test harness lives in `test/kotlin_smoke/` (Gradle 8 + JUnit 5). It runs **automatically** as part of `make Linux.test` – no manual steps needed.
+
+**What Make does:**
+1. Runs `fsm -tk test_fsm.fsm` inside `test/full_test144/` (writes `test_fsm.kt` next to the `.fsm`).
+2. Copies the generated `.kt` into `test/kotlin_smoke/src/main/kotlin/io/github/fsmlang/generated/test_fsm/`.
+3. Runs `./gradlew test` from `test/kotlin_smoke/`.
+4. Propagates non-zero exit code → `make Linux.test` fails if any JUnit test fails.
+
+**Dependencies:**
+- JDK 17 (or later) must be installed and on `PATH`.
+  ```bash
+  sudo apt update
+  sudo apt install -y openjdk-17-jdk
+  java -version   # verify: openjdk 17 …
+  ```
+- Gradle 8 is invoked via the wrapper (`gradlew`); no separate Gradle installation needed.
+
+**Run kotlin_smoke in isolation:**
+```bash
+cd test/kotlin_smoke
+make OUTPUT_DIR=$(pwd)/../../linux runtest
+```
+
+### Finding tests with certain characteristics
+
+Running 
+
+```
+fsm -s -M --find-on-sub-machine-depth=N filename.fsm
+```
+where N is a non-negative integer will return filename.fsm when the top-level machine in the given file has the indicated
+depth of sub-machines.  To find flat machines (those having no sub-machines), set N=0.
+
+Example: list flat machines (depth 0) under test/full_test*
+```bash
+find test -path 'test/full_test*/*.fsm' -print \
+  | while read -r f; do linux/fsm -s -M --find-on-sub-machine-depth=0 "$f"; done \
+  | sed '/^$/d'
+```
+
+similarly, `--find-on-top-level-machine-data` will find machines having data at the top-level, and
+`--find-on-event-data` will find machines having at least one event with data.
+
+Only one --find-on... option can be used at a time. To apply multiple predicates, run multiple passes and intersect the resulting filename lists (e.g., capture stdout to files and use comm / grep -Fxf), or use xargs/a loop to re-run fsm on the filtered list.
+
+The tool indicates success by writing the input file name to stdout; the exit code is always 0, so stdout must be read rather than looking for an
+error exit.
+
+The `-s` option activates the FSMLang statistics module, which normally (without the `-M` option) would print useful machine statistics to stdout.
+
+The `-M` option is what restricts the output to just the file name.  This usage is similar to what `-M` does for other generator options.
+
+find_on_sub_machine_depth.sh, in the root of the repo, shows an example of a good way to use the --find-on... features.  It also shows that some
+full_test directories must be skipped because they contain intentionally defective .fsm files.
+
+
 ---
 
 ## Key Design Conventions
@@ -174,6 +240,9 @@ machine MachineName
     reentrant machine ...   // thread-safe re-entrance protection
 }
 ```
+
+Hierarchcal machines are specified by simply declaring a new machine inside of another - after the event and state declarations, but before any
+action declarations.  There is no *sub* keyword in FSMLang.
 
 ### Output Generator Structure
 
@@ -230,7 +299,7 @@ When `--generate-weak-fns=false` is **not** set (default), weak-function stubs a
 ## CLI Flags (Selected)
 
 ```
-fsm [-t[c|s|e|ss|h|p|r|py]] [-o outfile] filename.fsm
+fsm [-t[c|s|e|ss|h|p|r|py|k]] [-o outfile] filename.fsm
 
 -tc          C array-based output (default)
 -ts          C switch-based output
@@ -240,6 +309,7 @@ fsm [-t[c|s|e|ss|h|p|r|py]] [-o outfile] filename.fsm
 -tp          PlantUML output
 -tr          reStructuredText output
 -tpy         Python (PyTransitions) output
+-tk          Kotlin (single-instance) output
 -c           Compact event/state table (with -tc)
 -M           Print list of generated source files (for Makefile GENERATED_SRC)
 -Mh          Print list of generated header files
@@ -291,3 +361,9 @@ fsm [-t[c|s|e|ss|h|p|r|py]] [-o outfile] filename.fsm
 - **Generated `.py` files are gitignored**: `test/python/*/*.py` (excluding `*.py.canonical`) are excluded via `.gitignore`. Do not attempt to force-add them.
 - **CMake build artefacts**: The `build/` directory is gitignored. Use `/tmp/fsmbuild` or similar when building with CMake to avoid cluttering the repo root.
 - **Merge target is `master`**: All PRs must target the `master` branch; there is no `main` branch.
+- **Empty `-D` flag / compilation fails with `-D `**: Symptom: gcc is invoked with an empty `-D` or `-D ` and compilation fails. Root cause: some Makefile rules expand `-D$(ARCH)`, so omitting `ARCH` produces an empty flag. Fix: pass `ARCH=LINUX` explicitly, or use the standard entrypoint which propagates it automatically:
+  ```bash
+  cd src && make Linux.test          # always correct — propagates ARCH
+  # If calling test/ directly:
+  make ARCH=LINUX OUTPUT_DIR=$(pwd)/../linux all
+  ```

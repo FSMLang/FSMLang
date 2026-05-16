@@ -13,6 +13,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Set up Java (Temurin 17)
+      # Required for kotlin_smoke, which is now part of the make Linux.testonly test suite
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: '17'
     
     - name: Update Packages
       run: sudo apt install -y libfl-dev
@@ -41,3 +48,4 @@ jobs:
       with:
         name: fsm-linux-image
         path: linux/fsm
+

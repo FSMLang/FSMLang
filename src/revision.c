@@ -618,5 +618,11 @@
 		</li>
 	</ul>
 */
-const char rev_string[] = "2.4";
+
+/*
+	Revision 2.5
+
+	This revision will include kotlin support.
+*/
+const char rev_string[] = "2.5.alpha-1";
 

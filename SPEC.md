@@ -1,254 +1,200 @@
-# SPEC: Remove `condition`, enforce single matrix cell entry, and add `when/otherwise` return-choice metadata for guard transitions (PyTransitions)
+# FSMLang Kotlin Generator Specification (`-tk`)
 
-## Status / scope guardrails (MUST)
-- Repo: `FSMLang/FSMLang`
-- PR: #304 https://github.com/FSMLang/FSMLang/pull/304
+This document specifies the Kotlin code generator backend for FSMLang.
 
-- **Merge target (base branch):** `master`
-- **Working branch (head branch to push commits to):**
-  - `303-make-pytransitions-support-look-more-like-fsmlang`
-  - The agent MUST push commits to this branch.
-  - The agent MUST NOT create a new branch and MUST NOT open a new PR.
+## 1. Overview
 
-### Allowed files / directories to modify (MUST)
-- Lexer / parser / core FSM structures:
-  - `src/lexer.l`
-  - `src/parser.y`
-  - `src/fsm_priv.h` (only if necessary)
-  - `src/fsm_utils.c` (only if necessary)
-- Action matrix insertion logic:
-  - wherever `add_to_action_array` is implemented/declared/used (expected under `src/`)
-- PyTransitions generator:
-  - `src/fsm_python_transitions.c`
-  - `src/fsm_python_transitions.h` (only if necessary)
-- Tests / canonicals:
-  - update any impacted canonicals to match the new language (since PyTransitions support is not officially released yet)
-  - python tests under `test/python/**`
-  - parser/lexer tests under `test/parser/**` and/or `test/lexer/**` only if existing coverage breaks and needs minimal updates
+Add a new code generator backend selected by the command line option:
 
-### Hard non-goals
-1. No drive-by refactors or formatting-only changes.
-2. No CI/workflow edits.
-3. Do not commit generated artifacts (`*.py`, `fsmout`, `*.result`, binaries, build dirs).
-4. Do not introduce new features beyond what is described here.
+- `-tk` : generate Kotlin output.
 
----
+The Kotlin backend is intended to mirror the semantics of the **single-switch C generator** for **single-level** FSMs.
 
-## Problem statement
-Early PyTransitions support introduced:
-1) a new FSMLang keyword `condition`, and
-2) support for multiple action/transition entries in a single `(event,state)` matrix cell.
+## 2. Output files
 
-These will be undone:
-- The keyword `condition` must be removed.
-- The core event/state matrix must return to allowing **only one entry** per `(event,state)` pair.
+### 2.1 One file per machine
+The Kotlin generator MUST emit all generated Kotlin code for a machine into a **single** `.kt` file.
 
-To retain PyTransitions conditional branching functionality, the “transition via function (guard)” feature is expanded to support **conditional return-choice metadata** using new keywords:
-- `when <conditionFn>`: attaches a named condition function to a specific return choice
-- `otherwise`: a required fallback choice when conditional metadata is used
+The `.kt` file MUST include:
+- `enum class` definitions for State and Event
+- machine data type(s)
+- event struct + event payload union type(s)
+- the FSM class (machine instance)
+- hook types for user code (actions, transitions/guards, entry/exit, event data translators)
+- the generated dispatch/FSM function and helper functions
 
-This metadata is primarily for PyTransitions generation and is not strictly enforced beyond grammar/structure rules (consistent with FSMLang’s approach of not requiring return metadata).
+### 2.2 Package name
 
----
+#### 2.2.1 Default package name
+If `--kotlin-package` is NOT provided, the generator MUST emit a Kotlin `package` declaration:
 
-## Glossary
-- **Trigger**: the event name used to trigger a transition (PyTransitions terminology).
-- **Cell**: an `(event,state)` entry in the action/transition matrix.
-- **Guard transition**: `transition [event, state] guardFn;` where `guardFn` decides what to do next.
-- **Return-choice metadata**: `guardFn returns ...;` declarations that list possible return values (states + `noTransition`) and, optionally, conditions.
+- `package io.github.fsmlang.generated.<machine_name_sanitized>`
 
----
+#### 2.2.2 `--kotlin-package=<pkg>`
+Add a new command line option:
 
-## Language changes (MUST)
+- `--kotlin-package=<pkg>`
 
-### A) Remove `condition` keyword from the language (MUST)
-1. Remove the token/keyword `condition` from the lexer (`src/lexer.l`).
-2. Remove all grammar productions / parser reductions deriving from `condition` (`src/parser.y`).
-3. Remove any AST/data-structure fields that were exclusively supporting the `condition` keyword.
-4. Error behavior:
-   - It is acceptable for `condition` to become a generic parse error (“syntax error”) without custom messaging.
+If provided, the generator MUST emit:
 
-### B) Revert matrix cell cardinality: only one entry per (event,state) (MUST)
-1. Revert `add_to_action_array` behavior to enforce:
-   - only a single entry is allowed per `(event,state)` cell
-2. If a second entry is added for the same cell, generation must fail (existing FSMLang error patterns apply).
-3. This applies to both:
-   - `action ... [event,state] ...;`
-   - `transition [event,state] ...;`
-   regardless of backend.
+- `package <pkg>`
 
----
+and MUST NOT auto-append the machine name.
 
-## New/expanded guard return metadata syntax (MUST)
+#### 2.2.3 Kotlin-safety sanitization rules
+For the default package suffix `<machine_name_sanitized>`, apply:
+1) lowercase
+2) replace any character not in `[a-z0-9_]` with `_`
+3) collapse multiple consecutive `_` into a single `_`
+4) trim leading/trailing `_`
+5) if empty, use `machine`
+6) if starts with a digit, prefix with `m_`
+7) if equals a Kotlin keyword, prefix with `m_`
 
-### C) Placement: returns statements occur at end of machine block (MUST)
-All return metadata declarations MUST appear:
-- **after all other statements**
-- **just before** the machine’s closing `}`
+The generator MAY validate `--kotlin-package`:
+- it must be dot-separated identifiers
+- identifiers should be Kotlin-safe; if not, the generator should either sanitize or error with a clear message (implementation choice must be consistent and documented in `--help`).
 
-This is a grammar constraint. Example placement:
+## 3. CLI options support
 
-```fsm
-machine M {
-    state a, b;
-    event e;
+### 3.1 Required options
+The Kotlin generator MUST support:
+- `-M`
+- `-Md` (write dependencies to file, consistent with existing FSMLang behavior)
+- `--generate-weak-fns` (see section 6)
 
-    transition [e, a] guard;
+### 3.2 Dependency generation (`-M` / `-Md`)
+Dependency output MUST include:
+- the input `.fsm` file
+- any included/imported files (if FSMLang supports includes), consistent with other backends
 
-    guard returns b, noTransition;
-}
-```
+`-M` writes dependencies to stdout (or consistent with current FSMLang behavior).
+`-Md` writes dependencies to the specified file (or consistent with current FSMLang behavior).
 
-### D) Return metadata statement forms (MUST)
-A return metadata statement has the form:
+## 4. Data model mapping (C-style FSMLang data)
 
-```fsm
-<guardFnName> returns <returnChoiceList> ;
-```
+### 4.1 Machine data
+FSMLang machine data (C-style struct) MUST be emitted as a Kotlin `data class`.
 
-Where `<returnChoiceList>` can be:
+### 4.2 Event and event payload
+Kotlin output MUST model events as:
+- an **event enum** for the discriminator (mirrors `*_EVENT_ENUM`), and
+- an **event struct** type containing:
+  - `event: <EventEnum>`
+  - `eventData: <EventDataUnion>`
 
-#### Mode A (legacy/unconditional list)
-A comma-separated list of return values with **no** `when` or `otherwise` keywords:
+Event payload unions MUST be modeled as a Kotlin sealed type (e.g., `sealed interface` with one variant per payload type + `None`).
 
-```fsm
-guardFn returns asleep, hanging_out, noTransition;
-```
+### 4.3 Missing event data MUST be treated as zero-init
+If an event requires payload translation but `eventData` is missing or of a different variant, the generator MUST behave as if the payload were **zero-initialized**:
+- all scalar fields default to 0/false
+- nested structs default-construct recursively
+- arrays/strings follow the generator’s chosen representation and must default to “all zeros”
 
-Semantics: This is a set/list of possible return values (no conditional selection metadata).
+This requirement applies specifically to the call into user-defined event data translation hooks (section 5).
 
-#### Mode B (conditional list with `when/otherwise`)
-A comma-separated list where each choice is annotated with either:
-- `when <conditionFn>` OR
-- `otherwise`
+## 5. Event data translation (user-defined hooks)
 
-Example:
+The Kotlin generator MUST generate a `translateEventData(pfsm, eventStruct)` step that runs before the core FSM dispatch loop.
 
-```fsm
-guardFn returns
-      asleep when is_exhausted
-    , hanging_out otherwise
-    ;
-```
+For each event that carries payload data, the generator MUST emit a user hook:
 
-#### Mode selection and consistency (MUST)
-- If **any** return choice uses `when` or `otherwise`, then the list is in **Mode B**, and:
-  1) **Every** return choice MUST use exactly one of:
-     - `when <conditionFn>`
-     - `otherwise`
-  2) `otherwise` MUST appear **exactly once**
-  3) `otherwise` MUST be the **last** return choice
-  4) `otherwise` takes **no** condition function
+- `grab_<event>_data(pfsm, payload)`
 
-If no choice uses `when/otherwise`, the list is **Mode A** and remains backward-compatible.
+The hook is **user-defined**. The generator must only:
+- declare the hook in a generated hook type, and
+- call it from `translateEventData` based on the event enum.
 
-### E) Return values allowed (MUST)
-Each return choice value MUST be one of:
-- a declared machine state name, OR
-- the literal `noTransition`
+## 6. Weak functions option (`--generate-weak-fns`)
 
-(Consistent with prior guard-return support for PyTransitions.)
+The Kotlin generator MUST honor `--generate-weak-fns`:
 
-### F) Evaluation semantics for Mode B (MUST)
-Mode B defines an ordered selection model:
-1. Evaluate `when` clauses **top-to-bottom**.
-2. The **first** `when` condition that returns true selects its associated return value.
-3. If all `when` conditions are false, select the `otherwise` return value.
-4. If the selected return value is `noTransition`, then no transition occurs.
+- If `--generate-weak-fns=true`:
+  - Generated hook types MUST include default implementations (no-op), so the generated Kotlin compiles without user code.
 
-Important: FSMLang does not necessarily execute these conditions at runtime for all backends; this is **metadata used for PyTransitions generation**. (See enforcement policy.)
+- If `--generate-weak-fns=false`:
+  - Generated hook types MUST require user implementations (e.g., interfaces with required methods or abstract classes with abstract methods).
 
-### G) Enforcement policy / compatibility (MUST)
-FSMLang has historically not enforced the presence of return metadata for guard transitions. This must continue:
-- A guard transition may exist without any `returns` statement.
-- A `returns` statement may exist without a corresponding guard transition (not recommended; allowed unless it breaks existing design).
-- The parser must accept both Mode A and Mode B declarations as defined above.
+Hook categories include at least:
+- action functions
+- transition/guard functions
+- entry/exit functions
+- event data translation functions
 
-Documentation/narrative in code comments should indicate that PyTransitions output relies on the presence of sufficient return metadata.
+## 7. FSM runtime semantics (single-switch parity)
 
----
+Generated Kotlin MUST mirror the single-switch C generator semantics for single-level machines:
 
-## PyTransitions generator requirements (MUST)
+- The FSM core function accepts an event struct (event enum + payload union).
+- It performs `translateEventData(pfsm, eventStruct)` before processing events.
+- It uses an internal loop:
+  - continues while the current event enum is not `noEvent`
+- It maintains a read-only “current event enum” field on the machine instance for action error-reporting parity.
+- It dispatches based on the pair (event, state) using a combined switch structure (nested `when`, or equivalent).
+- Actions return the next event enum (or `noEvent`).
+- Transition/guard functions:
+  - receive only `(pfsm, eventEnum)` and return next state
+- State changes trigger:
+  - exit function for previous state
+  - entry function for next state
+## 8. Testing requirements
 
-### H) No usage of removed `condition` feature (MUST)
-The PyTransitions generator must not depend on the deleted `condition` token/AST path.
-All conditional branching must be derived from guard return metadata (Mode B) for guard transitions.
+Add/update tests so CI and local `make` flows exercise `-tk`, including:
+- basic generation smoke/golden output
+- `--generate-weak-fns` true vs false (at least compilation coverage)
+- `-M` and `-Md` dependency output behavior
+- event payload translation hook invocation with zero-init fallback
 
-### I) Mapping Mode B to PyTransitions transitions (MUST)
-For each guard transition cell:
+### 8.1 Kotlin behavior smoke test (full_test144)
+In addition to golden/output-consistency tests, the repository MUST include at least one Kotlin **behavior** smoke test based on `test/full_test144` that:
 
-```fsm
-transition [EVENT, STATE] guardFn;
-```
+- generates Kotlin using `-tk` from the `test/full_test144/*.fsm` input(s)
+- compiles the generated Kotlin on Linux
+- runs a JUnit-based test that drives the FSM with the same event sequence as `test/full_test144/test.c` (single instance is sufficient for now)
+- asserts at least one observable outcome (e.g., `e1_count == 4` after the sequence)
+- includes a test case that dispatches `e1` without payload and verifies the event-data translator receives a zero-initialized payload (and that machine data reflects that)
 
-When `guardFn returns ...` exists in Mode B:
-- Generate one PyTransitions transition entry per return choice value which is a state (exclude `noTransition` from actual destination transitions).
-- Each generated transition must:
-  - use trigger `EVENT`
-  - use source `STATE`
-  - use destination of the return choice state
-  - use a `conditions=` callback that corresponds to the choice’s condition
-    - for `when <condFn>`: conditions must invoke the named condition function
-    - for `otherwise`: conditions must be the negation of all prior `when` conditions (or an equivalent final condition function)
+### 8.2 Integration into existing Make-based test flow
+The Kotlin smoke test MUST run as part of the existing test sequence driven by:
 
-Implementation note: the generator may synthesize per-choice condition wrapper functions (e.g., `choose_<state>` or `choose_<retVal>`) as it does today, but these wrappers must reflect the `when/otherwise` metadata.
+- `make Linux.test` from `src/Makefile` (which recursively invokes `make` under `test/`)
 
-When the selected return is `noTransition`:
-- There is no PyTransitions destination transition for it.
+I.e., `make Linux.test` MUST cause:
+1) Kotlin `.kt` files to be generated (next to the `.fsm`, consistent with generator behavior),
+2) the generated `.kt` files to be copied into a Gradle/JUnit harness located under `test/`,
+3) Gradle tests to be executed, failing the overall `make Linux.test` target on Kotlin test failure.
 
-### J) Mapping Mode A / missing returns to PyTransitions (MUST)
-Existing behavior for guard transitions where return metadata is missing or unconditional (Mode A) is allowed to remain as-is, except:
-- it must not require declarations solely to parse (it may still be required to generate PyTransitions if that is current behavior)
-- do not reintroduce `condition`
+Multi-instance parity testing is out of scope for the initial Kotlin backend and may be added later.
 
-If the current generator requires explicit return declarations to generate PyTransitions for guard transitions, that may remain the default; however Mode B must be supported when present.
+### 8.3 Kotlin full_test parity: baseline manifest + automated discovery
 
-### K) Action semantics and `prepare_event` (MUST)
-Preserve the previously-established action semantics for PyTransitions output:
-- action-matrix “always-run actions” must be invoked exactly once per trigger occurrence via `prepare_event`
-- transition entries must not attach action functions as `before` callbacks solely to guarantee invocation
+To keep Kotlin smoke coverage stable while still allowing incremental growth:
 
-If the repo currently already contains the `prepare_event` dispatcher logic, do not regress it.
+1) **Baseline manifest**
+The repository MUST maintain a baseline list of Kotlin parity full_tests at:
 
----
+- `test/kotlin_smoke/legitimate_full_kotlin_tests.md`
 
-## Tests / canonicals (MUST)
+This file documents the known-good, intended Kotlin parity tests (as `.fsm` paths).
 
-### L) Update canonical tests that used `condition` (MUST)
-Any existing tests/canonicals that relied on `condition` or multiple entries per cell must be updated to the new syntax.
+The Make-based Kotlin smoke step MUST include at least the `.fsm` files listed in this manifest.
 
-### M) Add a Python test demonstrating Mode B (MUST)
-Add a new python test (or update an existing one) that demonstrates replacing:
+2) **Automated eligibility detection (incremental additions)**
+In addition to the baseline manifest, the Make-based Kotlin smoke step MAY include newly eligible `.fsm` files discovered automatically, provided they satisfy the eligibility rules specified in this document (single-level, standalone C `main`, not doc-only output, no `-i0`, does not expect weak functions, single-instance only, etc.).
 
-```fsm
-transition [clean_up, sweaty] asleep condition is_exhausted;
-transition [clean_up, sweaty] hanging_out;
-```
+To discover new eligible `.fsm` files, use this command line:
+`fsm -s -M --find-on-sub-machine-depth=0 <name>.fsm`
+This will return output `<name>.fsm` when the file contains a machine with no sub-machines.
 
-with:
+3) **Cleanup rule**
+Kotlin smoke test material (JUnit tests, hook implementations, Makefile rules, etc.) for full_tests NOT in the baseline manifest MUST NOT be kept around “accidentally”:
+- any such material should be deleted during cleanup,
+- and thereafter added only when a test is intentionally promoted into Kotlin parity coverage (via manifest update and/or passing automated eligibility).
 
-```fsm
-transition [clean_up, sweaty] what_should_i_do;
+4) **Coverage reporting**
+The Kotlin smoke harness MUST maintain:
+- `test/kotlin_smoke/tests_skipped.md`
 
-what_should_i_do returns
-      asleep when is_exhausted
-    , hanging_out otherwise
-    ;
-```
-
-The canonical `.py.canonical` must show that:
-- there is exactly one transition statement in the FSM for `[clean_up, sweaty]`
-- PyTransitions output contains conditional transitions derived from `when/otherwise` metadata
-- no `condition` keyword is present anywhere
-- cell multiplicity is not used
-
----
-
-## Pre-flight checklist (MUST be restated by agent before coding)
-1. Confirm PR #304 URL.
-2. Confirm base branch is `master`.
-3. Confirm head branch name you will push commits to is `303-make-pytransitions-support-look-more-like-fsmlang`.
-4. Confirm you will NOT create a new branch and will NOT open a new PR.
-5. Confirm allowed file scope as defined above.
-
-If any item is not true: STOP and ask for clarification.
+This file SHOULD:
+- state that `legitimate_full_kotlin_tests.md` is the baseline,
+- list other full_test directories/files that were considered by automated discovery but skipped, including reasons.

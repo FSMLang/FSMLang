@@ -487,6 +487,7 @@ extern bool                 add_doxygen_blocks;
 extern int                  find_on_sub_machine_depth;
 extern bool                 find_on_top_level_machine_data;
 extern bool                 find_on_event_data;
+extern char                *kotlin_package;   /* NULL = use default package */
 
 #define LOOKUP	0	/* default - not defined in the parser */
 
