@@ -110,7 +110,7 @@ static bool print_data_field_as_kotlin(pLIST_ELEMENT, void *);
 static void writeKotlinMachineInternal(pKotlinMachineData pkd);
 static void writePackageDeclaration(FILE *fout, const char *machine_name);
 static void writeFileHeader(FILE *fout, const char *fileName);
-static void writeAnyNativeHeader(FILE *fout, pMACHINE_INFO pmi);
+static void writeAnyNativePrologue(FILE *fout, pMACHINE_INFO pmi);
 static void writeStateEnum(FILE *fout, pMACHINE_INFO pmi);
 static void writeEventEnum(FILE *fout, pMACHINE_INFO pmi);
 static void writeEventDataSealedInterface(FILE *fout, pMACHINE_INFO pmi);
@@ -402,7 +402,7 @@ static void writeKotlinMachineInternal(pKotlinMachineData pkd)
 
 	writePackageDeclaration(fout, pmi->name->name);
 	writeFileHeader(fout, pkd->fileName ? pkd->fileName : "<stdout>");
-	writeAnyNativeHeader(fout,pmi);
+	writeAnyNativePrologue(fout,pmi);
 	writeStateEnum(fout, pmi);
 	writeEventEnum(fout, pmi);
 
@@ -451,9 +451,9 @@ static void writeFileHeader(FILE *fout, const char *fileName)
 }
 
 /* ------------------------------------------------------------------ */
-/*  Possible native header                                                          */
+/*  Possible native prologue                                          */
 /* ------------------------------------------------------------------ */
-static void writeAnyNativeHeader(FILE *fout, pMACHINE_INFO pmi)
+static void writeAnyNativePrologue(FILE *fout, pMACHINE_INFO pmi)
 {
 	if (pmi->native_prologue)
 	{
