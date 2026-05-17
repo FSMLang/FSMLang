@@ -81,6 +81,7 @@ enum states {
   , GUARD_KEY
   , WHEN_KEY
   , OTHERWISE_KEY
+  , TRANSLATORS
 };
 
 extern char *strings[];

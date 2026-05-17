@@ -107,6 +107,7 @@ populate_action_array returning false
 found a machine named newMachine
 	with 5 events and 3 states
 Actions return states
+Translators return void
 on transition: machineTransitionFn
 The states :
 	0:	s1

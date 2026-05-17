@@ -70,6 +70,124 @@ The 2 transitions :
 	s4
 	s3
 
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states in this list :
+	0:	s3
+
+	1:	s4
+
+added another id to the event declaration list
+The 2 events in this list:
+	0:	e3
+
+	1:	e4
+
+found a scalar event : e3
+found a state scalar
+found a matrix
+found a transition matrix
+found a scalar event : e4
+found a state scalar
+found a matrix
+found a transition matrix
+process_action_info: noAction
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s3
+process_action_info: noAction
+	iterate_matrix_states: event: e4
+		add_to_action_array: state: s4
+populate_action_array returning false
+found a machine named sub1
+	with 2 events and 2 states
+Actions return events
+Translators return events
+The states :
+	0:	s3
+
+	1:	s4
+
+The events :
+	0:	e3
+
+	1:	e4
+
+The actions :
+	noAction
+		which occurs for these events
+				e4
+		in these states
+				s4
+		and transitions to state s3
+		and which occurs for these events
+				e3
+		in these states
+				s3
+		and transitions to state s4
+
+The 2 transitions :
+	s4
+	s3
+
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states in this list :
+	0:	s3
+
+	1:	s4
+
+added another id to the event declaration list
+The 2 events in this list:
+	0:	e3
+
+	1:	e4
+
+found a scalar event : e3
+found a state scalar
+found a matrix
+found a transition matrix
+found a scalar event : e4
+found a state scalar
+found a matrix
+found a transition matrix
+process_action_info: noAction
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s3
+process_action_info: noAction
+	iterate_matrix_states: event: e4
+		add_to_action_array: state: s4
+populate_action_array returning false
+found a machine named sub1
+	with 2 events and 2 states
+Actions return events
+Translators return states
+The states :
+	0:	s3
+
+	1:	s4
+
+The events :
+	0:	e3
+
+	1:	e4
+
+The actions :
+	noAction
+		which occurs for these events
+				e4
+		in these states
+				s4
+		and transitions to state s3
+		and which occurs for these events
+				e3
+		in these states
+				s3
+		and transitions to state s4
+
+The 2 transitions :
+	s4
+	s3
+
 found a scalar event : e1
 found a state scalar
 found a matrix
@@ -115,7 +233,7 @@ The actions :
 The 2 transitions :
 	s2
 	s1
-this machine has 1 sub-machines
+this machine has 3 sub-machines
 the sub-machine depth is 1
 
 found a single machine

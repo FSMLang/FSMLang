@@ -68,6 +68,7 @@ populate_action_array returning false
 found a machine named subMachine1
 	with 3 events and 3 states
 Actions return events
+Translators return void
 The states :
 	0:	ss1
 
@@ -147,6 +148,7 @@ populate_action_array returning false
 found a machine named subMachine2
 	with 3 events and 3 states
 Actions return events
+Translators return void
 The states :
 	0:	sss1
 
@@ -236,6 +238,7 @@ populate_action_array returning false
 found a machine named newMachine
 	with 4 events and 3 states
 Actions return events
+Translators return void
 on transition: baz
 The states :
 	0:	s1

@@ -152,6 +152,16 @@ translator {
 
        }
 
+translators {
+
+         #ifdef LEX_DEBUG
+         printf("%s\n",strings[TRANSLATORS]);
+         #else
+         return TRANSLATORS;
+         #endif
+
+       }
+
 	/* native language declarations */
 native	{
 

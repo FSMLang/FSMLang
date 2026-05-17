@@ -1,11 +1,11 @@
 machine name: testFSM
 reentrance protection: yes
 machine transition: none
-actions return: events
 number of events: 2
 number of events handled in zero states: 0
 number of events handled in one state: 0
 number of events having data: 0
+translators return: void
 machine has events with single pai: yes
 number of states: 2
 number of states with entry fns: 0

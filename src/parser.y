@@ -103,7 +103,7 @@ static char *fsm_strndup(const char *s, size_t n)
 
 %token ON NAMESPACE STATE_KEY EVENT_KEY PROLOGUE_KEY EPILOGUE_KEY
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
-%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
+%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID TRANSLATORS
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
 %token START_KEY EVENT_SEQ END_KEY
 
@@ -165,6 +165,7 @@ static char *fsm_strndup(const char *s, size_t n)
 %type <pstatement_decl_list>     statement_decl_list
 %type <pactions_and_transitions> actions_and_transitions
 %type <mod_flags>                action_return_spec
+%type <mod_flags>                translator_return_spec
 %type <pid_info>                 machine_transition_decl
 %type <pmachine_qualifier>       machine_qualifier      
 %type <plist>                    machine_list
@@ -388,19 +389,37 @@ machine:	machine_prefix ID machine_qualifier
 
 						}
 
+						fprintf(yyout,"Actions return ");
 						if ($$->modFlags & mfActionsReturnStates) {
 
-							fprintf(yyout,"Actions return states\n");
+							fprintf(yyout,"states\n");
 
 						}
 						else if ($$->modFlags & mfActionsReturnVoid) {
 
-							fprintf(yyout,"Actions return void\n");
+							fprintf(yyout,"void\n");
 
 						}
 						else {
 
-							fprintf(yyout,"Actions return events\n");
+							fprintf(yyout,"events\n");
+
+						}
+
+						fprintf(yyout,"Translators return ");
+						if ($$->modFlags & mfTranslatorsReturnStates) {
+
+							fprintf(yyout,"states\n");
+
+						}
+						else if ($$->modFlags & mfTranslatorsReturnEvents) {
+
+							fprintf(yyout,"events\n");
+
+						}
+						else {
+
+							fprintf(yyout,"void\n");
 
 						}
 
@@ -504,6 +523,13 @@ machine_qualifier:
 
  					$$->modFlags = $1;
 		     }
+    | translator_return_spec
+		     {
+ 					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
+ 						yyerror("Out of memory");
+
+ 					$$->modFlags = $1;
+		     }
     | native_impl
 		     {
  					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
@@ -523,13 +549,20 @@ machine_qualifier:
 		     }
     | machine_qualifier action_return_spec
 		     {
-           if ($1->modFlags != mfNone)
+           if ($1->modFlags & mfActionsReturnDeclared)
              yyerror("only one action return spec allowed per machine");
 
- 					$1->modFlags          = $2;
+ 					$$->modFlags          |= $2;
 
-           $$ = $1;
 		     }
+//    | machine_qualifier translator_return_spec
+//		     {
+//           if ($1->modFlags & mfTranslatorsReturnDeclared)
+//             yyerror("only one translator return spec allowed per machine");
+//
+// 					$$->modFlags          |= $2;
+//
+//		     }
     | machine_qualifier native_impl
 		     {
            if ($1->native_impl_prologue)
@@ -562,15 +595,37 @@ action_return_spec:
 						add_id(id_list, EVENT,"noEvent",&pid_info);
            pid_info->powningMachine = pmachineInfo;
 
- 					$$ = 0;
+ 					$$ = mfActionsReturnDeclared;
         }
 	| ACTIONS RETURN STATES ';'
 					{
- 					$$ = mfActionsReturnStates;
+ 					$$ = (mfActionsReturnStates | mfActionsReturnDeclared);
 					}
 	| ACTIONS RETURN VOID ';'
 					{
-						$$ = mfActionsReturnVoid;
+ 					  $$ = (mfActionsReturnVoid | mfActionsReturnDeclared);
+					}
+	;
+
+translator_return_spec: 
+	DATA_KEY TRANSLATORS RETURN EVENTS ';'
+        {
+						pID_INFO pid_info;
+					 /* note that this is not added to the machine event list;
+					 it is here only to be found as an event id for return decls.
+           */
+						add_id(id_list, EVENT,"noEvent",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
+
+ 					$$ = (mfTranslatorsReturnEvents | mfTranslatorsReturnDeclared);
+        }
+	| DATA_KEY TRANSLATORS RETURN STATES ';'
+					{
+ 					$$ = (mfTranslatorsReturnStates | mfTranslatorsReturnDeclared);
+					}
+	| DATA_KEY TRANSLATORS RETURN VOID ';'
+					{
+						$$ = mfTranslatorsReturnDeclared;
 					}
 	;
 

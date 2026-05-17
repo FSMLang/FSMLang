@@ -55,6 +55,7 @@ found a machine named testFSM
 	with 2 events and 2 states
 The machine is reentrant
 Actions return events
+Translators return void
 The states :
 	0:	initial
 

@@ -69,6 +69,7 @@ populate_action_array returning true
 found a machine named newMachine
 	with 2 events and 2 states
 Actions return events
+Translators return void
 The states :
 	0:	s1
 
@@ -186,6 +187,7 @@ populate_action_array returning true
 found a machine named anotherNewMachine
 	with 2 events and 2 states
 Actions return events
+Translators return void
 The states :
 	0:	s1
 

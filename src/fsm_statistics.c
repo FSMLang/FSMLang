@@ -194,21 +194,6 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
           , pmi->machineTransition ? pmi->machineTransition->name : "none"
           );
 
-   printf("actions return: ");
-   if (pmi->modFlags & mfActionsReturnStates)
-   {
-      printf("states");
-   }
-   else if (pmi->modFlags & mfActionsReturnVoid)
-   {
-      printf("void");
-   }
-   else
-   {
-      printf("events");
-   }
-   printf("\n");
-
    printf("number of events: %u\n"
           , pmi->event_list->count
           );
@@ -226,6 +211,21 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 		    ? pmi->data_translator_count
 		    : pmi->data_block_count
 		  );
+
+   printf("translators return: ");
+   if (pmi->modFlags & mfTranslatorsReturnStates)
+   {
+      printf("states");
+   }
+   else if (pmi->modFlags & mfTranslatorsReturnEvents)
+   {
+	   printf("events");
+   }
+   else
+   {
+	   printf("void");
+   }
+   printf("\n");
 
    printf("machine has events with single pai: %s\n"
           , pmi->has_single_pai_events ? "yes" : "no"

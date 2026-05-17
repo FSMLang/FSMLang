@@ -61,10 +61,13 @@ if (!(A))                 \
 */
 typedef enum {
   mfNone
-	, mfReentrant           = 1
-	, mfActionsReturnStates = 2
-  , mfActionsReturnVoid   = 4
-  , mfMachineTransition   = 8
+	, mfReentrant                 = 1
+	, mfActionsReturnStates       = 2
+   , mfActionsReturnVoid         = 4
+   , mfActionsReturnDeclared     = 8
+   , mfTranslatorsReturnEvents   = 16
+   , mfTranslatorsReturnStates   = 32
+   , mfTranslatorsReturnDeclared = 64
 } MOD_FLAGS;
 
 typedef enum {
@@ -108,6 +111,7 @@ typedef enum ANCESTRY_INCLUSION
 } ANCESTRY_INCLUSION;
 
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
+#define TRANSLATORS_RETURN_FLAGS (mfTranslatorsReturnStates | mfTranslatorsReturnEvents)
 
 typedef struct _id_info_				 ID_INFO,                 *pID_INFO;
 typedef struct _action_se_info_	         ACTION_SE_INFO,          *pACTION_SE_INFO;

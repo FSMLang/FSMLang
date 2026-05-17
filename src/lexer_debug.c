@@ -80,5 +80,6 @@ char *strings[]  = {
   , "GUARD_KEY"
   , "WHEN_KEY"
   , "OTHERWISE_KEY"
+  , "TRANSLATORS"
 };
 
