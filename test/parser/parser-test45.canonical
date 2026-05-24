@@ -160,7 +160,7 @@ populate_action_array returning false
 found a machine named sub1
 	with 2 events and 2 states
 Actions return events
-Translators return states
+Translators return void
 The states :
 	0:	s3
 

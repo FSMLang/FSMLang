@@ -17,5 +17,5 @@ SRC = pt5-actions.c
 OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o)
 
 
-include ../test.mk
 include ../../fsmrules.mk
+include ../test.mk

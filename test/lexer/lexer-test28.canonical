@@ -166,11 +166,6 @@ Doc Comment:
 MACHINE_KEY
 Added : subSubMachine1 of type ID
 subSubMachine1 : ID
-DATA_KEY
-TRANSLATORS
-RETURN
-STATES
-;
 {
 STATE_KEY
 Added : z1 of type ID

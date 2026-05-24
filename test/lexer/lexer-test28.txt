@@ -56,7 +56,6 @@ data
 
 		/** a sub-sub machine */
 		machine subSubMachine1
-        data translators return states;
       {
 			state z1, z2;
 			event y1, y2;

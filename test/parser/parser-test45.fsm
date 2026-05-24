@@ -22,7 +22,6 @@ machine test
 	}
 
 	machine sub1
-	data translators return states;
 	{
 		state s3, s4;
 		event e3, e4;
