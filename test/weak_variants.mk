@@ -26,6 +26,8 @@ sc sc.size sc_run: CFLAGS+=-DFSM_VARIANT_SC
 sc sc.size sc_run: DIFF_FLAGS+=-I \"Warning: Ignoring external event designations\"
 sc sc.size sc_run: DIFF_FLAGS+=-I \"Warning: Ignoring compact array request because actions do not return appropriately\\.\"
 
+show_objs lib_objs: FSM_FLAGS+=--weak-fns-separate-file=true
+
 TARGET ?= do_runtest
 
 runtest: $(TARGET)
@@ -52,6 +54,12 @@ $(addsuffix .size, $(VARIANTS)):
 $(addsuffix _run, $(VARIANTS)):
 	@echo $@: $(FSM_FLAGS)
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" CFLAGS="$(CFLAGS)" DIFF_FLAGS="$(DIFF_FLAGS)" runtest
+
+show_objs:
+	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" show_objs
+
+lib_objs:
+	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" lib_objs
 
 clean:
 	@$(MAKE) -f ../create_target.mk FSM_FLAGS="$(FSM_FLAGS)" clean
