@@ -407,12 +407,7 @@ machine:	machine_prefix ID machine_qualifier
 						}
 
 						fprintf(yyout,"Translators return ");
-						if ($$->modFlags & mfTranslatorsReturnStates) {
-
-							fprintf(yyout,"states\n");
-
-						}
-						else if ($$->modFlags & mfTranslatorsReturnEvents) {
+						if ($$->modFlags & mfTranslatorsReturnEvents) {
 
 							fprintf(yyout,"events\n");
 
@@ -619,10 +614,6 @@ translator_return_spec:
 
  					$$ = (mfTranslatorsReturnEvents | mfTranslatorsReturnDeclared);
         }
-	| DATA_KEY TRANSLATORS RETURN STATES ';'
-					{
- 					$$ = (mfTranslatorsReturnStates | mfTranslatorsReturnDeclared);
-					}
 	| DATA_KEY TRANSLATORS RETURN VOID ';'
 					{
 						$$ = mfTranslatorsReturnDeclared;
