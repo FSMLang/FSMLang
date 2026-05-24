@@ -3,7 +3,9 @@
 # Generic rules for creating and running tests.
 #
 #
-.PHONY: do_runtest show_objs $(VARIANTS)
+.PHONY: clean do_runtest show_objs $(VARIANTS)
+
+.NOTPARALLEL: clean runtest
 
 override CFLAGS += -Wall -Wpedantic -Wextra -I../
 
@@ -16,8 +18,10 @@ include $(OUTPUT_DIR)/system.mk
 include $(OUTPUT_DIR)/../depends.mk
 
 
-POSSIBLE_OBJS = $(SRC:.c=.o) $(FSM_SRC:.fsm=.o) $(GENERATED_SRC:.c=.o)
+POSSIBLE_OBJS = $(SRC:.c=.o) $(filter-out %weak_fns.o, $(GENERATED_SRC:.c=.o))
 OBJS = $(sort $(POSSIBLE_OBJS))
+
+WEAK_OBJS = $(filter %weak_fns.o, $(GENERATED_SRC:.c=.o))
 
 TARGET ?= do_runtest
 
@@ -28,16 +32,22 @@ ifndef NO_RUNTEST
 runtest: $(TARGET)
 	@echo "Test successful"
 
-recordtest: clean runtest
+recordtest: runtest
 	@echo $(notdir $(shell pwd)) >> ../done
 
 endif
+
+lib_objs:
+	@echo FSM_FLAGS: $(FSM_FLAGS)
+	@echo GENERATED_SRC: $(GENERATED_SRC)
+	@echo OBJS: $(OBJS)
+	@echo WEAK_OBJS: $(WEAK_OBJS)
 
 do_runtest: test
 	@./test > test.out 2> test.stderr
 	@cat test.stderr >> test.out
 	@cat fsmout >> test.out
-	@$(DIFF) test.out test.canonical > test.result
+	@$(DIFF) $(DIFF_FLAGS) test.out test.canonical > test.result
 	@-rm -f test test.out test.result test.stderr 2> /dev/null
 	@-rm -f fsmout                         2> /dev/null
 	@-rm -f *.d*                           2> /dev/null
@@ -47,8 +57,8 @@ do_runtest: test
 	@-rm -f $(GENERATED_HDR)               2> /dev/null
 	@-rm -f $(GENERATED_PLANTUML)          2> /dev/null
 
-test: $(OBJS)
-	@$(CC) -o $@ $(OBJS) $(LDFLAGS)
+test: $(OBJS) $(WEAK_OBJS)
+	@$(CC) -o $@ $(OBJS) $(WEAK_OBJS) $(LDFLAGS)
 
 fail_is_pass: $(OBJS)
 	@$(CC) -o $@ $(OBJS) $(LDFLAGS) $(CALL_FAILURE_A_SUCCESS)
@@ -57,7 +67,7 @@ fsm_fail_is_pass: $(FSM_SRC:.fsm=.c)
 	@echo "fsm failure expectation"
 
 show_objs:
-	@echo $(OBJS)
+	@echo OBJS: $(OBJS)
 
 clean::
 	-@rm -f *.exe                          2> /dev/null
