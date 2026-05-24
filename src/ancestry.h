@@ -43,6 +43,7 @@
 
 char * actionFnType(pCMachineData);
 char * actionReturnType(pCMachineData);
+char * translatorReturnType(pCMachineData);
 char * actionTransType(pCMachineData);
 char * createAncestryFileName(pMACHINE_INFO);
 char * dataTranslationFnType(pCMachineData);

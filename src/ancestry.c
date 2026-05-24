@@ -231,6 +231,41 @@ char* actionReturnType(pCMachineData pcmd)
 	return pcmd->action_return_type;
 }
 
+char* translatorReturnType(pCMachineData pcmd)
+{
+	FILE          *tmp;
+
+	/* only create the string once */
+	if (!pcmd->translator_return_type)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			if (pcmd->pmi->modFlags & mfTranslatorsReturnEvents)
+			{
+				printAncestry(pcmd->pmi
+							  , tmp
+							  , "_"
+							  , alc_upper
+							  , ai_include_self | ai_stop_at_parent
+							  );
+				fprintf(tmp
+						,"_EVENT%s"
+						, pcmd->pmi->data_block_count ? "_ENUM" : ""
+						);
+			}
+			else
+			{
+				fprintf(tmp, "void");
+			}
+
+			pcmd->translator_return_type = create_string_from_file(tmp, NULL);
+		}
+	}
+
+	return pcmd->translator_return_type;
+}
+
 char* fsmType(pCMachineData pcmd)
 {
 	FILE          *tmp;
