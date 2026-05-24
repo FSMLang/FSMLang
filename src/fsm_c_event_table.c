@@ -81,6 +81,7 @@ static void print_event_table_handler_body_for_multiple_state_events_arv(FILE*,p
 static void print_event_table_handler_body_for_multiple_state_events_ars(FILE*,pEVENT_DATA,pITERATOR_CALLBACK_HELPER);
 static void chooseWorkerFunctions(pFSMCSwitchOutputGenerator);
 static void print_any_transition_handlers(FILE*,pMACHINE_INFO);
+static void set_local_fsm_fn_event_var(pCMachineData);
 
 static bool event_handler_cannot_be_its_action(pID_INFO,pACTION_INFO*);
 static bool print_event_fn_signature(pLIST_ELEMENT,void*);
@@ -1383,21 +1384,16 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
 
    writeReentrantPrologue(pcmd);
 
-   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+   if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
    {
-      fprintf(pcmd->cFile
-              , "\t%s_EVENT%s e = event%s;\n\n"
-              , ucfqMachineName(pcmd)
-              , pmi->data_block_count ? "_ENUM"  : ""
-              , pmi->data_block_count ? "->event" : ""
-             );
+	   if (pmi->data_block_count)
+	   {
+		   set_local_fsm_fn_event_var(pcmd);
+	   }
    }
-   else if (pmi->data_block_count != 0)
+   else
    {
-	   fprintf(pcmd->cFile
-			   , "\t%s_EVENT_ENUM e = event->event;\n\n"
-			   , ucfqMachineName(pcmd)
-			   );
+	   set_local_fsm_fn_event_var(pcmd);
    }
 
    if (add_profiling_macros)
@@ -1528,13 +1524,6 @@ static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
 	fprintf(pcmd->cFile
 			, "\n#endif\n"
 			);
-
-	if (pmi->data_block_count)
-	{
-	   fprintf(pcmd->cFile
-			   , "\ttranslateEventData(&pfsm->data, event);\n\n"
-			   );
-	}
 
 	if (pmi->machine_list)
 	{
@@ -1877,5 +1866,31 @@ static void print_any_transition_handlers(FILE *fout, pMACHINE_INFO pmi)
 				);
 	}
 
+}
+
+static void set_local_fsm_fn_event_var(pCMachineData pcmd)
+{
+	pMACHINE_INFO pmi = pcmd->pmi;
+
+	fprintf(pcmd->cFile
+			, "\t%s e = "
+			, eventType(pcmd)
+			);
+
+	if (pmi->data_block_count)
+	{
+		fprintf(pcmd->cFile
+				, "%s"
+				, pmi->modFlags & mfTranslatorsReturnEvents
+				  ? "translateEventData(&pfsm->data, event);\n\n"
+				  : "event->event;\n\n\ttranslateEventData(&pfsm->data, event);\n"
+				);
+	}
+	else
+	{
+		fprintf(pcmd->cFile
+				, "event;\n\n"
+				);
+	}
 }
 

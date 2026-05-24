@@ -64,6 +64,7 @@ static void writeSingleSwitchFSMLoopInnardsArs(pFSMCOutputGenerator,char*);
 static void defineCSingleSwitchMachineStruct(pCMachineData);
 static void defineCSingleSwitchMachineFSM(pFSMCOutputGenerator);
 static void defineCSingleSwitchSubMachineFSM(pFSMCOutputGenerator);
+static void set_local_fsm_fn_event_vars(pCMachineData);
 
 static bool print_event_state_case_are(pLIST_ELEMENT,void*);
 static bool print_event_state_case_arv(pLIST_ELEMENT,void*);
@@ -477,15 +478,11 @@ static void defineCSingleSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
    }
 
    fprintf(pcmd->cFile
-		   , "\t%s e = event%s;\n"
-		   , eventType(pcmd)
-		   , pmi->data_block_count ? "->event" : ""
-		  );
-
-   fprintf(pcmd->cFile
-		   , "\t%s s = pfsm->state;\n\n"
+		   , "\t%s s = pfsm->state;\n"
 		   , stateType(pcmd)
 		   );
+
+   set_local_fsm_fn_event_vars(pcmd);
 
    if (add_profiling_macros)
    {
@@ -1366,3 +1363,26 @@ static bool print_matrix_case(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
+static void set_local_fsm_fn_event_vars(pCMachineData pcmd)
+{
+	pMACHINE_INFO pmi = pcmd->pmi;
+
+	if (pmi->data_block_count)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s e = %s"
+				, eventType(pcmd)
+				, pmi->modFlags & mfTranslatorsReturnEvents
+				? "translateEventData(&pfsm->data, event);\n\n"
+				: "event->event;\n\n\ttranslateEventData(&pfsm->data, event);\n"
+			   );
+	}
+	else
+	{
+		fprintf(pcmd->cFile
+				, "\t%s e = event;\n\n"
+				, eventType(pcmd)
+				);
+	}
+
+}

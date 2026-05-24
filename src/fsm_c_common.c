@@ -2829,7 +2829,8 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 	if (pevent->type_data.event_data.puser_event_data && event_name_cp)
 	{
 		fprintf(fout
-				, "void%s%s_"
+				, "%s%s%s_"
+				, translatorReturnType(pcmd)
 				, dod == dod_declare ? " " : " __attribute__((weak)) "
 				, ufMachineName(pcmd)
 				);
@@ -2955,8 +2956,16 @@ bool define_weak_data_translator_functions(pLIST_ELEMENT pelem, void *data)
 	   print_data_translator_fn_signature(pich->ih.fout, pich->pcmd, pevent, dod_define);
 
 	   fprintf(pich->ih.fout
-			   , "\t(void) pfsm_data;\n\t(void) pdata;\n\n\t%s(\"weak: %%s\", __func__);\n}\n\n"
-			   , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+			   , "\t(void) pfsm_data;\n\t(void) pdata;\n\n\t%s(\"weak: %%s\", __func__);%s\n}\n\n"
+			   , core_logging_only
+			     ? "NON_CORE_DEBUG_PRINTF"
+			     : "DBG_PRINTF"
+			   , pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
+			     ? (pich->ih.pmi->modFlags & ACTIONS_RETURN_FLAGS
+				    ? "\n\treturn THIS(numEvents);"
+					: "\n\treturn THIS(noEvent);"
+				   )
+			     : ""
 			  );
    }
 
@@ -3965,7 +3974,8 @@ void declareEventDataManager(pCMachineData pcmd)
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    fprintf(pcmd->cFile
-		   , "static void translateEventData(p%s,%s);\n\n"
+		   , "static %s translateEventData(p%s,%s);\n\n"
+		   , translatorReturnType(pcmd)
 		   , fsmDataType(pcmd)
 		   , fsmFnEventType(pcmd)
 		   );
@@ -3989,8 +3999,11 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 
       fprintf(pich->pcmd->cFile
               , pevent->type_data.event_data.puser_event_data->translator
-                 ? "\t\tUFMN(%s)(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
-                 : "\t\tUFMN(translate_%s_data)(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
+                 ? "\t\t%sUFMN(%s)(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
+                 : "\t\t%sUFMN(translate_%s_data)(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
+			  , pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
+			     ? "retVal = "
+			     : ""
               , pevent->type_data.event_data.puser_event_data->translator
                 ? pevent->type_data.event_data.puser_event_data->translator->name
                 : pevent->name
@@ -4012,19 +4025,29 @@ void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    fprintf(pcmd->cFile
-		   , "static void translateEventData(p%s pfsm_data, %s pevent)\n{\n"
+		   , "static %s translateEventData(p%s pfsm_data, %s pevent)\n{\n"
+		   , translatorReturnType(pcmd)
 		   , fsmDataType(pcmd)
 		   , fsmFnEventType(pcmd)
 		   );
 
+   if (pmi->modFlags & mfTranslatorsReturnEvents)
+   {
+	   fprintf(pcmd->cFile
+			   , "\t%s retVal = pevent->event;\n"
+			   , translatorReturnType(pcmd)
+			   );
+   }
+
    fprintf(pcmd->cFile
-           , "\tswitch(pevent->event)\n\t{\n"
+           , "\n\tswitch(pevent->event)\n\t{\n"
            );
 
    iterate_list(pmi->event_list, write_event_data_manager_switch_case, &ich);
 
    fprintf(pcmd->cFile
-           , "\tdefault:\n\t\tbreak;\n\t}\n\n}\n\n"
+           , "\tdefault:\n\t\tbreak;\n\t}%s\n\n}\n\n"
+		   , pmi->modFlags & mfTranslatorsReturnEvents ? "\n\treturn retVal;" : ""
            );
 }
 

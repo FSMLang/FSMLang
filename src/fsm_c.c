@@ -84,6 +84,7 @@ static void declareCMachineStruct(pCMachineData, pMACHINE_INFO);
 static void defineActionArray(pCMachineData, pMACHINE_INFO);
 static void defineCMachineFSM(pFSMCOutputGenerator);
 static void defineCSubMachineFSM(pFSMCOutputGenerator);
+static void set_local_fsm_fn_vars(pCMachineData);
 
 FSMCOutputGenerator CMachineWriter = {
 	.fsmog = {
@@ -488,8 +489,8 @@ static void writeCMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 */
 static void writeOriginalFSMAre(pFSMCOutputGenerator pfsmcog)
 {
-	pCMachineData pcmd = pfsmcog->pcmd;
-	pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+	pCMachineData pcmd   = pfsmcog->pcmd;
+	pMACHINE_INFO pmi    = pfsmcog->pcmd->pmi;
 
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s */\n", __func__);
 
@@ -498,20 +499,7 @@ static void writeOriginalFSMAre(pFSMCOutputGenerator pfsmcog)
  			, eventType(pcmd)
  			);
 
- 	fprintf(pcmd->cFile
- 			, "\t%s e = event%s;\n"
- 			, eventType(pcmd)
- 			, ultimateAncestor(pmi)->data_block_count ? "->event" : ""
- 			);
-
-	if (pmi->executes_fns_on_state_transitions)
-	{
-		fprintf(pcmd->cFile
-				, "\t%s new_s;\n\n"
-				, stateType(pcmd)
-				);
-	}
-
+	set_local_fsm_fn_vars(pcmd);
 	writeOriginalFSMLoop(pcmd, pmi);
 
 }
@@ -527,22 +515,7 @@ static void writeOriginalFSMArv(pFSMCOutputGenerator pfsmcog)
 
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* %s */\n", __func__);
 
-	if (ultimateAncestor(pmi)->data_block_count)
-	{
-		fprintf(pcmd->cFile
-				, "\t%s e = event->event;\n"
-				, eventType(pcmd)
-			   );
-	}
-
-	if (pmi->executes_fns_on_state_transitions)
-	{
-		fprintf(pcmd->cFile
-				, "\t%s new_s;\n\n"
-				, stateType(pcmd)
-				);
-	}
-
+	set_local_fsm_fn_vars(pcmd);
 	writeOriginalFSMLoop(pcmd, pmi);
 
 }
@@ -622,8 +595,11 @@ static void writeActionsReturnStateFSM(pFSMCOutputGenerator pfsmcog)
 	if (pmi->data_block_count)
 	{
 		fprintf(pcmd->cFile
-				, "\t%s e = event->event;\n"
+				, "\t%s e = %s;\n"
 				, eventType(pcmd)
+				, pmi->modFlags & mfTranslatorsReturnEvents
+				  ? "translateEventData(&pfsm->data, event)"
+				  : "event->event;\n\n\ntranslateEventData(&pfsm->data, event);"
 				);
 	}
 
@@ -649,13 +625,6 @@ static void writeActionsReturnStateFSM(pFSMCOutputGenerator pfsmcog)
 	fprintf(pcmd->cFile
 			, "\n#endif\n\n"
 			);
-
-	if (pmi->data_block_count)
-	{
-		fprintf(pcmd->cFile
-				, "\ttranslateEventData(&pfsm->data, event);\n\n"
-			   );
-	}
 
 	if (pmi->machine_list)
 	{
@@ -1206,13 +1175,6 @@ static void writeOriginalFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (add_profiling_macros)
 	{
 		fprintf(pcmd->cFile, "\n\tFSM_ENTRY(pfsm);\n\n");
-	}
-
-	if (pmi->data_block_count)
-	{
-		fprintf(pcmd->cFile
-				, "\ttranslateEventData(&pfsm->data, event);\n\n"
-			   );
 	}
 
 	if (!(pmi->modFlags & mfActionsReturnVoid))
@@ -1991,6 +1953,42 @@ static void chooseWorkerFunctions(pFSMCOutputGenerator pfsmcog)
 			               : writeOriginalFSMArv
 			               ;
 		break;
+	}
+}
+
+static void set_local_fsm_fn_vars(pCMachineData pcmd)
+{
+	pMACHINE_INFO pmi = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
+
+	if (pmi->executes_fns_on_state_transitions)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s new_s;\n\n"
+				, stateType(pcmd)
+				);
+	}
+
+	if (pmi->data_block_count)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s e = %s"
+				, eventType(pcmd)
+				, pmi->modFlags & mfTranslatorsReturnEvents
+				  ? "translateEventData(&pfsm->data, event);\n\n"
+				  : "event->event;\n\n\ttranslateEventData(&pfsm->data, event);\n"
+			   );
+	}
+	else
+	{
+		if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+		{
+			fprintf(pcmd->cFile
+					, "\t%s e = event;\n\n"
+					, eventType(pcmd)
+					);
+		}
 	}
 }
 

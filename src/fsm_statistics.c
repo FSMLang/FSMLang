@@ -213,11 +213,7 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 		  );
 
    printf("translators return: ");
-   if (pmi->modFlags & mfTranslatorsReturnStates)
-   {
-      printf("states");
-   }
-   else if (pmi->modFlags & mfTranslatorsReturnEvents)
+   if (pmi->modFlags & mfTranslatorsReturnEvents)
    {
 	   printf("events");
    }

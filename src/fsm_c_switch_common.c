@@ -150,13 +150,6 @@ void writeOriginalSwitchFSMLoopAre(pFSMCOutputGenerator pfsmcog)
 
    char *tabstr = "\t";
 
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
-
    fprintf(pcmd->cFile
 		   , "\twhile (e != %s_noEvent) {\n\n"
 		   , pmi->name->name
@@ -220,13 +213,6 @@ void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator pfsmcog)
 
    char *tabstr = "\t";
 
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
-
    printFSMMachineDebugBlock(pcmd, pmi);
 
    fprintf(pcmd->cFile
@@ -282,13 +268,6 @@ void writeOriginalSwitchFSMLoopArs(pFSMCOutputGenerator pfsmcog)
    char *tabstr = "\t";
 
    printFSMMachineDebugBlock(pcmd, pmi);
-
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
 
    fprintf(pcmd->cFile
            , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"

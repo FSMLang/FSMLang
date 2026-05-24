@@ -94,6 +94,7 @@ static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMEN
 static void switchConvenienceMacros(pFSMCOutputGenerator);
 static bool define_weak_user_transition_function(pLIST_ELEMENT,void*);
 static void print_user_transition_function_body(FILE*);
+static void set_local_fsm_fn_event_var(pCMachineData);
 
 
 static FSMCSwitchOutputGenerator CSwitchMachineWriter = {
@@ -132,13 +133,7 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
            , stateType(pcmd)
            );
 
-   if (pmi->data_block_count)
-   {
-	   fprintf(pcmd->cFile
-			   , "\t%s e = event->event;\n"
-			   , eventType(pcmd)
-			   );
-   }
+   set_local_fsm_fn_event_var(pcmd);
 
    fprintf(pcmd->cFile
 		   , "\n#ifdef %s_DEBUG\n"
@@ -157,13 +152,6 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
    fprintf(pcmd->cFile
 		   , "\n#endif\n"
 		   );
-
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
 
    if (pmi->machine_list)
    {
@@ -1879,32 +1867,14 @@ static void writeSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tab
 
 static void writeSwitchFSMAre(pFSMCOutputGenerator pfsmcog)
 {
-    pCMachineData pcmd = pfsmcog->pcmd;
-    pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
-
-    fprintf(pcmd->cFile
-            , "\t%s_EVENT%s e = event%s;\n\n"
-            , ucfqMachineName(pcmd)
-            , pmi->data_block_count ? "_ENUM"  : ""
-            , pmi->data_block_count ? "->event" : ""
-           );
+	set_local_fsm_fn_event_var(pfsmcog->pcmd);
 
     writeOriginalSwitchFSMLoopAre(pfsmcog);
-
 }
 
 static void writeSwitchFSMArv(pFSMCOutputGenerator pfsmcog)
 {
-    pCMachineData pcmd = pfsmcog->pcmd;
-    pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
-
-	if (pmi->data_block_count != 0)
-	{
-		fprintf(pcmd->cFile
-				, "\t%s_EVENT_ENUM e = event->event;\n\n"
-				, ucfqMachineName(pcmd)
-			   );
-	}
+	set_local_fsm_fn_event_var(pfsmcog->pcmd);
 
     writeOriginalSwitchFSMLoopArv(pfsmcog);
 }
@@ -2583,5 +2553,33 @@ static void print_user_transition_function_body(FILE *fout)
 			  ? "{.s_enum = pfsm->state, .s_fn = pfsm->currentState}"
 			  : "pfsm->state"
 		   );
+}
+
+static void set_local_fsm_fn_event_var(pCMachineData pcmd)
+{
+	pMACHINE_INFO pmi = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
+
+	if (pmi->data_block_count)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s e = %s"
+				, eventType(pcmd)
+				, pmi->modFlags & mfTranslatorsReturnEvents
+				  ? "translateEventData(&pfsm->data, event);\n\n"
+				  : "event->event;\n\n\ttranslateEventData(&pfsm->data, event);\n"
+			   );
+	}
+	else
+	{
+		if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+		{
+			fprintf(pcmd->cFile
+					, "\t%s e = event;\n\n"
+					, eventType(pcmd)
+					);
+		}
+	}
 }
 
