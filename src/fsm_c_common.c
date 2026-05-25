@@ -106,7 +106,7 @@ static void print_shared_event_data_block_signature                             
 static char *createHeaderCompilationGuard                                            (char*);
 static void writeHeaderPreamble                                                      (char*,FILE*,char*);
 static void print_transition_function_body                                           (FILE*,pCMachineData,char*);
-static void print_user_transition_function_body                                      (FILE*);
+static void print_user_transition_function_body                                      (FILE*,pMACHINE_INFO);
 static void print_state_entry_or_exit_manager_signature                              (pCMachineData,pMACHINE_INFO,ENTRY_OR_EXIT,DECLARE_OR_DEFINE);
 static void print_native_prologue                                                    (pCMachineData,pMACHINE_INFO);
 static void print_data_translator_fn_signature                                       (FILE*,pCMachineData,pID_INFO,DECLARE_OR_DEFINE);
@@ -1602,10 +1602,10 @@ void defineWeakNoActionFunctionStubs(pCMachineData pcmd, pMACHINE_INFO pmi)
 	if (!(pcmd->pmi->modFlags & mfActionsReturnVoid))
 	{
 		fprintf(ih.fout
-				, "\treturn THIS(%s);"
+				, "\treturn %s;"
 				, pmi->modFlags & mfActionsReturnStates
-				  ? "noTransition"
-				  : "noEvent"
+				  ? "STATE(noTransition)"
+				  : "THIS(noEvent)"
 				);
 	}
 
@@ -1666,7 +1666,7 @@ static bool define_weak_user_transition_function(pLIST_ELEMENT pelem, void *data
 										, true
 										);
 
-	print_user_transition_function_body(pich->ih.fout);
+	print_user_transition_function_body(pich->ih.fout, pich->ih.pmi);
 
 	return false;
 }
@@ -1702,13 +1702,14 @@ static void print_transition_function_body(FILE *fout, pCMachineData pcmd, char 
 		   );
 }
 
-static void print_user_transition_function_body(FILE *fout)
+static void print_user_transition_function_body(FILE *fout, pMACHINE_INFO pmi)
 {
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(fout
-			, "\t(void) e;\n\n\t%s(\"weak: %%s\", __func__);\n"
+			, "%s\t%s(\"weak: %%s\", __func__);\n"
 			  "\treturn pfsm->state;\n}\n\n"
+			, !(pmi->modFlags & mfActionsReturnStates) ? "\t(void) e;\n" : ""
 			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
 		   );
 }
@@ -3572,41 +3573,40 @@ bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
    {
 	   print_weak_action_function_body_omitting_return_statement(pid_info->name, &pich->ih);
 
-       if (pich->ih.pmi->modFlags & mfActionsReturnStates)
-       {
+	   /* if this action is associated with a shared event, it will have exactly one event */
+	   pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->type_data.action_data.actionInfo->matrix->event_list,0);
 
-          fprintf(pich->ih.fout
-				  , "\treturn %s_noTransition;\n"
+	   /* and, that event will have a list of sharing machines */
+	   if (pevent->type_data.event_data.psharing_sub_machines)
+	   {
+		  fprintf(pich->ih.fout
+				  , "\t%s%s_pass_shared_event(pfsm, sharing_%s_%s);\n"
+				  , pich->ih.pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
 				  , machineName(pich->pcmd)
+				  , machineName(pich->pcmd)
+				  , pevent->name
 				  );
-       }
-       else
-       {
 
-          /* if this action is associated with a shared event, it will have exactly one event */
-          pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->type_data.action_data.actionInfo->matrix->event_list,0);
+		   if (pich->ih.pmi->modFlags & mfActionsReturnStates)
+		   {
+			   fprintf(pich->ih.fout
+					   , "\treturn STATE(noTransition);\n"
+					   );
+		   }
+	   }
+	   else
+	   {
+		   if (!(pich->ih.pmi->modFlags & mfActionsReturnVoid))
+		   {
+			   fprintf(pich->ih.fout
+					   , "\treturn %s;\n"
+					   , pich->ih.pmi->modFlags & mfActionsReturnStates
+					     ? "STATE(noTransition)"
+					     : "THIS(noEvent)"
+					  );
+		   }
 
-          /* and, that event will have a list of sharing machines */
-          if (pevent->type_data.event_data.psharing_sub_machines)
-          {
-             fprintf(pich->ih.fout
-                     , "\t%s%s_pass_shared_event(pfsm, sharing_%s_%s);\n"
-					 , pich->ih.pmi->modFlags & mfActionsReturnVoid ? "" : "return "
-					 , machineName(pich->pcmd)
-					 , machineName(pich->pcmd)
-					 , pevent->name
-					 );
-          }
-          else
-          {
-			  if (!(pich->ih.pmi->modFlags & mfActionsReturnVoid))
-			  {
-				  fprintf(pich->ih.fout
-						  , "\treturn THIS(noEvent);\n"
-						 );
-			  }
-		  }
-       }
+	   }
 
 	   fprintf(pich->ih.fout
 			   , "}\n\n"
@@ -4399,7 +4399,7 @@ void writeNoTransition(pCMachineData pcmd, pMACHINE_INFO pmi)
 				, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
 				);
 		fprintf(pcmd->cFile
-				, "\t(void) pfsm;\n\treturn THIS(noTransition)"
+				, "\t(void) pfsm;\n\treturn STATE(noTransition)"
 				);
 	}
 	else
