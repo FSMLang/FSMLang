@@ -23,11 +23,11 @@ ifeq ($(TARGET),fsm_fail_is_pass)
 CALL_FSM_FAILURE_A_SUCCESS = ; if [ $$? -ne 0 ]; then echo "expected fsm failure; test passes"; true; else echo "did not find an expected fsm failure; test fails"; false; fi
 endif
 
-GENERATED_SRC      = $(shell $(FSM) -M $(FSM_FLAGS) $(FSM_SRC) 2>> fsmout)
-GENERATED_HDR      = $(shell $(FSM) -Mh $(FSM_FLAGS) $(FSM_SRC) 2>> fsmout)
-GENERATED_HTML     = $(shell $(FSM) -th -M $(FSM_HTML_FLAGS) $(FSM_SRC) 2>> fsmout)
-GENERATED_PLANTUML = $(shell $(FSM) -tp -M $(FSM_PLANTUML_FLAGS) $(FSM_SRC) 2>> fsmout)
-GENERATED_RST      = $(shell $(FSM) -M -tr $(FSM_SRC) 2>> fsmout)
+GENERATED_SRC      = $(shell $(FSM) -M $(FSM_FLAGS) $(FSM_SRC))
+GENERATED_HDR      = $(shell $(FSM) -Mh $(FSM_FLAGS) $(FSM_SRC))
+GENERATED_HTML     = $(shell $(FSM) -th -M $(FSM_HTML_FLAGS) $(FSM_SRC))
+GENERATED_PLANTUML = $(shell $(FSM) -tp -M $(FSM_PLANTUML_FLAGS) $(FSM_SRC))
+GENERATED_RST      = $(shell $(FSM) -M -tr $(FSM_SRC))
 
 cleanfsm:
 	@-rm -f $(GENERATED_SRC) 2> /dev/null
