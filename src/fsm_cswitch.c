@@ -1720,10 +1720,7 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                     }
 
                     fprintf(pich->pcmd->cFile
-                            , "\t\t%s UFMN(%s)(pfsm);\n"
-							, pai->transition
-							  ? "(void)"
-							  : "retVal ="
+                            , "\t\tretVal = UFMN(%s)(pfsm);\n"
                             , pai->action->name
                             );
 
@@ -1735,8 +1732,7 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                     }
 
                 }
-
-				if (pai->transition)
+				else if (pai->transition)
 				{
                    fprintf(pich->pcmd->cFile
                            , "\t\tretVal = %s(%s)%s;\n"
