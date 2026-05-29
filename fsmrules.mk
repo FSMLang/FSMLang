@@ -79,15 +79,20 @@ $(SRC): $(FSM_SRC:.fsm=.h)
 	@set -e; $(FSM) -tr -Md $(FSM_RST_FLAGS) $< > $@
 
 ifneq ($(TARGET),fsm_fail_is_pass)
+
 ifneq ($(MAKECMDGOALS),clean)
+
 ifdef FSM_PLANTUML_FLAGS
 -include $(FSM_SRC:.fsm=.fsmdp)
 endif
+
 ifdef FSM_HTML_FLAGS
 -include $(FSM_SRC:.fsm=.fsmdh)
 endif
+
 -include $(FSM_SRC:.fsm=.fsmd)
 -include $(FSM_SRC:.fsm=.fsmdr)
 endif
+
 endif
 
