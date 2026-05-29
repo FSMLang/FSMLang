@@ -267,6 +267,7 @@ machine:	machine_prefix ID machine_qualifier
 						pid_state->powningMachine = pmachineInfo;
 						pid_state->order          = NO_TRANSITION;  // This makes it easier to detect.
 
+					pmachineInfo->modFlags |= $3->modFlags;
          } 
         '{' statement_decl_list '}'
 					{
@@ -278,7 +279,6 @@ machine:	machine_prefix ID machine_qualifier
  			      $$->machineTransition  = $3->machineTransition;
             $$->native_impl_prologue = $3->native_impl_prologue;
             $$->native_impl_epilogue = $3->native_impl_epilogue;
-
 
 						/* harvest the lists */
  					$$->data               = $6->data;
@@ -367,6 +367,8 @@ machine:	machine_prefix ID machine_qualifier
 
             add_id(id_list,MACHINE,$2->name,&pid);
             pid->powningMachine = $$;
+
+						pmachineInfo = $$->parent;
 
            }
 
@@ -1269,6 +1271,10 @@ action: action_matrix
 					}
 	| action_matrix transition 	
 					{
+						if (pmachineInfo->modFlags & mfActionsReturnStates)
+						{
+							yyerror("Cannot have actions with transitions when actions return states.");
+						}
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found an action with transition\n");
