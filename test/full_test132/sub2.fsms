@@ -15,6 +15,6 @@
 
 		include subSub.fsms
 
-		action do_nothing[e1, s1] transition toggle;
-		action do_nothing[e1, s2] transition toggle;
+		action do_nothing[e1, s1];
+		action do_nothing[e1, s2];
 	}
