@@ -4,7 +4,7 @@
 #
 #
 
-.PHONEY: clean
+.PHONY: clean
 
 override CFLAGS += -I../ \
 	 -Wall \
