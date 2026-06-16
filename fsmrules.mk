@@ -3,7 +3,7 @@
 #  .fsm rules
 #
 
-.SUFFIXES: .fsm .html .plantuml .rst .py
+.SUFFIXES: .fsm .html .plantuml .rst .py .kt
 
 ifdef OUTPUT_DIR
 FSM=$(OUTPUT_DIR)/fsm
@@ -55,6 +55,9 @@ cleanfsm:
 
 .fsm.py:
 	@$(FSM) -tpy $(FSM_FLAGS) $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
+
+.fsm.kt:
+	@$(FSM) -tk $(FSM_FLAGS) $< > fsmout 2>&1 $(CALL_FSM_FAILURE_A_SUCCESS)
 
 $(FSM_SRC:.fsm=.html): $(FSM_SRC) $(FSM)
 

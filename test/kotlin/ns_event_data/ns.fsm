@@ -1,0 +1,17 @@
+machine NarcolepticSuperhero
+{
+	state asleep, hanging_out, hungry, sweaty, saving_the_world;
+
+	event wake_up, work_out, eat, clean_up, nap;
+	event distress_call data translator translate_distress_call {int severity; };
+	event complete_mission data translator handle_mission {char result; };
+
+	action change_into_super_secret_costume[distress_call,(all)] transition saving_the_world;
+	action update_journal[complete_mission, saving_the_world] transition sweaty;
+	transition [wake_up, asleep] hanging_out;
+	transition [work_out, hanging_out] hungry;
+	transition [eat, hungry] hanging_out;
+	transition [clean_up, sweaty] decide_rest;
+	decide_rest returns asleep when is_exhausted, hanging_out otherwise;
+
+}

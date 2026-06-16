@@ -132,6 +132,10 @@ test/python/*/*.py
 !test/python/*/*.py.canonical
 test/python/*/fsmout
 test/python/*/*.result
+test/kotlin/*/*.kt
+!test/kotlin/*/*.kt.canonical
+test/kotlin/*/fsmout
+test/kotlin/*/*.result
 test/done
 
 
@@ -142,6 +146,7 @@ test/full_test*/*.c
 test/full_test*/*.h
 test/full_test*/*.d.*
 test/full_test*/*.plantuml
+test/full_test*/*.kt
 
 # Lexer/parser test generated files
 test/lexer/lexer.c
@@ -152,3 +157,5 @@ test/parser/test
 test/parser/y.output
 test/parser/y.tab.h
 test/parser/*.d.*
+# Root-level generated artifacts (produced when running fsm from repo root)
+/*.kt
