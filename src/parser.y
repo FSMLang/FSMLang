@@ -125,6 +125,8 @@ static char *fsm_strndup(const char *s, size_t n)
 %token <pid_info> ID
 %token <charData> NUMERIC_STRING
 %token <pid_info> TYPE_NAME
+%token <pid_info> ENTRY_OR_EXIT_FN
+%token <pid_info> TRANSLATOR_FN
 
 %type <plist>                    return_choice_cond_list
 %type <preturn_choice>           return_choice_cond
@@ -1031,6 +1033,10 @@ actions_and_transitions:
 	  {
 			$$ = $1;
 	  }
+ | actions_and_transitions translator_return_decl
+	  {
+			$$ = $1;
+	  }
    /* note that machines must precede actions and transitions */
 	;
 
@@ -1724,7 +1730,23 @@ state: ID
  					$$->type_data.state_data.state_flags |= sfHasEntryFn;
  					$$->type_data.state_data.entry_fn     = $4;
 
- 					set_id_type($4, ENTRY);
+ 					set_id_type($4, ENTRY_OR_EXIT_FN);
+
+		      }
+   | state ON ENTRY ENTRY_OR_EXIT_FN
+					{
+         	#ifdef PARSER_DEBUG
+         	fprintf(yyout
+										, "state %s has entry function %s\n"
+ 									, $1->name
+ 									, $4->name
+										);
+         	#endif
+
+ 					$$ = $1;
+
+ 					$$->type_data.state_data.state_flags |= sfHasEntryFn;
+ 					$$->type_data.state_data.entry_fn     = $4;
 
 		      }
    | state ON EXIT
@@ -1756,7 +1778,23 @@ state: ID
  					$$->type_data.state_data.state_flags |= sfHasExitFn;
  					$$->type_data.state_data.exit_fn     = $4;
 
- 					set_id_type($4, EXIT);
+ 					set_id_type($4, ENTRY_OR_EXIT_FN);
+
+		      }
+   | state ON EXIT ENTRY_OR_EXIT_FN
+					{
+         	#ifdef PARSER_DEBUG
+         	fprintf(yyout
+										, "state %s has exit function %s\n"
+ 									, $1->name
+ 									, $4->name
+										);
+         	#endif
+
+ 					$$ = $1;
+
+ 					$$->type_data.state_data.state_flags |= sfHasExitFn;
+ 					$$->type_data.state_data.exit_fn     = $4;
 
 		      }
  				;
@@ -1832,6 +1870,7 @@ user_event_data: { $$ = NULL; }
   		   yyerror("out of memory");
  
       $$->translator = $3;
+		 set_id_type($3, TRANSLATOR_FN);
       
       #ifdef PARSER_DEBUG
       fprintf(yyout,"found a data translator: %s\n", $3->name);
@@ -1843,7 +1882,9 @@ user_event_data: { $$ = NULL; }
   		   yyerror("out of memory");
  
       $$->translator = $3;
+		 set_id_type($3, TRANSLATOR_FN);
  		 $$->data_fields = $4;
+
       
       #ifdef PARSER_DEBUG
       fprintf(yyout,"found a data translator: %s\n", $3->name);
@@ -2376,6 +2417,79 @@ returns_comma_list: namespace_event_ref ','
     }
     ;
 
+translator_return_decl: 
+  TRANSLATOR_FN RETURNS returns_comma_list EVENT ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found a translator return declaration\n");
+    #endif
+
+ 	 if (!$1->type_data.translator_data.translator_returns_decl)
+		 {
+		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+			if (add_to_list($3,$4) == NULL)
+				 yyerror("out of memory");
+
+			move_list_unique($1->type_data.translator_data.translator_returns_decl, $3);
+ 		free_list($3);
+
+  }
+  | TRANSLATOR_FN RETURNS returns_comma_list namespace_event_ref ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found a translator return declaration\n");
+    #endif
+
+ 	 if (!$1->type_data.translator_data.translator_returns_decl)
+		 {
+		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+			if (add_to_list($3,$4) == NULL)
+				 yyerror("out of memory");
+
+			move_list_unique($1->type_data.translator_data.translator_returns_decl, $3);
+ 		free_list($3);
+
+  }
+  | TRANSLATOR_FN RETURNS EVENT ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found a translator return declaration\n");
+    #endif
+
+ 	 if (!$1->type_data.translator_data.translator_returns_decl)
+		 {
+		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+		 if (add_unique_to_list($1->type_data.translator_data.translator_returns_decl,$3) == NULL)
+				yyerror("out of memory");
+
+  }
+  | TRANSLATOR_FN RETURNS namespace_event_ref ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found a translator return declaration\n");
+    #endif
+
+ 	 if (!$1->type_data.translator_data.translator_returns_decl)
+		 {
+		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+		 if (add_unique_to_list($1->type_data.translator_data.translator_returns_decl,$3) == NULL)
+				yyerror("out of memory");
+
+  }
+	;
+
 action_return_decl: 
   ACTION RETURNS returns_comma_list EVENT ';'
   {
@@ -2616,6 +2730,7 @@ return_choice_cond: STATE WHEN_KEY ID
     $$->is_otherwise = true;
   }
   ;
+
 %%
 
 #if defined(CYGWIN) || defined (LINUX)

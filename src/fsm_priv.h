@@ -128,6 +128,7 @@ typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
 typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
 /* The following must not be confused with ACTION_INFO */
 typedef struct _action_data_             ACTION_DATA,             *pACTION_DATA;
+typedef struct _translator_data_         TRANSLATOR_DATA,             *pTRANSLATOR_DATA;
 typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
 typedef union  _data_type_union_         DATA_TYPE_UNION,         *pDATA_TYPE_UNION;
 typedef struct _data_type_struct_        DATA_TYPE_STRUCT,        *pDATA_TYPE_STRUCT;
@@ -193,6 +194,11 @@ struct _action_data_
 	pLIST           action_returns_decl;
 };
 
+struct _translator_data_
+{
+	pLIST           translator_returns_decl;
+};
+
 /**
  * One choice in a 'guardFn returns ...' declaration.
  * Mode A: condition_fn == NULL, is_otherwise == false (plain state name).
@@ -210,6 +216,7 @@ union _pid_type_data_
    EVENT_DATA      event_data;
    STATE_DATA      state_data;
    ACTION_DATA     action_data;
+   TRANSLATOR_DATA translator_data;
 };
 
 typedef enum
