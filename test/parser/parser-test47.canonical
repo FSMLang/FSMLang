@@ -1,0 +1,97 @@
+Native
+
+typedef enum
+{
+	ble_disconnect
+	, ble_message
+	, ble_num_entries
+} ble_event_e;
+
+typedef struct _ble_event_str_ ble_event_str, *pble_event_str;
+struct _ble_event_str_
+{
+	ble_event_e type;
+};
+
+
+Native implementation
+
+ACTION_RETURN_TYPE UFMN(translate_ble_comm)(FSM_TYPE_PTR pfsm, ble_comm_data *pevent_data)
+{
+	return THIS(ble_proto);
+}
+
+The 1 events in this list:
+	0:	activate
+
+The 1 events in this list:
+	0:	command
+
+found simple data type id
+found data field: TYPE: simple; NAME: ble_e
+Starting data_fields list
+Data block done
+found a data translator: translate_ble_comm
+found data fields
+ble_event_str ble_e;
+
+The 1 events in this list:
+	0:	ble_comm
+
+The 1 events in this list:
+	0:	ble_proto
+
+The 1 events in this list:
+	0:	ble_peer_msg
+
+state initial has entry function set_defaults
+state initial has exit function set_defaults
+found the start of a state declaration list
+The 1 states in this list :
+	0:	initial
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	waiting
+
+found a scalar event : activate
+found a state scalar
+found a matrix
+found a transition matrix
+Found a translator return declaration
+process_action_info: noAction
+	iterate_matrix_states: event: activate
+		add_to_action_array: state: initial
+populate_action_array returning false
+found a machine named communicator
+	with 5 events and 2 states
+Actions return events
+Translators return events
+The states :
+	0:	initial
+
+	1:	waiting
+
+The events :
+	0:	activate
+
+	1:	command
+
+	2:	ble_comm
+
+	3:	ble_proto
+
+	4:	ble_peer_msg
+
+The actions :
+	noAction
+		which occurs for these events
+				activate
+		in these states
+				initial
+		and transitions to state waiting
+
+The 1 transitions :
+	waiting
+
+found a single machine
