@@ -810,22 +810,55 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 
 	}
 
-	if (pdata->puser_event_data && pdata->puser_event_data->data_fields)
+	if (pdata->puser_event_data)
 	{
 		fprintf(FOUT(pfsmrstog)
-				, "\n\nEvent data:\n\n.. code:: c\n\n"
+				, "\n\nThis event has data."
 				);
 
-		ITERATOR_HELPER ih = {
-			.fout = FOUT(pfsmrstog)
-			, .tab_level = 1
-		};
+		if (pdata->puser_event_data->translator)
+		{
+			pID_INFO translator = pdata->puser_event_data->translator;
+			fprintf(FOUT(pfsmrstog)
+					, "\n\nTranslator: %s"
+					, translator->name
+					);
 
-		iterate_list(pdata->puser_event_data->data_fields
-					 , print_data_field
-					 , &ih
-					 );
+			if (translator->type_data.translator_data.translator_returns_decl)
+			{
+				
+				fprintf(FOUT(pfsmrstog)
+						, ", which returns:\n\n"
+						);
+				iterate_list(translator->type_data.translator_data.translator_returns_decl
+							 , print_pid_as_reference_in_list
+							 , pfsmrstog
+							 );
+			}
+			else
+			{
+				fprintf(FOUT(pfsmrstog)
+						, ".\n\n"
+						);
+			}
+		}
 
+		if (pdata->puser_event_data->data_fields)
+		{
+			fprintf(FOUT(pfsmrstog)
+					, "\n\nStructure:\n\n.. code:: c\n\n"
+					);
+
+			ITERATOR_HELPER ih = {
+				.fout = FOUT(pfsmrstog)
+				, .tab_level = 1
+			};
+
+			iterate_list(pdata->puser_event_data->data_fields
+						 , print_data_field
+						 , &ih
+						 );
+		}
 	}
 
 	return false;
