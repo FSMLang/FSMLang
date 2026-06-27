@@ -1,0 +1,49 @@
+native 
+{
+typedef enum
+{
+	ble_disconnect
+	, ble_message
+	, ble_num_entries
+} ble_event_e;
+
+typedef struct _ble_event_str_ ble_event_str, *pble_event_str;
+struct _ble_event_str_
+{
+	ble_event_e type;
+};
+
+}
+machine communicator
+	data translators return events;
+
+native impl
+{
+ACTION_RETURN_TYPE UFMN(translate_ble_comm)(FSM_TYPE_PTR pfsm, ble_comm_data *pevent_data)
+{
+	return THIS(ble_proto);
+}
+}
+
+{
+	event activate;
+	event command;
+	event ble_comm data translator translate_ble_comm {ble_event_str ble_e;};
+	event ble_proto;
+	event ble_peer_msg;
+
+	state initial
+		on entry set_defaults
+		on exit  set_defaults
+		;
+
+	state waiting;
+
+	transition [activate, initial] waiting;
+
+	translate_ble_comm returns
+		ble_peer_msg
+		, ble_proto
+		;
+}
+
