@@ -1861,9 +1861,15 @@ parent_namespace: PARENT NAMESPACE
 user_event_data: { $$ = NULL; }
   | DATA_KEY TRANSLATOR_KEY ID
    {
-		if (pmachineInfo->parent && !pmachineInfo->parent->data) 
+
+		if (pmachineInfo->parent)
 		{
-			yyerror("data translator declared for sub-machine having parent with no data");
+			if (!pmachineInfo->parent->data) 
+			{
+				yyerror("data translator declared for sub-machine having parent with no data");
+			}
+
+			pmachineInfo->parent->submachines_wanting_parent_data_count++;
 		}
 
   		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
@@ -1878,6 +1884,16 @@ user_event_data: { $$ = NULL; }
    }
   | DATA_KEY TRANSLATOR_KEY ID data_block
    {
+		if (pmachineInfo->parent)
+		{
+			if (!pmachineInfo->parent->data) 
+			{
+				yyerror("data translator declared for sub-machine having parent with no data");
+			}
+
+			pmachineInfo->parent->submachines_wanting_parent_data_count++;
+		}
+
   		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
   		   yyerror("out of memory");
  
@@ -2191,7 +2207,12 @@ native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY EPILOGUE_KEY NATIVE_BLOCK
 
 	;
  
-machine_data: DATA_KEY data_block { $$ = $2; pmachineInfo->data = $$; };
+machine_data: DATA_KEY data_block
+					{
+						 $$ = $2;
+						 pmachineInfo->data = $$;
+					}
+					;
 
 data_block:	'{' data_fields '}'
 	{

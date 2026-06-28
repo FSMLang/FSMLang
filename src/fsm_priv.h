@@ -357,6 +357,7 @@ struct _machine_info_ {
   unsigned      data_translator_count;
   unsigned      data_block_count;
   unsigned      submachine_inhibitor_count;
+  unsigned      submachines_wanting_parent_data_count;
   pLIST         event_list;
   unsigned      external_event_designation_count;
   pLIST         transition_list;
