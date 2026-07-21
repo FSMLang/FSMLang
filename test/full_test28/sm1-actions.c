@@ -50,16 +50,14 @@ SUB_MACHINE1_STATE UFMN(checkTransition)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
    return sub_machine1_s3;
 }
 
-void UFMN(translate_e7_data)(pTOP_LEVEL_DATA pfsm_data, const void *pfsm)
+void UFMN(translate_e7_data)(FSM_DATA_PTR pfsm_data, PARENT_DATA_TYPE_PTR pparent_data)
 {
 	DBG_PRINTF("%s\n", __func__);
 
-	DECLARE_INSTANCE(psub_machine1);
+	pfsm_data->field1 = pparent_data->field1;
+	memcpy(pfsm_data->field2,pparent_data->field2, sizeof(pfsm_data->field2));
 
-	psub_machine1->data.field1 = pfsm_data->field1;
-	memcpy(psub_machine1->data.field2,pfsm_data->field2, sizeof(psub_machine1->data.field2));
-
-	DBG_PRINTF("The int: %d\n",  psub_machine1->data.field1);
-	DBG_PRINTF("The string: %s\n",  psub_machine1->data.field2);
+	DBG_PRINTF("The int: %d\n",  pfsm_data->field1);
+	DBG_PRINTF("The string: %s\n",  pfsm_data->field2);
 }
 

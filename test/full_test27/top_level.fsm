@@ -84,6 +84,11 @@ data
     */
 		machine sub_machine1
 		{
+		data
+		{
+			int foo;
+		}
+
        /**
          This event starts sub_machine1.
        */

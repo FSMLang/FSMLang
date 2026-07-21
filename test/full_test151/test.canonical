@@ -1,0 +1,74 @@
+
+test: scan_happy_path
+event: communicator_activate; state: communicator_initial
+communicator_activate_all
+event: communicator_commands_activate; state: communicator_commands_initial
+communicator_commands_noAction
+communicator_set_defaults
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_process_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: []
+peer_ble_addr_type: [0]
+cmd_bits: [ peer_id ]
+communicator_commands_check_pairing_info
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_process_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: [012345678901]
+peer_ble_addr: []
+peer_ble_addr_type: [0]
+cmd_bits: [ peer_id peer_sn ]
+communicator_commands_check_pairing_info
+event: communicator_scan; state: communicator_waiting
+communicator_noAction
+communicator_start_scanning
+
+test: connect_happy_path
+event: communicator_activate; state: communicator_initial
+communicator_activate_all
+event: communicator_commands_activate; state: communicator_commands_initial
+communicator_commands_noAction
+communicator_set_defaults
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_process_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: []
+peer_ble_addr_type: [0]
+cmd_bits: [ peer_id ]
+communicator_commands_check_pairing_info
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_process_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [0]
+cmd_bits: [ peer_id peer_ble_addr ]
+communicator_commands_check_pairing_info
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_process_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [1]
+cmd_bits: [ peer_id peer_ble_addr_type peer_ble_addr ]
+communicator_commands_check_pairing_info
+event: communicator_connect; state: communicator_waiting
+communicator_noAction

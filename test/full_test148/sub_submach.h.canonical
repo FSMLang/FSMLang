@@ -23,7 +23,7 @@ typedef enum {
 	, test_fsm_sub_numSubMachines
 } SUB_SUB_MACHINES;
 
-typedef TEST_FSM_EVENT_ENUM (*SUB_SUB_MACHINE_FN)(const void*,TEST_FSM_EVENT_ENUM);
+typedef TEST_FSM_EVENT_ENUM (*SUB_SUB_MACHINE_FN)(const void*,pSUB_DATA,TEST_FSM_EVENT_ENUM);
 typedef struct _test_fsm_sub_sub_fsm_if_ SUB_SUB_FSM_IF, *pSUB_SUB_FSM_IF;
 struct _test_fsm_sub_sub_fsm_if_
 {
@@ -40,7 +40,6 @@ typedef struct _sub_shared_event_str_ SUB_SHARED_EVENT_STR, *pSUB_SHARED_EVENT_S
 struct _sub_shared_event_str_
 {
 	TEST_FSM_EVENT_ENUM      event;
-	SUB_DATA_TRANSLATION_FN  data_translation_fn;
 	pSUB_SUB_FSM_IF          psub_fsm_if;
 };
 extern TEST_FSM_EVENT_ENUM sub_pass_shared_event(pSUB,pSUB_SHARED_EVENT_STR[]);

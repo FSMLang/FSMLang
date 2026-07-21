@@ -50,10 +50,10 @@ SUB_MACHINE1_STATE UFMN(checkTransition)(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT e)
    return sub_machine1_s3;
 }
 
-void UFMN(translate_e7_data)(pTOP_LEVEL_DATA pfsm_data, const void *pfsm)
+void UFMN(translate_e7_data)(FSM_DATA_PTR pfsm_data, PARENT_DATA_TYPE_PTR pparent_data)
 {
 	(void) pfsm_data;
-	(void) pfsm;
+	(void) pparent_data;
 	DBG_PRINTF("%s\n", __func__);
 }
 

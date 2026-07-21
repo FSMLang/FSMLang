@@ -44,6 +44,8 @@
 #define ACTION_RETURN_TYPE TEST_FSM_EVENT_ENUM
 #undef FSM_TYPE_PTR
 #define FSM_TYPE_PTR pSUB2
+#undef FSM_DATA_PTR
+#define FSM_DATA_PTR pSUB2_DATA
 #undef DECLARE_INSTANCE
 #define DECLARE_INSTANCE(A) FSM_TYPE_PTR A = (FSM_TYPE_PTR) pfsm
 #undef DECLARE_TR_FN_RET_VAR
@@ -77,7 +79,7 @@ extern pSUB2 psub2;
 
 typedef TEST_FSM_EVENT_ENUM (*SUB2_ACTION_FN)(pSUB2);
 
-typedef TEST_FSM_EVENT_ENUM (*SUB2_FSM)(pSUB2,TEST_FSM_EVENT_ENUM);
+typedef TEST_FSM_EVENT_ENUM (*SUB2_FSM)(pSUB2,pTEST_FSM_DATA,TEST_FSM_EVENT_ENUM);
 
 typedef enum { test_fsm_sub2_numEvents = 1} TEST_FSM_SUB2_EVENTS;
 typedef struct _test_fsm_sub2_action_trans_struct_ {
@@ -105,7 +107,7 @@ TEST_FSM_EVENT_ENUM test_fsm_sub2_noAction(pSUB2 pfsm /**< Pointer to FSM instan
 	Grab the parent data before handling parent::e1.
 
 */
-void test_fsm_sub2_grab_parent_e1_data(pTEST_FSM_DATA pdata /**< Pointer to parent FSM's data.*/, const void * pfsm /**< Pointer to FSM instance.*/);
+void test_fsm_sub2_grab_parent_e1_data(pSUB2_DATA pfsm /**< Pointer to FSM instance.*/, pTEST_FSM_DATA pparent_data /**< Pointer to parent FSM's data.*/);
 
 
 #endif
