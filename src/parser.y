@@ -308,6 +308,11 @@ machine:	machine_prefix ID machine_qualifier
  					   yyerror("event user data not allowed in sub-machines");
 					}
 
+					if ($$->data_translator_count && !$$->data && !output_generated_file_names_only)
+					{
+						yyerror("data translators not allowed for machines having no data");
+					}
+
 
 					count_external_declarations($$->state_list
 																				,&($$->external_state_designation_count)
@@ -1943,7 +1948,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
  						yyerror("Out of memory");
 
 					}
- | EVENT_KEY parent_namespace EVENT user_event_data
+ | EVENT_KEY parent_namespace EVENT { id_list = pmachineInfo->id_list; } user_event_data
 					{
             #ifdef PARSER_DEBUG
             fprintf(yyout,"Found a namespace event reference\n");
@@ -1959,7 +1964,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            if (!add_unique_id(id_list,EVENT,$3->name,&pid))
  						yyerror("Cannot reference parent event twice");
 
-           pid->type_data.event_data.puser_event_data   = $4;
+           pid->type_data.event_data.puser_event_data   = $5;
            pid->type_data.event_data.shared_with_parent = true;
            pid->powningMachine                          = pmachineInfo;
  					pid->docCmnt                                 = $2;
@@ -2008,7 +2013,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
  						yyerror("Out of memory");
 
 					}
- | event_decl_list ',' parent_namespace EVENT user_event_data
+ | event_decl_list ',' parent_namespace EVENT { id_list = pmachineInfo->id_list; } user_event_data
 					{
             #ifdef PARSER_DEBUG
             fprintf(yyout,"added another namespace event reference to the declaration list\n");
@@ -2023,7 +2028,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            if (!add_unique_id(id_list,EVENT,$4->name,&pid))
  						yyerror("Cannot reference parent event twice");
 
-           pid->type_data.event_data.puser_event_data    = $5;
+           pid->type_data.event_data.puser_event_data    = $6;
            pid->type_data.event_data.shared_with_parent  = true;
            pid->powningMachine                           = pmachineInfo;
  					 pid->docCmnt                                  = $3;

@@ -114,6 +114,11 @@ static void print_sub_machine_data_translator_fn_signature                      
 static void print_instance_selection_find                                            (pCMachineData);
 static void print_instance_selection_share                                           (pCMachineData);
 static bool print_doxygen_return_statement                                           (pLIST_ELEMENT,void*);
+static void print_event_data_manager_signature                                       (pCMachineData, DECLARE_OR_DEFINE);
+static void print_sub_machine_data_manager_signature                                 (pCMachineData, DECLARE_OR_DEFINE);
+static void print_event_data_manager_main_body                                       (pCMachineData);
+static bool write_event_data_manager_switch_case                                     (pLIST_ELEMENT,void*);
+static bool write_sub_machine_event_data_manager_switch_case                                     (pLIST_ELEMENT,void*);
 
 int initCMachine(pFSMOutputGenerator pfsmog, char *fileName)
 {
@@ -519,6 +524,11 @@ void standardConvenienceMacros(pFSMCOutputGenerator pfsmcog)
 	fprintf(fout
 			, "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
 			, fsmType(pcmd)
+			);
+
+	fprintf(fout
+			, "#undef FSM_DATA_PTR\n#define FSM_DATA_PTR p%s\n"
+			, fsmDataType(pcmd)
 			);
 
 	fprintf(fout
@@ -1694,7 +1704,7 @@ static void print_transition_function_body(FILE *fout, pCMachineData pcmd, char 
 
 	fprintf(fout
 			, "%s\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n"
-			  "DECLARE_TR_FN_RET_VAR(trfnret, %s);\n"
+			  "\tDECLARE_TR_FN_RET_VAR(trfnret, %s);\n"
 			  "\treturn trfnret;\n}\n"
 			, !(pcmd->pmi->modFlags & mfActionsReturnStates) ? "\t(void) e;\n" : ""
 			, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
@@ -2383,15 +2393,6 @@ static void declare_parent_event_reference_data_structures(pCMachineData pcmd, p
 		   , eventType(pcmd)
            );
 
-   if (pmi->data)
-   {
-	   fprintf(fout
-			   , "\t%-*sdata_translation_fn;\n"
-			   , (int)pcmd->shared_event_str_format_width
-			   , dataTranslationFnType(pcmd)
-			   );
-   }
-
    fprintf(fout
 		   , "\tp%-*spsub_fsm_if;\n"
 		   , (int)pcmd->shared_event_str_format_width - 1
@@ -2543,27 +2544,19 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
 
    print_instance_selection_share(pcmd);
 
-   if (pmi->data)
-   {
-	   fprintf(pcmd->cFile
-			   , "\t\tif ((*pcurrent_sharer)->data_translation_fn)\n"
-			  );
-
-	   fprintf(pcmd->cFile
-			   , "\t\t\t(*(*pcurrent_sharer)->data_translation_fn)"
-			  );
-	   fprintf(pcmd->cFile
-			   , "(&pfsm->data, pinstance);\n"
-			   );
-   }
-
+   /* adjust the signature of sub fsm function to accept pointer to parent's data
+		when submachines want access.
+	*/
    fprintf(pcmd->cFile
            , "\t\t%s(*(*pcurrent_sharer)->psub_fsm_if->subFSM)"
 		   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return_event = "
            );
 
    fprintf(pcmd->cFile
-		   , "(pinstance, (*pcurrent_sharer)->event);\n"
+		   , "(pinstance%s, (*pcurrent_sharer)->event);\n"
+		   , pmi->submachines_wanting_parent_data_count
+		     ? ", &pfsm->data"
+		     : ""
            );
 
    fprintf(pcmd->cFile
@@ -2906,15 +2899,16 @@ static void print_sub_machine_data_translator_fn_signature(FILE* file, pCMachine
 	   if (pevent->type_data.event_data.puser_event_data->translator)
 	   {
 		  fprintf(file
-				  , "void%s%s_%s(p%s%s%s, const void *%s%s)%s\n"
+				  , "void%s%s_%s(p%s%s%s, p%s%s%s)%s\n"
 				  , dod == dod_define ? " __attribute__((weak)) " : " "
 				  , ufMachineName(pcmd)
 				  , pevent->type_data.event_data.puser_event_data->translator->name
-				  , fsmDataType(pcmd->parent_pcmd)
-				  , ((dod == dod_define) || add_doxygen_blocks) ? " pdata" : ""
-				  , add_doxygen_blocks ? " /**< Pointer to parent FSM's data.*/" : ""
+				  , fsmDataType(pcmd)
 				  , ((dod == dod_define) || add_doxygen_blocks) ? " pfsm" : ""
 				  , add_doxygen_blocks ? " /**< Pointer to FSM instance.*/" : ""
+				  , fsmDataType(pcmd->parent_pcmd)
+				  , ((dod == dod_define) || add_doxygen_blocks) ? " pparent_data" : ""
+				  , add_doxygen_blocks ? " /**< Pointer to parent FSM's data.*/" : ""
 				  , dod == dod_define ? "\n{" : ";"
 				 );
 	   }
@@ -2985,7 +2979,7 @@ bool sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT pelem, void
 	   print_sub_machine_data_translator_fn_signature(pich->ih.fout, pich->pcmd, pevent, dod_define);
 
 	   fprintf(pich->ih.fout
-			   , "\t(void) pdata;\n\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n}\n\n"
+			   , "\t(void) pparent_data;\n\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n}\n\n"
 			   , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
 			  );
    }
@@ -3216,20 +3210,44 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 
    /* typedef the FSM function */
    fprintf(pcmd->hFile
-		   , "typedef %s (*%s_FSM)(p%s,%s);\n\n"
+		   , "typedef %s (*%s_FSM)(p%s"
 		   , subFsmFnReturnType(pcmd)
 		   , fsmType(pcmd)
 		   , fsmType(pcmd)
+		   );
+
+   if (pmi->parent->submachines_wanting_parent_data_count)
+   {
+	   fprintf(pcmd->hFile
+			   , ",p%s"
+			   , fsmDataType(pcmd->parent_pcmd)
+			   );
+   }
+
+   fprintf(pcmd->hFile
+		   , ",%s);\n\n"
 		   , fsmFnEventType(pcmd)
 		   );
 
    /* declare the FSM function */
    fprintf(generate_instance ? pcmd->cFile : pcmd->hFile
-           , "%s %s %sFSM(p%s,%s);\n\n"
+           , "%s %s %sFSM(p%s"
 		   , generate_instance ? "static" : "extern"
 		   , subFsmFnReturnType(pcmd)
 		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   , fsmType(pcmd)
+           );
+
+   if (pmi->parent->submachines_wanting_parent_data_count)
+   {
+	   fprintf(generate_instance ? pcmd->cFile : pcmd->hFile
+			   , ",p%s"
+			   , fsmDataType(pcmd->parent_pcmd)
+			   );
+   }
+
+   fprintf(generate_instance ? pcmd->cFile : pcmd->hFile
+		   , ",%s);\n\n"
 		   , fsmFnEventType(pcmd)
            );
 
@@ -3342,15 +3360,6 @@ static bool define_needed_shared_event_structures(pLIST_ELEMENT pelem, void *dat
               , pevent->name
               );
 
-	  if (pevent->type_data.event_data.puser_event_data)
-	  {
-		  fprintf(pich->ih.fout
-				  , "\t, .data_translation_fn = UFMN(%s)\n"
-				  , pevent->type_data.event_data.puser_event_data->translator->name
-				  );
-
-	  }
-
       fprintf(pich->ih.fout
 			  , "\t, .psub_fsm_if         = &%s_sub_fsm_if\n"
 			  , nfMachineName(pich->pcmd)
@@ -3383,14 +3392,37 @@ void defineSubMachineIF (pCMachineData pcmd)
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    fprintf(pcmd->cFile
-           , "\n%s THIS(sub_machine_fn)(const void *pfsm, %s e)\n{\n"
+           , "\n%s THIS(sub_machine_fn)(const void *pfsm"
 		   , subFsmFnReturnType(pcmd)
+		   );
+
+   if (pcmd->pmi->parent->submachines_wanting_parent_data_count)
+   {
+	   fprintf(pcmd->cFile
+			   , ", p%s pparent_data"
+			   , fsmDataType(pcmd->parent_pcmd)
+			   );
+   }
+
+   fprintf(pcmd->cFile
+		   , ", %s e)\n{\n"
 		   , fsmFnEventType(pcmd)
  		  );
 
    fprintf(pcmd->cFile
-		   , "\t%s((FSM_TYPE_PTR)pfsm)->fsm((FSM_TYPE_PTR)pfsm,e);\n}\n\n"
+		   , "\t%s((FSM_TYPE_PTR)pfsm)->fsm((FSM_TYPE_PTR)pfsm"
 		   , pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
+		   );
+
+   if (pcmd->pmi->parent->submachines_wanting_parent_data_count)
+   {
+	   fprintf(pcmd->cFile
+			   , ",pparent_data"
+			   );
+   }
+
+   fprintf(pcmd->cFile
+		   , ",e);\n}\n\n"
 		   );
 
    fprintf(pcmd->cFile
@@ -3674,6 +3706,7 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 void defineEventPassingActions(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
    ITERATOR_CALLBACK_HELPER ich = { 0 };
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
    ich.pcmd      = pcmd;
    ich.ih.pmi       = pmi;
@@ -3781,7 +3814,9 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
           );
 
    fprintf(pcmd->cFile
-		   , "\tfor (%s_SUB_MACHINES machineIterator = THIS(firstSubMachine);\n\t     machineIterator < THIS(numSubMachines);\n\t     machineIterator++\n\t    )\n\t{\n"
+		   , "\tfor (%s_SUB_MACHINES machineIterator = THIS(firstSubMachine);\n"
+			 "\t     machineIterator < THIS(numSubMachines);\n"
+			 "\t     machineIterator++\n\t    )\n\t{\n"
 		   , fsmType(pcmd)
            );
 
@@ -3800,9 +3835,20 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
    print_instance_selection_find(pcmd);
 
    fprintf(pcmd->cFile
-           , "\t\t\t\t%s((*(*pfsm->subMachineArray)[machineIterator]->subFSM)(pinstance, e));\n"
+           , "\t\t\t\t%s((*(*pfsm->subMachineArray)[machineIterator]->subFSM)(pinstance"
 		   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
           );
+
+   if (pmi->submachines_wanting_parent_data_count)
+   {
+	   fprintf(pcmd->cFile
+			   , ", &pfsm->data"
+			   );
+   }
+
+   fprintf(pcmd->cFile
+		   , ", e));\n"
+		   );
 
    fprintf(pcmd->cFile
            , "\t\t\t}\n"
@@ -3973,12 +4019,50 @@ void declareEventDataManager(pCMachineData pcmd)
 {
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   fprintf(pcmd->cFile
-		   , "static %s translateEventData(p%s,%s);\n\n"
-		   , translatorReturnType(pcmd)
-		   , fsmDataType(pcmd)
-		   , fsmFnEventType(pcmd)
-		   );
+	print_event_data_manager_signature(pcmd, dod_declare);
+}
+
+static void print_event_data_manager_signature(pCMachineData pcmd, DECLARE_OR_DEFINE dod)
+{
+	fprintf(pcmd->cFile
+			, "%sstatic %s translateEventData(p%s%s,%s%s)%s"
+			, dod == dod_define ? "\n" : ""
+			, translatorReturnType(pcmd)
+			, fsmDataType(pcmd)
+			, dod == dod_declare ? "" : " pfsm_data"
+			, fsmFnEventType(pcmd)
+			, dod == dod_declare ? "" : " pevent"
+			, dod == dod_declare
+			  ? ";\n\n"
+			  : "\n{\n"
+			);
+}
+
+static void print_sub_machine_data_manager_signature(pCMachineData pcmd, DECLARE_OR_DEFINE dod)
+{
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	fprintf(pcmd->cFile
+			, "%sstatic %s translateEventData(p%s%s,p%s%s,%s%s)%s"
+			, dod == dod_define ? "\n" : ""
+			, translatorReturnType(pcmd)
+			, fsmDataType(pcmd)
+			, dod == dod_declare ? "" : " pfsm_data"
+			, fsmDataType(pcmd->parent_pcmd)
+			, dod == dod_declare ? "" : " pparent_data"
+			, fsmFnEventType(pcmd)
+			, dod == dod_declare ? "" : " event"
+			, dod == dod_declare
+			  ? ";\n\n"
+			  : "\n{\n"
+			);
+}
+
+void declareSubMachineEventDataManager(pCMachineData pcmd)
+{
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	print_sub_machine_data_manager_signature(pcmd, dod_declare);
 }
 
 static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data)
@@ -4015,44 +4099,93 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
    return false;
 }
 
-void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
+static bool write_sub_machine_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data)
 {
-   ITERATOR_CALLBACK_HELPER ich = {0};
+   pID_INFO pevent                = (pID_INFO)pelem->mbr;
+   pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 
-   ich.pcmd    = pcmd;
-   ich.ih.pmi     = pmi;
+   FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
-
-   fprintf(pcmd->cFile
-		   , "static %s translateEventData(p%s pfsm_data, %s pevent)\n{\n"
-		   , translatorReturnType(pcmd)
-		   , fsmDataType(pcmd)
-		   , fsmFnEventType(pcmd)
-		   );
-
-   if (pmi->modFlags & mfTranslatorsReturnEvents)
+   if (pevent->type_data.event_data.puser_event_data)
    {
-	   fprintf(pcmd->cFile
-			   , "\t%s retVal = pevent->event;\n"
-			   , translatorReturnType(pcmd)
-			   );
+      pich->counter++;
+      fprintf(pich->pcmd->cFile
+              , "\tcase THIS(%s):\n"
+              , pevent->name
+              );
+
+      fprintf(pich->pcmd->cFile
+              , pevent->type_data.event_data.puser_event_data->translator
+                 ? "\t\t%sUFMN(%s)(pfsm_data, pparent_data);\n\t\tbreak;\n"
+                 : "\t\t%sUFMN(translate_%s_data)(pfsm_data, pparent_data);\n\t\tbreak;\n"
+			  , pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
+			     ? "retVal = "
+			     : ""
+              , pevent->type_data.event_data.puser_event_data->translator
+                ? pevent->type_data.event_data.puser_event_data->translator->name
+                : pevent->name
+              );
+
    }
 
-   fprintf(pcmd->cFile
-           , "\n\tswitch(pevent->event)\n\t{\n"
-           );
-
-   iterate_list(pmi->event_list, write_event_data_manager_switch_case, &ich);
-
-   fprintf(pcmd->cFile
-           , "\tdefault:\n\t\tbreak;\n\t}%s\n\n}\n\n"
-		   , pmi->modFlags & mfTranslatorsReturnEvents ? "\n\treturn retVal;" : ""
-           );
+   return false;
 }
 
-static void print_state_entry_or_exit_manager_signature(pCMachineData pcmd, pMACHINE_INFO pmi,ENTRY_OR_EXIT eoe, DECLARE_OR_DEFINE dod)
+void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
 {
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   print_event_data_manager_signature(pcmd, dod_define);
+
+   print_event_data_manager_main_body(pcmd);
+
+}
+
+void defineSubMachineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
+{
+   FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+   print_sub_machine_data_manager_signature(pcmd, dod_define);
+
+   print_event_data_manager_main_body(pcmd);
+
+}
+
+static void print_event_data_manager_main_body(pCMachineData pcmd)
+{
+	ITERATOR_CALLBACK_HELPER ich = {0};
+
+	ich.pcmd   = pcmd;
+	ich.ih.pmi = pcmd->pmi;
+
+	if (pcmd->pmi->modFlags & mfTranslatorsReturnEvents)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s retVal = %sevent;\n"
+				, translatorReturnType(pcmd)
+				, pcmd->parent_pcmd ? "" : "pevent->"
+				);
+	}
+
+	fprintf(pcmd->cFile
+			, "\n\tswitch(%sevent)\n\t{\n"
+			, pcmd->parent_pcmd ? "" : "pevent->"
+			);
+
+	iterate_list(pcmd->pmi->event_list
+				 , pcmd->parent_pcmd
+				   ? write_sub_machine_event_data_manager_switch_case
+				   : write_event_data_manager_switch_case
+				 , &ich
+				 );
+
+	fprintf(pcmd->cFile
+			, "\tdefault:\n\t\tbreak;\n\t}%s\n\n}\n\n"
+			, pcmd->pmi->modFlags & mfTranslatorsReturnEvents ? "\n\treturn retVal;" : ""
+			);
+}
+
+static void print_state_entry_or_exit_manager_signature(pCMachineData pcmd, pMACHINE_INFO pmi,ENTRY_OR_EXIT eoe, DECLARE_OR_DEFINE dod) {
 	fprintf(pcmd->cFile
 			,"static void runAppropriate%sFunction(%s%s%s%s%s%s)%s\n"
 			, eoe == eoe_entry ? "Entry" : "Exit"
@@ -4089,14 +4222,12 @@ static void print_state_entry_or_exit_fn_switch_case(pID_INFO pstate, pITERATOR_
 
 	pich->counter++;
 	fprintf(pich->pcmd->cFile
-			, "\tcase %s_%s:\n\t\t"
-			, machineName(pich->pcmd)
+			, "\tcase STATE(%s):\n\t\t"
 			, pstate->name
 			);
 
 	fprintf(pich->pcmd->cFile
-			, "%s_%s%s(%s);\n\t\tbreak;\n"
-			, ufMachineName(pich->pcmd)
+			, "UFMN(%s%s)(%s);\n\t\tbreak;\n"
 			, fn              ? fn->name : no_fn_str
 			, fn              ? ""       : pstate->name
 			, pich->ih.pmi->data ? "pdata"  : ""
@@ -4197,9 +4328,21 @@ void printSubMachinesDeclarations(pCMachineData pcmd, pMACHINE_INFO pmi)
 			);
 
 	fprintf(fout
-			, "typedef %s (*%s)(const void*,%s);\n"
+			, "typedef %s (*%s)(const void*"
 			, subFsmFnReturnType(pcmd)
 			, subMachineFnType(pcmd)
+			);
+
+	if (pmi->submachines_wanting_parent_data_count)
+	{
+		fprintf(fout
+				, ",p%s"
+				, fsmDataType(pcmd)
+				);
+	}
+
+	fprintf(fout
+			, ",%s);\n"
 			, subFsmFnEventType(pcmd)
 			);
 
@@ -4299,13 +4442,17 @@ void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi)
     }
 
     fprintf(pcmd->cFile
-            , "%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n#endif\n\n"
+            , "%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
 			, ucMachineName(pcmd)
 			, ((pmi->modFlags & ACTIONS_RETURN_FLAGS) && (pmi->data_block_count == 0))
 			  ? "event" 
 			  : "e"
 			, ucMachineName(pcmd)
            );
+
+    fprintf(pcmd->cFile
+			, "#endif\n\n"
+			);
 
 }
 

@@ -218,6 +218,7 @@ void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator pfsmcog)
    fprintf(pcmd->cFile
            , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
            );
+
    fprintf(pcmd->cFile
            , "\t\tpfsm->event = %s;\n\n"
 		   , (pmi->data_block_count == 0) ? "event" : "e"

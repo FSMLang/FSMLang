@@ -82,6 +82,7 @@ static void print_event_table_handler_body_for_multiple_state_events_ars(FILE*,p
 static void chooseWorkerFunctions(pFSMCSwitchOutputGenerator);
 static void print_any_transition_handlers(FILE*,pMACHINE_INFO);
 static void set_local_fsm_fn_event_var(pCMachineData);
+static void set_local_sub_machine_fsm_fn_event_var(pCMachineData);
 
 static bool event_handler_cannot_be_its_action(pID_INFO,pACTION_INFO*);
 static bool print_event_fn_signature(pLIST_ELEMENT,void*);
@@ -216,6 +217,11 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 	   declareStateEntryAndExitManagers(pcmd, pmi, true);
    }
 
+   if (pmi->data_translator_count)
+   {
+	   declareSubMachineEventDataManager(pcmd);
+   }
+
    /* Declare needed event functions. */
    ich.define = false;
    iterate_list(pmi->event_list
@@ -238,6 +244,11 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
    else
    {
 	   generateSubMachineInstanceMacro(pcmd, pmi, "eventsArray", "event_fn", true);
+   }
+
+   if (pmi->data_translator_count)
+   {
+	   defineSubMachineEventDataManager(pcmd, pmi);
    }
 
    defineCEventTableSubMachineFSM(pfsmcog);
@@ -1384,17 +1395,7 @@ static void defineCEventTableMachineFSM(pFSMCOutputGenerator pfsmcog)
 
    writeReentrantPrologue(pcmd);
 
-   if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
-   {
-	   if (pmi->data_block_count)
-	   {
-		   set_local_fsm_fn_event_var(pcmd);
-	   }
-   }
-   else
-   {
-	   set_local_fsm_fn_event_var(pcmd);
-   }
+   set_local_fsm_fn_event_var(pcmd);
 
    if (add_profiling_macros)
    {
@@ -1790,20 +1791,26 @@ static void defineCEventTableSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 			);
 
 	fprintf(pcmd->cFile
-			, "%s %sFSM(p%s pfsm, %s event)\n{\n"
+			, "%s %sFSM(p%s pfsm"
 			, subFsmFnReturnType(pcmd)
 			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			, fsmType(pcmd)
-			, fsmFnEventType(pcmd)
 		   );
 
-	if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+	if (pmi->parent->submachines_wanting_parent_data_count)
 	{
 		fprintf(pcmd->cFile
-				, "\t%s e = event;\n\n"
-				, eventType(pcmd)
-			   );
+				, ", p%s pparent_data"
+				, fsmDataType(pcmd->parent_pcmd)
+				);
 	}
+
+	fprintf(pcmd->cFile
+			, ", %s event)\n{\n"
+			, fsmFnEventType(pcmd)
+			);
+
+	set_local_sub_machine_fsm_fn_event_var(pcmd);
 
 	if (add_profiling_macros && profile_sub_fsms)
 	{
@@ -1872,15 +1879,11 @@ static void set_local_fsm_fn_event_var(pCMachineData pcmd)
 {
 	pMACHINE_INFO pmi = pcmd->pmi;
 
-	fprintf(pcmd->cFile
-			, "\t%s e = "
-			, eventType(pcmd)
-			);
-
 	if (pmi->data_block_count)
 	{
 		fprintf(pcmd->cFile
-				, "%s"
+				, "\t%s e = %s"
+				, eventType(pcmd)
 				, pmi->modFlags & mfTranslatorsReturnEvents
 				  ? "translateEventData(&pfsm->data, event);\n\n"
 				  : "event->event;\n\n\ttranslateEventData(&pfsm->data, event);\n"
@@ -1888,9 +1891,60 @@ static void set_local_fsm_fn_event_var(pCMachineData pcmd)
 	}
 	else
 	{
-		fprintf(pcmd->cFile
-				, "event;\n\n"
-				);
+		if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+		{
+			fprintf(pcmd->cFile
+					, "\t%s e = event;\n\n"
+					, eventType(pcmd)
+					);
+		}
+	}
+}
+
+static void set_local_sub_machine_fsm_fn_event_var(pCMachineData pcmd)
+{
+	pMACHINE_INFO pmi = pcmd->pmi;
+
+	if (pmi->data_translator_count)
+	{
+		if (pmi->modFlags & mfTranslatorsReturnEvents)
+		{
+			fprintf(pcmd->cFile
+					, "\t%s e = translateEventData(&pfsm->data, pparent_data, event);\n\n"
+					, eventType(pcmd)
+					);
+		}
+		else
+		{
+			if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+			{
+				fprintf(pcmd->cFile
+						, "\t%s e = event;\n"
+						, eventType(pcmd)
+						);
+			}
+
+			fprintf(pcmd->cFile
+					, "\ttranslateEventData(&pfsm->data, pparent_data, event);\n\n"
+				   );
+		}
+	}
+	else
+	{
+		if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+		{
+			fprintf(pcmd->cFile
+					, "\t%s e = event;\n\n"
+					, eventType(pcmd)
+				   );
+		}
+
+		if (pmi->parent->submachines_wanting_parent_data_count)
+		{
+			fprintf(pcmd->cFile
+					, "\t(void) pparent_data;\n\n"
+				   );
+		}
 	}
 }
 
