@@ -21,6 +21,10 @@ ACTION_RETURN_TYPE UFMN(translate_ble_comm)(FSM_TYPE_PTR pfsm, ble_comm_data *pe
 	return THIS(ble_proto);
 }
 
+found simple data type id
+found data field: TYPE: simple; NAME: foo
+Starting data_fields list
+Data block done
 The 1 events in this list:
 	0:	activate
 
@@ -92,5 +96,8 @@ The actions :
 
 The 1 transitions :
 	waiting
+this machine has data
+int foo;
+
 
 found a single machine

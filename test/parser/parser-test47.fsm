@@ -26,6 +26,8 @@ ACTION_RETURN_TYPE UFMN(translate_ble_comm)(FSM_TYPE_PTR pfsm, ble_comm_data *pe
 }
 
 {
+	data {int foo;}
+
 	event activate;
 	event command;
 	event ble_comm data translator translate_ble_comm {ble_event_str ble_e;};
