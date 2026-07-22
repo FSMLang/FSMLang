@@ -7,13 +7,12 @@
 set -euo pipefail
 
 usage() {
-	echo "Usage: $0 <non-negative integer>" >&2
+	echo "Usage: $0" >&2
 	exit 2
 }
 
-# must be exactly no arguments
+# must be exactly zero arguments
 [[ $# -eq 0 ]] || usage
-
 # skip directories having intentionally defective FSMLang files
 find test/full_test* \
   \( -path 'test/full_test43' -o \
