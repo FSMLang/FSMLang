@@ -1,6 +1,7 @@
 machine name: testFSM
 reentrance protection: yes
 machine transition: none
+actions return: events
 number of events: 2
 number of events handled in zero states: 0
 number of events handled in one state: 0
