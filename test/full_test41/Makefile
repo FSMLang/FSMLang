@@ -27,8 +27,5 @@ SRC += test.c
 
 include ../../fsmrules.mk
 
-foo:
-	@echo GENERATED_HDR: $(GENERATED_HDR)
-
 include ../test.mk
 
