@@ -194,6 +194,21 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
           , pmi->machineTransition ? pmi->machineTransition->name : "none"
           );
 
+   printf("actions return: ");
+   if (pmi->modFlags & mfActionsReturnStates)
+   {
+	   printf("states");
+   }
+   else if (pmi->modFlags & mfActionsReturnVoid)
+   {
+	   printf("void");
+   }
+   else
+   {
+	   printf("events");
+   }
+   printf("\n");
+
    printf("number of events: %u\n"
           , pmi->event_list->count
           );

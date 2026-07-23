@@ -3,7 +3,7 @@
 # Generic rules for creating and running tests.
 #
 #
-.PHONY: clean do_runtest show_objs $(VARIANTS)
+.PHONY: clean do_runtest show_objs lib_objs $(VARIANTS)
 
 .NOTPARALLEL: clean runtest
 
