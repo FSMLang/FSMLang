@@ -729,22 +729,21 @@ static bool print_event_table_event_row(pLIST_ELEMENT pelem, void *data)
 		{
 			pID_INFO translator = ped->puser_event_data->translator;
 
-			fprintf(pih->fout, "<p>\n");
 			fprintf(pih->fout
-					, "Data translator: %s\n"
+					, "<p>\nData translator: %s\n</p>\n"
 					, translator->name
 				   );
 
 			if (translator->type_data.translator_data.translator_returns_decl)
 			{
-				fprintf(pih->fout, "Returns:\n<ul>\n");
+				fprintf(pih->fout, "<p>\nReturns:\n</p>\n<ul>\n");
 				iterate_list(translator->type_data.translator_data.translator_returns_decl
 							 , print_id_info_as_html_list_element
 							 , pih
 							 );
 				fprintf(pih->fout, "</ul>\n");
 			}
-			fprintf(pih->fout, "</p>\n");
+			
 		}
 
 		if (ped->puser_event_data->data_fields)
