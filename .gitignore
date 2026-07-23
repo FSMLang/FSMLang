@@ -142,6 +142,10 @@ test/full_test*/*.c
 test/full_test*/*.h
 test/full_test*/*.d.*
 test/full_test*/*.plantuml
+# Exceptions: user-provided source and headers
+!test/full_test*/*-actions.c
+!test/full_test*/test.c
+!test/full_test*/command_defs.h
 
 # Lexer/parser test generated files
 test/lexer/lexer.c
