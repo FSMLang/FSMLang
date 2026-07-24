@@ -4131,7 +4131,7 @@ static bool write_sub_machine_event_data_manager_switch_case(pLIST_ELEMENT pelem
    return false;
 }
 
-void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
+void defineEventDataManager(pCMachineData pcmd)
 {
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -4141,7 +4141,7 @@ void defineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 }
 
-void defineSubMachineEventDataManager(pCMachineData pcmd, pMACHINE_INFO pmi)
+void defineSubMachineEventDataManager(pCMachineData pcmd)
 {
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 

@@ -281,7 +281,7 @@ static int writeCSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (pmi->data_translator_count)
 	{
-		defineSubMachineEventDataManager(pcmd, pmi);
+		defineSubMachineEventDataManager(pcmd);
 	}
 
 	defineCSubMachineFSM(pfsmcog);
@@ -397,7 +397,7 @@ static int writeCMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (pmi->data_block_count)
 	{
-		defineEventDataManager(pcmd, pmi);
+		defineEventDataManager(pcmd);
 	}
 
 	if (generate_weak_fns)

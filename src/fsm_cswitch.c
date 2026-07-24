@@ -585,7 +585,7 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (pmi->data_block_count)
    {
-      defineEventDataManager(pcmd, pmi);
+      defineEventDataManager(pcmd);
    }
 
    defineCSwitchMachineStateFns(pcmd, pmi);
@@ -743,7 +743,7 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (pmi->data_translator_count)
    {
-	   defineSubMachineEventDataManager(pcmd, pmi);
+	   defineSubMachineEventDataManager(pcmd);
    }
 
    defineCSwitchSubMachineFSM(pfsmcog);

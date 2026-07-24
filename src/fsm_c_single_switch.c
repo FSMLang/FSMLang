@@ -263,7 +263,7 @@ static void writeCSingleSwitchMachineInternal(pFSMCSwitchOutputGenerator pfsmcss
 
 	if (pmi->data_block_count)
 	{
-	   defineEventDataManager(pcmd, pmi);
+	   defineEventDataManager(pcmd);
 	}
 
 	if (generate_weak_fns)
@@ -342,7 +342,7 @@ static void writeCSingleSwitchSubMachineInternal(pFSMCSwitchOutputGenerator pfsm
 
    if (pmi->data_translator_count)
    {
-	   defineSubMachineEventDataManager(pcmd, pmi);
+	   defineSubMachineEventDataManager(pcmd);
    }
 
    defineCSingleSwitchSubMachineFSM(pfsmcog);

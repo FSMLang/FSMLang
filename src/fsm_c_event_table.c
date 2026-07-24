@@ -248,7 +248,7 @@ static int writeCEventTableSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (pmi->data_translator_count)
    {
-	   defineSubMachineEventDataManager(pcmd, pmi);
+	   defineSubMachineEventDataManager(pcmd);
    }
 
    defineCEventTableSubMachineFSM(pfsmcog);
@@ -430,7 +430,7 @@ static void writeCEventTableMachineInternal(pFSMCOutputGenerator pfsmcog)
 
 	if (pmi->data_block_count)
 	{
-	   defineEventDataManager(pcmd, pmi);
+	   defineEventDataManager(pcmd);
 	}
 
 	defineCEventTableHandlers(pfsmcog);
