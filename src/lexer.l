@@ -519,6 +519,14 @@ union {
 					#endif
 				}
 
+consuming {
+					#ifndef LEX_DEBUG
+					return CONSUMING;
+					#else
+					printf("%s\n",strings[CONSUMING]);
+					#endif
+				}
+
 
 [](){}=*] | 
 [[]		{ 

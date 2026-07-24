@@ -186,6 +186,7 @@ struct _event_data_
    pLIST            phandling_states;
    pLIST            pactions_list;
    unsigned         state_density_pct;
+   bool             consumed_by_translator;
 };
 
 struct _action_data_
@@ -196,7 +197,8 @@ struct _action_data_
 
 struct _translator_data_
 {
-	pLIST           translator_returns_decl;
+	pLIST  translator_returns_decl;
+   bool   consuming;
 };
 
 /**

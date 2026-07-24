@@ -81,5 +81,6 @@ char *strings[]  = {
   , "WHEN_KEY"
   , "OTHERWISE_KEY"
   , "TRANSLATORS"
+  , "CONSUMING"
 };
 
