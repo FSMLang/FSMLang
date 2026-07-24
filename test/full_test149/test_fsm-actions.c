@@ -2,7 +2,8 @@
 
 ACTION_RETURN_TYPE UFMN(act_on_e1)(FSM_TYPE_PTR pfsm)
 {
-	DBG_PRINTF("%s", __func__);
+   DBG_PRINTF("%s", __func__);
+
 	test_fsm_pass_shared_event(pfsm, sharing_test_fsm_e1);
 }
 
@@ -10,19 +11,23 @@ ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
 	(void) pfsm;
+
 }
 
-void UFMN(record)(FSM_TYPE_PTR pfsm, TEST_FSM_STATE s)
+TEST_FSM_EVENT_ENUM test_fsm_grab_e1(FSM_DATA_PTR pfsm_data,pTEST_FSM_E1_DATA pdata)
 {
 	DBG_PRINTF("%s", __func__);
-	(void) pfsm;
-	(void) s;
-}
 
-TEST_FSM_EVENT_ENUM UFMN(grab_e1)(FSM_DATA_PTR pfsm_data, pTEST_FSM_E1_DATA pdata)
-{
-	DBG_PRINTF("%s", __func__);
 	pfsm_data->e1_count += pdata->i;
+
 	DBG_PRINTF("e1 accumulator: %u", pfsm_data->e1_count);
-	return (TEST_FSM_EVENT_ENUM) pdata->ext_event;
+
+	return pdata->ext_event ? THIS(e2) : THIS(e1);
+}
+
+void UFMN(record)(pTEST_FSM pfsm, TEST_FSM_STATE new_s)
+{
+    DBG_PRINTF("%s", __func__);
+	 (void) pfsm;
+	 (void) new_s;
 }
