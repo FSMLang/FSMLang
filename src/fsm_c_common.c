@@ -521,6 +521,11 @@ void standardConvenienceMacros(pFSMCOutputGenerator pfsmcog)
 			, actionReturnType(pcmd)
 			);
 
+	fprintf(pcmd->pubHFile
+			, "#undef TRANSLATOR_RETURN_TYPE\n#define TRANSLATOR_RETURN_TYPE %s\n"
+			, translatorReturnType(pcmd)
+			);
+
 	fprintf(fout
 			, "#undef FSM_TYPE_PTR\n#define FSM_TYPE_PTR p%s\n"
 			, fsmType(pcmd)
@@ -2899,7 +2904,8 @@ static void print_sub_machine_data_translator_fn_signature(FILE* file, pCMachine
 	   if (pevent->type_data.event_data.puser_event_data->translator)
 	   {
 		  fprintf(file
-				  , "void%s%s_%s(p%s%s%s, p%s%s%s)%s\n"
+				  , "%s%s%s_%s(p%s%s%s, p%s%s%s)%s\n"
+				   , translatorReturnType(pcmd)
 				  , dod == dod_define ? " __attribute__((weak)) " : " "
 				  , ufMachineName(pcmd)
 				  , pevent->type_data.event_data.puser_event_data->translator->name

@@ -86,6 +86,7 @@ static bool find_id_by_name(pLIST_ELEMENT,void*);
 static bool compute_state_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool compute_event_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool add_inbound_state_wrapper(pLIST_ELEMENT,void*);
+static bool filter_consumed_event(pLIST_ELEMENT,void*);
 #ifdef PARSER_DEBUG
 static bool print_pid_name(pLIST_ELEMENT,void*);
 static bool print_state_id_info(pLIST_ELEMENT,void*);
@@ -524,7 +525,11 @@ static bool process_action_info(pLIST_ELEMENT pelem, void *data)
   */
    if (!paaph->pai->matrix->event_list->count)
    {
-      copy_list(paaph->pai->matrix->event_list, paaph->pmi->event_list);
+      copy_list_filtered(paaph->pai->matrix->event_list
+                , paaph->pmi->event_list
+                , filter_consumed_event
+                , NULL
+                );
    }
    if (!paaph->pai->matrix->state_list->count)
    {
@@ -873,7 +878,8 @@ static bool count_zero_event_handlers(pLIST_ELEMENT pelem, void *data)
 	pID_INFO         pevent = (pID_INFO)   pelem->mbr;
 	unsigned        *count  = (unsigned *) data;
 
-	if (pevent->type_data.event_data.phandling_states->count == 0)
+	if ((pevent->type_data.event_data.phandling_states->count == 0)
+        && !pevent->type_data.event_data.consumed_by_translator)
 	{
 		(*count)++;
 	}
@@ -1762,6 +1768,14 @@ bool match_transition(pLIST_ELEMENT pelem, void *data)
 	pID_INFO pnew     = (pID_INFO) data;
 
 	return !strcmp(pon_list->name, pnew->name);
+}
+
+static bool filter_consumed_event(pLIST_ELEMENT pelem, void *data)
+{
+    (void) data;
+    pID_INFO pevent = (pID_INFO) pelem->mbr;
+
+    return !pevent->type_data.event_data.consumed_by_translator;
 }
 
 #ifdef PARSER_DEBUG

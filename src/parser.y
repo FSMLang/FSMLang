@@ -39,6 +39,8 @@
 #include "list.h"
 
 int lineno=1;
+extern int yylineno;
+extern char *curfilename;
 pLIST id_list = NULL;
 
 //did we parse correctly?
@@ -1551,6 +1553,10 @@ event_vector:
 	| '(' event_comma_list EVENT ')' 
 					{
 
+						if ($3->type_data.event_data.consumed_by_translator)
+						{
+							yyerror("event which is consumed by its translator cannot be part of a matrix");
+						}
 						$$ = $2;
 
  					if (add_to_list($$,$3) == NULL)
@@ -1568,6 +1574,11 @@ event_vector:
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a scalar event : %s\n",$1->name);
 						#endif
+
+						if ($1->type_data.event_data.consumed_by_translator)
+						{
+							yyerror("event which is consumed by its translator cannot be part of a matrix");
+						}
 
 						if (($<plist>$ = init_list()) == NULL) 
 							yyerror("out of memory");
@@ -1951,9 +1962,14 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
  						yyerror("Out of memory");
 
            set_id_type($2,EVENT);
+           $2->powningMachine                              = pmachineInfo;
            $2->type_data.event_data.externalDesignation = $3;
            $2->type_data.event_data.puser_event_data    = $4;
-           $2->powningMachine                           = pmachineInfo;
+					 if ($4 && $4->translator)
+					 {
+						 $2->type_data.event_data.consumed_by_translator
+							 = $4->translator->type_data.translator_data.consuming;
+					 }
 
  					if (NULL == ($2->type_data.event_data.phandling_states = init_list()))
  						yyerror("Out of memory");
@@ -1985,6 +2001,12 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            pid->type_data.event_data.shared_with_parent = true;
            pid->powningMachine                          = pmachineInfo;
  					pid->docCmnt                                 = $2;
+
+ 					if ($5 && $5->translator)
+					 {
+						 pid->type_data.event_data.consumed_by_translator
+							 = $5->translator->type_data.translator_data.consuming;
+					 }
 
  					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
  						yyerror("Out of memory");
@@ -2019,6 +2041,11 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            $3->type_data.event_data.externalDesignation = $4;
            $3->type_data.event_data.puser_event_data    = $5;
            $3->powningMachine                           = pmachineInfo;
+					 if ($5 && $5->translator)
+					 {
+						 $3->type_data.event_data.consumed_by_translator
+							 = $5->translator->type_data.translator_data.consuming;
+					 }
 
  					if (NULL == ($3->type_data.event_data.phandling_states = init_list()))
  						yyerror("Out of memory");
@@ -2049,6 +2076,12 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            pid->type_data.event_data.shared_with_parent  = true;
            pid->powningMachine                           = pmachineInfo;
  					 pid->docCmnt                                  = $3;
+
+ 					if ($6 && $6->translator)
+					 {
+						 pid->type_data.event_data.consumed_by_translator
+							 = $6->translator->type_data.translator_data.consuming;
+					 }
 
  					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
  						yyerror("Out of memory");
@@ -3481,10 +3514,10 @@ int main(int argc, char **argv)
 		/* get the base file name */
 		if (!outFileBase) {
 
-       size_t inputFilePathLen;
-
 			/* use the base input file name */
 			*cp1 = 0;
+
+       size_t inputFilePathLen;
 			cwk_path_get_basename(inputFileName, (const char**)&outFileBase, NULL);
       cwk_path_get_dirname(inputFileName, &inputFilePathLen);
       inputFilePath = strndup(inputFileName, inputFilePathLen);
@@ -3534,16 +3567,16 @@ void yyerror(char *s)
 	const char *basename;
 	const char *ext;
 
-  fprintf(stderr,"%s%s%s: %s.fsm: %s\n"
+  fprintf(stderr,"%s%s%s: %s: %s\n"
 					, (cwk_path_get_basename(me, &basename, NULL), basename)
 					, cwk_path_has_extension(me) ? "." : ""
 					, cwk_path_has_extension(me)
 						 ? (cwk_path_get_extension(me, &ext, NULL), ext)
 						 : ""
-          , inputFileName
+          ,  curfilename
 					,s
 					);
-  fprintf(stderr,"\tline %d : %s\n",lineno,yytext);
+  fprintf(stderr,"\tline %d : %s\n", yylineno,yytext);
 
   #ifdef PARSER_DEBUG
 	//always return good so that the makefile can pick up stderr

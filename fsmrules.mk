@@ -27,7 +27,7 @@ GENERATED_SRC      = $(shell $(FSM) -M $(FSM_FLAGS) $(FSM_SRC))
 GENERATED_HDR      = $(shell $(FSM) -Mh $(FSM_FLAGS) $(FSM_SRC))
 GENERATED_HTML     = $(shell $(FSM) -th -M $(FSM_HTML_FLAGS) $(FSM_SRC))
 GENERATED_PLANTUML = $(shell $(FSM) -tp -M $(FSM_PLANTUML_FLAGS) $(FSM_SRC))
-GENERATED_RST      = $(shell $(FSM) -M -tr $(FSM_SRC))
+GENERATED_RST      = $(shell $(FSM) -tr -M $(FSM_RST_FLAGS) $(FSM_SRC))
 
 cleanfsm:
 	@-rm -f $(GENERATED_SRC) 2> /dev/null

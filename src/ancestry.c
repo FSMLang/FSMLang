@@ -233,37 +233,19 @@ char* actionReturnType(pCMachineData pcmd)
 
 char* translatorReturnType(pCMachineData pcmd)
 {
-	FILE          *tmp;
+	/* The strategy here is different from the other string functions
+	   since the answer is either "void" or "the same string that eventType
+	   gives you.
+	*/
+	static char *void_str = "void";
 
-	/* only create the string once */
-	if (!pcmd->translator_return_type)
+	if (pcmd->pmi->modFlags & mfTranslatorsReturnEvents)
 	{
-		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
-		if (NULL != (tmp = tmpfile()))
-		{
-			if (pcmd->pmi->modFlags & mfTranslatorsReturnEvents)
-			{
-				printAncestry(pcmd->pmi
-							  , tmp
-							  , "_"
-							  , alc_upper
-							  , ai_include_self | ai_stop_at_parent
-							  );
-				fprintf(tmp
-						,"_EVENT%s"
-						, pcmd->pmi->data_block_count ? "_ENUM" : ""
-						);
-			}
-			else
-			{
-				fprintf(tmp, "void");
-			}
-
-			pcmd->translator_return_type = create_string_from_file(tmp, NULL);
-		}
+		return eventType(pcmd);
 	}
 
-	return pcmd->translator_return_type;
+	return void_str;
+
 }
 
 char* fsmType(pCMachineData pcmd)

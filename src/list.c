@@ -40,6 +40,7 @@ typedef struct _counter_str_ COUNTER_STR, *pCOUNTER_STR;
 typedef struct _unique_exception_str_ UNIQUE_EXCEPTION_STR, *pUNIQUE_EXCEPTION_STR;
 typedef struct _order_str_ ORDER_STR, *pORDER_STR;
 typedef struct _unique_test_str_ UNIQUE_TEST_STR, *pUNIQUE_TEST_STR;
+typedef struct _filter_fn_str_ FILTER_FN_STR, *pFILTER_FN_STR;
 
 struct _counter_str_
 {
@@ -67,6 +68,13 @@ struct _unique_test_str_
 {
 	pLIST            dest;
 	LIST_ITERATOR_FN test_fn;
+};
+
+struct _filter_fn_str_
+{
+	pLIST            dest;
+	LIST_FILTER_FN   filter_fn;
+	void             *filter_data;
 };
 
 static bool nth_record(pLIST_ELEMENT pmbr, void *data)
@@ -339,6 +347,18 @@ static bool list_copier_unique_with_exception(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static bool list_copier_with_filter(pLIST_ELEMENT pelem, void *data)
+{
+	pFILTER_FN_STR pffs = (pFILTER_FN_STR) data;
+
+	if ((*pffs->filter_fn)(pelem, pffs->filter_data))
+	{
+		add_to_list(pffs->dest, pelem->mbr);
+	}
+
+	return false;
+}
+
 /**********************************************************************************************************************/
 /**
  * @brief copy one list to the end of another
@@ -416,6 +436,21 @@ pLIST copy_list_unique_with_exception(pLIST dest, pLIST src, void *exception)
 	return dest ? dest : src;
 }
 
+pLIST copy_list_filtered(pLIST dest, pLIST src, LIST_FILTER_FN filter_fn,	void *filter_data)
+{
+	FILTER_FN_STR ffs;
+
+	ffs.dest        = dest;
+	ffs.filter_fn   = filter_fn;
+	ffs.filter_data = filter_data;
+
+	if (dest && src)
+	{
+		iterate_list(src, list_copier_with_filter, &ffs);
+	}
+
+	return dest ? dest : src;
+}
 
 /**********************************************************************************************************************/
 /**

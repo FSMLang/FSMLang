@@ -157,3 +157,8 @@ test/parser/test
 test/parser/y.output
 test/parser/y.tab.h
 test/parser/*.d.*
+
+#python detritus
+__pycache__
+*.py[cod]
+
