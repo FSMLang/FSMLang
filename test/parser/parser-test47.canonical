@@ -31,11 +31,11 @@ The 1 events in this list:
 The 1 events in this list:
 	0:	command
 
+found a data translator: translate_ble_comm
 found simple data type id
 found data field: TYPE: simple; NAME: ble_e
 Starting data_fields list
 Data block done
-found a data translator: translate_ble_comm
 found data fields
 ble_event_str ble_e;
 

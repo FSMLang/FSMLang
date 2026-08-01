@@ -105,7 +105,7 @@ static char *fsm_strndup(const char *s, size_t n)
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID TRANSLATORS
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
-%token START_KEY EVENT_SEQ END_KEY
+%token START_KEY EVENT_SEQ END_KEY CONSUMING
 
 %token <charData> SEQUENCE_KEY
 %token <charData> ACTION_KEY 
@@ -182,6 +182,7 @@ static char *fsm_strndup(const char *s, size_t n)
 %type <plist>                    sequences
 %type <pevent_sequence_node>     sequence_node
 %type <plist>                    sequence_nodes
+%type <pid_info>                 data_translator_fn
 
 %%
 
@@ -1863,54 +1864,70 @@ parent_namespace: PARENT NAMESPACE
   }
   ;
 
-user_event_data: { $$ = NULL; }
-  | DATA_KEY TRANSLATOR_KEY ID
-   {
+data_translator_fn: DATA_KEY TRANSLATOR_KEY ID
+    {
+		  if (pmachineInfo->parent)
+		  {
+			  if (!pmachineInfo->parent->data) 
+			  {
+				  yyerror("data translator declared for sub-machine having parent with no data");
+			  }
 
-		if (pmachineInfo->parent)
-		{
-			if (!pmachineInfo->parent->data) 
-			{
-				yyerror("data translator declared for sub-machine having parent with no data");
-			}
+			  pmachineInfo->parent->submachines_wanting_parent_data_count++;
+		  }
 
-			pmachineInfo->parent->submachines_wanting_parent_data_count++;
-		}
-
-  		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
-  		   yyerror("out of memory");
- 
-      $$->translator = $3;
-		 set_id_type($3, TRANSLATOR_FN);
+      $$ = $3;
+		  set_id_type($3, TRANSLATOR_FN);
       
       #ifdef PARSER_DEBUG
       fprintf(yyout,"found a data translator: %s\n", $3->name);
       #endif
-   }
-  | DATA_KEY TRANSLATOR_KEY ID data_block
-   {
-		if (pmachineInfo->parent)
-		{
-			if (!pmachineInfo->parent->data) 
-			{
-				yyerror("data translator declared for sub-machine having parent with no data");
-			}
+    }
+	| CONSUMING DATA_KEY TRANSLATOR_KEY ID
+	  {
+		  if (pmachineInfo->parent)
+		  {
+			  if (!pmachineInfo->parent->data) 
+			  {
+				  yyerror("data translator declared for sub-machine having parent with no data");
+			  }
 
-			pmachineInfo->parent->submachines_wanting_parent_data_count++;
-		}
+			  pmachineInfo->parent->submachines_wanting_parent_data_count++;
+		  }
+
+      $$ = $4;
+		  set_id_type($4, TRANSLATOR_FN);
+			$4->type_data.translator_data.consuming = true;
+      
+      #ifdef PARSER_DEBUG
+      fprintf(yyout,"found a data translator: %s\n", $4->name);
+      #endif
+	  }
+	;
+
+user_event_data: { $$ = NULL; }
+  | data_translator_fn
+   {
+
 
   		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
   		   yyerror("out of memory");
  
-      $$->translator = $3;
-		 set_id_type($3, TRANSLATOR_FN);
- 		 $$->data_fields = $4;
+      $$->translator = $1;
+   }
+  | data_translator_fn data_block
+   {
+
+  		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
+  		   yyerror("out of memory");
+ 
+      $$->translator = $1;
+ 		 $$->data_fields = $2;
 
       
       #ifdef PARSER_DEBUG
-      fprintf(yyout,"found a data translator: %s\n", $3->name);
       fprintf(yyout,"found data fields\n");
- 		 parser_debug_print_data_block($4,yyout);
+ 		 parser_debug_print_data_block($2,yyout);
       #endif
    }
   | DATA_KEY data_block
@@ -2814,6 +2831,7 @@ typedef enum {
  , lo_find_on_sub_machine_depth
  , lo_find_on_top_level_machine_data
  , lo_find_on_event_data
+ , lo_use_sphinx_scrollable_ext
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -3024,6 +3042,12 @@ const struct option longopts[] =
         , .flag    = &longval
 				, .val     = lo_find_on_event_data
     }
+		, {
+        .name      = "use-sphinx-scrollable-ext"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_use_sphinx_scrollable_ext
+    }
     , {0}
 };
       
@@ -3202,6 +3226,10 @@ int main(int argc, char **argv)
 			    case lo_short_user_fn_names:
 		            if (!optarg || !strcmp(optarg, "true"))
 			            short_user_fn_names=true;
+		            break;
+						case lo_use_sphinx_scrollable_ext:
+		            if (!optarg || !strcmp(optarg, "true"))
+			            use_sphinx_scrollable_ext=true;
 		            break;
 						case lo_convenience_macro_in_public_header:
 						   if (optarg && !strcmp(optarg, "false"))

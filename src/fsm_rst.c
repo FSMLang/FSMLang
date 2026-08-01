@@ -49,7 +49,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-bool include_uml_objects = false;
+bool include_uml_objects       = false;
+bool use_sphinx_scrollable_ext = false;
 
 //!< A must be pFSMRSTOutputGenerator
 #define FOUT(A) (A)->pmd->rstFile
@@ -866,13 +867,27 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 
 static void print_state_chart(pFSMRSTOutputGenerator pfsmrstog)
 {
+	if (use_sphinx_scrollable_ext)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n.. rst-class:: scrollable-target\n"
+			   );
+	}
+
 	fprintf(FOUT(pfsmrstog)
-			, "\n.. list-table:: State Chart\n%s:align: left\n%s:header-rows: 1\n%s:stub-columns: 1\n%s:class: scrollable\n"
-			, indent
+			, "\n.. list-table:: State Chart\n%s:align: left\n%s:header-rows: 1\n%s:stub-columns: 1\n"
 			, indent
 			, indent
 			, indent
 			);
+
+	if (!use_sphinx_scrollable_ext)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "%s:class: scrollable\n"
+				, indent
+				);
+	}
 
 	fprintf(FOUT(pfsmrstog)
 			, "\n%s* -\n"

@@ -28,6 +28,14 @@ Data block done
 The 1 events in this list:
 	0:	activate
 
+found a data translator: grab_command
+found simple data type name
+found data field: TYPE: simple; NAME: cmd
+Starting data_fields list
+Data block done
+found data fields
+int cmd;
+
 The 1 events in this list:
 	0:	command
 
@@ -62,6 +70,7 @@ found a scalar event : activate
 found a state scalar
 found a matrix
 found a transition matrix
+Found a translator return declaration
 process_action_info: noAction
 	iterate_matrix_states: event: activate
 		add_to_action_array: state: initial
