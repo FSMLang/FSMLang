@@ -151,6 +151,8 @@ test/full_test*/_static
 !test/full_test*/*-actions.c
 !test/full_test*/test.c
 !test/full_test*/command_defs.h
+!test/full_test*/ble_defs.h
+!test/full_test*/configuration.h
 
 # Lexer/parser test generated files
 test/lexer/lexer.c
