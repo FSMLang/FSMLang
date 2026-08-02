@@ -5,61 +5,41 @@ native
 #include <string.h>
 
 #include "command_defs.h"
+#include "configuration.h"
+#include "ble_defs.h"
 
 #define DBG_PRINTF(...) fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n");
 
-typedef enum
-{
-	ble_disconnect
-	, ble_adv_packet
-	, ble_connect
-	, ble_gatt_message
-	, ble_num_entries
-} ble_event_e;
-
-typedef struct _ble_event_str_ ble_event_str, *pble_event_str;
-struct _ble_event_str_
-{
-	ble_event_e type;
-	uint8_t     *content;
-};
-
-typedef enum
-{
-	cb_peer_id
-	, cb_peer_sn
-	, cb_peer_ble_addr
-	, cb_peer_ble_addr_type
-} command_type;
 
 }
 machine communicator
-	data translators return events;
 
 native impl
 {
-#define INIT_FSM_DATA {{0},NULL}
+#define INIT_FSM_DATA {{0},NULL,NULL}
 }
 
 {
 
 data
 {
-ble_event_str curr_ble_event;
-pcommand_str  pcurr_command;
+	configuration_str configuration;
+	pble_event_str    pcurr_ble_event;
+	pcommand_str      pcurr_command;
 }
 
 	event activate;
 
 	event command data translator grab_command {command_str command;};
-	event scan;
-	event connect;
+	event configuration_complete;
 
-	event ble_comm data translator translate_ble_comm {ble_event_str ble_e;};
-	event ble_proto;
-	event peer_msg;
-	event peer_found;
-	event peer_not_found;
+	event ble_comm data translator grab_ble_comm {ble_event_str ble_e;};
+
+	event peer_connected;
+	event start_auth1;
+	event auth1_complete;
+	event auth2_complete;
+	event peer_data_synced;
 
 	state initial;
 
@@ -67,31 +47,23 @@ pcommand_str  pcurr_command;
 		on entry set_defaults
 		;
 
-	state scanning_for_peer
-		on entry start_scanning
-		on exit  stop_scanning
-		;
-
 	state first_time_connect;
-
-	state managing_peer;
+	state connected_to_peer;
 
 	include commands.fsms
-	//include ble_proto.fsms;
-	//include first_time_connect.fsms
-	//include manage_peer.fsms;
+	include ble.fsms
+	include first_connection.fsms
 
-	action activate_all [activate, (all)] transition waiting;
-	transition [scan, waiting] scanning_for_peer;
-	transition [connect, waiting] managing_peer;
+	action activate_all     [activate, (all)]                 transition waiting;
+	action forward_command  [command, waiting];
+	action start_looking    [configuration_complete, waiting] transition first_time_connect;
 
-	action process_command[command, waiting];
+	action forward_peer_connected [peer_connected, first_time_connect];
+	action forward_auth1_complete [auth1_complete, first_time_connect];
+	action forward_auth2_complete [auth2_complete, first_time_connect];
+	action forward_peer_data_synced [peer_data_synced, first_time_connect] transition connected_to_peer;
 
-	translate_ble_comm returns
-		ble_proto
-		, peer_msg
-		;
+	action forward_ble_comm [ble_comm, (all)];
 
-	sequence activate_scan peer_found end managing_peer;
 }
 

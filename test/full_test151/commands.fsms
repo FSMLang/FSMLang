@@ -14,23 +14,20 @@
 native
 {
 #include "command_defs.h"
+#include "configuration.h"
 }
 
 machine commands
 native impl
 {
-#define INIT_FSM_DATA {NULL,0,0,{{0}},{{0}},{{0}}}
+#define INIT_FSM_DATA {NULL,NULL}
 }
 
 {
 data
 {
-pcommand_str  *ppcommand;
-uint8_t       cmd_bits;
-uint8_t       peer_ble_addr_type;
-ble_addr_str  peer_ble_addr;
-sn_str        peer_sn;
-id_str        peer_id;
+pcommand_str       *ppcommand;
+pconfiguration_str pconfiguration;
 }
 
 	state initial
@@ -39,11 +36,16 @@ id_str        peer_id;
 	state waiting_pairing_info;
 	state pairing_info_found;
 
-	event parent::activate data translator grab_command_ptr;
+	event parent::activate data translator grab_parent_data_ptrs;
 	event parent::command;
 
 	transition [activate, initial] waiting_pairing_info;
 	transition [activate, (waiting_pairing_info, pairing_info_found)] initial;
 
 	action parse_command [command, waiting_pairing_info] transition check_pairing_info;
+
+	check_pairing_info returns
+		pairing_info_found
+		, waiting_pairing_info
+		;
 }

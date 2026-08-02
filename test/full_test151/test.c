@@ -3,12 +3,18 @@
 
 #include "test_fsm.h"
 
-#define INIT_COMMUNICATOR_DATA {{0}, NULL}
+/*{0,0,{0},{0},{0}},*/
+#define INIT_COMMUNICATOR_DATA {{0}, 0, 0}
 #define INIT_COMMANDS_DATA     {0}
+#define INIT_BLE_DATA          {0}
+#define INIT_FIRST_CONNECTION_DATA {0}
 
-/* Since instances require constant pointers to submachines, we need to declare them here. */
-COMMUNICATOR_INSTANCE(scan, INIT_COMMUNICATOR_DATA, INIT_COMMANDS_DATA);
-COMMUNICATOR_INSTANCE(connect, INIT_COMMUNICATOR_DATA, INIT_COMMANDS_DATA);
+/* 
+* Since instances require constant pointers to submachines,
+* we need to declare them here, rather than in the respective tests.
+*/
+COMMUNICATOR_INSTANCE(scan, INIT_COMMUNICATOR_DATA, INIT_COMMANDS_DATA, INIT_BLE_DATA, INIT_FIRST_CONNECTION_DATA);
+COMMUNICATOR_INSTANCE(connect, INIT_COMMUNICATOR_DATA, INIT_COMMANDS_DATA, INIT_BLE_DATA, INIT_FIRST_CONNECTION_DATA);
 
 static void run_communicator(pCOMMUNICATOR, pCOMMUNICATOR_EVENT);
 
@@ -46,6 +52,11 @@ static void scan_happy_path()
           , sizeof(e.event_data.command_data.command.data.peer_sn)
          );
 	run_communicator(pscan, &e);
+
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_adv_packet;
+	run_communicator(pscan, &e);
+
 }
 
 static void connect_happy_path()
@@ -75,6 +86,14 @@ static void connect_happy_path()
 
 	e.event_data.command_data.command.tag = command_peer_ble_addr_type;
 	e.event_data.command_data.command.data.peer_ble_addr_type = 1;
+	run_communicator(pconnect, &e);
+
+	e.event_data.command_data.command.tag = command_peer_comm_window;
+	e.event_data.command_data.command.data.peer_comm_window = 0;
+	run_communicator(pconnect, &e);
+
+	e.event_data.command_data.command.tag = command_peer_comm_period;
+	e.event_data.command_data.command.data.peer_comm_period = 0;
 	run_communicator(pconnect, &e);
 
 }

@@ -1184,7 +1184,7 @@ static void writeOriginalFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 		FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* while %s: %u */\n", __FILE__, __LINE__);
 	}
 
-	printFSMMachineDebugBlock(pcmd, pmi);
+	printFSMMachineDebugBlock(pcmd, pmi, false);
 
 	fprintf(pcmd->cFile
 			, "\t/* This is read-only data to facilitate error reporting in action functions */\n"
@@ -1263,7 +1263,7 @@ static void writeOriginalSubFSMLoop(pCMachineData pcmd, pMACHINE_INFO pmi)
 			   );
 	}
 
-	printFSMSubMachineDebugBlock(pcmd, pmi);
+	printFSMSubMachineDebugBlock(pcmd, pmi, false);
 
 	fprintf(pcmd->cFile
 			, "\t/* This is read-only data to facilitate error reporting in action functions */\n"

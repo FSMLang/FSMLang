@@ -1068,7 +1068,7 @@ static void writeSingleSwitchSubFSMLoop(pFSMCOutputGenerator pfsmcog)
 			, pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
 			);
 
-	printFSMSubMachineDebugBlock(pcmd, pmi);
+	printFSMSubMachineDebugBlock(pcmd, pmi, false);
 
 	writeCFSMLoopInnards("\t");
 

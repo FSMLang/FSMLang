@@ -14,6 +14,8 @@ typedef enum
 	, command_peer_sn
 	, command_peer_ble_addr_type
 	, command_peer_ble_addr
+	, command_peer_comm_window
+	, command_peer_comm_period
 	, command_num_commands
 } command_e;
 
@@ -32,6 +34,8 @@ union _command_u_
 	sn_str       peer_sn;
 	uint8_t      peer_ble_addr_type;
 	ble_addr_str peer_ble_addr;
+	uint32_t     peer_comm_window;
+	uint32_t     peer_comm_period;
 };
 
 struct _command_str_

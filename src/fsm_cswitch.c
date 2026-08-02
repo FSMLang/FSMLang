@@ -937,6 +937,14 @@ static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_IN
             , dod == dod_declare ? ";\n" : "\n{\n"
            );
 
+	if ((dod == dod_define) && !(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+	{
+		fprintf(pcmd->cFile
+				, "#ifdef %s_DEBUG\n\tbool action_taken = true;\n#endif\n"
+				, ucfqMachineName(pcmd)
+				);
+	}
+
 }
 
 static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
@@ -2319,15 +2327,27 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
    if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
    {
       fprintf(pcmd->cFile
-              , "\t\tdefault:\n\t\t\tbreak;\n\t}\n"
+              , "\t\tdefault:\n"
               );
    }
    else
    {
       fprintf(pcmd->cFile
-              , "\t\tdefault:\n\t\t\tretVal = e;\n\t\t\tbreak;\n\t}"
+              , "\t\tdefault:\n\t\t\tretVal = e;\n"
               );
    }
+
+   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+   {
+	   fprintf(pcmd->cFile
+			   , "\t\t\t#ifdef %s_DEBUG\n\t\t\taction_taken = false;\n\t\t\t#endif\n"
+			   , ucfqMachineName(pcmd)
+			  );
+   }
+
+   fprintf(pcmd->cFile
+		   , "\t\t\tbreak;\n\t}\n"
+		   );
 
    if (pmi->executes_fns_on_state_transitions)
    {
@@ -2396,6 +2416,14 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
    }
    else
    {
+	   if (pcmd->parent_pcmd)
+	   {
+		   printFSMSubMachineDebugBlock(pcmd, pmi, true);
+	   }
+	   else
+	   {
+		   printFSMMachineDebugBlock(pcmd, pmi, true);
+	   }
       fprintf(pcmd->cFile 
               , "\n\t return retVal;\n\n}\n\n"
               );
