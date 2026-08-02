@@ -1,0 +1,143 @@
+
+test: scan_happy_path
+event: communicator_activate; state: communicator_initial
+communicator_activate_all
+event: communicator_commands_activate; state: communicator_commands_initial
+communicator_commands_noAction
+communicator_ble_grab_parent_data_ptrs
+event: communicator_ble_activate; state: communicator_ble_initial
+communicator_ble_noAction
+communicator_ble_set_defaults
+event: communicator_first_connection_activate; state: communicator_first_connection_initial
+communicator_first_connection_noAction
+communicator_set_defaults
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_forward_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: []
+peer_ble_addr_type: [0]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id ]
+communicator_commands_check_pairing_info
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_forward_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: [012345678901]
+peer_ble_addr: []
+peer_ble_addr_type: [0]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_sn ]
+communicator_commands_check_pairing_info
+event: communicator_configuration_complete; state: communicator_waiting
+communicator_start_looking
+communicator_ble_check_configuration
+event: communicator_ble_do_scan; state: communicator_ble_waiting
+communicator_ble_noAction
+communicator_ble_start_scanning
+communicator_grab_ble_comm
+event: communicator_ble_comm; state: communicator_first_time_connect
+communicator_forward_ble_comm
+communicator_ble_translate_ble_comm
+event: communicator_ble_adv_packet; state: communicator_ble_scanning
+communicator_ble_parse_adv_packet
+event: communicator_ble_connection; state: communicator_ble_scanning
+communicator_ble_report_connection
+communicator_ble_stop_scanning
+communicator_ble_set_defaults
+event: communicator_peer_connected; state: communicator_first_time_connect
+communicator_forward_peer_connected
+event: communicator_first_connection_peer_connected; state: communicator_first_connection_waiting
+communicator_first_connection_start_auth1
+
+test: connect_happy_path
+event: communicator_activate; state: communicator_initial
+communicator_activate_all
+event: communicator_commands_activate; state: communicator_commands_initial
+communicator_commands_noAction
+communicator_ble_grab_parent_data_ptrs
+event: communicator_ble_activate; state: communicator_ble_initial
+communicator_ble_noAction
+communicator_ble_set_defaults
+event: communicator_first_connection_activate; state: communicator_first_connection_initial
+communicator_first_connection_noAction
+communicator_set_defaults
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_forward_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: []
+peer_ble_addr_type: [0]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id ]
+communicator_commands_check_pairing_info
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_forward_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [0]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_ble_addr ]
+communicator_commands_check_pairing_info
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_forward_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [1]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_ble_addr_type peer_ble_addr ]
+communicator_commands_check_pairing_info
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_forward_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [1]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_ble_addr_type peer_ble_addr peer_comm_window ]
+communicator_commands_check_pairing_info
+communicator_grab_command
+event: communicator_command; state: communicator_waiting
+communicator_forward_command
+event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [1]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_ble_addr_type peer_ble_addr peer_comm_window peer_comm_period ]
+communicator_commands_check_pairing_info
+event: communicator_configuration_complete; state: communicator_waiting
+communicator_start_looking
+communicator_ble_check_configuration
+event: communicator_ble_do_connect; state: communicator_ble_waiting
+communicator_ble_noAction
+communicator_ble_start_connection_timer

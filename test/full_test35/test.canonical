@@ -81,7 +81,7 @@ event: e7; state: s3
 weak: top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
-The integer: 0
+The int: 0
 
 The string: loop: 0
 
@@ -119,7 +119,7 @@ event: e7; state: s3
 weak: top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
-The integer: 1
+The int: 1
 
 The string: loop: 1
 
@@ -157,7 +157,7 @@ event: e7; state: s3
 weak: top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
-The integer: 2
+The int: 2
 
 The string: loop: 2
 
@@ -195,7 +195,7 @@ event: e7; state: s3
 weak: top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
-The integer: 3
+The int: 3
 
 The string: loop: 3
 
@@ -233,7 +233,7 @@ event: e7; state: s3
 weak: top_level_handle_other_passed_event
 top_level_sub_machine1_translate_e7_data
 
-The integer: 4
+The int: 4
 
 The string: loop: 4
 

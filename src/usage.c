@@ -716,6 +716,20 @@ fprintf(stdout
 	   , inner_item_start
 	   , list_item_end
 	   );
+ fprintf(stdout
+		 ,"%s--use-sphinx-scrollable-ext%s=%strue%s|false%s uses sphinx extension ..rst-class:: scrollable-target directive to%s"
+		 , item_start
+		 , lt
+		 , dflt
+		 , gt
+		 , expl_start
+		 , list_start
+		 );
+fprintf(stdout
+	   ,"%sprovide a better scrolling behavior for the state chart. The extension must be installed%s"
+	   , inner_item_start
+	   , list_item_end
+	   );
 	fprintf(stdout
 			,"%s--find-on-top-level-machine-data=%strue*|false%s%sReturn file name iff the top-level machine has data.%s"
 			, item_start

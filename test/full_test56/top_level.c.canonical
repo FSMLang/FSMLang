@@ -113,13 +113,13 @@ static TOP_LEVEL_EVENT findAndRunSubMachine(pTOP_LEVEL pfsm, TOP_LEVEL_EVENT e)
 static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 {
 	TOP_LEVEL_EVENT retVal = THIS(noEvent);
-	TOP_LEVEL_STATE new_s = top_level_s1;
+	TOP_LEVEL_STATE new_s = STATE(s1);
 
 	switch(e)
 	{
 	case THIS(e1):
 		retVal = UFMN(a1)(pfsm);
-		new_s = top_level_s2;
+		new_s = STATE(s2);
 		break;
 	default:
 		DBG_PRINTF("top_level_noAction");
@@ -127,7 +127,7 @@ static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 	}
 
 
-	if (top_level_s1 != new_s)
+	if (STATE(s1) != new_s)
 	{
 		UFMN(foo)(pfsm, new_s);
 		pfsm->state = new_s;
@@ -140,7 +140,7 @@ static TOP_LEVEL_EVENT s1_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 {
 	TOP_LEVEL_EVENT retVal = THIS(noEvent);
-	TOP_LEVEL_STATE new_s = top_level_s2;
+	TOP_LEVEL_STATE new_s = STATE(s2);
 
 	switch(e)
 	{
@@ -152,7 +152,7 @@ static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 		break;
 	case THIS(e4):
 		retVal = UFMN(activate_sub_machine3)(pfsm);
-		new_s = top_level_s3;
+		new_s = STATE(s3);
 		break;
 	default:
 		DBG_PRINTF("top_level_noAction");
@@ -160,7 +160,7 @@ static TOP_LEVEL_EVENT s2_stateFn(pTOP_LEVEL pfsm,TOP_LEVEL_EVENT e)
 	}
 
 
-	if (top_level_s2 != new_s)
+	if (STATE(s2) != new_s)
 	{
 		UFMN(foo)(pfsm, new_s);
 		pfsm->state = new_s;

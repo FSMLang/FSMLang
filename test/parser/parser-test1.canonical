@@ -90,6 +90,7 @@ populate_action_array returning false
 found a machine named newMachine
 	with 4 events and 4 states
 Actions return events
+Translators return void
 The states :
 	0:	s1
 
@@ -236,6 +237,7 @@ populate_action_array returning false
 found a machine named anotherNewMachine
 	with 4 events and 4 states
 Actions return events
+Translators return void
 The states :
 	0:	anmS1
 

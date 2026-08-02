@@ -142,6 +142,17 @@ test/full_test*/*.c
 test/full_test*/*.h
 test/full_test*/*.d.*
 test/full_test*/*.plantuml
+test/full_test*/*.html
+test/full_test*/_build
+test/full_test*/_ext
+test/full_test*/_pygments
+test/full_test*/_static
+# Exceptions: user-provided source and headers
+!test/full_test*/*-actions.c
+!test/full_test*/test.c
+!test/full_test*/command_defs.h
+!test/full_test*/ble_defs.h
+!test/full_test*/configuration.h
 
 # Lexer/parser test generated files
 test/lexer/lexer.c
@@ -152,3 +163,8 @@ test/parser/test
 test/parser/y.output
 test/parser/y.tab.h
 test/parser/*.d.*
+
+#python detritus
+__pycache__
+*.py[cod]
+

@@ -39,6 +39,8 @@
 #include "list.h"
 
 int lineno=1;
+extern int yylineno;
+extern char *curfilename;
 pLIST id_list = NULL;
 
 //did we parse correctly?
@@ -103,9 +105,9 @@ static char *fsm_strndup(const char *s, size_t n)
 
 %token ON NAMESPACE STATE_KEY EVENT_KEY PROLOGUE_KEY EPILOGUE_KEY
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
-%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID
+%token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID TRANSLATORS
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
-%token START_KEY EVENT_SEQ END_KEY
+%token START_KEY EVENT_SEQ END_KEY CONSUMING
 
 %token <charData> SEQUENCE_KEY
 %token <charData> ACTION_KEY 
@@ -125,6 +127,8 @@ static char *fsm_strndup(const char *s, size_t n)
 %token <pid_info> ID
 %token <charData> NUMERIC_STRING
 %token <pid_info> TYPE_NAME
+%token <pid_info> ENTRY_OR_EXIT_FN
+%token <pid_info> TRANSLATOR_FN
 
 %type <plist>                    return_choice_cond_list
 %type <preturn_choice>           return_choice_cond
@@ -165,6 +169,7 @@ static char *fsm_strndup(const char *s, size_t n)
 %type <pstatement_decl_list>     statement_decl_list
 %type <pactions_and_transitions> actions_and_transitions
 %type <mod_flags>                action_return_spec
+%type <mod_flags>                translator_return_spec
 %type <pid_info>                 machine_transition_decl
 %type <pmachine_qualifier>       machine_qualifier      
 %type <plist>                    machine_list
@@ -179,6 +184,7 @@ static char *fsm_strndup(const char *s, size_t n)
 %type <plist>                    sequences
 %type <pevent_sequence_node>     sequence_node
 %type <plist>                    sequence_nodes
+%type <pid_info>                 data_translator_fn
 
 %%
 
@@ -267,6 +273,7 @@ machine:	machine_prefix ID machine_qualifier
 						pid_state->powningMachine = pmachineInfo;
 						pid_state->order          = NO_TRANSITION;  // This makes it easier to detect.
 
+					pmachineInfo->modFlags |= $3->modFlags;
          } 
         '{' statement_decl_list '}'
 					{
@@ -278,7 +285,6 @@ machine:	machine_prefix ID machine_qualifier
  			      $$->machineTransition  = $3->machineTransition;
             $$->native_impl_prologue = $3->native_impl_prologue;
             $$->native_impl_epilogue = $3->native_impl_epilogue;
-
 
 						/* harvest the lists */
  					$$->data               = $6->data;
@@ -303,6 +309,11 @@ machine:	machine_prefix ID machine_qualifier
  					if ($$->parent && $$->data_block_count && !output_generated_file_names_only)
 					{
  					   yyerror("event user data not allowed in sub-machines");
+					}
+
+					if ($$->data_translator_count && !$$->data && !output_generated_file_names_only)
+					{
+						yyerror("data translators not allowed for machines having no data");
 					}
 
 
@@ -368,6 +379,8 @@ machine:	machine_prefix ID machine_qualifier
             add_id(id_list,MACHINE,$2->name,&pid);
             pid->powningMachine = $$;
 
+						pmachineInfo = $$->parent;
+
            }
 
 						#ifdef PARSER_DEBUG
@@ -388,19 +401,32 @@ machine:	machine_prefix ID machine_qualifier
 
 						}
 
+						fprintf(yyout,"Actions return ");
 						if ($$->modFlags & mfActionsReturnStates) {
 
-							fprintf(yyout,"Actions return states\n");
+							fprintf(yyout,"states\n");
 
 						}
 						else if ($$->modFlags & mfActionsReturnVoid) {
 
-							fprintf(yyout,"Actions return void\n");
+							fprintf(yyout,"void\n");
 
 						}
 						else {
 
-							fprintf(yyout,"Actions return events\n");
+							fprintf(yyout,"events\n");
+
+						}
+
+						fprintf(yyout,"Translators return ");
+						if ($$->modFlags & mfTranslatorsReturnEvents) {
+
+							fprintf(yyout,"events\n");
+
+						}
+						else {
+
+							fprintf(yyout,"void\n");
 
 						}
 
@@ -504,6 +530,13 @@ machine_qualifier:
 
  					$$->modFlags = $1;
 		     }
+    | translator_return_spec
+		     {
+ 					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
+ 						yyerror("Out of memory");
+
+ 					$$->modFlags = $1;
+		     }
     | native_impl
 		     {
  					if (NULL == ($$ = (pMACHINE_QUALIFIER)calloc(1, sizeof(MACHINE_QUALIFIER))))
@@ -523,13 +556,20 @@ machine_qualifier:
 		     }
     | machine_qualifier action_return_spec
 		     {
-           if ($1->modFlags != mfNone)
+           if ($1->modFlags & mfActionsReturnDeclared)
              yyerror("only one action return spec allowed per machine");
 
- 					$1->modFlags          = $2;
+ 					$$->modFlags          |= $2;
 
-           $$ = $1;
 		     }
+//    | machine_qualifier translator_return_spec
+//		     {
+//           if ($1->modFlags & mfTranslatorsReturnDeclared)
+//             yyerror("only one translator return spec allowed per machine");
+//
+// 					$$->modFlags          |= $2;
+//
+//		     }
     | machine_qualifier native_impl
 		     {
            if ($1->native_impl_prologue)
@@ -562,15 +602,33 @@ action_return_spec:
 						add_id(id_list, EVENT,"noEvent",&pid_info);
            pid_info->powningMachine = pmachineInfo;
 
- 					$$ = 0;
+ 					$$ = mfActionsReturnDeclared;
         }
 	| ACTIONS RETURN STATES ';'
 					{
- 					$$ = mfActionsReturnStates;
+ 					$$ = (mfActionsReturnStates | mfActionsReturnDeclared);
 					}
 	| ACTIONS RETURN VOID ';'
 					{
-						$$ = mfActionsReturnVoid;
+ 					  $$ = (mfActionsReturnVoid | mfActionsReturnDeclared);
+					}
+	;
+
+translator_return_spec: 
+	DATA_KEY TRANSLATORS RETURN EVENTS ';'
+        {
+						pID_INFO pid_info;
+					 /* note that this is not added to the machine event list;
+					 it is here only to be found as an event id for return decls.
+           */
+						add_id(id_list, EVENT,"noEvent",&pid_info);
+           pid_info->powningMachine = pmachineInfo;
+
+ 					$$ = (mfTranslatorsReturnEvents | mfTranslatorsReturnDeclared);
+        }
+	| DATA_KEY TRANSLATORS RETURN VOID ';'
+					{
+						$$ = mfTranslatorsReturnDeclared;
 					}
 	;
 
@@ -983,6 +1041,10 @@ actions_and_transitions:
 	  {
 			$$ = $1;
 	  }
+ | actions_and_transitions translator_return_decl
+	  {
+			$$ = $1;
+	  }
    /* note that machines must precede actions and transitions */
 	;
 
@@ -1269,6 +1331,10 @@ action: action_matrix
 					}
 	| action_matrix transition 	
 					{
+						if (pmachineInfo->modFlags & mfActionsReturnStates)
+						{
+							yyerror("Cannot have actions with transitions when actions return states.");
+						}
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found an action with transition\n");
@@ -1487,6 +1553,10 @@ event_vector:
 	| '(' event_comma_list EVENT ')' 
 					{
 
+						if ($3->type_data.event_data.consumed_by_translator)
+						{
+							yyerror("event which is consumed by its translator cannot be part of a matrix");
+						}
 						$$ = $2;
 
  					if (add_to_list($$,$3) == NULL)
@@ -1504,6 +1574,11 @@ event_vector:
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a scalar event : %s\n",$1->name);
 						#endif
+
+						if ($1->type_data.event_data.consumed_by_translator)
+						{
+							yyerror("event which is consumed by its translator cannot be part of a matrix");
+						}
 
 						if (($<plist>$ = init_list()) == NULL) 
 							yyerror("out of memory");
@@ -1672,7 +1747,23 @@ state: ID
  					$$->type_data.state_data.state_flags |= sfHasEntryFn;
  					$$->type_data.state_data.entry_fn     = $4;
 
- 					set_id_type($4, ENTRY);
+ 					set_id_type($4, ENTRY_OR_EXIT_FN);
+
+		      }
+   | state ON ENTRY ENTRY_OR_EXIT_FN
+					{
+         	#ifdef PARSER_DEBUG
+         	fprintf(yyout
+										, "state %s has entry function %s\n"
+ 									, $1->name
+ 									, $4->name
+										);
+         	#endif
+
+ 					$$ = $1;
+
+ 					$$->type_data.state_data.state_flags |= sfHasEntryFn;
+ 					$$->type_data.state_data.entry_fn     = $4;
 
 		      }
    | state ON EXIT
@@ -1704,7 +1795,23 @@ state: ID
  					$$->type_data.state_data.state_flags |= sfHasExitFn;
  					$$->type_data.state_data.exit_fn     = $4;
 
- 					set_id_type($4, EXIT);
+ 					set_id_type($4, ENTRY_OR_EXIT_FN);
+
+		      }
+   | state ON EXIT ENTRY_OR_EXIT_FN
+					{
+         	#ifdef PARSER_DEBUG
+         	fprintf(yyout
+										, "state %s has exit function %s\n"
+ 									, $1->name
+ 									, $4->name
+										);
+         	#endif
+
+ 					$$ = $1;
+
+ 					$$->type_data.state_data.state_flags |= sfHasExitFn;
+ 					$$->type_data.state_data.exit_fn     = $4;
 
 		      }
  				;
@@ -1768,35 +1875,70 @@ parent_namespace: PARENT NAMESPACE
   }
   ;
 
-user_event_data: { $$ = NULL; }
-  | DATA_KEY TRANSLATOR_KEY ID
-   {
-		if (pmachineInfo->parent && !pmachineInfo->parent->data) 
-		{
-			yyerror("data translator declared for sub-machine having parent with no data");
-		}
+data_translator_fn: DATA_KEY TRANSLATOR_KEY ID
+    {
+		  if (pmachineInfo->parent)
+		  {
+			  if (!pmachineInfo->parent->data) 
+			  {
+				  yyerror("data translator declared for sub-machine having parent with no data");
+			  }
 
-  		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
-  		   yyerror("out of memory");
- 
-      $$->translator = $3;
+			  pmachineInfo->parent->submachines_wanting_parent_data_count++;
+		  }
+
+      $$ = $3;
+		  set_id_type($3, TRANSLATOR_FN);
       
       #ifdef PARSER_DEBUG
       fprintf(yyout,"found a data translator: %s\n", $3->name);
       #endif
-   }
-  | DATA_KEY TRANSLATOR_KEY ID data_block
+    }
+	| CONSUMING DATA_KEY TRANSLATOR_KEY ID
+	  {
+		  if (pmachineInfo->parent)
+		  {
+			  if (!pmachineInfo->parent->data) 
+			  {
+				  yyerror("data translator declared for sub-machine having parent with no data");
+			  }
+
+			  pmachineInfo->parent->submachines_wanting_parent_data_count++;
+		  }
+
+      $$ = $4;
+		  set_id_type($4, TRANSLATOR_FN);
+			$4->type_data.translator_data.consuming = true;
+      
+      #ifdef PARSER_DEBUG
+      fprintf(yyout,"found a data translator: %s\n", $4->name);
+      #endif
+	  }
+	;
+
+user_event_data: { $$ = NULL; }
+  | data_translator_fn
    {
+
+
   		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
   		   yyerror("out of memory");
  
-      $$->translator = $3;
- 		 $$->data_fields = $4;
+      $$->translator = $1;
+   }
+  | data_translator_fn data_block
+   {
+
+  		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
+  		   yyerror("out of memory");
+ 
+      $$->translator = $1;
+ 		 $$->data_fields = $2;
+
       
       #ifdef PARSER_DEBUG
-      fprintf(yyout,"found a data translator: %s\n", $3->name);
       fprintf(yyout,"found data fields\n");
- 		 parser_debug_print_data_block($4,yyout);
+ 		 parser_debug_print_data_block($2,yyout);
       #endif
    }
   | DATA_KEY data_block
@@ -1820,9 +1962,14 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
  						yyerror("Out of memory");
 
            set_id_type($2,EVENT);
+           $2->powningMachine                              = pmachineInfo;
            $2->type_data.event_data.externalDesignation = $3;
            $2->type_data.event_data.puser_event_data    = $4;
-           $2->powningMachine                           = pmachineInfo;
+					 if ($4 && $4->translator)
+					 {
+						 $2->type_data.event_data.consumed_by_translator
+							 = $4->translator->type_data.translator_data.consuming;
+					 }
 
  					if (NULL == ($2->type_data.event_data.phandling_states = init_list()))
  						yyerror("Out of memory");
@@ -1834,7 +1981,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
  						yyerror("Out of memory");
 
 					}
- | EVENT_KEY parent_namespace EVENT user_event_data
+ | EVENT_KEY parent_namespace EVENT { id_list = pmachineInfo->id_list; } user_event_data
 					{
             #ifdef PARSER_DEBUG
             fprintf(yyout,"Found a namespace event reference\n");
@@ -1850,10 +1997,16 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            if (!add_unique_id(id_list,EVENT,$3->name,&pid))
  						yyerror("Cannot reference parent event twice");
 
-           pid->type_data.event_data.puser_event_data   = $4;
+           pid->type_data.event_data.puser_event_data   = $5;
            pid->type_data.event_data.shared_with_parent = true;
            pid->powningMachine                          = pmachineInfo;
  					pid->docCmnt                                 = $2;
+
+ 					if ($5 && $5->translator)
+					 {
+						 pid->type_data.event_data.consumed_by_translator
+							 = $5->translator->type_data.translator_data.consuming;
+					 }
 
  					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
  						yyerror("Out of memory");
@@ -1888,6 +2041,11 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            $3->type_data.event_data.externalDesignation = $4;
            $3->type_data.event_data.puser_event_data    = $5;
            $3->powningMachine                           = pmachineInfo;
+					 if ($5 && $5->translator)
+					 {
+						 $3->type_data.event_data.consumed_by_translator
+							 = $5->translator->type_data.translator_data.consuming;
+					 }
 
  					if (NULL == ($3->type_data.event_data.phandling_states = init_list()))
  						yyerror("Out of memory");
@@ -1899,7 +2057,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
  						yyerror("Out of memory");
 
 					}
- | event_decl_list ',' parent_namespace EVENT user_event_data
+ | event_decl_list ',' parent_namespace EVENT { id_list = pmachineInfo->id_list; } user_event_data
 					{
             #ifdef PARSER_DEBUG
             fprintf(yyout,"added another namespace event reference to the declaration list\n");
@@ -1914,10 +2072,16 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            if (!add_unique_id(id_list,EVENT,$4->name,&pid))
  						yyerror("Cannot reference parent event twice");
 
-           pid->type_data.event_data.puser_event_data    = $5;
+           pid->type_data.event_data.puser_event_data    = $6;
            pid->type_data.event_data.shared_with_parent  = true;
            pid->powningMachine                           = pmachineInfo;
  					 pid->docCmnt                                  = $3;
+
+ 					if ($6 && $6->translator)
+					 {
+						 pid->type_data.event_data.consumed_by_translator
+							 = $6->translator->type_data.translator_data.consuming;
+					 }
 
  					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
  						yyerror("Out of memory");
@@ -2098,7 +2262,12 @@ native_impl_epilogue: NATIVE_KEY IMPLEMENTATION_KEY EPILOGUE_KEY NATIVE_BLOCK
 
 	;
  
-machine_data: DATA_KEY data_block { $$ = $2; pmachineInfo->data = $$; };
+machine_data: DATA_KEY data_block
+					{
+						 $$ = $2;
+						 pmachineInfo->data = $$;
+					}
+					;
 
 data_block:	'{' data_fields '}'
 	{
@@ -2323,6 +2492,79 @@ returns_comma_list: namespace_event_ref ','
 
     }
     ;
+
+translator_return_decl: 
+  TRANSLATOR_FN RETURNS returns_comma_list EVENT ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found a translator return declaration\n");
+    #endif
+
+ 	 if (!$1->type_data.translator_data.translator_returns_decl)
+		 {
+		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+			if (add_to_list($3,$4) == NULL)
+				 yyerror("out of memory");
+
+			move_list_unique($1->type_data.translator_data.translator_returns_decl, $3);
+ 		free_list($3);
+
+  }
+  | TRANSLATOR_FN RETURNS returns_comma_list namespace_event_ref ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found a translator return declaration\n");
+    #endif
+
+ 	 if (!$1->type_data.translator_data.translator_returns_decl)
+		 {
+		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+			if (add_to_list($3,$4) == NULL)
+				 yyerror("out of memory");
+
+			move_list_unique($1->type_data.translator_data.translator_returns_decl, $3);
+ 		free_list($3);
+
+  }
+  | TRANSLATOR_FN RETURNS EVENT ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found a translator return declaration\n");
+    #endif
+
+ 	 if (!$1->type_data.translator_data.translator_returns_decl)
+		 {
+		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+		 if (add_unique_to_list($1->type_data.translator_data.translator_returns_decl,$3) == NULL)
+				yyerror("out of memory");
+
+  }
+  | TRANSLATOR_FN RETURNS namespace_event_ref ';'
+  {
+    #ifdef PARSER_DEBUG
+    fprintf(yyout,"Found a translator return declaration\n");
+    #endif
+
+ 	 if (!$1->type_data.translator_data.translator_returns_decl)
+		 {
+		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
+				   yyerror("out of memory");
+		 }
+
+		 if (add_unique_to_list($1->type_data.translator_data.translator_returns_decl,$3) == NULL)
+				yyerror("out of memory");
+
+  }
+	;
 
 action_return_decl: 
   ACTION RETURNS returns_comma_list EVENT ';'
@@ -2564,6 +2806,7 @@ return_choice_cond: STATE WHEN_KEY ID
     $$->is_otherwise = true;
   }
   ;
+
 %%
 
 #if defined(CYGWIN) || defined (LINUX)
@@ -2621,6 +2864,7 @@ typedef enum {
  , lo_find_on_sub_machine_depth
  , lo_find_on_top_level_machine_data
  , lo_find_on_event_data
+ , lo_use_sphinx_scrollable_ext
 } LONG_OPTIONS;
 
 int longindex = 0;
@@ -2831,6 +3075,12 @@ const struct option longopts[] =
         , .flag    = &longval
 				, .val     = lo_find_on_event_data
     }
+		, {
+        .name      = "use-sphinx-scrollable-ext"
+        , .has_arg = optional_argument
+        , .flag    = &longval
+				, .val     = lo_use_sphinx_scrollable_ext
+    }
     , {0}
 };
       
@@ -3009,6 +3259,10 @@ int main(int argc, char **argv)
 			    case lo_short_user_fn_names:
 		            if (!optarg || !strcmp(optarg, "true"))
 			            short_user_fn_names=true;
+		            break;
+						case lo_use_sphinx_scrollable_ext:
+		            if (!optarg || !strcmp(optarg, "true"))
+			            use_sphinx_scrollable_ext=true;
 		            break;
 						case lo_convenience_macro_in_public_header:
 						   if (optarg && !strcmp(optarg, "false"))
@@ -3260,10 +3514,10 @@ int main(int argc, char **argv)
 		/* get the base file name */
 		if (!outFileBase) {
 
-       size_t inputFilePathLen;
-
 			/* use the base input file name */
 			*cp1 = 0;
+
+       size_t inputFilePathLen;
 			cwk_path_get_basename(inputFileName, (const char**)&outFileBase, NULL);
       cwk_path_get_dirname(inputFileName, &inputFilePathLen);
       inputFilePath = strndup(inputFileName, inputFilePathLen);
@@ -3313,16 +3567,16 @@ void yyerror(char *s)
 	const char *basename;
 	const char *ext;
 
-  fprintf(stderr,"%s%s%s: %s.fsm: %s\n"
+  fprintf(stderr,"%s%s%s: %s: %s\n"
 					, (cwk_path_get_basename(me, &basename, NULL), basename)
 					, cwk_path_has_extension(me) ? "." : ""
 					, cwk_path_has_extension(me)
 						 ? (cwk_path_get_extension(me, &ext, NULL), ext)
 						 : ""
-          , inputFileName
+          ,  curfilename
 					,s
 					);
-  fprintf(stderr,"\tline %d : %s\n",lineno,yytext);
+  fprintf(stderr,"\tline %d : %s\n", yylineno,yytext);
 
   #ifdef PARSER_DEBUG
 	//always return good so that the makefile can pick up stderr

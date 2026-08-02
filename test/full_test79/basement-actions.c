@@ -16,14 +16,12 @@ ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
     return STATE(noTransition);
 }
 
-void UFMN(grab_parent_e1_data)(pSUB_DATA pdata, const void *pfsm)
+void UFMN(grab_parent_e1_data)(FSM_DATA_PTR pfsm_data, PARENT_DATA_TYPE_PTR pparent_data)
 {
     DBG_PRINTF("%s", __func__);
 
-	 DECLARE_INSTANCE(pbasement);
+    pfsm_data->basement_e1_count += pparent_data->sub_e1_count;
 
-    pbasement->data.basement_e1_count += pdata->sub_e1_count;
-
-    DBG_PRINTF("basement e1 accumulator: %u", pbasement->data.basement_e1_count);
+    DBG_PRINTF("basement e1 accumulator: %u", pfsm_data->basement_e1_count);
 }
 

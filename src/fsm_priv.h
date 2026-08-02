@@ -61,10 +61,12 @@ if (!(A))                 \
 */
 typedef enum {
   mfNone
-	, mfReentrant           = 1
-	, mfActionsReturnStates = 2
-  , mfActionsReturnVoid   = 4
-  , mfMachineTransition   = 8
+	, mfReentrant                 = 1
+	, mfActionsReturnStates       = 2
+   , mfActionsReturnVoid         = 4
+   , mfActionsReturnDeclared     = 8
+   , mfTranslatorsReturnEvents   = 16
+   , mfTranslatorsReturnDeclared = 32
 } MOD_FLAGS;
 
 typedef enum {
@@ -126,6 +128,7 @@ typedef struct _event_data_              EVENT_DATA,              *pEVENT_DATA;
 typedef struct _state_data_              STATE_DATA,              *pSTATE_DATA;
 /* The following must not be confused with ACTION_INFO */
 typedef struct _action_data_             ACTION_DATA,             *pACTION_DATA;
+typedef struct _translator_data_         TRANSLATOR_DATA,             *pTRANSLATOR_DATA;
 typedef struct _data_field_              DATA_FIELD,              *pDATA_FIELD;
 typedef union  _data_type_union_         DATA_TYPE_UNION,         *pDATA_TYPE_UNION;
 typedef struct _data_type_struct_        DATA_TYPE_STRUCT,        *pDATA_TYPE_STRUCT;
@@ -183,12 +186,19 @@ struct _event_data_
    pLIST            phandling_states;
    pLIST            pactions_list;
    unsigned         state_density_pct;
+   bool             consumed_by_translator;
 };
 
 struct _action_data_
 {
 	pACTION_INFO    actionInfo;
 	pLIST           action_returns_decl;
+};
+
+struct _translator_data_
+{
+	pLIST  translator_returns_decl;
+   bool   consuming;
 };
 
 /**
@@ -208,6 +218,7 @@ union _pid_type_data_
    EVENT_DATA      event_data;
    STATE_DATA      state_data;
    ACTION_DATA     action_data;
+   TRANSLATOR_DATA translator_data;
 };
 
 typedef enum
@@ -348,6 +359,7 @@ struct _machine_info_ {
   unsigned      data_translator_count;
   unsigned      data_block_count;
   unsigned      submachine_inhibitor_count;
+  unsigned      submachines_wanting_parent_data_count;
   pLIST         event_list;
   unsigned      external_event_designation_count;
   pLIST         transition_list;
@@ -487,6 +499,7 @@ extern bool                 add_doxygen_blocks;
 extern int                  find_on_sub_machine_depth;
 extern bool                 find_on_top_level_machine_data;
 extern bool                 find_on_event_data;
+extern bool                 use_sphinx_scrollable_ext;
 
 #define LOOKUP	0	/* default - not defined in the parser */
 

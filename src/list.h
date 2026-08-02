@@ -46,6 +46,7 @@ typedef struct _list_element_ LIST_ELEMENT, *pLIST_ELEMENT;
 
 typedef bool (*LIST_ITERATOR_FN)(pLIST_ELEMENT,void*);
 typedef ORDER_ENUM (*ORDER_FN)(pLIST_ELEMENT,void*);
+typedef bool (*LIST_FILTER_FN)(pLIST_ELEMENT,void*);
 
 struct _list_ {
    unsigned      count;
@@ -87,6 +88,7 @@ void free_list(pLIST);
 pLIST copy_list(pLIST, pLIST);
 pLIST copy_list_unique(pLIST, pLIST);
 pLIST copy_list_unique_with_exception(pLIST, pLIST, void*);
+pLIST copy_list_filtered(pLIST,pLIST,LIST_FILTER_FN,void*);
 
 pLIST move_list(pLIST,pLIST);
 pLIST move_list_unique(pLIST,pLIST);

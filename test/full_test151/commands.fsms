@@ -1,0 +1,51 @@
+/**
+	This sub-machine parses incomming commands.
+
+	Legal commands:
+	
+	0: peer id           : 4 ASCII NUMERIC bytes
+	1: peer ble addr type: 1 uint8_t
+	2: peer ble addr     : uint8_t[6]
+
+	When the ble addr data and the peer id has been received,
+	the parent::connect event is returned.  When the peer id is received
+	first, the parent::scan event is returned.
+*/
+native
+{
+#include "command_defs.h"
+#include "configuration.h"
+}
+
+machine commands
+native impl
+{
+#define INIT_FSM_DATA {NULL,NULL}
+}
+
+{
+data
+{
+pcommand_str       *ppcommand;
+pconfiguration_str pconfiguration;
+}
+
+	state initial
+			on entry set_defaults
+			;
+	state waiting_pairing_info;
+	state pairing_info_found;
+
+	event parent::activate data translator grab_parent_data_ptrs;
+	event parent::command;
+
+	transition [activate, initial] waiting_pairing_info;
+	transition [activate, (waiting_pairing_info, pairing_info_found)] initial;
+
+	action parse_command [command, waiting_pairing_info] transition check_pairing_info;
+
+	check_pairing_info returns
+		pairing_info_found
+		, waiting_pairing_info
+		;
+}

@@ -9,16 +9,15 @@ ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
     return THIS(noEvent);
 }
 
-void test_fsm_grab_e1_data(pTEST_FSM_DATA pfsm_data,pTEST_FSM_E1_DATA pdata)
+void test_fsm_grab_e1_data(FSM_DATA_PTR pfsm_data,pTEST_FSM_E1_DATA pdata)
 {
-    DBG_PRINTF("%s", __func__);
+	DBG_PRINTF("%s", __func__);
 
-    pfsm_data->e1_count += pdata->i;
+	pfsm_data->e1_count += pdata->i;
 
-    DBG_PRINTF("e1 accumulator: %u", pfsm_data->e1_count);
+	DBG_PRINTF("e1 accumulator: %u", pfsm_data->e1_count);
 
 }
-
 
 void UFMN(record)(pTEST_FSM pfsm, TEST_FSM_STATE new_s)
 {

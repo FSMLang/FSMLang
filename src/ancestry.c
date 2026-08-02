@@ -231,6 +231,23 @@ char* actionReturnType(pCMachineData pcmd)
 	return pcmd->action_return_type;
 }
 
+char* translatorReturnType(pCMachineData pcmd)
+{
+	/* The strategy here is different from the other string functions
+	   since the answer is either "void" or "the same string that eventType
+	   gives you.
+	*/
+	static char *void_str = "void";
+
+	if (pcmd->pmi->modFlags & mfTranslatorsReturnEvents)
+	{
+		return eventType(pcmd);
+	}
+
+	return void_str;
+
+}
+
 char* fsmType(pCMachineData pcmd)
 {
 	FILE          *tmp;

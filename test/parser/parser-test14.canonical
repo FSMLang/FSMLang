@@ -76,6 +76,7 @@ populate_action_array returning false
 found a machine named sub_machine1
 	with 3 events and 3 states
 Actions return events
+Translators return void
 The states :
 	0:	s1
 
@@ -174,6 +175,7 @@ populate_action_array returning false
 found a machine named sub_machine2
 	with 3 events and 3 states
 Actions return events
+Translators return void
 The states :
 	0:	s1
 
@@ -272,6 +274,7 @@ populate_action_array returning false
 found a machine named sub_machine3
 	with 3 events and 3 states
 Actions return events
+Translators return void
 The states :
 	0:	s1
 
@@ -327,6 +330,7 @@ populate_action_array returning false
 found a machine named top_level
 	with 3 events and 3 states
 Actions return events
+Translators return void
 The states :
 	0:	s1
 

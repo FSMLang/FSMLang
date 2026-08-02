@@ -25,8 +25,6 @@ GENERATED_SRC = \
 SRC = $(shell find . -name "*-actions.c" -printf "%P ")
 SRC += test.c
 
-include ../test.mk
-
 include ../../fsmrules.mk
-
+include ../test.mk
 

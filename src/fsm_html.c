@@ -499,6 +499,12 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 	pMACHINE_INFO    pmi    = pih->pmi;
 	pACTION_INFO     pai    = pmi->actionArray[pelem->ordinal][pih->state];
 
+	/* Early out for events not seen by the main machine. */
+	pID_INFO pevent = (pID_INFO) pelem->mbr;
+	if (pevent->type_data.event_data.consumed_by_translator)
+	{
+		return false;
+	}
 
 	fprintf(pih->fout
 			,"\t\t<td class="
@@ -674,15 +680,19 @@ static bool print_state_chart_event_header_row(pLIST_ELEMENT pelem, void *data)
 	static char      *prefix  = "\t\t\t<th class='eventName'>";
 	static char      *postfix = "</th>\n";
 
-	fprintf(pih->fout
-			, ped->shared_with_parent
+	/* Do not print events not seen by the main machine. */
+	if (!ped->consumed_by_translator)
+	{
+		fprintf(pih->fout
+				, ped->shared_with_parent
 				? "%s(%s::) %s%s"
 				: "%s%s%s%s"
-			, prefix
-			, ped->shared_with_parent ? pih->pmi->parent->name->name : ""
-			, pevent->name
-			, postfix
-			);
+				, prefix
+				, ped->shared_with_parent ? pih->pmi->parent->name->name : ""
+				, pevent->name
+				, postfix
+			   );
+	}
 
 	return false;
 }
@@ -698,7 +708,8 @@ static bool print_event_table_event_row(pLIST_ELEMENT pelem, void *data)
 			, ped->shared_with_parent
 			  ? "<td class=\"label%s\">(%s::) %s</td>\n"
 			  : "<td class=\"label%s\">%s%s</td>\n"
-			, ped->phandling_states->count == 0
+			, ((ped->phandling_states->count == 0)
+			   && (!ped->consumed_by_translator))
 			  ? " eventWithNoHandler"
 			  : ""
 			, ped->shared_with_parent
@@ -727,12 +738,32 @@ static bool print_event_table_event_row(pLIST_ELEMENT pelem, void *data)
 	{
 		if (ped->puser_event_data->translator)
 		{
-			fprintf(pih->fout, "<p>\n");
+			pID_INFO translator = ped->puser_event_data->translator;
+
 			fprintf(pih->fout
-					, "Data translator: %s\n"
-					, ped->puser_event_data->translator->name
+					, "<p>\nData translator: %s\n</p>\n"
+					, translator->name
 				   );
-			fprintf(pih->fout, "</p>\n");
+
+			if (translator->type_data.translator_data.translator_returns_decl)
+			{
+				fprintf(pih->fout, "<p>\nReturns:\n</p>\n<ul>\n");
+				iterate_list(translator->type_data.translator_data.translator_returns_decl
+							 , print_id_info_as_html_list_element
+							 , pih
+							 );
+				fprintf(pih->fout, "</ul>\n");
+			}
+
+			if (translator->type_data.translator_data.consuming)
+			{
+				fprintf(pih->fout
+						, "<p>The translator completely consumes the "
+						  "input event, which is thus never seen "
+						  "by the rest of the FSM.\n</p>\n"
+						);
+			}
+
 		}
 
 		if (ped->puser_event_data->data_fields)

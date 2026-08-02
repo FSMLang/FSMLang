@@ -40,7 +40,7 @@ runtest: $(TESTS)
 $(TESTS): test 
 	@./test $@.fsm > $@.out 2> $@.stderr
 	@cat $@.stderr >> $@.out; rm -f $@.stderr
-	@$(DIFF) $@.out $@.canonical
+	@$(DIFF) $@.out $@.canonical > $@.result
 	@echo $@ successful
 	@rm -f $@.out $@.result
 

@@ -23,6 +23,8 @@
 #include <stdbool.h>
 #undef FSM_TYPE_PTR
 #define FSM_TYPE_PTR pTEST_FSM
+#undef FSM_DATA_PTR
+#define FSM_DATA_PTR pTEST_FSM_DATA
 #undef DECLARE_INSTANCE
 #define DECLARE_INSTANCE(A) FSM_TYPE_PTR A = (FSM_TYPE_PTR) pfsm
 

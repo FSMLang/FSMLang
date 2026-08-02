@@ -24,8 +24,8 @@ machine test_fsm
 
 	include sub2.fsms
 
-	action handle_e1[e1, s1] transition s2;
-	action handle_e1[e1, s2] transition s1;
+	action handle_e1[e1, s1];
+	action handle_e1[e1, s2];
 
 }
 

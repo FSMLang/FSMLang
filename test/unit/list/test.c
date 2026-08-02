@@ -25,9 +25,12 @@ struct _comparitor_helper_
 
 bool comparitor         (pLIST_ELEMENT,void*);
 bool print_id_info_name (pLIST_ELEMENT,void*);
+#ifdef DEBUG_TEST
 bool print_pelem        (pLIST_ELEMENT,void*);
+#endif
 bool match_on_name      (pLIST_ELEMENT,void*);
 ORDER_ENUM alphabetical (pLIST_ELEMENT,void*);
+bool filter_on_name      (pLIST_ELEMENT,void*);
 
 bool add_to_list_test                     (void);
 bool add_unique_to_list_test              (void);
@@ -64,6 +67,9 @@ bool add_ordered_middle                   (void);
 bool add_ordered_end                      (void);
 bool add_ordered_first                    (void);
 bool add_ordered_empty                    (void);
+bool copy_filtered_first                  (void);
+bool copy_filtered_middle                 (void);
+bool copy_filtered_last                   (void);
 
 TEST_FN tests[] = {
 	add_to_list_test
@@ -98,6 +104,9 @@ TEST_FN tests[] = {
 	, add_ordered_end
 	, add_ordered_first
 	, add_ordered_empty
+	, copy_filtered_first
+	, copy_filtered_middle
+	, copy_filtered_last
 	, NULL
 };
 
@@ -142,6 +151,7 @@ ORDER_ENUM alphabetical (pLIST_ELEMENT pelem, void *pmbr)
 	else return greater_than;
 }
 
+#ifdef DEBUG_TEST
 bool print_pelem(pLIST_ELEMENT piilm, void *data)
 {
   (void) data;
@@ -155,6 +165,7 @@ bool print_pelem(pLIST_ELEMENT piilm, void *data)
 
 	return false;
 }
+#endif
 
 bool print_id_info_name(pLIST_ELEMENT piilm, void *data)
 {
@@ -204,6 +215,15 @@ bool match_on_name(pLIST_ELEMENT pelem, void *data)
 
 	// true means we've found our match
 	return !strcmp(pon_list->name, pnew->name);
+}
+
+bool filter_on_name(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO pon_list = (pID_INFO) pelem->mbr;
+	char     *pname   = (char *)   data;
+
+	// don't allow element with the given name
+	return strcmp(pon_list->name, pname);
 }
 
 bool add_to_list_test()
@@ -353,6 +373,7 @@ bool join_lists()
 
 	iterate_list(pthe_first_list,print_id_info_name,pthe_first_list);
 
+	#ifdef DEBUG_TEST
 	printf("pdest %p; pthe_first_list %p\n"
 					, (void*) pdest
 					, (void*) pthe_first_list
@@ -363,6 +384,7 @@ bool join_lists()
 					, (void*) pthe_second_list->tail
 					, pthe_second_list->count
 					);
+	#endif
 
 	return (
 						   (pdest == pthe_first_list)
@@ -410,6 +432,7 @@ bool join_lists_unique()
 
 	iterate_list(pthe_first_list,print_id_info_name,pthe_first_list);
 
+	#ifdef DEBUG_TEST
 	printf("pdest %p; pthe_first_list %p\n"
 					, (void*) pdest
 					, (void*) pthe_first_list
@@ -420,6 +443,7 @@ bool join_lists_unique()
 					, (void*) pthe_second_list->tail
 					, pthe_second_list->count
 					);
+	#endif
 
 	return (
 						   (pdest == pthe_first_list)
@@ -449,12 +473,14 @@ bool finder_test_0()
 
 	pID_INFO pid = (pID_INFO) find_nth_list_member(pthe_list, record_to_find);
 
+	#ifdef DEBUG_TEST
 	printf("pid: %p; &id_infos_0[%u]: %p; pid->name: %s\n"
 					, (void*) pid
 					, record_to_find
 					, (void*) &id_infos_0[record_to_find]
 					, pid->name
 					);
+	#endif
 
 	return pid == &id_infos_0[record_to_find];
 
@@ -475,10 +501,12 @@ bool finder_test_1()
 	for (id_info_counter_0 = 0; id_info_counter_0 < id_info_count_0; id_info_counter_0++)
 	{
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
 						, (void*) &id_infos_0[id_info_counter_0]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_first_list->count);
@@ -492,10 +520,12 @@ bool finder_test_1()
 	for (id_info_counter_1 = 0; id_info_counter_1 < id_info_count_1; id_info_counter_1++)
 	{
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
 						, (void*) &id_infos_1[id_info_counter_1]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_second_list->count);
@@ -515,6 +545,7 @@ bool finder_test_1()
 												: record_to_find
 												;
 
+	#ifdef DEBUG_TEST
 	printf("id_infos_0: %p; id_infos_1: %p; infos: %p\nid_info_counter_0: %u; offset: %u\n"
 					, (void*) id_infos_0
 					, (void*) id_infos_1
@@ -529,6 +560,7 @@ bool finder_test_1()
 					, (void*) &infos[offset]
 					, pid->name
 					);
+	#endif
 
 	return pid == &infos[offset];
 
@@ -550,10 +582,12 @@ bool finder_test_2()
 	for (id_info_counter_0 = 0; id_info_counter_0 < id_info_count_0; id_info_counter_0++)
 	{
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
 						, (void*) &id_infos_0[id_info_counter_0]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_first_list->count);
@@ -567,10 +601,12 @@ bool finder_test_2()
 	for (id_info_counter_1 = 0; id_info_counter_1 < id_info_count_1; id_info_counter_1++)
 	{
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
 						, (void*) &id_infos_1[id_info_counter_1]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_second_list->count);
@@ -590,6 +626,7 @@ bool finder_test_2()
 												: record_to_find
 												;
 
+	#ifdef DEBUG_TEST
 	printf("id_infos_0: %p; id_infos_1: %p; infos: %p\nid_info_counter_0: %u; offset: %u\n"
 					, (void*) id_infos_0
 					, (void*) id_infos_1
@@ -604,6 +641,7 @@ bool finder_test_2()
 					, (void*) &infos[offset]
 					, pid->name
 					);
+	#endif
 
 	return pid == &infos[offset];
 
@@ -624,10 +662,12 @@ bool finder_test_3()
 	for (id_info_counter_0 = 0; id_info_counter_0 < id_info_count_0; id_info_counter_0++)
 	{
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
 						, (void*) &id_infos_0[id_info_counter_0]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_first_list->count);
@@ -641,10 +681,12 @@ bool finder_test_3()
 	for (id_info_counter_1 = 0; id_info_counter_1 < id_info_count_1; id_info_counter_1++)
 	{
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
 						, (void*) &id_infos_1[id_info_counter_1]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_second_list->count);
@@ -664,6 +706,7 @@ bool finder_test_3()
 												: record_to_find
 												;
 
+	#ifdef DEBUG_TEST
 	printf("id_infos_0: %p; id_infos_1: %p; infos: %p\nid_info_counter_0: %u; offset: %u\n"
 					, (void*) id_infos_0
 					, (void*) id_infos_1
@@ -678,6 +721,7 @@ bool finder_test_3()
 					, (void*) &infos[offset]
 					, pid->name
 					);
+	#endif
 
 	return pid == &infos[offset];
 
@@ -698,10 +742,12 @@ bool finder_test_4()
 	for (id_info_counter_0 = 0; id_info_counter_0 < id_info_count_0; id_info_counter_0++)
 	{
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
 						, (void*) &id_infos_0[id_info_counter_0]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_first_list->count);
@@ -715,10 +761,12 @@ bool finder_test_4()
 	for (id_info_counter_1 = 0; id_info_counter_1 < id_info_count_1; id_info_counter_1++)
 	{
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
 						, (void*) &id_infos_1[id_info_counter_1]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_second_list->count);
@@ -738,6 +786,7 @@ bool finder_test_4()
 												: record_to_find
 												;
 
+	#ifdef DEBUG_TEST
 	printf("id_infos_0: %p; id_infos_1: %p; infos: %p\nid_info_counter_0: %u; offset: %u\n"
 					, (void*) id_infos_0
 					, (void*) id_infos_1
@@ -752,6 +801,7 @@ bool finder_test_4()
 					, (void*) &infos[offset]
 					, pid->name
 					);
+	#endif
 
 	return pid == &infos[offset];
 
@@ -773,10 +823,12 @@ bool finder_test_5()
 	for (id_info_counter_0 = 0; id_info_counter_0 < id_info_count_0; id_info_counter_0++)
 	{
 		add_to_list(pthe_first_list, &id_infos_0[id_info_counter_0]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_0[%u]: %p\n"
 						, id_info_counter_0
 						, (void*) &id_infos_0[id_info_counter_0]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_first_list->count);
@@ -790,10 +842,12 @@ bool finder_test_5()
 	for (id_info_counter_1 = 0; id_info_counter_1 < id_info_count_1; id_info_counter_1++)
 	{
 		add_to_list(pthe_second_list, &id_infos_1[id_info_counter_1]);
+		#ifdef DEBUG_TEST
 		printf("&id_infos_1[%u]: %p\n"
 						, id_info_counter_1
 						, (void*) &id_infos_1[id_info_counter_1]
 						);
+		#endif
 	}
 	
 	printf("id info list count %u\n", pthe_second_list->count);
@@ -1359,6 +1413,7 @@ bool add_ordered_middle(void)
 	pLIST_ELEMENT pelem2 = add_to_list_ordered(ptst, &id_infos_0[1], alphabetical);
 	pLIST_ELEMENT pelem3 = add_to_list_ordered(ptst, &id_infos_0[2], alphabetical);
 
+	#ifdef DEBUG_TEST
 	printf("id info list count %u; head = %p; tail = %p\n"
           , ptst->count
           , (void*) ptst->head
@@ -1366,6 +1421,7 @@ bool add_ordered_middle(void)
           );
 
 	iterate_list(ptst,print_pelem,ptst);
+	#endif
 	iterate_list(ptst,print_id_info_name,ptst);
 
 	return (ptst->count == 3)
@@ -1389,6 +1445,7 @@ bool add_ordered_end(void)
 	pLIST_ELEMENT pelem2 = add_to_list_ordered(ptst, &id_infos_0[2], alphabetical);
 	pLIST_ELEMENT pelem3 = add_to_list_ordered(ptst, &id_infos_0[1], alphabetical);
 
+	#ifdef DEBUG_TEST
 	printf("id info list count %u; head = %p; tail = %p\n"
           , ptst->count
           , (void*) ptst->head
@@ -1396,6 +1453,7 @@ bool add_ordered_end(void)
           );
 
 	iterate_list(ptst,print_pelem,ptst);
+	#endif
 	iterate_list(ptst,print_id_info_name,ptst);
 
 	return (ptst->count == 3)
@@ -1418,6 +1476,7 @@ bool add_ordered_first(void)
 	pLIST_ELEMENT pelem1 = add_to_list_ordered(ptst, &id_infos_0[1], alphabetical);
 	pLIST_ELEMENT pelem2 = add_to_list_ordered(ptst, &id_infos_0[0], alphabetical);
 
+	#ifdef DEBUG_TEST
 	printf("id info list count %u; head = %p; tail = %p\n"
           , ptst->count
           , (void*) ptst->head
@@ -1425,6 +1484,7 @@ bool add_ordered_first(void)
           );
 
 	iterate_list(ptst,print_pelem,ptst);
+	#endif
 	iterate_list(ptst,print_id_info_name,ptst);
 
 	return (ptst->count == 2)
@@ -1451,6 +1511,90 @@ bool add_ordered_empty(void)
 	return (ptst->count == 1)
           && (pelem->mbr == &id_infos_0[0])
           ;
+}
+
+bool copy_filtered_first(void)
+{
+	printf("\n%s\n", __func__);
+ 
+	unsigned id_info_counter;
+	char *pname = "0 - one";
+
+	/* initialize the lists */
+	pLIST psrc  = init_list();
+	pLIST pdest = init_list();
+
+	/* load up the list */
+	for (id_info_counter = 0; id_info_counter < id_info_count_0; id_info_counter++)
+	{
+		add_to_list(psrc, &id_infos_0[id_info_counter]);
+	}
+	
+	copy_list_filtered(pdest, psrc, filter_on_name, pname);
+
+	iterate_list(psrc,print_id_info_name,psrc);
+	iterate_list(pdest,print_id_info_name,pdest);
+
+	return (id_info_counter == psrc->count)
+          && (pdest->count == (psrc->count - 1))
+          ;
+
+}
+
+bool copy_filtered_middle(void)
+{
+	printf("\n%s\n", __func__);
+ 
+	unsigned id_info_counter;
+	char *pname = "0 - two";
+
+	/* initialize the lists */
+	pLIST psrc  = init_list();
+	pLIST pdest = init_list();
+
+	/* load up the list */
+	for (id_info_counter = 0; id_info_counter < id_info_count_0; id_info_counter++)
+	{
+		add_to_list(psrc, &id_infos_0[id_info_counter]);
+	}
+	
+	copy_list_filtered(pdest, psrc, filter_on_name, pname);
+
+	iterate_list(psrc,print_id_info_name,psrc);
+	iterate_list(pdest,print_id_info_name,pdest);
+
+	return (id_info_counter == psrc->count)
+          && (pdest->count == (psrc->count - 1))
+          ;
+
+}
+
+bool copy_filtered_last(void)
+{
+	printf("\n%s\n", __func__);
+ 
+	unsigned id_info_counter;
+	char *pname = "0 - three";
+
+	/* initialize the lists */
+	pLIST psrc  = init_list();
+	pLIST pdest = init_list();
+
+	/* load up the list */
+	for (id_info_counter = 0; id_info_counter < id_info_count_0; id_info_counter++)
+	{
+		add_to_list(psrc, &id_infos_0[id_info_counter]);
+	}
+	
+	copy_list_filtered(pdest, psrc, filter_on_name, pname);
+
+	iterate_list(psrc,print_id_info_name,psrc);
+	iterate_list(pdest,print_id_info_name,pdest);
+
+	return (id_info_counter == psrc->count)
+          && (pdest->count == (psrc->count - 1))
+          ;
+
 }
 
 int main(void)
