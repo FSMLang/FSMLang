@@ -57,16 +57,14 @@ state s1, s2, s3, s4;
 
 	/** a sub machine */
   machine subMachine1 {
+	data {int foo[24];}
 		state ss1 on entry foo on exit bar
            , ss2 on entry on exit
            , ss3 on entry foo1
            , ss4 on exit bar1
            ;
 		event ee1 data translator ee1_dt 
-            , ee2 data
-                  {
-                     int i[12];
-                  }
+            , ee2
             , ee3
             ;
 

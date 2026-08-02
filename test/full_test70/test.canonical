@@ -158,6 +158,7 @@ do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
+
 sub_machine1.data.cp: Good-bye, world.
 
 newMachine_subMachine1_noAction
@@ -185,6 +186,7 @@ do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
+
 sub_machine1.data.cp: Good-bye, world.
 
 newMachine_subMachine1_noAction
@@ -210,6 +212,7 @@ do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
+
 sub_machine1.data.cp: Good-bye, world.
 
 newMachine_subMachine1_noAction
@@ -237,6 +240,7 @@ do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
+
 sub_machine1.data.cp: Good-bye, world.
 
 newMachine_subMachine1_noAction
@@ -263,6 +267,7 @@ do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
+
 sub_machine1.data.cp: Good-bye, world.
 
 newMachine_subMachine1_noAction
@@ -290,6 +295,7 @@ do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
+
 sub_machine1.data.cp: Good-bye, world.
 
 newMachine_subMachine1_noAction
@@ -333,6 +339,7 @@ do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
+
 sub_machine1.data.cp: Good-bye, world.
 
 newMachine_subMachine1_noAction
@@ -359,6 +366,7 @@ do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
+
 sub_machine1.data.cp: Good-bye, world.
 
 newMachine_subMachine1_noAction
@@ -402,6 +410,7 @@ do_start_critical
 event: newMachine_eShared; state: newMachine_s4
 newMachine_shareSharedEvent
 newMachine_subMachine1_eShared_dt
+
 sub_machine1.data.cp: Good-bye, world.
 
 newMachine_subMachine1_noAction

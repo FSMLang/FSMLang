@@ -11,5 +11,5 @@ FSM_SRC = parser-test4.fsm
 SRC = pt4-actions.c
 
 
-include ../test.mk
 include ../../fsmrules.mk
+include ../test.mk

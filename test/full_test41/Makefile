@@ -17,16 +17,15 @@ FSM_FLAGS = -ts --short-debug-names --add-machine-name
 
 FSM_SRC = $(shell find . -name "*.fsm" -printf "%P ")
 
-GENERATED_SRC = \
-	sub_machine1.c \
-	sub_machine2.c \
-	sub_machine3.c
-
+#GENERATED_SRC = \
+#	sub_machine1.c \
+#	sub_machine2.c \
+#	sub_machine3.c
+#
 SRC = $(shell find . -name "*-actions.c" -printf "%P ")
 SRC += test.c
 
-include ../test.mk
-
 include ../../fsmrules.mk
 
+include ../test.mk
 

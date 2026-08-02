@@ -152,6 +152,16 @@ translator {
 
        }
 
+translators {
+
+         #ifdef LEX_DEBUG
+         printf("%s\n",strings[TRANSLATORS]);
+         #else
+         return TRANSLATORS;
+         #endif
+
+       }
+
 	/* native language declarations */
 native	{
 
@@ -506,6 +516,14 @@ union {
 					return NAMESPACE;
 					#else
 					printf("%s\n",strings[NAMESPACE]);
+					#endif
+				}
+
+consuming {
+					#ifndef LEX_DEBUG
+					return CONSUMING;
+					#else
+					printf("%s\n",strings[CONSUMING]);
 					#endif
 				}
 

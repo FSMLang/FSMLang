@@ -94,6 +94,8 @@ static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMEN
 static void switchConvenienceMacros(pFSMCOutputGenerator);
 static bool define_weak_user_transition_function(pLIST_ELEMENT,void*);
 static void print_user_transition_function_body(FILE*);
+static void set_local_fsm_fn_event_var(pCMachineData);
+static void set_local_sub_machine_fsm_fn_event_var(pCMachineData);
 
 
 static FSMCSwitchOutputGenerator CSwitchMachineWriter = {
@@ -132,13 +134,7 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
            , stateType(pcmd)
            );
 
-   if (pmi->data_block_count)
-   {
-	   fprintf(pcmd->cFile
-			   , "\t%s e = event->event;\n"
-			   , eventType(pcmd)
-			   );
-   }
+   set_local_fsm_fn_event_var(pcmd);
 
    fprintf(pcmd->cFile
 		   , "\n#ifdef %s_DEBUG\n"
@@ -157,13 +153,6 @@ static void writeActionsReturnStateSwitchFSM(pFSMCOutputGenerator pfsmcog)
    fprintf(pcmd->cFile
 		   , "\n#endif\n"
 		   );
-
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
 
    if (pmi->machine_list)
    {
@@ -295,6 +284,8 @@ static void writeActionsReturnStateSwitchSubFSM(pFSMCOutputGenerator pfsmcog)
            , "\t%s s = STATE(noTransition);\n"
            , stateType(pcmd)
            );
+
+   set_local_sub_machine_fsm_fn_event_var(pcmd);
 
    fprintf(pcmd->cFile
 		   , "\n#ifdef %s_DEBUG\n"
@@ -594,7 +585,7 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    if (pmi->data_block_count)
    {
-      defineEventDataManager(pcmd, pmi);
+      defineEventDataManager(pcmd);
    }
 
    defineCSwitchMachineStateFns(pcmd, pmi);
@@ -695,6 +686,11 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
      Source File
    */
 
+   if (pmi->data_translator_count)
+   {
+	   declareSubMachineEventDataManager(pcmd);
+   }
+
    if (pmi->machine_list)
    {
       declareSubMachineManagers(pcmd, pmi);
@@ -744,6 +740,11 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
 						);
    }
    CHECK_AND_FREE(cp);
+
+   if (pmi->data_translator_count)
+   {
+	   defineSubMachineEventDataManager(pcmd);
+   }
 
    defineCSwitchSubMachineFSM(pfsmcog);
 
@@ -936,6 +937,14 @@ static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_IN
             , dod == dod_declare ? ";\n" : "\n{\n"
            );
 
+	if ((dod == dod_define) && !(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+	{
+		fprintf(pcmd->cFile
+				, "#ifdef %s_DEBUG\n\tbool action_taken = true;\n#endif\n"
+				, ucfqMachineName(pcmd)
+				);
+	}
+
 }
 
 static void defineCSwitchMachineFSM(pFSMCOutputGenerator pfsmcog)
@@ -1010,13 +1019,25 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
    }
 
    fprintf(pcmd->cFile
-		   , "%s%s %sFSM(p%s pfsm, %s event)\n{\n"
+		   , "%s%s %sFSM(p%s pfsm"
 		   , generate_instance ? "static " : ""
 		   , subFsmFnReturnType(pcmd)
 		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   , fsmType(pcmd)
-		   , fsmFnEventType(pcmd)
 		  );
+
+   if (pmi->parent->submachines_wanting_parent_data_count)
+   {
+	   fprintf(pcmd->cFile
+			   , ",p%s pparent_data"
+			   , fsmDataType(pcmd->parent_pcmd)
+			   );
+   }
+
+   fprintf(pcmd->cFile
+		   , ", %s event)\n{\n"
+		   , fsmFnEventType(pcmd)
+		   );
 
    if (add_profiling_macros && profile_sub_fsms)
    {
@@ -1123,8 +1144,7 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
         )
     {
        fprintf(pcmd->cFile
-			   , "\n\n\tif (%s_%s != new_s)\n\t{\n"
-			   , machineName(pcmd)
+			   , "\n\n\tif (STATE(%s) != new_s)\n\t{\n"
 			   , pstate->name
 			   );
 
@@ -1211,9 +1231,8 @@ static bool define_event_returning_state_fn(pLIST_ELEMENT pelem, void *data)
        )
     {
         fprintf(pich->pcmd->cFile
-				,"\t%s new_s = %s_%s;\n"
+				,"\t%s new_s = STATE(%s);\n"
 				, stateType(pich->pcmd)
-				, machineName(pich->pcmd)
 				, pstate->name
 				);
 
@@ -1491,11 +1510,10 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 									, pai->transition->name
 								   );
 							fprintf(pich->pcmd->cFile
-									, "\t\t%s = %s_%s;\n"
+									, "\t\t%s = STATE(%s);\n"
 									, pich->pcmd->pmi->executes_fns_on_state_transitions
 									  ? "new_s" 
 									  : "pfsm->state"
-									, machineName(pich->pcmd)
 									, pai->transition->name
 								   );
 						}
@@ -1520,13 +1538,13 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 					else
 					{
 						fprintf(pich->pcmd->cFile
-								, "\t\t%s = %s_%s%s;\n"
+								, "\t\t%s = %s(%s)%s;\n"
 								, pich->pcmd->pmi->executes_fns_on_state_transitions
 								  ? "new_s" 
 								  : "pfsm->state"
 								, pai->transition->type == STATE
-								  ? machineName(pich->pcmd)
-								  : fqMachineName(pich->pcmd)
+								  ? "STATE"
+								  : "UFMN"
 								, pai->transition->name
 								, pai->transition->type == STATE
 								  ? ""
@@ -1626,11 +1644,10 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 								   , pai->transition->name
 								  );
 						   fprintf(pich->pcmd->cFile
-								   , "\t\t%s = %s_%s;\n"
+								   , "\t\t%s = STATE(%s);\n"
 								   , pich->pcmd->pmi->executes_fns_on_state_transitions
 									 ? "new_s" 
 									 : "pfsm->state"
-								   , machineName(pich->pcmd)
 								   , pai->transition->name
 								  );
 					   }
@@ -1655,13 +1672,13 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 				   else
 				   {
 					   fprintf(pich->pcmd->cFile
-							   , "\t\t%s = %s_%s%s;\n"
+							   , "\t\t%s = %s(%s)%s;\n"
 							   , pich->pcmd->pmi->executes_fns_on_state_transitions
 								 ? "new_s" 
 								 : "pfsm->state"
 							   , pai->transition->type == STATE
-							     ? machineName(pich->pcmd)
-							     : fqMachineName(pich->pcmd)
+							     ? "STATE"
+							     : "UFMN"
 							   , pai->transition->name
 							   , pai->transition->type == STATE ? "" : "(pfsm, e)"
 							  );
@@ -1875,44 +1892,21 @@ static void writeSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tab
 
 static void writeSwitchFSMAre(pFSMCOutputGenerator pfsmcog)
 {
-    pCMachineData pcmd = pfsmcog->pcmd;
-    pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
-
-    fprintf(pcmd->cFile
-            , "\t%s_EVENT%s e = event%s;\n\n"
-            , ucfqMachineName(pcmd)
-            , pmi->data_block_count ? "_ENUM"  : ""
-            , pmi->data_block_count ? "->event" : ""
-           );
+	set_local_fsm_fn_event_var(pfsmcog->pcmd);
 
     writeOriginalSwitchFSMLoopAre(pfsmcog);
-
 }
 
 static void writeSwitchFSMArv(pFSMCOutputGenerator pfsmcog)
 {
-    pCMachineData pcmd = pfsmcog->pcmd;
-    pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
-
-	if (pmi->data_block_count != 0)
-	{
-		fprintf(pcmd->cFile
-				, "\t%s_EVENT_ENUM e = event->event;\n\n"
-				, ucfqMachineName(pcmd)
-			   );
-	}
+	set_local_fsm_fn_event_var(pfsmcog->pcmd);
 
     writeOriginalSwitchFSMLoopArv(pfsmcog);
 }
 
 static void writeSwitchSubFSMAre(pFSMCOutputGenerator pfsmcog)
 {
-    pCMachineData pcmd = pfsmcog->pcmd;
-
-    fprintf(pcmd->cFile
-            , "\t%s e = event;\n\n"
-            , eventType(pcmd)
-           );
+	set_local_sub_machine_fsm_fn_event_var(pfsmcog->pcmd);
 
     writeOriginalSwitchSubFSMLoopAre(pfsmcog);
 
@@ -1921,6 +1915,9 @@ static void writeSwitchSubFSMAre(pFSMCOutputGenerator pfsmcog)
 static void writeSwitchSubFSMArv(pFSMCOutputGenerator pfsmcog)
 {
 	FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	set_local_sub_machine_fsm_fn_event_var(pfsmcog->pcmd);
+
     writeOriginalSwitchSubFSMLoopArv(pfsmcog);
 }
 
@@ -2031,11 +2028,10 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 							 , ped->psingle_pai->transition->name
 							);
 					 fprintf(pich->pcmd->cFile
-							 , "\t\t%s = %s_%s;\n"
+							 , "\t\t%s = STATE(%s);\n"
 							 , pich->pcmd->pmi->executes_fns_on_state_transitions
 							   ? "new_s" 
 							   : "pfsm->state"
-							 , machineName(pich->pcmd)
 							 , ped->psingle_pai->transition->name
 							);
 				 }
@@ -2061,11 +2057,11 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 			 else
 			 {
 				 fprintf(pich->pcmd->cFile
-						 , "\t\t%s = %s_%s%s;\n"
+						 , "\t\t%s = %s(%s)%s;\n"
 						 , pich->pcmd->pmi->executes_fns_on_state_transitions
 						   ? "new_s" 
 						   : "pfsm->state"
-						 , machineName(pich->pcmd)
+						 , ped->psingle_pai->transition->type == STATE ? "STATE" : "UFMN"
 						 , ped->psingle_pai->transition->name
 						 , ped->psingle_pai->transition->type == STATE ? "" : "(pfsm, e)"
 						);
@@ -2138,11 +2134,10 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 							  , ped->psingle_pai->transition->name
 							 );
 					  fprintf(pich->pcmd->cFile
-							  , "\t\t%s = %s_%s;\n"
+							  , "\t\t%s = STATE(%s);\n"
 							  , pich->pcmd->pmi->executes_fns_on_state_transitions
 								? "new_s" 
 								: "pfsm->state"
-							  , machineName(pich->pcmd)
 							  , ped->psingle_pai->transition->name
 							 );
 				  }
@@ -2242,12 +2237,15 @@ static bool print_switch_cases_for_events_handled_in_all_states_ars(pLIST_ELEMEN
 	  {
 		  
 		  fprintf(pich->pcmd->cFile
-				  , "\t\t\t%s %s(%s)(pfsm);\n"
+				  , "\t\t\t%s %s(%s)%s;\n"
 				  , s_var
 				  , (pai->transition->type == STATE)
 					? "STATE"
 					: "UFMN"
 				  , pai->transition->name
+				  , (pai->transition->type == STATE)
+				    ? ""
+					: "(pfsm)"
 				  );
 	  }
       
@@ -2329,15 +2327,27 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
    if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
    {
       fprintf(pcmd->cFile
-              , "\t\tdefault:\n\t\t\tbreak;\n\t}\n"
+              , "\t\tdefault:\n"
               );
    }
    else
    {
       fprintf(pcmd->cFile
-              , "\t\tdefault:\n\t\t\tretVal = e;\n\t\t\tbreak;\n\t}"
+              , "\t\tdefault:\n\t\t\tretVal = e;\n"
               );
    }
+
+   if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+   {
+	   fprintf(pcmd->cFile
+			   , "\t\t\t#ifdef %s_DEBUG\n\t\t\taction_taken = false;\n\t\t\t#endif\n"
+			   , ucfqMachineName(pcmd)
+			  );
+   }
+
+   fprintf(pcmd->cFile
+		   , "\t\t\tbreak;\n\t}\n"
+		   );
 
    if (pmi->executes_fns_on_state_transitions)
    {
@@ -2406,6 +2416,14 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
    }
    else
    {
+	   if (pcmd->parent_pcmd)
+	   {
+		   printFSMSubMachineDebugBlock(pcmd, pmi, true);
+	   }
+	   else
+	   {
+		   printFSMMachineDebugBlock(pcmd, pmi, true);
+	   }
       fprintf(pcmd->cFile 
               , "\n\t return retVal;\n\n}\n\n"
               );
@@ -2579,5 +2597,82 @@ static void print_user_transition_function_body(FILE *fout)
 			  ? "{.s_enum = pfsm->state, .s_fn = pfsm->currentState}"
 			  : "pfsm->state"
 		   );
+}
+
+static void set_local_fsm_fn_event_var(pCMachineData pcmd)
+{
+	pMACHINE_INFO pmi = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
+
+	if (pmi->data_block_count)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s e = %s"
+				, eventType(pcmd)
+				, pmi->modFlags & mfTranslatorsReturnEvents
+				  ? "translateEventData(&pfsm->data, event);\n\n"
+				  : "event->event;\n\n\ttranslateEventData(&pfsm->data, event);\n"
+			   );
+	}
+	else
+	{
+		if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+		{
+			fprintf(pcmd->cFile
+					, "\t%s e = event;\n\n"
+					, eventType(pcmd)
+					);
+		}
+	}
+}
+
+static void set_local_sub_machine_fsm_fn_event_var(pCMachineData pcmd)
+{
+	pMACHINE_INFO pmi = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile , "/* %s */\n", __func__ );
+
+	if (pmi->data_translator_count)
+	{
+		if (pmi->modFlags & mfTranslatorsReturnEvents)
+		{
+			fprintf(pcmd->cFile
+					, "\t%s e = translateEventData(&pfsm->data, pparent_data, event);\n\n"
+					, eventType(pcmd)
+				   );
+		}
+		else
+		{
+			if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+			{
+				fprintf(pcmd->cFile
+						, "\t%s e = event;\n"
+						, eventType(pcmd)
+						);
+			}
+
+			fprintf(pcmd->cFile
+					, "\ttranslateEventData(&pfsm->data, pparent_data, event);\n\n"
+					);
+		}
+	}
+	else
+	{
+		if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+		{
+			fprintf(pcmd->cFile
+					, "\t%s e = event;\n\n"
+					, eventType(pcmd)
+					);
+		}
+
+		if (pmi->parent->submachines_wanting_parent_data_count)
+		{
+			fprintf(pcmd->cFile
+					, "\t(void) pparent_data;\n\n"
+				   );
+		}
+	}
 }
 

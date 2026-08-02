@@ -150,20 +150,13 @@ void writeOriginalSwitchFSMLoopAre(pFSMCOutputGenerator pfsmcog)
 
    char *tabstr = "\t";
 
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
-
    fprintf(pcmd->cFile
 		   , "\twhile (e != %s_noEvent) {\n\n"
 		   , pmi->name->name
 		   );
    FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* while %s: %u */\n", __FILE__, __LINE__);
 
-   printFSMMachineDebugBlock(pcmd, pmi);
+   printFSMMachineDebugBlock(pcmd, pmi, false);
 
    fprintf(pcmd->cFile
            , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
@@ -220,18 +213,12 @@ void writeOriginalSwitchFSMLoopArv(pFSMCOutputGenerator pfsmcog)
 
    char *tabstr = "\t";
 
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
-
-   printFSMMachineDebugBlock(pcmd, pmi);
+   printFSMMachineDebugBlock(pcmd, pmi, false);
 
    fprintf(pcmd->cFile
            , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
            );
+
    fprintf(pcmd->cFile
            , "\t\tpfsm->event = %s;\n\n"
 		   , (pmi->data_block_count == 0) ? "event" : "e"
@@ -281,14 +268,7 @@ void writeOriginalSwitchFSMLoopArs(pFSMCOutputGenerator pfsmcog)
 
    char *tabstr = "\t";
 
-   printFSMMachineDebugBlock(pcmd, pmi);
-
-   if (pmi->data_block_count)
-   {
-      fprintf(pcmd->cFile
-              , "\ttranslateEventData(&pfsm->data, event);\n\n"
-              );
-   }
+   printFSMMachineDebugBlock(pcmd, pmi, false);
 
    fprintf(pcmd->cFile
            , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
@@ -449,7 +429,7 @@ void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator pfsmcog)
 
    fprintf(pcmd->cFile, "\t      )\n\t{\n\n");
 
-   printFSMSubMachineDebugBlock(pcmd, pmi);
+   printFSMSubMachineDebugBlock(pcmd, pmi, false);
 
    fprintf(pcmd->cFile
            , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
@@ -499,7 +479,7 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
 
    FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   printFSMSubMachineDebugBlock(pcmd, pmi);
+   printFSMSubMachineDebugBlock(pcmd, pmi, false);
 
    fprintf(pcmd->cFile
            , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
@@ -538,7 +518,7 @@ void writeOriginalSwitchSubFSMLoopArs(pFSMCOutputGenerator pfsmcog)
 
    FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   printFSMSubMachineDebugBlock(pcmd, pmi);
+   printFSMSubMachineDebugBlock(pcmd, pmi, false);
 
    fprintf(pcmd->cFile
            , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"

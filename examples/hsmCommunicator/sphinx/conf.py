@@ -15,11 +15,13 @@ author = 'FSMLang Maintainers'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
+sys.path.append(os.path.abspath("./_ext"));
 extensions = [
 	'sphinxcontrib.plantuml',
 	'sphinxcontrib.svgbob',
 	'rst2pdf.pdfbuilder',
-	'breathe'
+	'breathe' ,
+	'wrap_tables'
 ]
 
 templates_path = ['_templates']

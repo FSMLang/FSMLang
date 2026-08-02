@@ -143,6 +143,7 @@ struct _c_machine_data_
 	   , *uf_machine_name
 	   , *instance_type
 	   , *ultimate_ancestor
+	   , *translator_return_type
       ;
 
    unsigned long sub_fsm_if_format_width
@@ -223,10 +224,12 @@ void declareSubMachineManagers(pCMachineData,pMACHINE_INFO);
 void declareStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,bool);
 void defineStateEntryAndExitManagers(pCMachineData,pMACHINE_INFO,bool);
 void declareEventDataManager(pCMachineData);
-void defineEventDataManager(pCMachineData,pMACHINE_INFO);
+void declareSubMachineEventDataManager(pCMachineData);
+void defineEventDataManager(pCMachineData);
+void defineSubMachineEventDataManager(pCMachineData);
 void printSubMachinesDeclarations(pCMachineData,pMACHINE_INFO);
-void printFSMMachineDebugBlock(pCMachineData,pMACHINE_INFO);
-void printFSMSubMachineDebugBlock(pCMachineData,pMACHINE_INFO);
+void printFSMMachineDebugBlock(pCMachineData,pMACHINE_INFO,bool);
+void printFSMSubMachineDebugBlock(pCMachineData,pMACHINE_INFO,bool);
 void print_action_function_declaration(pCMachineData,char*);
 void print_transition_fn_declaration_ars(pCMachineData,FILE*,char*);
 void print_weak_action_function_body_omitting_return_statement(char*,pITERATOR_HELPER);

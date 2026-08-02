@@ -14,14 +14,12 @@ ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
 
 }
 
-void test_fsm_sub_grab_parent_e1_data(pTEST_FSM_DATA pdata, const void *pparent_fsm)
+void UFMN(grab_parent_e1_data)(pTEST_FSM_SUB_DATA pfsm_data, pTEST_FSM_DATA pparent_data)
 {
 	DBG_PRINTF("%s", __func__);
 
-	const FSM_TYPE_PTR psub = (const FSM_TYPE_PTR) pparent_fsm;
+	pfsm_data->sub_e1_count += pparent_data->e1_count;
 
-	psub->data.sub_e1_count += pdata->e1_count;
-
-	DBG_PRINTF("sub e1 accumulator: %u", psub->data.sub_e1_count);
+	DBG_PRINTF("sub e1 accumulator: %u", pfsm_data->sub_e1_count);
 }
 

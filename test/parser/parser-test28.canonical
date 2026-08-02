@@ -89,6 +89,10 @@ The 4 states in this list :
 
 	3:	s4
 
+found simple data type id
+found data field: TYPE: simple; NAME: foo; dimension: 24
+Starting data_fields list
+Data block done
 state ss1 has entry function foo
 state ss1 has exit function bar
 found the start of a state declaration list
@@ -109,13 +113,6 @@ The 4 states in this list :
 	3:	ss4
 
 found a data translator: ee1_dt
-found simple data type id
-found data field: TYPE: simple; NAME: i; dimension: 12
-Starting data_fields list
-Data block done
-found data fields
-int i[12];
-
 added another id to the event declaration list
 added another id to the event declaration list
 The 3 events in this list:
@@ -166,6 +163,7 @@ populate_action_array returning false
 found a machine named subSubMachine1
 	with 2 events and 2 states
 Actions return events
+Translators return void
 The states :
 	0:	z1
 
@@ -221,6 +219,7 @@ populate_action_array returning false
 found a machine named subMachine1
 	with 3 events and 4 states
 Actions return events
+Translators return void
 The states :
 	0:	ss1
 
@@ -254,6 +253,9 @@ The actions :
 The 2 transitions :
 	ss2
 	ss3
+this machine has data
+int foo[24];
+
 this machine has 1 sub-machines
 the sub-machine depth is 1
 
@@ -304,6 +306,7 @@ populate_action_array returning false
 found a machine named subMachine2
 	with 3 events and 3 states
 Actions return events
+Translators return void
 The states :
 	0:	sss1
 
@@ -409,6 +412,7 @@ populate_action_array returning false
 found a machine named newMachine
 	with 3 events and 4 states
 Actions return events
+Translators return void
 on transition: baz
 The states :
 	0:	s1
@@ -486,5 +490,3 @@ this machine has 2 sub-machines
 the sub-machine depth is 2
 
 found a single machine
-test: parser-test28.fsm: event user data not allowed in sub-machines
-	line 84 : }
