@@ -1426,8 +1426,9 @@ static void set_local_sub_machine_fsm_fn_event_vars(pCMachineData pcmd)
 		if (pmi->modFlags & mfTranslatorsReturnEvents)
 		{
 			fprintf(pcmd->cFile
-					, "\t%s e = translateEventData(&pfsm->data, pparent_data, event);\n\n"
+					, "\t%s e = translateEventData(%spparent_data, event);\n\n"
 					, eventType(pcmd)
+					, pmi->data ? "&pfsm->data, " : ""
 				   );
 		}
 		else
@@ -1441,7 +1442,8 @@ static void set_local_sub_machine_fsm_fn_event_vars(pCMachineData pcmd)
 			}
 
 			fprintf(pcmd->cFile
-					, "\ttranslateEventData(&pfsm->data, pparent_data, event);\n\n"
+					, "\ttranslateEventData(%spparent_data, event);\n\n"
+					, pmi->data ? "&pfsm->data, " : ""
 				   );
 		}
 	}

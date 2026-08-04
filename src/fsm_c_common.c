@@ -2904,20 +2904,31 @@ static void print_sub_machine_data_translator_fn_signature(FILE* file, pCMachine
 	   if (pevent->type_data.event_data.puser_event_data->translator)
 	   {
 		  fprintf(file
-				  , "%s%s%s_%s(p%s%s%s, p%s%s%s)%s\n"
+				  , "%s%s%s_%s("
 				   , translatorReturnType(pcmd)
 				  , dod == dod_define ? " __attribute__((weak)) " : " "
 				  , ufMachineName(pcmd)
 				  , pevent->type_data.event_data.puser_event_data->translator->name
-				  , fsmDataType(pcmd)
-				  , ((dod == dod_define) || add_doxygen_blocks) ? " pfsm" : ""
-				  , add_doxygen_blocks ? " /**< Pointer to FSM instance.*/" : ""
-				  , fsmDataType(pcmd->parent_pcmd)
-				  , ((dod == dod_define) || add_doxygen_blocks) ? " pparent_data" : ""
-				  , add_doxygen_blocks ? " /**< Pointer to parent FSM's data.*/" : ""
-				  , dod == dod_define ? "\n{" : ";"
 				 );
 	   }
+
+	   if (pcmd->pmi->data)
+	   {
+		   fprintf(file
+				   , "p%s%s%s, "
+				   , fsmDataType(pcmd)
+				   , ((dod == dod_define) || add_doxygen_blocks) ? " pfsm_data" : ""
+				   , add_doxygen_blocks ? " /**< Pointer to FSM instance data.*/" : ""
+				   );
+	   }
+
+	   fprintf(file
+			   , "p%s%s%s)%s\n"
+			   , fsmDataType(pcmd->parent_pcmd)
+			   , ((dod == dod_define) || add_doxygen_blocks) ? " pparent_data" : ""
+			   , add_doxygen_blocks ? " /**< Pointer to parent FSM's data.*/" : ""
+			   , dod == dod_define ? "\n{" : ";"
+			   );
 	}
 }
 
@@ -2985,7 +2996,8 @@ bool sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT pelem, void
 	   print_sub_machine_data_translator_fn_signature(pich->ih.fout, pich->pcmd, pevent, dod_define);
 
 	   fprintf(pich->ih.fout
-			   , "\t(void) pparent_data;\n\t(void) pfsm;\n\n\t%s(\"weak: %%s\", __func__);\n}\n\n"
+			   , "%s\t(void) pparent_data;\n\n\t%s(\"weak: %%s\", __func__);\n}\n\n"
+			   , pich->ih.pmi->data ? "\t(void) pfsm_data;\n" : ""
 			   , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
 			  );
    }
@@ -4049,11 +4061,22 @@ static void print_sub_machine_data_manager_signature(pCMachineData pcmd, DECLARE
 	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	fprintf(pcmd->cFile
-			, "%sstatic %s translateEventData(p%s%s,p%s%s,%s%s)%s"
+			, "%sstatic %s translateEventData("
 			, dod == dod_define ? "\n" : ""
 			, translatorReturnType(pcmd)
-			, fsmDataType(pcmd)
-			, dod == dod_declare ? "" : " pfsm_data"
+			);
+
+	if (pcmd->pmi->data)
+	{
+		fprintf(pcmd->cFile
+				, "p%s%s,"
+				, fsmDataType(pcmd)
+				, dod == dod_declare ? "" : " pfsm_data"
+			   );
+	}
+
+	fprintf(pcmd->cFile
+			, "p%s%s,%s%s)%s"
 			, fsmDataType(pcmd->parent_pcmd)
 			, dod == dod_declare ? "" : " pparent_data"
 			, fsmFnEventType(pcmd)
@@ -4122,14 +4145,15 @@ static bool write_sub_machine_event_data_manager_switch_case(pLIST_ELEMENT pelem
 
       fprintf(pich->pcmd->cFile
               , pevent->type_data.event_data.puser_event_data->translator
-                 ? "\t\t%sUFMN(%s)(pfsm_data, pparent_data);\n\t\tbreak;\n"
-                 : "\t\t%sUFMN(translate_%s_data)(pfsm_data, pparent_data);\n\t\tbreak;\n"
+                 ? "\t\t%sUFMN(%s)(%spparent_data);\n\t\tbreak;\n"
+                 : "\t\t%sUFMN(translate_%s_data)(%spparent_data);\n\t\tbreak;\n"
 			  , pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
 			     ? "retVal = "
 			     : ""
               , pevent->type_data.event_data.puser_event_data->translator
                 ? pevent->type_data.event_data.puser_event_data->translator->name
                 : pevent->name
+			  , pich->pcmd->pmi->data ? "pfsm_data, " : ""
               );
 
    }
