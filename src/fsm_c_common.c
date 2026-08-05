@@ -531,10 +531,13 @@ void standardConvenienceMacros(pFSMCOutputGenerator pfsmcog)
 			, fsmType(pcmd)
 			);
 
-	fprintf(fout
-			, "#undef FSM_DATA_PTR\n#define FSM_DATA_PTR p%s\n"
-			, fsmDataType(pcmd)
-			);
+	if (pmi->data)
+	{
+		fprintf(fout
+				, "#undef FSM_DATA_PTR\n#define FSM_DATA_PTR p%s\n"
+				, fsmDataType(pcmd)
+				);
+	}
 
 	fprintf(fout
 			, "#undef DECLARE_INSTANCE\n#define DECLARE_INSTANCE(A) FSM_TYPE_PTR A = (FSM_TYPE_PTR) pfsm\n"
@@ -2996,9 +2999,15 @@ bool sub_machine_define_weak_data_translator_functions(pLIST_ELEMENT pelem, void
 	   print_sub_machine_data_translator_fn_signature(pich->ih.fout, pich->pcmd, pevent, dod_define);
 
 	   fprintf(pich->ih.fout
-			   , "%s\t(void) pparent_data;\n\n\t%s(\"weak: %%s\", __func__);\n}\n\n"
+			   , "%s\t(void) pparent_data;\n\n\t%s(\"weak: %%s\", __func__);%s\n}\n\n"
 			   , pich->ih.pmi->data ? "\t(void) pfsm_data;\n" : ""
 			   , core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+			   , pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
+			     ? (pich->ih.pmi->modFlags & ACTIONS_RETURN_FLAGS
+				    ? "\n\treturn THIS(numEvents);"
+					: "\n\treturn THIS(noEvent);"
+				   )
+			     : ""
 			  );
    }
 
@@ -3109,7 +3118,7 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 		   , fqMachineName(pcmd->parent_pcmd)
 		   );
 
-   if (pmi->data)
+   if (pmi->parent && pmi->parent->data)
    {
 	   fprintf(pcmd->hFile
 			   , "#undef PARENT_DATA_TYPE_PTR\n#define PARENT_DATA_TYPE_PTR p%s\n"
