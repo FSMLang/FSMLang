@@ -313,7 +313,12 @@ machine:	machine_prefix ID machine_qualifier
 
 					if ($$->data_translator_count && !$$->data && !output_generated_file_names_only)
 					{
-						yyerror("data translators not allowed for machines having no data");
+						if (!($$->modFlags & mfTranslatorsReturnEvents))
+						{
+							yyerror("data translators returning void are "
+											"not allowed for machines having no data"
+											);
+						}
 					}
 
 
