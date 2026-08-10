@@ -22,7 +22,7 @@
     /** Start the session establishment process. */
     action sendStep0Message[ESTABLISH_SESSION_REQUEST, IDLE]  transition AWAITING_RESPONSE;
 
-    /** Continue session establisment */
+    /** Continue session establishment */
     action sendStep1Message[STEP0_RESPONSE, AWAITING_RESPONSE];
 
     /** Notify parent that session is established. */

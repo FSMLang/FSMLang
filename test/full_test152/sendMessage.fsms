@@ -1,7 +1,7 @@
     /**
     <p>Send a message to the peer.
     </p>
-    <p>Since the protocol allows only one message to be outsanding, the machine dequeues and transmits a message only
+    <p>Since the protocol allows only one message to be outstanding, the machine dequeues and transmits a message only
     from the IDLE state, transitioning to the AWAITING_ACK state immediately thereafter.
     </p>
     <p>In the AWAITNG_ACK state, incomming messages are parsed and, when an ACK is found, the machine checks the queue
