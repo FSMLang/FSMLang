@@ -17,7 +17,7 @@ test_decommission_s1
 test_prep_s2
 fsm_exit
 fsm_entry
-action_entry: e=5, s=0
+action_entry: e=4, s=0
 test_sub_always
-action_exit: e=5, s=0
+action_exit: e=4, s=0
 fsm_exit

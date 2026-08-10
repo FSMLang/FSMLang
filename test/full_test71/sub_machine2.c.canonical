@@ -174,7 +174,6 @@ char *SUB_MACHINE2_EVENT_NAMES[] = {
 	,"sub_machine2_e2"
 	,"sub_machine2_e3"
 	, "sub_machine2_noEvent"
-	, "sub_machine2_numEvents"
 };
 
 char *SUB_MACHINE2_STATE_NAMES[] = {

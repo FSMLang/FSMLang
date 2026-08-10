@@ -228,7 +228,6 @@ char *TOP_LEVEL_EVENT_NAMES[] = {
 	,"top_level_e4"
 	,"top_level_e5"
 	, "top_level_noEvent"
-	, "top_level_numEvents"
 	, "top_level_sub_machine1_e1"
 	, "top_level_sub_machine1_e2"
 	, "top_level_sub_machine1_e3"

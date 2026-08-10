@@ -568,8 +568,6 @@ static void complete_top_level(pITERATOR_HELPER pih)
 		(*pxref_writer)->entry_writer("noEvent", pih);
 	}
 
-	(*pxref_writer)->entry_writer("numEvents", pih);
-
 }
 
 static void process_any_sub_machines(pITERATOR_HELPER pih)

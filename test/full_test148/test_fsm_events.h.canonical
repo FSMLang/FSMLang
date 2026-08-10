@@ -24,7 +24,7 @@ typedef enum TEST_FSM_EVENT_ENUM {
 noEvent signals the completion of event processing.
 */
 	, test_fsm_noEvent
-	, test_fsm_numEvents
+	, test_fsm_numEvents = test_fsm_noEvent
 	, test_fsm_sub_firstEvent
 /**
  e1 is our very first event; but, we're sharing it from our parent. 

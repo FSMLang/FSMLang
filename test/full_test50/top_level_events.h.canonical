@@ -29,16 +29,15 @@
 	    3  newMachine_e4
 	    4  newMachine_eShared
 	    5  newMachine_noEvent
-	    6  newMachine_numEvents
-	    7  newMachine_subMachine1_eShared
-	    8  newMachine_subMachine1_ee2
-	    9  newMachine_subMachine1_ee3
-	   10  newMachine_subMachine1_noEvent
-	   11  newMachine_subMachine2_eee1
-	   12  newMachine_subMachine2_eee2
-	   13  newMachine_subMachine2_eee3
-	   14  newMachine_subMachine2_noEvent
-	   15  newMachine_numAllEvents
+	    6  newMachine_subMachine1_eShared
+	    7  newMachine_subMachine1_ee2
+	    8  newMachine_subMachine1_ee3
+	    9  newMachine_subMachine1_noEvent
+	   10  newMachine_subMachine2_eee1
+	   11  newMachine_subMachine2_eee2
+	   12  newMachine_subMachine2_eee3
+	   13  newMachine_subMachine2_noEvent
+	   14  newMachine_numAllEvents
 
 */
 typedef enum NEW_MACHINE_EVENT_ENUM {
@@ -48,7 +47,7 @@ typedef enum NEW_MACHINE_EVENT_ENUM {
 	, newMachine_e4
 	, newMachine_eShared
 	, newMachine_noEvent
-	, newMachine_numEvents
+	, newMachine_numEvents = newMachine_noEvent
 	, newMachine_subMachine1_firstEvent
 	, newMachine_subMachine1_eShared = newMachine_subMachine1_firstEvent
 	, newMachine_subMachine1_ee2

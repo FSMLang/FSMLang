@@ -447,8 +447,6 @@ void addEventCrossReference(pCMachineData pcmd, pMACHINE_INFO pmi, pITERATOR_CAL
       print_event_cross_reference_entry("noEvent", pich);
    }
 
-   print_event_cross_reference_entry("numEvents", pich);
-
    if (pmi->machine_list)
    {
       iterate_list(pmi->machine_list, print_sub_machine_event_cross_reference, pich);
@@ -725,6 +723,14 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
               , pmi->event_list->count
               );
    }
+   else if (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+   {
+	   fprintf(pcmd->eventsHFile
+			   , " = %s_noEvent"
+			   , machineName(pcmd)
+			   );
+   }
+
    fprintf(pcmd->eventsHFile, "\n");
 
    if (pmi->machine_list)
@@ -732,17 +738,17 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 	   ich.ih.fout = pcmd->eventsHFile;
       iterate_list(pmi->machine_list,print_sub_machine_events,&ich);
 	  ich.ih.fout = pcmd->hFile;
+
+	  fprintf(pcmd->eventsHFile
+			  , "\t, %s_numAllEvents"
+			  , machineName(pcmd)
+			  );
+
+	  fprintf(pcmd->eventsHFile
+			  , pmi->machine_list ? "%s\n" : " = %s_numEvents\n" 
+			  , pmi->machine_list ? ""     : machineName(pcmd)
+			  );
    }
-
-   fprintf(pcmd->eventsHFile
-		   , "\t, %s_numAllEvents"
-		   , machineName(pcmd)
-		   );
-
-   fprintf(pcmd->eventsHFile
-		   , pmi->machine_list ? "%s\n" : " = %s_numEvents\n" 
-		   , pmi->machine_list ? ""     : machineName(pcmd)
-		   );
 
    fprintf(pcmd->eventsHFile
            , "}%s %s;\n\n"
@@ -1884,8 +1890,6 @@ void writeDebugInfoShort(pCMachineData pcmd, pMACHINE_INFO pmi)
       fprintf(pcmd->cFile, "\t, \"noEvent\"\n");
    }
 
-   fprintf(pcmd->cFile, "\t, \"numEvents\"\n");
-
    if (pmi->machine_list)
    {
       iterate_list(pmi->machine_list,print_sub_machine_event_names,&ich);
@@ -1946,11 +1950,6 @@ void writeDebugInfoLong(pCMachineData pcmd, pMACHINE_INFO pmi)
 			  , pmi->name->name
 			  );
    }
-
-   fprintf(pcmd->cFile
-		   , "\t, \"%s_numEvents\"\n"
-		   , pmi->name->name
-		   );
 
    if (pmi->machine_list)
    {
