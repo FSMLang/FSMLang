@@ -3543,8 +3543,9 @@ int main(int argc, char **argv)
 
 		#endif
 
-			//we need a base id_list for the machine names.
-			id_list = init_list();
+			/* we need a base id_list for the machine names. */
+			if (NULL == (id_list = init_list()))
+				yyerror("out of memory");
 			yyparse();
 
 		#ifndef PARSER_DEBUG
