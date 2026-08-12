@@ -226,7 +226,7 @@ fsmlang: machine
 					}
 	;
 
-machine_prefix: native machine_modifier MACHINE_KEY 
+machine_prefix: native machine_modifier MACHINE_KEY ID
    {
 
 				if (($$ = (pMACHINE_PREFIX)calloc(1,sizeof(MACHINE_PREFIX))) == NULL)
@@ -245,6 +245,13 @@ machine_prefix: native machine_modifier MACHINE_KEY
        /* grab any modifiers */
  			 $$->pmachineInfo->modFlags = $2;
 
+			 /* grab our name */
+			 set_id_type($4, MACHINE);
+       $4->powningMachine = $$->pmachineInfo;
+			 $$->pmachineInfo->name = $4;
+
+
+				/* now give ourselves our own id list */
        id_list = $$->pmachineInfo->id_list = init_list();
 
         $$->pmachineInfo->parent = pmachineInfo;
@@ -253,9 +260,9 @@ machine_prefix: native machine_modifier MACHINE_KEY
    }
  	;
 
-machine:	machine_prefix ID machine_qualifier 
+machine:	machine_prefix machine_qualifier 
          {
-            if (!($3->modFlags & ACTIONS_RETURN_FLAGS))
+            if (!($2->modFlags & ACTIONS_RETURN_FLAGS))
             {
    						pID_INFO pid_event;
 							/* note that this is not added to the machine event list;
@@ -273,29 +280,28 @@ machine:	machine_prefix ID machine_qualifier
 						pid_state->powningMachine = pmachineInfo;
 						pid_state->order          = NO_TRANSITION;  // This makes it easier to detect.
 
-					pmachineInfo->modFlags |= $3->modFlags;
+					pmachineInfo->modFlags |= $2->modFlags;
          } 
         '{' statement_decl_list '}'
 					{
 
 						$$                     = $1->pmachineInfo;
 
-				    $$->name               = $2;
- 			      $$->modFlags          |= $3->modFlags;
- 			      $$->machineTransition  = $3->machineTransition;
-            $$->native_impl_prologue = $3->native_impl_prologue;
-            $$->native_impl_epilogue = $3->native_impl_epilogue;
+ 			      $$->modFlags          |= $2->modFlags;
+ 			      $$->machineTransition  = $2->machineTransition;
+            $$->native_impl_prologue = $2->native_impl_prologue;
+            $$->native_impl_epilogue = $2->native_impl_epilogue;
 
 						/* harvest the lists */
- 					$$->data               = $6->data;
- 					$$->state_list         = $6->pstate_and_event_decls->state_decls;
- 					$$->event_list         = $6->pstate_and_event_decls->event_decls;
- 					$$->action_list        = $6->pactions_and_transitions->action_list;
- 					$$->action_info_list   = $6->pactions_and_transitions->action_info_list;
- 					$$->transition_list    = $6->pactions_and_transitions->transition_list;
- 					$$->transition_fn_list = $6->pactions_and_transitions->transition_fn_list;
- 					$$->machine_list       = $6->pactions_and_transitions->machine_list;
-					$$->sequences          = $6->sequences;
+ 					$$->data               = $5->data;
+ 					$$->state_list         = $5->pstate_and_event_decls->state_decls;
+ 					$$->event_list         = $5->pstate_and_event_decls->event_decls;
+ 					$$->action_list        = $5->pactions_and_transitions->action_list;
+ 					$$->action_info_list   = $5->pactions_and_transitions->action_info_list;
+ 					$$->transition_list    = $5->pactions_and_transitions->transition_list;
+ 					$$->transition_fn_list = $5->pactions_and_transitions->transition_fn_list;
+ 					$$->machine_list       = $5->pactions_and_transitions->machine_list;
+					$$->sequences          = $5->sequences;
 
 						count_external_declarations     ($$->event_list,&($$->external_event_designation_count));
 						count_parent_event_referenced   ($$->event_list,&($$->parent_event_reference_count));
@@ -371,21 +377,12 @@ machine:	machine_prefix ID machine_qualifier
 
            free($1);
 
-           $2->powningMachine = pmachineInfo;
-
            /* reset context */
            pmachineInfo = $$->parent;
            if ($$->parent)
            {
-            pID_INFO pid;
-
             id_list = $$->parent->id_list;
-
-            add_id(id_list,MACHINE,$2->name,&pid);
-            pid->powningMachine = $$;
-
 						pmachineInfo = $$->parent;
-
            }
 
 						#ifdef PARSER_DEBUG
@@ -3546,6 +3543,8 @@ int main(int argc, char **argv)
 
 		#endif
 
+			//we need a base id_list for the machine names.
+			id_list = init_list();
 			yyparse();
 
 		#ifndef PARSER_DEBUG
