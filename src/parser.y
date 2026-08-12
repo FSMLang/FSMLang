@@ -41,6 +41,7 @@
 int lineno=1;
 extern int yylineno;
 extern char *curfilename;
+pLIST root_id_list = NULL;
 pLIST id_list = NULL;
 
 //did we parse correctly?
@@ -386,7 +387,7 @@ machine:	machine_prefix machine_qualifier
            }
            else
            {
-            id_list = NULL;
+            id_list = root_id_list;
            }
 
 						#ifdef PARSER_DEBUG
@@ -3548,7 +3549,7 @@ int main(int argc, char **argv)
 		#endif
 
 			/* we need a base id_list for the machine names. */
-			if (NULL == (id_list = init_list()))
+			if (NULL == (root_id_list = id_list = init_list()))
 				yyerror("out of memory");
 			yyparse();
 
