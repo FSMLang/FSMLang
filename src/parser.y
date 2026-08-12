@@ -384,6 +384,10 @@ machine:	machine_prefix machine_qualifier
             id_list = $$->parent->id_list;
 						pmachineInfo = $$->parent;
            }
+           else
+           {
+            id_list = NULL;
+           }
 
 						#ifdef PARSER_DEBUG
 
