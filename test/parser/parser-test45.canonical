@@ -157,7 +157,7 @@ process_action_info: noAction
 	iterate_matrix_states: event: e4
 		add_to_action_array: state: s4
 populate_action_array returning false
-found a machine named sub1
+found a machine named sub2
 	with 2 events and 2 states
 Actions return events
 Translators return void
