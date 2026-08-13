@@ -400,6 +400,7 @@ struct _machine_info_ {
   unsigned      states_with_one_event;
   unsigned      states_with_no_way_in;
   unsigned      states_with_no_way_out;
+  unsigned      states_implemented_by_machine;
   unsigned      average_state_event_density_pct;
   unsigned      average_event_state_density_pct;
   pLIST         sequences;
@@ -440,6 +441,7 @@ void count_states_with_zero_events(pLIST,unsigned*);
 void count_states_with_one_event(pLIST,unsigned*);
 void count_states_with_no_way_in(pLIST,unsigned*);
 void count_states_with_no_way_out(pLIST,unsigned*);
+void count_states_implemented_by_machine(pLIST,unsigned*);
 void count_events_with_zero_handlers(pLIST,unsigned*);
 void count_events_with_one_handler(pLIST,unsigned*);
 void compute_event_and_state_density_pct(pMACHINE_INFO);

@@ -78,6 +78,7 @@ static bool count_zero_event_handlers(pLIST_ELEMENT,void*);
 static bool count_one_event_handlers(pLIST_ELEMENT,void*);
 static bool count_no_way_in_states(pLIST_ELEMENT,void*);
 static bool count_no_way_out_states(pLIST_ELEMENT,void*);
+static bool count_implemented_by_machine_states(pLIST_ELEMENT,void*);
 static bool enumerate_pid(pLIST_ELEMENT,void*);
 static bool process_action_info(pLIST_ELEMENT,void*);
 static bool iterate_matrix_states(pLIST_ELEMENT,void*);
@@ -945,9 +946,27 @@ static bool count_no_way_out_states(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
+static bool count_implemented_by_machine_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+    if (pstate->type_data.state_data.state_flags & sfImplementedBySubMachine)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
 void count_states_with_no_way_out(pLIST plist, unsigned *data)
 {
 	iterate_list(plist, count_no_way_out_states, data);
+}
+
+void count_states_implemented_by_machine(pLIST plist, unsigned *data)
+{
+	iterate_list(plist, count_implemented_by_machine_states, data);
 }
 
 void count_external_declarations(pLIST plist, unsigned *counter)

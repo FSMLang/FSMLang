@@ -197,6 +197,12 @@ static void print_machine_statistics(pFSMHTMLOutputGenerator pfsmhtmlog)
 			);
 
 	fprintf(fout
+			, "\t\t<tr><th>%s</th><td>%u</td></tr>\n"
+			, "States implemented by machine"
+			, pmi->states_implemented_by_machine
+			);
+
+	fprintf(fout
 			, "\t</tbody>\n"
 			);
 
@@ -351,6 +357,10 @@ static void print_state_table(pFSMHTMLOutputGenerator pfsmhtmlog)
 	fprintf(pfsmhtmlog->pmd->htmlFile
 			, "<tr><th>States with no way out:</th><td>%u</td></tr>\n"
 			, pfsmhtmlog->pmd->pmi->states_with_no_way_out
+			);
+	fprintf(pfsmhtmlog->pmd->htmlFile
+			, "<tr><th>States implemented by machine:</th><td>%u</td></tr>\n"
+			, pfsmhtmlog->pmd->pmi->states_implemented_by_machine
 			);
 	fprintf(pfsmhtmlog->pmd->htmlFile
 			, "<tr><th>Average state event density:</th><td>%u%%</td></tr>\n"

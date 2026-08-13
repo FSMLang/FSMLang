@@ -39,6 +39,8 @@ test_fsm
      - 1
    * - States with no way out:
      - 1
+   * - States implemented by machine:
+     - 0
 
 
 .. image:: test_fsm.svg

@@ -1136,6 +1136,13 @@ static void print_machine_statistics(pFSMRSTOutputGenerator pfsmrstog)
 			);
 
 	fprintf(FOUT(pfsmrstog)
+			, "%s* - States implemented by machine:\n%s  - %u\n"
+			, indent
+			, indent
+			, PMI(pfsmrstog)->states_implemented_by_machine
+			);
+
+	fprintf(FOUT(pfsmrstog)
 			, "\n\n"
 			);
 

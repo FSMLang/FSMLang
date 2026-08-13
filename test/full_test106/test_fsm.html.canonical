@@ -232,6 +232,7 @@ code {
 		<tr><th>States handling exactly one event</th><td>0</td></tr>
 		<tr><th>States with no way in</th><td>1</td></tr>
 		<tr><th>States with no way out</th><td>1</td></tr>
+		<tr><th>States implemented by machine</th><td>0</td></tr>
 	</tbody>
 </table>
 <div class="scrollable">
@@ -382,6 +383,7 @@ code {
 <tr><th>States with one event:</th><td>0</td></tr>
 <tr><th>States with no way in:</th><td>1</td></tr>
 <tr><th>States with no way out:</th><td>1</td></tr>
+<tr><th>States implemented by machine:</th><td>0</td></tr>
 <tr><th>Average state event density:</th><td>50%</td></tr>
 </table>
 	</td>

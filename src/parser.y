@@ -346,6 +346,9 @@ machine:	machine_prefix machine_qualifier
 					 count_states_with_no_way_out($$->state_list
 																			 , &($$->states_with_no_way_out)
 																			 );
+					 count_states_implemented_by_machine($$->state_list
+																			 , &($$->states_implemented_by_machine)
+																			 );
 					 count_events_with_zero_handlers($$->event_list
 																					 , &($$->events_with_zero_handlers)
 																					 );

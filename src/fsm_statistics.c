@@ -270,6 +270,10 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 		  , pmi->states_with_no_way_out
 		  );
 
+   printf("number of states implemented by machine: %u\n"
+		  , pmi->states_implemented_by_machine
+		  );
+
    printf("number of actions: %u\n"
           , pmi->action_list->count
           );
