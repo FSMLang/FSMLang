@@ -67,13 +67,15 @@ typedef enum {
    , mfActionsReturnDeclared     = 8
    , mfTranslatorsReturnEvents   = 16
    , mfTranslatorsReturnDeclared = 32
+   , mfStateImplementing         = 64
 } MOD_FLAGS;
 
 typedef enum {
    sfNone
-   , sfInibitSubMachines = 1
-   , sfHasEntryFn        = 2
-   , sfHasExitFn         = 4
+   , sfInibitSubMachines           = 1
+   , sfHasEntryFn                  = 2
+   , sfHasExitFn                   = 4
+   , sfImplementedBySubMachine     = 8
 } STATE_FLAGS;
 
 typedef enum HORIZONTAL_PLACEMENT {
@@ -138,6 +140,7 @@ typedef struct _native_info_             NATIVE_INFO,             *pNATIVE_INFO;
 typedef struct _event_sequence_node_     EVENT_SEQUENCE_NODE,     *pEVENT_SEQUENCE_NODE;
 typedef struct _event_sequence_          EVENT_SEQUENCE,          *pEVENT_SEQUENCE;
 typedef struct _return_choice_data_      RETURN_CHOICE_DATA,      *pRETURN_CHOICE_DATA;
+typedef struct _machine_pid_data_        MACHINE_PID_DATA,        *pMACHINE_PID_DATA;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
@@ -172,6 +175,7 @@ struct _state_data_
    pLIST       pinbound_transitions;
    pLIST       poutbound_transitions;
    pLIST       pactions_list;
+   pID_INFO    implementingMachine;
 };
 
 struct _event_data_
@@ -201,6 +205,12 @@ struct _translator_data_
    bool   consuming;
 };
 
+struct _machine_pid_data_
+{
+    pID_INFO      implementedState;
+    pMACHINE_INFO pmi;
+};
+
 /**
  * One choice in a 'guardFn returns ...' declaration.
  * Mode A: condition_fn == NULL, is_otherwise == false (plain state name).
@@ -215,10 +225,11 @@ struct _return_choice_data_
 
 union _pid_type_data_
 {
-   EVENT_DATA      event_data;
-   STATE_DATA      state_data;
-   ACTION_DATA     action_data;
-   TRANSLATOR_DATA translator_data;
+   EVENT_DATA       event_data;
+   STATE_DATA       state_data;
+   ACTION_DATA      action_data;
+   TRANSLATOR_DATA  translator_data;
+   MACHINE_PID_DATA machine_pid_data;
 };
 
 typedef enum

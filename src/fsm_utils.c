@@ -1793,18 +1793,31 @@ struct _debug_list_helper_
 static bool print_state_id_info(pLIST_ELEMENT pelem, void *data)
 {
    pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
-   pID_INFO pid               = (pID_INFO) pelem->mbr;
+   pID_INFO pstate               = (pID_INFO) pelem->mbr;
 
-   fprintf(phelper->fout
-       ,"\t%d:\t%s"
-       ,phelper->counter++
-       ,pid->name
-       );
+   if (pstate->type == STATE)
+   {
+       pSTATE_DATA psd = &pstate->type_data.state_data;
 
-   fprintf(phelper->fout
-       ,"\n%s\n"
-       ,pid->docCmnt ? pid->docCmnt : ""
-       );
+       fprintf(phelper->fout
+           ,"\t%d:\t%s"
+           ,phelper->counter++
+           ,pstate->name
+           );
+
+       if (psd->state_flags & sfImplementedBySubMachine)
+       {
+           fprintf(phelper->fout
+                   , "; This state is implemented by machine %s."
+                   , psd->implementingMachine->name
+                   );
+       }
+
+       fprintf(phelper->fout
+           ,"\n%s\n"
+           ,pstate->docCmnt ? pstate->docCmnt : ""
+           );
+   }
 
    return false;
 }

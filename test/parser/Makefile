@@ -19,6 +19,7 @@ SRC =	lexer.c                  \
 			cwalk.c               \
 			usage.c               \
          util_file_inclusion.c \
+			parser_support.c
 
 ifdef NEED_RINDEX
 SRC += rindex.c

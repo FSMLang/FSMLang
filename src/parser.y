@@ -37,6 +37,7 @@
 #include "fsm_python_transitions.h"
 
 #include "list.h"
+#include "parser_support.h"
 
 int lineno=1;
 extern int yylineno;
@@ -108,7 +109,7 @@ static char *fsm_strndup(const char *s, size_t n)
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID TRANSLATORS
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
-%token START_KEY EVENT_SEQ END_KEY CONSUMING
+%token START_KEY EVENT_SEQ END_KEY CONSUMING IMPLEMENTED BY
 
 %token <charData> SEQUENCE_KEY
 %token <charData> ACTION_KEY 
@@ -121,6 +122,8 @@ static char *fsm_strndup(const char *s, size_t n)
 %token <charData> NATIVE_KEY
 %token <charData> NATIVE_BLOCK
 %token <pid_info> MACHINE
+%token <pid_info> UNDEFINED_SI_MACHINE
+%token <pid_info> SI_MACHINE
 %token <pid_info> STATE
 %token <pid_info> EVENT
 %token <pid_info> ACTION
@@ -229,36 +232,12 @@ fsmlang: machine
 
 machine_prefix: native machine_modifier MACHINE_KEY ID
    {
-
-				if (($$ = (pMACHINE_PREFIX)calloc(1,sizeof(MACHINE_PREFIX))) == NULL)
-						yyerror("out of memory");
-
-				if (($$->pmachineInfo = (pMACHINE_INFO)calloc(1,sizeof(MACHINE_INFO))) == NULL)
-						yyerror("out of memory");
-
-				/* grab any native language stuff */
-				if ($1)
-				{
-					$$->pmachineInfo->native_prologue = $1->prologue;
-					$$->pmachineInfo->native_epilogue = $1->epilogue;
-				}
-
-       /* grab any modifiers */
- 			 $$->pmachineInfo->modFlags = $2;
-
-			 /* grab our name */
-			 set_id_type($4, MACHINE);
-       $4->powningMachine = $$->pmachineInfo;
-			 $$->pmachineInfo->name = $4;
-
-
-				/* now give ourselves our own id list */
-       id_list = $$->pmachineInfo->id_list = init_list();
-
-        $$->pmachineInfo->parent = pmachineInfo;
-				pmachineInfo             = $$->pmachineInfo;
-
+			$$ = machine_declared_by_id($1, $2, $4);
    }
+	 | native machine_modifier MACHINE_KEY UNDEFINED_SI_MACHINE
+	 {
+		 $$ = machine_declared_by_machine_pid($1, $2, $4);
+	 }
  	;
 
 machine:	machine_prefix machine_qualifier 
@@ -1720,10 +1699,19 @@ state: ID
 										);
          	#endif
 
+					if ($1->type_data.state_data.state_flags & sfImplementedBySubMachine)
+					{
+						yyerror("a state implemented by a sub-machine cannot inihibit sub-machines");
+					}
+
  					$$ = $1;
 
  					$$->type_data.state_data.state_flags |= sfInibitSubMachines;
 
+		      }
+ 	| state IMPLEMENTED BY MACHINE_KEY ID
+					{
+						state_implemented_by($1, $5);
 		      }
    | state ON ENTRY
 					{
