@@ -2025,6 +2025,11 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
            if (NULL == add_to_list($3->type_data.event_data.psharing_sub_machines, pmachineInfo))
                yyerror("Out of memory");
 
+						if (pmachineInfo->modFlags & mfStateImplementing)
+						{
+							$3->type_data.event_data.state_implementing_sharer_count++;
+						}
+
 					}
 	| event_decl_list ',' ID external_designation user_event_data
 					{
@@ -3269,13 +3274,13 @@ int main(int argc, char **argv)
 							 }
 							 break;
       			case lo_add_profiling_macros:
-							if (optarg && !strcmp(optarg, "true"))
+							if (!optarg || !strcmp(optarg, "true"))
 							{
 								add_profiling_macros = true;
 							}
 							break;
       			case lo_profile_sub_fsms:
-							if (optarg && !strcmp(optarg, "true"))
+							if (!optarg || !strcmp(optarg, "true"))
 							{
 								profile_sub_fsms = true;
 							}

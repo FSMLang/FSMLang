@@ -183,6 +183,7 @@ struct _event_data_
    pID_INFO         externalDesignation;
    pLIST            psharing_sub_machines;
    bool             shared_with_parent;
+   unsigned         state_implementing_sharer_count;
    unsigned         single_pai_state_count;
    pACTION_INFO     psingle_pai;
    bool             single_pai_for_all_states;
