@@ -221,15 +221,15 @@ code {
 <h2>foo</h2>
 <table class='machine_stats'>
 	<tbody>
-		<tr><th>Number of events</th><td>1</td></tr>
+		<tr><th>Number of events</th><td>2</td></tr>
 		<tr><th>Events not handled</th><td>0</td></tr>
-		<tr><th>Events handled in one state</th><td>1</td></tr>
+		<tr><th>Events handled in one state</th><td>2</td></tr>
 		<tr><th>At least one event handled the same in all states?</th><td>yes</td></tr>
-		<tr><th>Number of states</th><td>1</td></tr>
+		<tr><th>Number of states</th><td>2</td></tr>
 		<tr><th>Number of states with entry functions</th><td>1</td></tr>
 		<tr><th>Number of states with exit functions</th><td>1</td></tr>
 		<tr><th>States handling no events</th><td>0</td></tr>
-		<tr><th>States handling exactly one event</th><td>1</td></tr>
+		<tr><th>States handling exactly one event</th><td>2</td></tr>
 		<tr><th>States with no way in</th><td>0</td></tr>
 		<tr><th>States with no way out</th><td>1</td></tr>
 		<tr><th>States implemented by machine</th><td>1</td></tr>
@@ -241,16 +241,23 @@ code {
 		<tr>
 			<th class="blankCorner">&nbsp;</th>
 			<th class='eventName'>e1</th>
+			<th class='eventName'>e2</th>
 		</tr>
 	</thead>
 	<tbody>
 	<tr>
 		<th class=stateName>s1</th>
+		<td class=nullAction><br/><b>transition</b> : none</td>
+		<td class=noAction>noAction<br/><b>transition</b> : s2</td>
+	</tr>
+	<tr>
+		<th class=stateName>s2</th>
 		<td class=action>a1<br/>shares event with:
 	<ul class="return_decl">
 <li>bof</li>
 </ul>
 <br/><b>transition</b> : none</td>
+		<td class=nullAction><br/><b>transition</b> : none</td>
 	</tr>
 	</tbody>
 </table>
@@ -264,10 +271,10 @@ code {
 <tr>
 	<td colspan='2' align='left'>
 <table class='summary'>
-<tr><th>Total number of events:</th><td>1</td></tr>
+<tr><th>Total number of events:</th><td>2</td></tr>
 <tr><th>Events with no handlers:</th><td>0</td></tr>
-<tr><th>Events with one handler:</th><td>1</td></tr>
-<tr><th>Average event state density:</th><td>100%</td></tr>
+<tr><th>Events with one handler:</th><td>2</td></tr>
+<tr><th>Average event state density:</th><td>50%</td></tr>
 </table>
 	</td>
 </tr>
@@ -277,13 +284,22 @@ code {
 <p>This event is shared with:</p><ul class="return_decl">
 <li>bof</li>
 </ul>
-<p>Handled In 1 of 1 (100 %) States:</p>
+<p>Handled In 1 of 2 (50 %) States:</p>
 	<ul>
-		<li>s1</li>
+		<li>s2</li>
 	</ul>
 <p>Causes these actions to be taken:</p>
 	<ul>
 		<li>a1</li>
+	</ul>
+</td>
+</tr>
+<tr>
+<td class="label">e2</td>
+<td>
+<p>Handled In 1 of 2 (50 %) States:</p>
+	<ul>
+		<li>s1</li>
 	</ul>
 </td>
 </tr>
@@ -297,25 +313,41 @@ code {
 <tbody>
 <tr><td colspan='2' align='left'>
 <table class='summary'>
-<tr><th>Total number of states:</th><td>1</td></tr>
+<tr><th>Total number of states:</th><td>2</td></tr>
 <tr><th>States with no events:</th><td>0</td></tr>
-<tr><th>States with one event:</th><td>1</td></tr>
+<tr><th>States with one event:</th><td>2</td></tr>
 <tr><th>States with no way in:</th><td>0</td></tr>
 <tr><th>States with no way out:</th><td>1</td></tr>
 <tr><th>States implemented by machine:</th><td>1</td></tr>
-<tr><th>Average state event density:</th><td>100%</td></tr>
+<tr><th>Average state event density:</th><td>50%</td></tr>
 </table>
 	</td>
 </tr>
 <tr>
-<td class='label deadEndState'>s1</td>
+<td class='label'>s1</td>
 <td>
-<p class='deadEndState'>This state has no way out.</p>
 <p>On Entry: bar</p>
 <p> do this on entry </p>
 <p>On Exit: baz</p>
 <p> do this on exit </p>
-<p>Events Handled (1 of 1 for 100%):</p>
+<p>Outbound Transitions:</p>
+	<ul>
+		<li>s2</li>
+</ul>
+<p>Events Handled (1 of 2 for 50%):</p>
+	<ul>
+		<li>e2</li>
+	</ul>
+</td></tr>
+<tr>
+<td class='label deadEndState'>s2</td>
+<td>
+<p class='deadEndState'>This state has no way out.</p>
+<p>Inbound Transitions:</p>
+	<ul>
+		<li>s1</li>
+</ul>
+<p>Events Handled (1 of 2 for 50%):</p>
 	<ul>
 		<li>e1</li>
 	</ul>
@@ -341,7 +373,15 @@ code {
 </ul>
 <p>Matrices:</p>
 	<ul>
-		<li>e1, s1		</li>	</ul>
+		<li>e1, s2		</li>	</ul>
+</td>
+</tr>
+<tr>
+<td class="label">transition</td>
+<td>
+<p>Matrices:</p>
+	<ul>
+		<li>e2, s1 transitions to state s2		</li>	</ul>
 </td>
 </tr>
 </tbody>
