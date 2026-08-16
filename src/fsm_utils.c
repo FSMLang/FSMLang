@@ -88,6 +88,7 @@ static bool compute_state_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool compute_event_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool add_inbound_state_wrapper(pLIST_ELEMENT,void*);
 static bool filter_consumed_event(pLIST_ELEMENT,void*);
+static bool filter_machine_implemented_states(pLIST_ELEMENT,void*);
 #ifdef PARSER_DEBUG
 static bool print_pid_name(pLIST_ELEMENT,void*);
 static bool print_state_id_info(pLIST_ELEMENT,void*);
@@ -497,7 +498,7 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
    paaph->error = false;
    iterate_list(paaph->pai->matrix->state_list,add_to_action_array,paaph);
 
-   if (ped->single_pai_state_count == paaph->pmi->state_list->count)
+   if (ped->single_pai_state_count == (paaph->pmi->state_list->count - paaph->pmi->states_implemented_by_machine))
    {
       ped->single_pai_for_all_states    = true;
       paaph->pmi->has_single_pai_events = true;
@@ -534,7 +535,11 @@ static bool process_action_info(pLIST_ELEMENT pelem, void *data)
    }
    if (!paaph->pai->matrix->state_list->count)
    {
-      copy_list(paaph->pai->matrix->state_list, paaph->pmi->state_list);
+      copy_list_filtered(paaph->pai->matrix->state_list
+                         , paaph->pmi->state_list
+                         , filter_machine_implemented_states
+                         , NULL
+                         );
    }
 
    /* then, fill in the action array */
@@ -1795,6 +1800,22 @@ static bool filter_consumed_event(pLIST_ELEMENT pelem, void *data)
     pID_INFO pevent = (pID_INFO) pelem->mbr;
 
     return !pevent->type_data.event_data.consumed_by_translator;
+}
+
+static bool filter_machine_implemented_states(pLIST_ELEMENT pelem, void *data)
+{
+    (void) data;
+    pID_INFO pstate = (pID_INFO) pelem->mbr;
+
+    return !(pstate->type_data.state_data.state_flags & sfImplementedBySubMachine);
+}
+
+bool find_machine_implemented_states(pLIST_ELEMENT pelem, void *data)
+{
+    (void) data;
+    pID_INFO pstate = (pID_INFO) pelem->mbr;
+
+    return ((pstate->type_data.state_data.state_flags & sfImplementedBySubMachine) == sfImplementedBySubMachine);
 }
 
 #ifdef PARSER_DEBUG

@@ -572,6 +572,7 @@ bool print_data_field(pLIST_ELEMENT,void*);
 bool print_event_sequence(pLIST_ELEMENT,void*);
 bool print_event_sequence_event(pLIST_ELEMENT,void*);
 bool match_transition(pLIST_ELEMENT,void*);
+bool find_machine_implemented_states(pLIST_ELEMENT,void*);
 char *create_string_from_file(FILE*,unsigned long*);
 pID_INFO get_transition(pMACHINE_INFO,unsigned,unsigned);
 pID_INFO get_action(pMACHINE_INFO,unsigned,unsigned);

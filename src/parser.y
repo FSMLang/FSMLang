@@ -331,8 +331,12 @@ machine:	machine_prefix machine_qualifier
  					enumerate_pid_list($$->state_list);
  					enumerate_pid_list($$->event_list);
 
+					 count_states_implemented_by_machine($$->state_list
+																			 , &($$->states_implemented_by_machine)
+																			 );
+
 						if (populate_action_array($$, yyout))
- 						yyerror("Action array population failed");
+							yyerror("Action array population failed");
 
 					 count_states_with_zero_events($$->state_list
 																				 , &($$->states_with_zero_events)
@@ -345,9 +349,6 @@ machine:	machine_prefix machine_qualifier
 																			 );
 					 count_states_with_no_way_out($$->state_list
 																			 , &($$->states_with_no_way_out)
-																			 );
-					 count_states_implemented_by_machine($$->state_list
-																			 , &($$->states_implemented_by_machine)
 																			 );
 					 count_events_with_zero_handlers($$->event_list
 																					 , &($$->events_with_zero_handlers)
@@ -1399,6 +1400,11 @@ action_matrix: ID matrix
 						fprintf(yyout,"found an action matrix\n");
 						#endif
 
+						if (iterate_list($2->state_list,find_machine_implemented_states,NULL))
+						{
+							yyerror("States implemented by machines cannot appear in an action matrix.");
+						}
+
            set_id_type($1,ACTION);
            $1->powningMachine = pmachineInfo;
 
@@ -1423,6 +1429,11 @@ action_matrix: ID matrix
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found an action matrix\n");
 						#endif
+
+						if (iterate_list($2->state_list,find_machine_implemented_states,NULL))
+						{
+							yyerror("States implemented by machines cannot appear in an action matrix.");
+						}
 
 						/* 
 							grab an ACTION_INFO struct

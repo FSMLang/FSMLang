@@ -2504,14 +2504,17 @@ static bool reference_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
 
    FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   fprintf(pich->ih.fout
-		   , "\t%s&"
-		   , pich->ih.first ? (pich->ih.first = false, "  ") : ", "
-		   );
+   if (!(pmi->modFlags & mfStateImplementing))
+   {
+	   fprintf(pich->ih.fout
+			   , "\t%s&"
+			   , pich->ih.first ? (pich->ih.first = false, "  ") : ", "
+			  );
 
-   print_shared_event_data_block_signature(pich->ih.fout, pich->pcmd, pmi, pich->ih.pid->name, false /* do not include type information */);
+	   print_shared_event_data_block_signature(pich->ih.fout, pich->pcmd, pmi, pich->ih.pid->name, false /* do not include type information */);
 
-   fprintf(pich->ih.fout, "\n");
+	   fprintf(pich->ih.fout, "\n");
+   }
 
    return false;
 }
@@ -3415,9 +3418,13 @@ static bool define_needed_shared_event_structures(pLIST_ELEMENT pelem, void *dat
 
 void possiblyDefineSubMachineSharedEventStructures (pCMachineData pcmd, pMACHINE_INFO pmi)
 {
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
    ITERATOR_CALLBACK_HELPER ich = { 0 };
 
-   if (pmi->shared_event_count)
+   if (pmi->shared_event_count
+	   && !(pmi->modFlags & mfStateImplementing)
+	   )
    {
       ich.ih.pmi  = pmi;
 	  ich.pcmd = pcmd;
@@ -3603,15 +3610,18 @@ bool print_sub_machine_if(pLIST_ELEMENT pelem, void *data)
 
    FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-   fprintf(pich->pcmd->cFile
-           , "\t%s&%s_sub_fsm_if\n"
-           , pich->ih.first ? (pich->ih.first = false, "") : ", "
-		   , nfMachineNamePmi(pmi, &cp)
-          );
-
-   if (cp)
+   if (!(pmi->modFlags & mfStateImplementing))
    {
-	   free(cp);
+	   fprintf(pich->pcmd->cFile
+			   , "\t%s&%s_sub_fsm_if\n"
+			   , pich->ih.first ? (pich->ih.first = false, "") : ", "
+			   , nfMachineNamePmi(pmi, &cp)
+			  );
+
+	   if (cp)
+	   {
+		   free(cp);
+	   }
    }
 
    return false;
