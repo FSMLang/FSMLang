@@ -43,6 +43,7 @@
 */
 typedef enum NEW_MACHINE_EVENT_ENUM {
 	 newMachine_e1
+	, newMachine_firstEvent = newMachine_e1
 	, newMachine_e2
 	, newMachine_e3
 	, newMachine_e4

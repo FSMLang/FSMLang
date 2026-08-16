@@ -19,6 +19,7 @@ typedef enum TEST_FSM_EVENT_ENUM {
  e1 is our very first event. 
 */
 	 test_fsm_e1
+	, test_fsm_firstEvent = test_fsm_e1
 
 /**
 noEvent signals the completion of event processing.
