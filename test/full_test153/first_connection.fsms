@@ -1,0 +1,41 @@
+/**
+	This machine manages the first connection to a sensor.
+
+	The sensor may be one that has been seen by a previous pod, or
+		it may be seen first by this pod.
+*/
+machine first_connection
+native impl
+{
+#define FSM_ENTRY(A)
+#define FSM_EXIT(A) DBG_PRINTF("end state: %s", FIRST_CONNECTION_STATE_NAMES[(A)->state])
+#define ACTION_ENTRY(A)
+#define ACTION_EXIT(A)
+}
+{
+	data
+	{
+		pconfiguration_str pconfiguration;
+	}
+
+	event parent::activate data translator grab_parent_data_ptrs;
+	event parent::peer_connected;
+	event parent::auth1_complete;
+	event parent::auth2_complete;
+	event parent::peer_data_synced;
+
+	state initial;
+	state waiting;
+	state auth1;
+	state auth2;
+	state data_sync;
+	state done;
+
+	transition              [activate, initial] waiting;
+
+	action start_auth1      [peer_connected, waiting] transition auth1;
+	action start_auth2      [auth1_complete, auth1] transition auth2;
+	action start_data_sync  [auth2_complete, auth2] transition data_sync;
+	transition              [peer_data_synced, data_sync] done;
+}
+

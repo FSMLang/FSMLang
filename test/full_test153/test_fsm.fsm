@@ -1,0 +1,76 @@
+native 
+{
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+
+#include "command_defs.h"
+#include "configuration.h"
+#include "ble_defs.h"
+
+#define DBG_PRINTF(...) fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n");
+
+
+}
+machine communicator
+
+native impl
+{
+#define INIT_FSM_DATA {{0},NULL,NULL}
+#define FSM_ENTRY(A)
+#define FSM_EXIT(A) DBG_PRINTF("end state: %s", COMMUNICATOR_STATE_NAMES[(A)->state])
+#define ACTION_ENTRY(A)
+#define ACTION_EXIT(A)
+}
+
+{
+
+data
+{
+	configuration_str configuration;
+	pble_event_str    pcurr_ble_event;
+	pcommand_str      pcurr_command;
+}
+
+	event activate;
+
+	event command data translator grab_command {command_str command;};
+	event configuration_complete;
+
+	event ble_comm data translator grab_ble_comm {ble_event_str ble_e;};
+
+	event peer_connected;
+	event start_auth1;
+	event auth1_complete;
+	event auth2_complete;
+	event peer_data_synced;
+
+	state initial;
+
+	state waiting
+		on entry set_defaults
+		;
+
+	state first_time_connect implemented by machine first_connection;
+	state connected_to_peer;
+
+	include commands.fsms
+	include ble.fsms
+	include first_connection.fsms
+
+	action activate_all     [activate, (all)]                 transition waiting;
+	action forward_command  [command, waiting];
+	action start_looking    [configuration_complete, waiting] transition first_time_connect;
+
+	/*
+	action forward_peer_connected [peer_connected, first_time_connect];
+	action forward_auth1_complete [auth1_complete, first_time_connect];
+	action forward_auth2_complete [auth2_complete, first_time_connect];
+	action forward_peer_data_synced [peer_data_synced, first_time_connect] transition connected_to_peer;
+	*/
+	transition [peer_data_synced, first_time_connect] connected_to_peer;
+
+	action forward_ble_comm [ble_comm, (all)];
+
+}
+

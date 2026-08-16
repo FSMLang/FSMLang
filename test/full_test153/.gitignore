@@ -1,0 +1,7 @@
+# Local stuff
+*.py
+_ext/
+*.html
+*.rst
+*.mk
+
