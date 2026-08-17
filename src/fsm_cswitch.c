@@ -1139,6 +1139,8 @@ static bool define_void_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
 static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_INFO pstate, bool transitions_are_possible)
 {
+	char *param;
+
     if (
         pmi->executes_fns_on_state_transitions
         && transitions_are_possible
@@ -1159,6 +1161,10 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
 
 	   if (pstate->type_data.state_data.state_flags & sfHasExitFn)
 	   {
+		   param = pstate->type_data.state_data.state_flags & sfImplementedBySubMachine
+					? "pfsm"
+					: pmi->data ? "&pfsm->data" : ""
+					;
 		   fprintf(pcmd->cFile
 				   , "\t\tUFMN(%s%s)(%s);\n"
 				   , pstate->type_data.state_data.exit_fn
@@ -1167,17 +1173,19 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
 				   , pstate->type_data.state_data.exit_fn
 					 ? ""
 					 : pstate->name
-				   , pmi->data
-					 ? "&pfsm->data"
-					 : ""
+				   , param
 				   );
 	   }
 
        if (pmi->states_with_entry_fns_count)
        {
+		   param = pstate->type_data.state_data.state_flags & sfImplementedBySubMachine
+					? "pfsm, "
+					: pmi->data ? "&pfsm->data, " : ""
+					;
            fprintf(pcmd->cFile
                    ,"\t\trunAppropriateEntryFunction(%snew_s);\n"
-                   , pmi->data ? "&pfsm->data, " : ""
+				   , param
                   );
        }
 

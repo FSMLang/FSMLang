@@ -51,7 +51,10 @@ data
 		on entry set_defaults
 		;
 
-	state first_time_connect implemented by machine first_connection;
+	state first_time_connect implemented by machine first_connection
+			on entry initialize_ftc
+			on exit  decommission_ftc
+			;
 	state connected_to_peer;
 
 	include commands.fsms
