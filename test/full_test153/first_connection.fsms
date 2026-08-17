@@ -18,7 +18,8 @@ native impl
 		pconfiguration_str pconfiguration;
 	}
 
-	event parent::activate data translator grab_parent_data_ptrs;
+	event activate data translator grab_parent_data_ptrs;
+
 	event parent::peer_connected;
 	event parent::auth1_complete;
 	event parent::auth2_complete;

@@ -10,9 +10,6 @@ event: communicator_ble_activate; state: communicator_ble_initial
 communicator_ble_noAction
 communicator_ble_set_defaults
 end state: communicator_ble_waiting
-event: communicator_first_connection_activate; state: communicator_first_connection_initial
-communicator_first_connection_noAction
-end state: communicator_first_connection_waiting
 communicator_set_defaults
 end state: communicator_waiting
 communicator_grab_command
@@ -51,6 +48,9 @@ event: communicator_ble_do_scan; state: communicator_ble_waiting
 communicator_ble_noAction
 communicator_ble_start_scanning
 end state: communicator_ble_scanning
+event: communicator_first_connection_activate; state: communicator_first_connection_initial
+communicator_first_connection_noAction
+end state: communicator_first_connection_waiting
 end state: communicator_first_time_connect
 communicator_grab_ble_comm
 event: communicator_ble_comm; state: communicator_first_time_connect
@@ -95,9 +95,6 @@ event: communicator_ble_activate; state: communicator_ble_initial
 communicator_ble_noAction
 communicator_ble_set_defaults
 end state: communicator_ble_waiting
-event: communicator_first_connection_activate; state: communicator_first_connection_initial
-communicator_first_connection_noAction
-end state: communicator_first_connection_waiting
 communicator_set_defaults
 end state: communicator_waiting
 communicator_grab_command
@@ -181,6 +178,9 @@ event: communicator_ble_do_connect; state: communicator_ble_waiting
 communicator_ble_noAction
 communicator_ble_start_connection_timer
 end state: communicator_ble_waiting_for_connection_window
+event: communicator_first_connection_activate; state: communicator_first_connection_initial
+communicator_first_connection_noAction
+end state: communicator_first_connection_waiting
 end state: communicator_first_time_connect
 
 test: force_find_and_run

@@ -21,7 +21,7 @@ override DIFF_FLAGS= -I \"warning: (test_fsm_sub_subSub): all events are handled
 FSM_FLAGS+=--add-profiling-macros=true --profile-sub-fsms=true
 
 VARIANTS=s
-TARGET=pass
+#TARGET=pass
 
 #include ../weak_variants.mk
 include ../variants.mk

@@ -29,4 +29,13 @@ void UFMN(set_defaults)(pCOMMUNICATOR_DATA pfsm_data)
 	memset(pfsm_data,0,sizeof(*pfsm_data));
 }
 
+void UFMN(initialize_ftc)(FSM_TYPE_PTR pfsm)
+{
+	(void) run_communicator_first_connection(pfsm, FIRST_CONNECTION(activate));
+}
+
+void UFMN(decommission_ftc)(FSM_TYPE_PTR pfsm)
+{
+	(void) pfsm;
+}
 
