@@ -227,6 +227,7 @@ void declareEventDataManager(pCMachineData);
 void declareSubMachineEventDataManager(pCMachineData);
 void defineEventDataManager(pCMachineData);
 void defineSubMachineEventDataManager(pCMachineData);
+void define_state_implementing_machine_run_functions(pCMachineData);
 void printSubMachinesDeclarations(pCMachineData,pMACHINE_INFO);
 void printFSMMachineDebugBlock(pCMachineData,pMACHINE_INFO,bool);
 void printFSMSubMachineDebugBlock(pCMachineData,pMACHINE_INFO,bool);

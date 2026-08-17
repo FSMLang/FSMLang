@@ -612,6 +612,8 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
       defineEventPassingActions(pcmd, pmi);
    }
 
+   define_state_implementing_machine_run_functions(pcmd);
+
    writeDebugInfo(pcmd, pmi);
 
 	addNativeImplementationEpilogIfThereIsAny(pmi, pcmd->cFile);
@@ -1179,7 +1181,7 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
 
        if (pmi->states_with_entry_fns_count)
        {
-		   param = pstate->type_data.state_data.state_flags & sfImplementedBySubMachine
+		   param = (pmi->states_implemented_by_machine != 0)
 					? "pfsm, "
 					: pmi->data ? "&pfsm->data, " : ""
 					;
@@ -2552,11 +2554,15 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
 				 );
       }
 
+	  char *param = (pmi->states_implemented_by_machine != 0)
+					? "pfsm, "
+					: pmi->data ? "&pfsm->data, " : ""
+					;
       if (pmi->states_with_exit_fns_count)
       {
          fprintf(pcmd->cFile
                  ,"\t\trunAppropriateExitFunction(%spfsm->state);\n"
-                 , pmi->data ? "&pfsm->data, " : ""
+				 , param
                  );
       }
 
@@ -2564,7 +2570,7 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
       {
          fprintf(pcmd->cFile
                  ,"\t\trunAppropriateEntryFunction(%snew_s);\n"
-                 , pmi->data ? "&pfsm->data, " : ""
+				 , param
                  );
       }
 

@@ -85,6 +85,10 @@ static bool print_event_macro(pLIST_ELEMENT, void *);
 static bool declare_shared_event_lists(pLIST_ELEMENT, void *);
 static bool declare_shared_event_data_blocks(pLIST_ELEMENT, void *);
 static void declare_parent_event_reference_data_structures(pCMachineData, pMACHINE_INFO);
+static void declare_state_implementing_machine_run_functions(pCMachineData);
+static bool declare_state_implementing_machine_run_function(pLIST_ELEMENT,void*);
+static bool define_state_implementing_machine_run_function(pLIST_ELEMENT,void*);
+static void print_state_implementing_machine_run_function_signature(pCMachineData,pMACHINE_INFO,FILE*,DECLARE_OR_DEFINE);
 static void define_parent_event_reference_elements(pCMachineData, pMACHINE_INFO);
 static bool define_shared_event_lists(pLIST_ELEMENT, void *);
 static bool reference_shared_event_data_blocks(pLIST_ELEMENT, void *);
@@ -948,6 +952,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 			   );
 
 		printSubMachinesDeclarations(pcmd, pmi);
+		declare_state_implementing_machine_run_functions(pcmd);
 	}
 
 	/* put the data structure definition into the header */
@@ -2734,8 +2739,6 @@ bool declare_state_only_transition_functions_are(pLIST_ELEMENT pelem, void *data
 
 static void print_entry_or_exit_fn_signature(pID_INFO pstate, pITERATOR_CALLBACK_HELPER pich, ENTRY_OR_EXIT which)
 {
-	FSMLANG_DEVELOP_PRINTF(file, "/* FSMLANG_DEVELOP: %s */\n", __func__);
-
 	pID_INFO fn        = which == eoe_entry
 		? pstate->type_data.state_data.entry_fn
 		: pstate->type_data.state_data.exit_fn
@@ -2746,6 +2749,8 @@ static void print_entry_or_exit_fn_signature(pID_INFO pstate, pITERATOR_CALLBACK
 	;
 	FILE    *file      = pich->define       ? pich->ih.fout : pich->pcmd->hFile;
 	char    *param_type, *param_name, *doxygen_block;
+
+	FSMLANG_DEVELOP_PRINTF(file, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	/* pick param type, name and doxygen */
 	if (pstate->type_data.state_data.state_flags & sfImplementedBySubMachine)
@@ -3626,8 +3631,8 @@ bool print_sub_machine_if(pLIST_ELEMENT pelem, void *data)
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-	if (!(pmi->modFlags & mfStateImplementing))
-	{
+//	if (!(pmi->modFlags & mfStateImplementing))
+//	{
 		fprintf(pich->pcmd->cFile
 				, "\t%s&%s_sub_fsm_if\n"
 				, pich->ih.first ? (pich->ih.first = false, "") : ", "
@@ -3638,7 +3643,7 @@ bool print_sub_machine_if(pLIST_ELEMENT pelem, void *data)
 		{
 			free(cp);
 		}
-	}
+//	}
 
 	return false;
 }
@@ -4530,6 +4535,7 @@ void printSubMachinesDeclarations(pCMachineData pcmd, pMACHINE_INFO pmi)
 	{
 		declare_parent_event_reference_data_structures(pcmd, pmi);
 	}
+
 }
 
 void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool all_states)
@@ -5001,5 +5007,91 @@ static bool print_doxygen_return_statement(pLIST_ELEMENT pelem, void *data)
 		   );
 
 	return false;
+}
+
+static void print_state_implementing_machine_run_function_signature(pCMachineData pcmd_parent, pMACHINE_INFO pmi_this, FILE *fout, DECLARE_OR_DEFINE dod)
+{
+	char *cp = NULL;
+	fprintf(fout
+			, "void run_%s(p%s%s,%s%s)%s"
+			, fqMachineNamePmi(pmi_this,&cp)
+			, fsmType(pcmd_parent)
+			, dod == dod_define ? " pfsm" : ""
+			, subFsmFnEventType(pcmd_parent)
+			, dod == dod_define ? " event" : ""
+			, dod == dod_define ? "\n{\n" : ";\n"
+			);
+	CHECK_AND_FREE(cp);
+}
+
+static bool declare_state_implementing_machine_run_function(pLIST_ELEMENT pelem, void *data)
+{
+	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+	pMACHINE_INFO             pmi  = (pMACHINE_INFO) pelem->mbr;
+
+	if (pmi->modFlags & mfStateImplementing)
+	{
+		print_state_implementing_machine_run_function_signature(pich->pcmd, pmi, pich->ih.fout, dod_declare);
+	}
+
+	return false;
+}
+
+static bool define_state_implementing_machine_run_function(pLIST_ELEMENT pelem, void *data)
+{
+	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+	pMACHINE_INFO             pmi  = (pMACHINE_INFO) pelem->mbr;
+
+	if (pmi->modFlags & mfStateImplementing)
+	{
+		print_state_implementing_machine_run_function_signature(pich->pcmd, pmi, pich->ih.fout, dod_define);
+
+		char *name = NULL, *cp = NULL;
+		fprintf(pich->pcmd->cFile
+				, "\n\t(*%s_sub_fsm_if.subFSM)((*pfsm->subMachines)[%s_e],%sevent);\n"
+				, fqMachineNamePmi(pmi, &name)
+				, generate_instance ? machineNamePmi(pmi) : fqMachineNamePmi(pmi, &cp)
+				, pich->ih.pmi->data ? "&pfsm->data," : ""
+				);
+		CHECK_AND_FREE(name);
+		CHECK_AND_FREE(cp);
+
+		fprintf(pich->pcmd->cFile
+				, "\n}\n\n"
+				);
+	}
+
+	return false;
+}
+
+static void declare_state_implementing_machine_run_functions(pCMachineData pcmd)
+{
+	ITERATOR_CALLBACK_HELPER ich = {0};
+	ich.ih.fout = generate_instance ? pcmd->subMachineHFile : pcmd->pubHFile;
+	ich.pcmd    = pcmd;
+
+	FSMLANG_DEVELOP_PRINTF(ich.ih.fout, "/* FSMLANG DEVELOP: %s */\n", __func__);
+
+	iterate_list(pcmd->pmi->machine_list
+				 , declare_state_implementing_machine_run_function
+				 , &ich
+				 );
+
+}
+
+void define_state_implementing_machine_run_functions(pCMachineData pcmd)
+{
+	ITERATOR_CALLBACK_HELPER ich = {0};
+	ich.ih.fout = pcmd->cFile;
+	ich.pcmd    = pcmd;
+	ich.ih.pmi  = pcmd->pmi;
+
+	FSMLANG_DEVELOP_PRINTF(ich.ih.fout, "/* FSMLANG DEVELOP: %s */\n", __func__);
+
+	iterate_list(pcmd->pmi->machine_list
+				 , define_state_implementing_machine_run_function
+				 , &ich
+				 );
+
 }
 
