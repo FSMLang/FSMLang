@@ -82,5 +82,7 @@ char *strings[]  = {
   , "OTHERWISE_KEY"
   , "TRANSLATORS"
   , "CONSUMING"
+  , "IMPLEMENTED"
+  , "BY"
 };
 

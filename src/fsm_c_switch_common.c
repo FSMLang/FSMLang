@@ -418,16 +418,25 @@ void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator pfsmcog)
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pcmd->pmi;
 
-   fprintf(pcmd->cFile
-           , "\twhile ((e != THIS(noEvent))\n\t       && (e >= THIS(firstEvent))\n"
-           );
+	if (pmi->modFlags & mfStateImplementing)
+	{
+		fprintf(pcmd->cFile
+			   , "\tdo\n\t{\n\n"
+			   );
+	}
+	else
+	{
+		fprintf(pcmd->cFile
+			   , "\twhile (((e != THIS(noEvent)) && (e >= THIS(firstEvent)))\n"
+			   );
 
-   if (pmi->machine_list)
-   {
-      fprintf(pcmd->cFile, "\n       && (e < THIS(lastEvent))");
-   }
+		if (pmi->machine_list)
+		{
+		   fprintf(pcmd->cFile, "\t       && (e < THIS(lastEvent))");
+		}
 
-   fprintf(pcmd->cFile, "\t      )\n\t{\n\n");
+		fprintf(pcmd->cFile, "\t      )\n\t{\n\n");
+	}
 
    printFSMSubMachineDebugBlock(pcmd, pmi, false);
 
@@ -459,7 +468,23 @@ void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator pfsmcog)
                );
    }
 
-   fprintf(pcmd->cFile, "\n\t}\n");
+   if (pmi->modFlags & mfStateImplementing)
+   {
+	   fprintf(pcmd->cFile
+			  , "\n\t} while (((e != THIS(noEvent)) && (e >= THIS(firstEvent)))"
+			  );
+
+	   if (pmi->machine_list)
+	   {
+		  fprintf(pcmd->cFile, "\n\t       && (e < THIS(lastEvent))\n\t\t");
+	   }
+
+	   fprintf(pcmd->cFile, ");\n");
+   }
+   else
+   {
+	   fprintf(pcmd->cFile, "\n\t}\n");
+   }
 
    if (add_profiling_macros && profile_sub_fsms)
    {

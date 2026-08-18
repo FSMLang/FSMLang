@@ -67,13 +67,15 @@ typedef enum {
    , mfActionsReturnDeclared     = 8
    , mfTranslatorsReturnEvents   = 16
    , mfTranslatorsReturnDeclared = 32
+   , mfStateImplementing         = 64
 } MOD_FLAGS;
 
 typedef enum {
    sfNone
-   , sfInibitSubMachines = 1
-   , sfHasEntryFn        = 2
-   , sfHasExitFn         = 4
+   , sfInibitSubMachines           = 1
+   , sfHasEntryFn                  = 2
+   , sfHasExitFn                   = 4
+   , sfImplementedBySubMachine     = 8
 } STATE_FLAGS;
 
 typedef enum HORIZONTAL_PLACEMENT {
@@ -138,6 +140,7 @@ typedef struct _native_info_             NATIVE_INFO,             *pNATIVE_INFO;
 typedef struct _event_sequence_node_     EVENT_SEQUENCE_NODE,     *pEVENT_SEQUENCE_NODE;
 typedef struct _event_sequence_          EVENT_SEQUENCE,          *pEVENT_SEQUENCE;
 typedef struct _return_choice_data_      RETURN_CHOICE_DATA,      *pRETURN_CHOICE_DATA;
+typedef struct _machine_pid_data_        MACHINE_PID_DATA,        *pMACHINE_PID_DATA;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
@@ -172,6 +175,7 @@ struct _state_data_
    pLIST       pinbound_transitions;
    pLIST       poutbound_transitions;
    pLIST       pactions_list;
+   pID_INFO    implementingMachine;
 };
 
 struct _event_data_
@@ -179,6 +183,7 @@ struct _event_data_
    pID_INFO         externalDesignation;
    pLIST            psharing_sub_machines;
    bool             shared_with_parent;
+   unsigned         state_implementing_sharer_count;
    unsigned         single_pai_state_count;
    pACTION_INFO     psingle_pai;
    bool             single_pai_for_all_states;
@@ -201,6 +206,12 @@ struct _translator_data_
    bool   consuming;
 };
 
+struct _machine_pid_data_
+{
+    pID_INFO      implementedState;
+    pMACHINE_INFO pmi;
+};
+
 /**
  * One choice in a 'guardFn returns ...' declaration.
  * Mode A: condition_fn == NULL, is_otherwise == false (plain state name).
@@ -215,10 +226,11 @@ struct _return_choice_data_
 
 union _pid_type_data_
 {
-   EVENT_DATA      event_data;
-   STATE_DATA      state_data;
-   ACTION_DATA     action_data;
-   TRANSLATOR_DATA translator_data;
+   EVENT_DATA       event_data;
+   STATE_DATA       state_data;
+   ACTION_DATA      action_data;
+   TRANSLATOR_DATA  translator_data;
+   MACHINE_PID_DATA machine_pid_data;
 };
 
 typedef enum
@@ -389,6 +401,7 @@ struct _machine_info_ {
   unsigned      states_with_one_event;
   unsigned      states_with_no_way_in;
   unsigned      states_with_no_way_out;
+  unsigned      states_implemented_by_machine;
   unsigned      average_state_event_density_pct;
   unsigned      average_event_state_density_pct;
   pLIST         sequences;
@@ -429,6 +442,7 @@ void count_states_with_zero_events(pLIST,unsigned*);
 void count_states_with_one_event(pLIST,unsigned*);
 void count_states_with_no_way_in(pLIST,unsigned*);
 void count_states_with_no_way_out(pLIST,unsigned*);
+void count_states_implemented_by_machine(pLIST,unsigned*);
 void count_events_with_zero_handlers(pLIST,unsigned*);
 void count_events_with_one_handler(pLIST,unsigned*);
 void compute_event_and_state_density_pct(pMACHINE_INFO);
@@ -558,6 +572,7 @@ bool print_data_field(pLIST_ELEMENT,void*);
 bool print_event_sequence(pLIST_ELEMENT,void*);
 bool print_event_sequence_event(pLIST_ELEMENT,void*);
 bool match_transition(pLIST_ELEMENT,void*);
+bool find_machine_implemented_states(pLIST_ELEMENT,void*);
 char *create_string_from_file(FILE*,unsigned long*);
 pID_INFO get_transition(pMACHINE_INFO,unsigned,unsigned);
 pID_INFO get_action(pMACHINE_INFO,unsigned,unsigned);

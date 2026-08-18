@@ -15,6 +15,7 @@ number of states handling zero events: 1
 number of states handling one event: 2
 number of states with no way in: 0
 number of states with no way out: 1
+number of states implemented by machine: 0
 number of actions: 4
 number of sub-machines: 0
 Action Array:

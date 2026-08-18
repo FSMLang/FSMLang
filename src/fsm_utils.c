@@ -78,6 +78,7 @@ static bool count_zero_event_handlers(pLIST_ELEMENT,void*);
 static bool count_one_event_handlers(pLIST_ELEMENT,void*);
 static bool count_no_way_in_states(pLIST_ELEMENT,void*);
 static bool count_no_way_out_states(pLIST_ELEMENT,void*);
+static bool count_implemented_by_machine_states(pLIST_ELEMENT,void*);
 static bool enumerate_pid(pLIST_ELEMENT,void*);
 static bool process_action_info(pLIST_ELEMENT,void*);
 static bool iterate_matrix_states(pLIST_ELEMENT,void*);
@@ -87,6 +88,7 @@ static bool compute_state_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool compute_event_density_pct_and_average(pLIST_ELEMENT,void*);
 static bool add_inbound_state_wrapper(pLIST_ELEMENT,void*);
 static bool filter_consumed_event(pLIST_ELEMENT,void*);
+static bool filter_machine_implemented_states(pLIST_ELEMENT,void*);
 #ifdef PARSER_DEBUG
 static bool print_pid_name(pLIST_ELEMENT,void*);
 static bool print_state_id_info(pLIST_ELEMENT,void*);
@@ -496,7 +498,7 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
    paaph->error = false;
    iterate_list(paaph->pai->matrix->state_list,add_to_action_array,paaph);
 
-   if (ped->single_pai_state_count == paaph->pmi->state_list->count)
+   if (ped->single_pai_state_count == (paaph->pmi->state_list->count - paaph->pmi->states_implemented_by_machine))
    {
       ped->single_pai_for_all_states    = true;
       paaph->pmi->has_single_pai_events = true;
@@ -533,7 +535,11 @@ static bool process_action_info(pLIST_ELEMENT pelem, void *data)
    }
    if (!paaph->pai->matrix->state_list->count)
    {
-      copy_list(paaph->pai->matrix->state_list, paaph->pmi->state_list);
+      copy_list_filtered(paaph->pai->matrix->state_list
+                         , paaph->pmi->state_list
+                         , filter_machine_implemented_states
+                         , NULL
+                         );
    }
 
    /* then, fill in the action array */
@@ -945,9 +951,27 @@ static bool count_no_way_out_states(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
+static bool count_implemented_by_machine_states(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pstate = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+    if (pstate->type_data.state_data.state_flags & sfImplementedBySubMachine)
+	{
+		(*count)++;
+	}
+
+	return false;
+}
+
 void count_states_with_no_way_out(pLIST plist, unsigned *data)
 {
 	iterate_list(plist, count_no_way_out_states, data);
+}
+
+void count_states_implemented_by_machine(pLIST plist, unsigned *data)
+{
+	iterate_list(plist, count_implemented_by_machine_states, data);
 }
 
 void count_external_declarations(pLIST plist, unsigned *counter)
@@ -1778,6 +1802,22 @@ static bool filter_consumed_event(pLIST_ELEMENT pelem, void *data)
     return !pevent->type_data.event_data.consumed_by_translator;
 }
 
+static bool filter_machine_implemented_states(pLIST_ELEMENT pelem, void *data)
+{
+    (void) data;
+    pID_INFO pstate = (pID_INFO) pelem->mbr;
+
+    return !(pstate->type_data.state_data.state_flags & sfImplementedBySubMachine);
+}
+
+bool find_machine_implemented_states(pLIST_ELEMENT pelem, void *data)
+{
+    (void) data;
+    pID_INFO pstate = (pID_INFO) pelem->mbr;
+
+    return ((pstate->type_data.state_data.state_flags & sfImplementedBySubMachine) == sfImplementedBySubMachine);
+}
+
 #ifdef PARSER_DEBUG
 
 typedef struct _debug_list_helper_ DEBUG_LIST_HELPER, *pDEBUG_LIST_HELPER;
@@ -1793,18 +1833,31 @@ struct _debug_list_helper_
 static bool print_state_id_info(pLIST_ELEMENT pelem, void *data)
 {
    pDEBUG_LIST_HELPER phelper = (pDEBUG_LIST_HELPER) data;
-   pID_INFO pid               = (pID_INFO) pelem->mbr;
+   pID_INFO pstate               = (pID_INFO) pelem->mbr;
 
-   fprintf(phelper->fout
-       ,"\t%d:\t%s"
-       ,phelper->counter++
-       ,pid->name
-       );
+   if (pstate->type == STATE)
+   {
+       pSTATE_DATA psd = &pstate->type_data.state_data;
 
-   fprintf(phelper->fout
-       ,"\n%s\n"
-       ,pid->docCmnt ? pid->docCmnt : ""
-       );
+       fprintf(phelper->fout
+           ,"\t%d:\t%s"
+           ,phelper->counter++
+           ,pstate->name
+           );
+
+       if (psd->state_flags & sfImplementedBySubMachine)
+       {
+           fprintf(phelper->fout
+                   , "; This state is implemented by machine %s."
+                   , psd->implementingMachine->name
+                   );
+       }
+
+       fprintf(phelper->fout
+           ,"\n%s\n"
+           ,pstate->docCmnt ? pstate->docCmnt : ""
+           );
+   }
 
    return false;
 }

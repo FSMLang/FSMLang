@@ -24,8 +24,12 @@ runtest: $(TESTS)
 	@echo "all html tests pass"
 	@$(MAKE) clean
 
-$(TESTS): $(FSM) $$@.html Makefile
-	@$(DIFF) $@.html $@.html.canonical > $@.result
+$(TESTS): $(FSM) $$(shell $(FSM) -th -M $(FSM_HTML_FLAGS) $$@.fsm) Makefile
+	@echo prerequisites: $^
+	set -e; \
+	for f in $(filter %.html, $^); do \
+		$(DIFF) $$f $$f.canonical > $${f%.*}.result; \
+	done
 	@echo $@ successful
 	@rm -f $@.html $@.result > /dev/null
       

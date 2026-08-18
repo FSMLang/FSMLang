@@ -527,6 +527,22 @@ consuming {
 					#endif
 				}
 
+implemented {
+					#ifndef LEX_DEBUG
+					return IMPLEMENTED;
+					#else
+					printf("%s\n",strings[IMPLEMENTED]);
+					#endif
+				}
+
+by {
+					#ifndef LEX_DEBUG
+					return BY;
+					#else
+					printf("%s\n",strings[BY]);
+					#endif
+				}
+
 
 [](){}=*] | 
 [[]		{ 

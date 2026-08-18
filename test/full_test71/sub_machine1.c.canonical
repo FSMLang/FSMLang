@@ -58,8 +58,7 @@ static TOP_LEVEL_EVENT sub_machine1FSM(pSUB_MACHINE1 pfsm, TOP_LEVEL_EVENT event
 {
 	TOP_LEVEL_EVENT e = event;
 
-	while ((e != THIS(noEvent))
-	       && (e >= THIS(firstEvent))
+	while (((e != THIS(noEvent)) && (e >= THIS(firstEvent)))
 	      )
 	{
 
@@ -79,9 +78,8 @@ if ((EVENT_IS_NOT_EXCLUDED_FROM_LOG(e))
 		/* This is read-only data to facilitate error reporting in action functions */
 		pfsm->event = e;
 
-		if ((e >= THIS(firstEvent))
-		    && (e < THIS(noEvent))
-			)
+		if (((e >= THIS(firstEvent)) && (e < THIS(noEvent)))
+		   )
 		{
 			e = (*(*pfsm->statesArray)[pfsm->state])(pfsm,e);
 		}

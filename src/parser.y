@@ -37,6 +37,7 @@
 #include "fsm_python_transitions.h"
 
 #include "list.h"
+#include "parser_support.h"
 
 int lineno=1;
 extern int yylineno;
@@ -108,7 +109,7 @@ static char *fsm_strndup(const char *s, size_t n)
 %token DATA_KEY TRANSLATOR_KEY MACHINE_KEY
 %token REENTRANT ACTIONS RETURN STATES EVENTS RETURNS EXTERNAL VOID TRANSLATORS
 %token IMPLEMENTATION_KEY INHIBITS SUBMACHINES ALL ENTRY EXIT STRUCT_KEY UNION_KEY
-%token START_KEY EVENT_SEQ END_KEY CONSUMING
+%token START_KEY EVENT_SEQ END_KEY CONSUMING IMPLEMENTED BY
 
 %token <charData> SEQUENCE_KEY
 %token <charData> ACTION_KEY 
@@ -121,6 +122,8 @@ static char *fsm_strndup(const char *s, size_t n)
 %token <charData> NATIVE_KEY
 %token <charData> NATIVE_BLOCK
 %token <pid_info> MACHINE
+%token <pid_info> UNDEFINED_SI_MACHINE
+%token <pid_info> SI_MACHINE
 %token <pid_info> STATE
 %token <pid_info> EVENT
 %token <pid_info> ACTION
@@ -229,36 +232,12 @@ fsmlang: machine
 
 machine_prefix: native machine_modifier MACHINE_KEY ID
    {
-
-				if (($$ = (pMACHINE_PREFIX)calloc(1,sizeof(MACHINE_PREFIX))) == NULL)
-						yyerror("out of memory");
-
-				if (($$->pmachineInfo = (pMACHINE_INFO)calloc(1,sizeof(MACHINE_INFO))) == NULL)
-						yyerror("out of memory");
-
-				/* grab any native language stuff */
-				if ($1)
-				{
-					$$->pmachineInfo->native_prologue = $1->prologue;
-					$$->pmachineInfo->native_epilogue = $1->epilogue;
-				}
-
-       /* grab any modifiers */
- 			 $$->pmachineInfo->modFlags = $2;
-
-			 /* grab our name */
-			 set_id_type($4, MACHINE);
-       $4->powningMachine = $$->pmachineInfo;
-			 $$->pmachineInfo->name = $4;
-
-
-				/* now give ourselves our own id list */
-       id_list = $$->pmachineInfo->id_list = init_list();
-
-        $$->pmachineInfo->parent = pmachineInfo;
-				pmachineInfo             = $$->pmachineInfo;
-
+			$$ = machine_declared_by_id($1, $2, $4);
    }
+	 | native machine_modifier MACHINE_KEY UNDEFINED_SI_MACHINE
+	 {
+		 $$ = machine_declared_by_machine_pid($1, $2, $4);
+	 }
  	;
 
 machine:	machine_prefix machine_qualifier 
@@ -352,8 +331,12 @@ machine:	machine_prefix machine_qualifier
  					enumerate_pid_list($$->state_list);
  					enumerate_pid_list($$->event_list);
 
+					 count_states_implemented_by_machine($$->state_list
+																			 , &($$->states_implemented_by_machine)
+																			 );
+
 						if (populate_action_array($$, yyout))
- 						yyerror("Action array population failed");
+							yyerror("Action array population failed");
 
 					 count_states_with_zero_events($$->state_list
 																				 , &($$->states_with_zero_events)
@@ -1417,6 +1400,11 @@ action_matrix: ID matrix
 						fprintf(yyout,"found an action matrix\n");
 						#endif
 
+						if (iterate_list($2->state_list,find_machine_implemented_states,NULL))
+						{
+							yyerror("States implemented by machines cannot appear in an action matrix.");
+						}
+
            set_id_type($1,ACTION);
            $1->powningMachine = pmachineInfo;
 
@@ -1441,6 +1429,11 @@ action_matrix: ID matrix
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found an action matrix\n");
 						#endif
+
+						if (iterate_list($2->state_list,find_machine_implemented_states,NULL))
+						{
+							yyerror("States implemented by machines cannot appear in an action matrix.");
+						}
 
 						/* 
 							grab an ACTION_INFO struct
@@ -1720,10 +1713,19 @@ state: ID
 										);
          	#endif
 
+					if ($1->type_data.state_data.state_flags & sfImplementedBySubMachine)
+					{
+							yyerror("a state implemented by a sub-machine cannot inhibit sub-machines");
+					}
+
  					$$ = $1;
 
  					$$->type_data.state_data.state_flags |= sfInibitSubMachines;
 
+		      }
+ 	| state IMPLEMENTED BY MACHINE_KEY ID
+					{
+						state_implemented_by($1, $5);
 		      }
    | state ON ENTRY
 					{
@@ -2033,6 +2035,11 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 
            if (NULL == add_to_list($3->type_data.event_data.psharing_sub_machines, pmachineInfo))
                yyerror("Out of memory");
+
+						if (pmachineInfo->modFlags & mfStateImplementing)
+						{
+							$3->type_data.event_data.state_implementing_sharer_count++;
+						}
 
 					}
 	| event_decl_list ',' ID external_designation user_event_data
@@ -3278,13 +3285,13 @@ int main(int argc, char **argv)
 							 }
 							 break;
       			case lo_add_profiling_macros:
-							if (optarg && !strcmp(optarg, "true"))
+							if (!optarg || !strcmp(optarg, "true"))
 							{
 								add_profiling_macros = true;
 							}
 							break;
       			case lo_profile_sub_fsms:
-							if (optarg && !strcmp(optarg, "true"))
+							if (!optarg || !strcmp(optarg, "true"))
 							{
 								profile_sub_fsms = true;
 							}

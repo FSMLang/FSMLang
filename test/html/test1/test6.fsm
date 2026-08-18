@@ -1,0 +1,23 @@
+machine foo
+{
+	state s1
+      /** do this on entry */
+		on entry bar
+      /** do this on exit */
+		on exit  baz
+		implemented by machine bof
+      ;
+	state s2;
+
+	event e1, e2;
+
+	machine bof
+	{
+		event parent::e1;
+		state s1;
+		action a1[e1,s1];
+	}
+
+	action a1[e1, s2];
+	transition [e2, s1] s2;
+}
