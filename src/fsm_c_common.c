@@ -5043,7 +5043,10 @@ static bool define_state_implementing_machine_run_function(pLIST_ELEMENT pelem, 
 	{
 		print_state_implementing_machine_run_function_signature(pich->pcmd, pmi, pich->ih.fout, dod_define);
 
-		char *name = NULL, *cp = NULL;
+		char *name = NULL;
+
+		fqMachineNamePmi(pmi, &name);
+
 		fprintf(pich->pcmd->cFile
 				, "\n\tconst void * pinstance = "
 				);
@@ -5051,23 +5054,22 @@ static bool define_state_implementing_machine_run_function(pLIST_ELEMENT pelem, 
 		{
 			fprintf(pich->pcmd->cFile
 					, "(*%s_sub_fsm_if.instanceArray)[pfsm->instance];"
-					, fqMachineNamePmi(pmi, &name)
+					, name
 					);
 		}
 		else
 		{
 			fprintf(pich->pcmd->cFile
 					, "(*pfsm->subMachines)[%s_e];"
-					, fqMachineNamePmi(pmi, &cp)
+					, name
 					);
 		}
 		fprintf(pich->pcmd->cFile
 				, "\n\t(*%s_sub_fsm_if.subFSM)(pinstance,%sevent);\n"
-				, fqMachineNamePmi(pmi, &name)
+				, name
 				, pich->ih.pmi->data ? "&pfsm->data," : ""
 				);
 		CHECK_AND_FREE(name);
-		CHECK_AND_FREE(cp);
 
 		fprintf(pich->pcmd->cFile
 				, "\n}\n\n"
