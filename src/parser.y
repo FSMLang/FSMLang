@@ -1713,7 +1713,10 @@ state: ID
 										);
          	#endif
 
-						yyerror("a state implemented by a sub-machine cannot inhibit sub-machines");
+					if ($1->type_data.state_data.state_flags & sfImplementedBySubMachine)
+					{
+							yyerror("a state implemented by a sub-machine cannot inhibit sub-machines");
+					}
 
  					$$ = $1;
 
