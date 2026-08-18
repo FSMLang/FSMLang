@@ -3631,19 +3631,16 @@ bool print_sub_machine_if(pLIST_ELEMENT pelem, void *data)
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
-//	if (!(pmi->modFlags & mfStateImplementing))
-//	{
-		fprintf(pich->pcmd->cFile
-				, "\t%s&%s_sub_fsm_if\n"
-				, pich->ih.first ? (pich->ih.first = false, "") : ", "
-				, nfMachineNamePmi(pmi, &cp)
-			   );
+	fprintf(pich->pcmd->cFile
+			, "\t%s&%s_sub_fsm_if\n"
+			, pich->ih.first ? (pich->ih.first = false, "") : ", "
+			, nfMachineNamePmi(pmi, &cp)
+		   );
 
-		if (cp)
-		{
-			free(cp);
-		}
-//	}
+	if (cp)
+	{
+		free(cp);
+	}
 
 	return false;
 }
@@ -5048,9 +5045,25 @@ static bool define_state_implementing_machine_run_function(pLIST_ELEMENT pelem, 
 
 		char *name = NULL, *cp = NULL;
 		fprintf(pich->pcmd->cFile
-				, "\n\t(*%s_sub_fsm_if.subFSM)((*pfsm->subMachines)[%s_e],%sevent);\n"
+				, "\n\tconst void * pinstance = "
+				);
+		if (generate_instance)
+		{
+			fprintf(pich->pcmd->cFile
+					, "(*%s_sub_fsm_if.instanceArray)[pfsm->instance];"
+					, fqMachineNamePmi(pmi, &name)
+					);
+		}
+		else
+		{
+			fprintf(pich->pcmd->cFile
+					, "(*pfsm->subMachines)[%s_e];"
+					, fqMachineNamePmi(pmi, &cp)
+					);
+		}
+		fprintf(pich->pcmd->cFile
+				, "\n\t(*%s_sub_fsm_if.subFSM)(pinstance,%sevent);\n"
 				, fqMachineNamePmi(pmi, &name)
-				, generate_instance ? machineNamePmi(pmi) : fqMachineNamePmi(pmi, &cp)
 				, pich->ih.pmi->data ? "&pfsm->data," : ""
 				);
 		CHECK_AND_FREE(name);

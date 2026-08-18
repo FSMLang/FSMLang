@@ -1265,10 +1265,27 @@ static bool define_event_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 	{
 		char *name = NULL, *cp = NULL;
 		pMACHINE_INFO ipmi = pstate->type_data.state_data.implementingMachine->type_data.machine_pid_data.pmi;
+
 		fprintf(pich->pcmd->cFile
-				, "\n\tretVal = (*%s_sub_fsm_if.subFSM)((*pfsm->subMachines)[%s_e],%se);\n"
+				, "\n\tconst void * pinstance = "
+				);
+		if (generate_instance)
+		{
+			fprintf(pich->pcmd->cFile
+					, "(*%s_sub_fsm_if.instanceArray)[pfsm->instance];"
+					, fqMachineNamePmi(ipmi, &name)
+					);
+		}
+		else
+		{
+			fprintf(pich->pcmd->cFile
+					, "(*pfsm->subMachines)[%s_e];"
+					, fqMachineNamePmi(ipmi, &cp)
+					);
+		}
+		fprintf(pich->pcmd->cFile
+				, "\n\tretVal = (*%s_sub_fsm_if.subFSM)(pinstance,%se);\n"
 				, fqMachineNamePmi(ipmi, &name)
-				, generate_instance ? machineNamePmi(ipmi) : fqMachineNamePmi(ipmi, &cp)
 				, pich->ih.pmi->data ? "&pfsm->data," : ""
 				);
 		CHECK_AND_FREE(name);
