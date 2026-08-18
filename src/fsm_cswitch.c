@@ -1263,8 +1263,10 @@ static bool define_event_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 
 	if (pstate->type_data.state_data.state_flags & sfImplementedBySubMachine)
 	{
-		char *name = NULL, *cp = NULL;
+		char *name = NULL;
 		pMACHINE_INFO ipmi = pstate->type_data.state_data.implementingMachine->type_data.machine_pid_data.pmi;
+
+		fqMachineNamePmi(ipmi, &name);
 
 		fprintf(pich->pcmd->cFile
 				, "\n\tconst void * pinstance = "
@@ -1273,23 +1275,22 @@ static bool define_event_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 		{
 			fprintf(pich->pcmd->cFile
 					, "(*%s_sub_fsm_if.instanceArray)[pfsm->instance];"
-					, fqMachineNamePmi(ipmi, &name)
+					, name
 					);
 		}
 		else
 		{
 			fprintf(pich->pcmd->cFile
 					, "(*pfsm->subMachines)[%s_e];"
-					, fqMachineNamePmi(ipmi, &cp)
+					, name
 					);
 		}
 		fprintf(pich->pcmd->cFile
 				, "\n\tretVal = (*%s_sub_fsm_if.subFSM)(pinstance,%se);\n"
-				, fqMachineNamePmi(ipmi, &name)
+				, name
 				, pich->ih.pmi->data ? "&pfsm->data," : ""
 				);
 		CHECK_AND_FREE(name);
-		CHECK_AND_FREE(cp);
 
 		fprintf(pich->pcmd->cFile, "\n\tswitch(e)\n\t{\n");
 		pich->counter = 0;
