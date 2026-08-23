@@ -964,6 +964,24 @@ static bool count_implemented_by_machine_states(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
+static bool count_implemented_by_machine_translators(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO         pevent = (pID_INFO)   pelem->mbr;
+	unsigned        *count  = (unsigned *) data;
+
+    if (pevent->type_data.event_data.puser_event_data)
+    {
+        pID_INFO ptranslator = pevent->type_data.event_data.puser_event_data->translator;
+
+        if (ptranslator && ptranslator->type_data.translator_data.flags & tf_implemented_by_sub_machine)
+        {
+            (*count)++;
+        }
+    }
+
+	return false;
+}
+
 void count_states_with_no_way_out(pLIST plist, unsigned *data)
 {
 	iterate_list(plist, count_no_way_out_states, data);
@@ -972,6 +990,11 @@ void count_states_with_no_way_out(pLIST plist, unsigned *data)
 void count_states_implemented_by_machine(pLIST plist, unsigned *data)
 {
 	iterate_list(plist, count_implemented_by_machine_states, data);
+}
+
+void count_translators_implemented_by_machine(pLIST plist, unsigned *data)
+{
+	iterate_list(plist, count_implemented_by_machine_translators, data);
 }
 
 void count_external_declarations(pLIST plist, unsigned *counter)

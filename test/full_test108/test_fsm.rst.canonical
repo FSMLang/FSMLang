@@ -25,6 +25,8 @@ test_fsm
      - 2
    * - At least one event handled the same in all states?
      - no
+   * - Number of events with data translators:
+     - 0
    * - Number of states:
      - 3
    * - Number of states with entry functions:

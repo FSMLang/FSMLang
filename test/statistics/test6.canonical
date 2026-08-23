@@ -5,8 +5,8 @@ actions return: events
 number of events: 3
 number of events handled in zero states: 0
 number of events handled in one state: 2
-number of events having data: 0
-number of data translators implemented by machine: 0
+number of events having data: 1
+number of data translators implemented by machine: 1
 translators return: void
 machine has events with single pai: no
 number of states: 5
@@ -18,7 +18,8 @@ number of states with no way in: 1
 number of states with no way out: 2
 number of states implemented by machine: 1
 number of actions: 4
-number of sub-machines: 1
+machine has data
+number of sub-machines: 2
 depth of sub-machines: 1
 Action Array:
 Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
@@ -39,6 +40,36 @@ action a2 [e2, s2] transition s3;
 action a3 [e3, s3] transition tf1;
 
 machine name: testFSM::bar
+reentrance protection:  no
+machine transition: none
+actions return: events
+number of events: 1
+number of events handled in zero states: 0
+number of events handled in one state: 1
+number of events having data translators: 0
+number of data translators implemented by machine: 0
+translators return: void
+machine has events with single pai: yes
+number of states: 1
+number of states with entry fns: 0
+number of states with exit fns: 0
+number of states handling zero events: 0
+number of states handling one event: 1
+number of states with no way in: 0
+number of states with no way out: 1
+number of states implemented by machine: 0
+number of actions: 1
+number of sub-machines: 0
+Action Array:
+Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
+e1                  single         1           100        a1
+
+State Name           Events Handled Avg Use (%) Transitions (In/Out) Actions Triggered 
+s1                   1              100         0 / 0 none a1
+Action Matrices:
+action a1 [e1, s1];
+
+machine name: testFSM::baz
 reentrance protection:  no
 machine transition: none
 actions return: events

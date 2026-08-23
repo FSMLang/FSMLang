@@ -85,10 +85,10 @@ static bool print_event_macro(pLIST_ELEMENT, void *);
 static bool declare_shared_event_lists(pLIST_ELEMENT, void *);
 static bool declare_shared_event_data_blocks(pLIST_ELEMENT, void *);
 static void declare_parent_event_reference_data_structures(pCMachineData, pMACHINE_INFO);
-static void declare_state_implementing_machine_run_functions(pCMachineData);
-static bool declare_state_implementing_machine_run_function(pLIST_ELEMENT,void*);
-static bool define_state_implementing_machine_run_function(pLIST_ELEMENT,void*);
-static void print_state_implementing_machine_run_function_signature(pCMachineData,pMACHINE_INFO,FILE*,DECLARE_OR_DEFINE);
+static void declare_artifact_implementing_machine_run_functions(pCMachineData);
+static bool declare_artifact_implementing_machine_run_function(pLIST_ELEMENT,void*);
+static bool define_artifact_implementing_machine_run_function(pLIST_ELEMENT,void*);
+static void print_artifact_implementing_machine_run_function_signature(pCMachineData,pMACHINE_INFO,FILE*,DECLARE_OR_DEFINE);
 static void define_parent_event_reference_elements(pCMachineData, pMACHINE_INFO);
 static bool define_shared_event_lists(pLIST_ELEMENT, void *);
 static bool reference_shared_event_data_blocks(pLIST_ELEMENT, void *);
@@ -952,7 +952,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 			   );
 
 		printSubMachinesDeclarations(pcmd, pmi);
-		declare_state_implementing_machine_run_functions(pcmd);
+		declare_artifact_implementing_machine_run_functions(pcmd);
 	}
 
 	/* put the data structure definition into the header */
@@ -2452,7 +2452,9 @@ static bool define_shared_event_lists(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	if (ped->psharing_sub_machines
-		&& (ped->psharing_sub_machines->count != ped->state_implementing_sharer_count)
+		&& (ped->psharing_sub_machines->count != 
+			(ped->state_implementing_sharer_count + ped->translator_implementing_sharer_count)
+			)
 	   )
 	{
 		pich->ih.pid   = pevent;
@@ -2862,6 +2864,30 @@ bool define_state_entry_and_exit_functions(pLIST_ELEMENT pelem, void *data)
 static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, pID_INFO pevent, DECLARE_OR_DEFINE dod)
 {
 	char *event_name_cp            = hungarianToUnderbarCaps(pevent->name);
+	pID_INFO ptranslator = pevent->type_data.event_data.puser_event_data
+							? pevent->type_data.event_data.puser_event_data->translator
+							: NULL
+							;
+
+	/* Set up the parameter strings. */
+	char *param_type, *param_name, *doxygen_block, *event_param, *event_name;
+	if ((pcmd->pmi->translators_implemented_by_machine != 0)
+		&& (ptranslator && (ptranslator->type_data.translator_data.flags & tf_implemented_by_sub_machine))
+		)
+	{
+		param_type = fsmType(pcmd);
+		param_name = ((dod == dod_define) || add_doxygen_blocks) ? " pfsm" : empty_str;
+		doxygen_block = add_doxygen_blocks ? " /**< Pointer to the FSM */" : empty_str;
+		event_param = eventType(pcmd);
+		event_name = " event";
+	}
+	else
+	{
+		param_type = fsmDataType(pcmd);
+		param_name = " pfsm_data";
+		doxygen_block = add_doxygen_blocks ? " /**< Pointer to the FSM's data */" : empty_str;
+		event_param = event_name = empty_str;
+	}
 
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -2889,14 +2915,17 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 				   );
 		}
 		fprintf(fout
-				, "(p%s%s%s,p%s_%s_DATA%s%s)%s\n"
-				, fsmDataType(pcmd)
-				, ((dod == dod_define) || add_doxygen_blocks) ? " pfsm_data" : ""
-				, add_doxygen_blocks ? " /**< Pointer to the FSM's data*/" : ""
+				, "(p%s%s%s, p%s_%s_DATA%s%s%s%s%s)%s\n"
+				, param_type
+				, param_name
+				, doxygen_block
 				, fsmType(pcmd)
 				, event_name_cp
 				, ((dod == dod_define) || add_doxygen_blocks) ? " pdata" : ""
 				, add_doxygen_blocks ? " /**< Pointer to the event's data*/" : ""
+				, event_param == empty_str ? empty_str : ", "
+				, event_param
+				, ((dod == dod_define) || add_doxygen_blocks) ? event_name : empty_str
 				, dod == dod_define ? "\n{" : ";"
 			   );
 	}
@@ -3680,7 +3709,8 @@ bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
 
 		/* and, that event will have a list of sharing machines */
 		if (ped->psharing_sub_machines
-			&& (ped->psharing_sub_machines->count != ped->state_implementing_sharer_count)
+			&& (ped->psharing_sub_machines->count 
+				!= (ped->state_implementing_sharer_count + ped->translator_implementing_sharer_count))
 		   )
 		{
 			fprintf(pich->ih.fout
@@ -3736,7 +3766,8 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 
 		/* and, that event will have a list of sharing machines */
 		if (ped->psharing_sub_machines
-			&& (ped->psharing_sub_machines->count != ped->state_implementing_sharer_count)
+			&& (ped->psharing_sub_machines->count
+				!= (ped->state_implementing_sharer_count + ped->translator_implementing_sharer_count))
 		   )
 		{
 			fprintf(pich->pcmd->cFile
@@ -4008,7 +4039,8 @@ static bool declare_shared_event_lists(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	if (ped->psharing_sub_machines
-		&& (ped->psharing_sub_machines->count != ped->state_implementing_sharer_count)
+		&& (ped->psharing_sub_machines->count
+			!= (ped->state_implementing_sharer_count + ped->translator_implementing_sharer_count))
 	   )
 	{
 
@@ -4107,17 +4139,30 @@ void declareEventDataManager(pCMachineData pcmd)
 
 static void print_event_data_manager_signature(pCMachineData pcmd, DECLARE_OR_DEFINE dod)
 {
+	/* Set up the parameter strings. */
+	char *param_type, *param_name;
+	if (pcmd->pmi->translators_implemented_by_machine != 0)
+	{
+		param_type = fsmType(pcmd);
+		param_name = (dod == dod_define) ? " pfsm" : empty_str;
+	}
+	else
+	{
+		param_type = fsmDataType(pcmd);
+		param_name = (dod == dod_define) ? " pfsm_data" : empty_str;
+	}
+
 	fprintf(pcmd->cFile
 			, "%sstatic %s translateEventData(p%s%s,%s%s)%s"
 			, dod == dod_define ? "\n" : ""
 			, translatorReturnType(pcmd)
-			, fsmDataType(pcmd)
-			, dod == dod_declare ? "" : " pfsm_data"
+			, param_type
+			, param_name
 			, fsmFnEventType(pcmd)
-			, dod == dod_declare ? "" : " pevent"
-			, dod == dod_declare
-			? ";\n\n"
-			: "\n{\n"
+			, dod == dod_define ? " pevent" : empty_str
+			, dod == dod_define
+			  ? "\n{\n"
+			  : ";\n\n"
 		   );
 }
 
@@ -4163,6 +4208,7 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 {
 	pID_INFO pevent                = (pID_INFO)pelem->mbr;
 	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER)data;
+	pEVENT_DATA ped                = &pevent->type_data.event_data;
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -4175,17 +4221,41 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 				, pevent->name
 			   );
 
+		char *param_name, *event_param;
+		if (pich->ih.pmi->translators_implemented_by_machine)
+		{
+			if (ped->puser_event_data->translator
+						  && (ped->puser_event_data->translator->type_data.translator_data.flags & tf_implemented_by_sub_machine)
+						  )
+			{
+				 param_name = "pfsm";
+				 event_param = ", pevent->event";
+			}
+			else
+			{
+				param_name = "&pfsm->data";
+				event_param = empty_str;
+			}
+		}
+		else
+		{
+			param_name = "pfsm_data";
+			event_param = empty_str;
+		}
+
 		fprintf(pich->pcmd->cFile
-				, pevent->type_data.event_data.puser_event_data->translator
-				? "\t\t%sUFMN(%s)(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
-				: "\t\t%sUFMN(translate_%s_data)(pfsm_data, &pevent->event_data.%s_data);\n\t\tbreak;\n"
+				, ped->puser_event_data->translator
+				? "\t\t%sUFMN(%s)(%s, &pevent->event_data.%s_data%s);\n\t\tbreak;\n"
+				: "\t\t%sUFMN(translate_%s_data)(%s, &pevent->event_data.%s_data%s);\n\t\tbreak;\n"
 				, pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
 				? "retVal = "
 				: ""
-				, pevent->type_data.event_data.puser_event_data->translator
-				? pevent->type_data.event_data.puser_event_data->translator->name
+				, ped->puser_event_data->translator
+				? ped->puser_event_data->translator->name
 				: pevent->name
+				, param_name
 				, pevent->name
+				, event_param
 			   );
 
 	}
@@ -4647,7 +4717,7 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 			, ucMachineName(pcmd)
 		   );
 
-	if (pmi->modFlags & mfStateImplementing)
+	if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
 	{
 		fprintf(pcmd->cFile
 				, "extern char * %s_EVENT_NAMES[];\n"
@@ -5006,11 +5076,12 @@ static bool print_doxygen_return_statement(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
-static void print_state_implementing_machine_run_function_signature(pCMachineData pcmd_parent, pMACHINE_INFO pmi_this, FILE *fout, DECLARE_OR_DEFINE dod)
+static void print_artifact_implementing_machine_run_function_signature(pCMachineData pcmd_parent, pMACHINE_INFO pmi_this, FILE *fout, DECLARE_OR_DEFINE dod)
 {
 	char *cp = NULL;
 	fprintf(fout
-			, "void run_%s(p%s%s,%s%s)%s"
+			, "%s run_%s(p%s%s,%s%s)%s"
+			, subFsmFnReturnType(pcmd_parent)
 			, fqMachineNamePmi(pmi_this,&cp)
 			, fsmType(pcmd_parent)
 			, dod == dod_define ? " pfsm" : ""
@@ -5021,27 +5092,27 @@ static void print_state_implementing_machine_run_function_signature(pCMachineDat
 	CHECK_AND_FREE(cp);
 }
 
-static bool declare_state_implementing_machine_run_function(pLIST_ELEMENT pelem, void *data)
+static bool declare_artifact_implementing_machine_run_function(pLIST_ELEMENT pelem, void *data)
 {
 	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 	pMACHINE_INFO             pmi  = (pMACHINE_INFO) pelem->mbr;
 
-	if (pmi->modFlags & mfStateImplementing)
+	if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
 	{
-		print_state_implementing_machine_run_function_signature(pich->pcmd, pmi, pich->ih.fout, dod_declare);
+		print_artifact_implementing_machine_run_function_signature(pich->pcmd, pmi, pich->ih.fout, dod_declare);
 	}
 
 	return false;
 }
 
-static bool define_state_implementing_machine_run_function(pLIST_ELEMENT pelem, void *data)
+static bool define_artifact_implementing_machine_run_function(pLIST_ELEMENT pelem, void *data)
 {
 	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
 	pMACHINE_INFO             pmi  = (pMACHINE_INFO) pelem->mbr;
 
-	if (pmi->modFlags & mfStateImplementing)
+	if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
 	{
-		print_state_implementing_machine_run_function_signature(pich->pcmd, pmi, pich->ih.fout, dod_define);
+		print_artifact_implementing_machine_run_function_signature(pich->pcmd, pmi, pich->ih.fout, dod_define);
 
 		char *name = NULL;
 
@@ -5065,7 +5136,8 @@ static bool define_state_implementing_machine_run_function(pLIST_ELEMENT pelem, 
 					);
 		}
 		fprintf(pich->pcmd->cFile
-				, "\n\t(*%s_sub_fsm_if.subFSM)(pinstance,%sevent);\n"
+				, "\n\t%s(*%s_sub_fsm_if.subFSM)(pinstance,%sevent);\n"
+				, pich->ih.pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
 				, name
 				, pich->ih.pmi->data ? "&pfsm->data," : ""
 				);
@@ -5079,7 +5151,7 @@ static bool define_state_implementing_machine_run_function(pLIST_ELEMENT pelem, 
 	return false;
 }
 
-static void declare_state_implementing_machine_run_functions(pCMachineData pcmd)
+static void declare_artifact_implementing_machine_run_functions(pCMachineData pcmd)
 {
 	ITERATOR_CALLBACK_HELPER ich = {0};
 	ich.ih.fout = generate_instance ? pcmd->subMachineHFile : pcmd->pubHFile;
@@ -5088,13 +5160,13 @@ static void declare_state_implementing_machine_run_functions(pCMachineData pcmd)
 	FSMLANG_DEVELOP_PRINTF(ich.ih.fout, "/* FSMLANG DEVELOP: %s */\n", __func__);
 
 	iterate_list(pcmd->pmi->machine_list
-				 , declare_state_implementing_machine_run_function
+				 , declare_artifact_implementing_machine_run_function
 				 , &ich
 				 );
 
 }
 
-void define_state_implementing_machine_run_functions(pCMachineData pcmd)
+void define_artifact_implementing_machine_run_functions(pCMachineData pcmd)
 {
 	ITERATOR_CALLBACK_HELPER ich = {0};
 	ich.ih.fout = pcmd->cFile;
@@ -5104,7 +5176,7 @@ void define_state_implementing_machine_run_functions(pCMachineData pcmd)
 	FSMLANG_DEVELOP_PRINTF(ich.ih.fout, "/* FSMLANG DEVELOP: %s */\n", __func__);
 
 	iterate_list(pcmd->pmi->machine_list
-				 , define_state_implementing_machine_run_function
+				 , define_artifact_implementing_machine_run_function
 				 , &ich
 				 );
 

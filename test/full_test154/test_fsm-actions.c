@@ -1,10 +1,11 @@
 #include "test_fsm_priv.h"
 
-TRANSLATOR_RETURN_TYPE UFMN(grab_command)(pCOMMUNICATOR_DATA pfsm_data, pCOMMUNICATOR_COMMAND_DATA pcommand_data)
+TRANSLATOR_RETURN_TYPE UFMN(grab_command)(pCOMMUNICATOR pfsm, pCOMMUNICATOR_COMMAND_DATA pcommand_data, COMMUNICATOR_EVENT_ENUM event)
 {
 	DBG_PRINTF("%s", __func__);
 	
-	pfsm_data->pcurr_command = &pcommand_data->command;
+	pfsm->data.pcurr_command = &pcommand_data->command;
+	return run_communicator_commands(pfsm, event);
 }
 
 TRANSLATOR_RETURN_TYPE UFMN(grab_ble_comm)(pCOMMUNICATOR_DATA pfsm_data, pCOMMUNICATOR_BLE_COMM_DATA pble_comm_data)
@@ -12,6 +13,8 @@ TRANSLATOR_RETURN_TYPE UFMN(grab_ble_comm)(pCOMMUNICATOR_DATA pfsm_data, pCOMMUN
 	DBG_PRINTF("%s", __func__);
 	
 	pfsm_data->pcurr_ble_event = &pble_comm_data->ble_e;
+
+	return THIS(ble_comm);
 }
 
 ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)

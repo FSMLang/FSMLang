@@ -124,6 +124,8 @@ static char *fsm_strndup(const char *s, size_t n)
 %token <pid_info> MACHINE
 %token <pid_info> UNDEFINED_SI_MACHINE
 %token <pid_info> SI_MACHINE
+%token <pid_info> UNDEFINED_TI_MACHINE
+%token <pid_info> TI_MACHINE
 %token <pid_info> STATE
 %token <pid_info> EVENT
 %token <pid_info> ACTION
@@ -238,6 +240,10 @@ machine_prefix: native machine_modifier MACHINE_KEY ID
 	 {
 		 $$ = machine_declared_by_machine_pid($1, $2, $4);
 	 }
+	 | native machine_modifier MACHINE_KEY UNDEFINED_TI_MACHINE
+	 {
+		 $$ = machine_declared_by_machine_pid($1, $2, $4);
+	 }
  	;
 
 machine:	machine_prefix machine_qualifier 
@@ -333,6 +339,10 @@ machine:	machine_prefix machine_qualifier
 
 					 count_states_implemented_by_machine($$->state_list
 																			 , &($$->states_implemented_by_machine)
+																			 );
+
+					 count_translators_implemented_by_machine($$->event_list
+																			 , &($$->translators_implemented_by_machine)
 																			 );
 
 						if (populate_action_array($$, yyout))
@@ -1886,43 +1896,16 @@ parent_namespace: PARENT NAMESPACE
 
 data_translator_fn: DATA_KEY TRANSLATOR_KEY ID
     {
-		  if (pmachineInfo->parent)
-		  {
-			  if (!pmachineInfo->parent->data) 
-			  {
-				  yyerror("data translator declared for sub-machine having parent with no data");
-			  }
-
-			  pmachineInfo->parent->submachines_wanting_parent_data_count++;
-		  }
-
-      $$ = $3;
-		  set_id_type($3, TRANSLATOR_FN);
-      
-      #ifdef PARSER_DEBUG
-      fprintf(yyout,"found a data translator: %s\n", $3->name);
-      #endif
+			$$ = data_translator($3);
     }
 	| CONSUMING DATA_KEY TRANSLATOR_KEY ID
 	  {
-		  if (pmachineInfo->parent)
-		  {
-			  if (!pmachineInfo->parent->data) 
-			  {
-				  yyerror("data translator declared for sub-machine having parent with no data");
-			  }
-
-			  pmachineInfo->parent->submachines_wanting_parent_data_count++;
-		  }
-
-      $$ = $4;
-		  set_id_type($4, TRANSLATOR_FN);
-			$4->type_data.translator_data.consuming = true;
-      
-      #ifdef PARSER_DEBUG
-      fprintf(yyout,"found a data translator: %s\n", $4->name);
-      #endif
+			$$ = consuming_data_translator($4);
 	  }
+	| data_translator_fn IMPLEMENTED BY MACHINE_KEY ID
+	{
+		$$ = translator_implemented_by($1, $5);
+	}
 	;
 
 user_event_data: { $$ = NULL; }
@@ -1977,7 +1960,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					 if ($4 && $4->translator)
 					 {
 						 $2->type_data.event_data.consumed_by_translator
-							 = $4->translator->type_data.translator_data.consuming;
+							 = ($4->translator->type_data.translator_data.flags & tf_consuming);
 					 }
 
  					if (NULL == ($2->type_data.event_data.phandling_states = init_list()))
@@ -2014,7 +1997,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
  					if ($5 && $5->translator)
 					 {
 						 pid->type_data.event_data.consumed_by_translator
-							 = $5->translator->type_data.translator_data.consuming;
+							 = ($5->translator->type_data.translator_data.flags & tf_consuming);
 					 }
 
  					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
@@ -2041,6 +2024,11 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 							$3->type_data.event_data.state_implementing_sharer_count++;
 						}
 
+						if (pmachineInfo->modFlags & mfTranslatorImplementing)
+						{
+							$3->type_data.event_data.translator_implementing_sharer_count++;
+						}
+
 					}
 	| event_decl_list ',' ID external_designation user_event_data
 					{
@@ -2058,7 +2046,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					 if ($5 && $5->translator)
 					 {
 						 $3->type_data.event_data.consumed_by_translator
-							 = $5->translator->type_data.translator_data.consuming;
+							 = ($5->translator->type_data.translator_data.flags & tf_consuming);
 					 }
 
  					if (NULL == ($3->type_data.event_data.phandling_states = init_list()))
@@ -2094,7 +2082,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
  					if ($6 && $6->translator)
 					 {
 						 pid->type_data.event_data.consumed_by_translator
-							 = $6->translator->type_data.translator_data.consuming;
+							 = ($6->translator->type_data.translator_data.flags & tf_consuming);
 					 }
 
  					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))

@@ -68,6 +68,7 @@ typedef enum {
    , mfTranslatorsReturnEvents   = 16
    , mfTranslatorsReturnDeclared = 32
    , mfStateImplementing         = 64
+   , mfTranslatorImplementing    = 128
 } MOD_FLAGS;
 
 typedef enum {
@@ -77,6 +78,18 @@ typedef enum {
    , sfHasExitFn                   = 4
    , sfImplementedBySubMachine     = 8
 } STATE_FLAGS;
+
+typedef enum {
+    mpidf_none
+    , mpidf_implements_state       = 1
+    , mpidf_implements_translator  = 2
+} MACHINE_PID_FLAGS;
+
+typedef enum {
+    tf_none
+    , tf_consuming                  = 1
+    , tf_implemented_by_sub_machine = 2
+} TRANSLATOR_FLAGS;
 
 typedef enum HORIZONTAL_PLACEMENT {
    hp_none_given
@@ -112,6 +125,7 @@ typedef enum ANCESTRY_INCLUSION
 } ANCESTRY_INCLUSION;
 
 #define ACTIONS_RETURN_FLAGS (mfActionsReturnStates | mfActionsReturnVoid)
+#define ARTIFACTS_IMPLEMENTING_FLAGS (mfStateImplementing | mfTranslatorImplementing)
 
 typedef struct _id_info_				 ID_INFO,                 *pID_INFO;
 typedef struct _action_se_info_	         ACTION_SE_INFO,          *pACTION_SE_INFO;
@@ -184,6 +198,7 @@ struct _event_data_
    pLIST            psharing_sub_machines;
    bool             shared_with_parent;
    unsigned         state_implementing_sharer_count;
+   unsigned         translator_implementing_sharer_count;
    unsigned         single_pai_state_count;
    pACTION_INFO     psingle_pai;
    bool             single_pai_for_all_states;
@@ -202,14 +217,17 @@ struct _action_data_
 
 struct _translator_data_
 {
-	pLIST  translator_returns_decl;
-   bool   consuming;
+   TRANSLATOR_FLAGS flags;
+	pLIST            translator_returns_decl;
+   bool             consuming;
+   pID_INFO         implementingMachine;
 };
 
 struct _machine_pid_data_
 {
-    pID_INFO      implementedState;
-    pMACHINE_INFO pmi;
+    MACHINE_PID_FLAGS mpid_flags;
+    pID_INFO          implementedArtifact;
+    pMACHINE_INFO     pmi;
 };
 
 /**
@@ -369,6 +387,7 @@ struct _machine_info_ {
   unsigned      external_state_designation_count;
   unsigned      parent_event_reference_count;
   unsigned      data_translator_count;
+  unsigned      translators_implemented_by_machine;
   unsigned      data_block_count;
   unsigned      submachine_inhibitor_count;
   unsigned      submachines_wanting_parent_data_count;
@@ -443,6 +462,7 @@ void count_states_with_one_event(pLIST,unsigned*);
 void count_states_with_no_way_in(pLIST,unsigned*);
 void count_states_with_no_way_out(pLIST,unsigned*);
 void count_states_implemented_by_machine(pLIST,unsigned*);
+void count_translators_implemented_by_machine(pLIST,unsigned*);
 void count_events_with_zero_handlers(pLIST,unsigned*);
 void count_events_with_one_handler(pLIST,unsigned*);
 void compute_event_and_state_density_pct(pMACHINE_INFO);

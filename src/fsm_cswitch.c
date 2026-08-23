@@ -612,7 +612,7 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
       defineEventPassingActions(pcmd, pmi);
    }
 
-   define_state_implementing_machine_run_functions(pcmd);
+   define_artifact_implementing_machine_run_functions(pcmd);
 
    writeDebugInfo(pcmd, pmi);
 
@@ -1526,7 +1526,7 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 					, pevent->name
 					);
 
-			if ((pich->ih.pmi->modFlags & mfStateImplementing)
+			if ((pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
 				&& pevent->type_data.event_data.shared_with_parent
 				)
 			{
@@ -1669,7 +1669,7 @@ static bool print_transitions_only_case(pLIST_ELEMENT pelem, void *data)
 					, pevent->name
 					);
 
-			if ((pich->ih.pmi->modFlags & mfStateImplementing)
+			if ((pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
 				&& pevent->type_data.event_data.shared_with_parent
 				)
 			{
@@ -2043,7 +2043,7 @@ static void writeSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tab
 		   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
            );
 
-   if (pmi->modFlags & mfStateImplementing)
+   if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
    {
 	   fprintf(pcmd->cFile
 			   , "\t\t   || ((%s >= PARENT(firstEvent)) && (%s < PARENT(noEvent)))\n"
@@ -2807,12 +2807,15 @@ static void set_local_fsm_fn_event_var(pCMachineData pcmd)
 
 	if (pmi->data_block_count)
 	{
+		char *fmt_str = pmi->modFlags & mfTranslatorsReturnEvents
+						? "\t%s e = translateEventData(%s, event);\n\n"
+						: "\t%s e = event->event;\n\n\ttranslateEventData(%s, event);\n"
+						;
+
 		fprintf(pcmd->cFile
-				, "\t%s e = %s"
+				, fmt_str
 				, eventType(pcmd)
-				, pmi->modFlags & mfTranslatorsReturnEvents
-				  ? "translateEventData(&pfsm->data, event);\n\n"
-				  : "event->event;\n\n\ttranslateEventData(&pfsm->data, event);\n"
+				, pmi->translators_implemented_by_machine ? "pfsm" : "&pfsm->data"
 			   );
 	}
 	else

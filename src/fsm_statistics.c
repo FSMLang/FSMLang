@@ -227,6 +227,10 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 		    : pmi->data_block_count
 		  );
 
+   printf("number of data translators implemented by machine: %u\n"
+		  , pmi->translators_implemented_by_machine
+		  );
+
    printf("translators return: ");
    if (pmi->modFlags & mfTranslatorsReturnEvents)
    {

@@ -1,0 +1,256 @@
+found simple data type id
+found data field: TYPE: simple; NAME: i
+Starting data_fields list
+Data block done
+found a data translator: foo
+translator foo implemented by submachine baz
+found simple data type name
+found data field: TYPE: simple; NAME: i
+Starting data_fields list
+Data block done
+found data fields
+int i;
+
+added another id to the event declaration list
+The 2 events in this list:
+	0:	e1
+
+	1:	e2
+
+state s1 implemented by submachine bar
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states in this list :
+	0:	s1; This state is implemented by machine bar.
+
+	1:	s2
+
+Found a namespace event reference
+added another id to the event declaration list
+The 2 events in this list:
+	0:	e1
+
+	1:	e2
+
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states in this list :
+	0:	s1
+
+	1:	s2
+
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a1
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	a2
+found a scalar event : e2
+found the beginning of a state comma list
+found a state vector
+	s1
+	s2
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a3
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+process_action_info: a2
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s2
+process_action_info: a3
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+populate_action_array returning false
+found a machine named bar
+	with 2 events and 2 states
+Actions return events
+Translators return void
+The states :
+	0:	s1
+
+	1:	s2
+
+The events :
+	0:	e1
+
+	1:	e2
+
+The actions :
+	a1
+		which occurs for these events
+				e1
+		in these states
+				s1
+		and transitions to state s2
+	a2
+		which occurs for these events
+				e1
+		in these states
+				s2
+	a3
+		which occurs for these events
+				e2
+		in these states
+				s1
+				s2
+		and transitions to state s1
+
+The 2 transitions :
+	s2
+	s1
+
+Found a namespace event reference
+added another id to the event declaration list
+The 2 events in this list:
+	0:	e1
+
+	1:	e2
+
+found the start of a state declaration list
+added another id to the state declaration list
+The 2 states in this list :
+	0:	s1
+
+	1:	s2
+
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a1
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	a2
+found a scalar event : e2
+found the beginning of a state comma list
+found a state vector
+	s1
+	s2
+found a matrix
+found an action matrix
+found a transition to known state
+found an action with transition
+started an action declaration
+The actions in this list:
+	a3
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+process_action_info: a2
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s2
+process_action_info: a3
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s1
+		add_to_action_array: state: s2
+populate_action_array returning false
+found a machine named baz
+	with 2 events and 2 states
+Actions return events
+Translators return void
+The states :
+	0:	s1
+
+	1:	s2
+
+The events :
+	0:	e1
+
+	1:	e2
+
+The actions :
+	a1
+		which occurs for these events
+				e1
+		in these states
+				s1
+		and transitions to state s2
+	a2
+		which occurs for these events
+				e1
+		in these states
+				s2
+	a3
+		which occurs for these events
+				e2
+		in these states
+				s1
+				s2
+		and transitions to state s1
+
+The 2 transitions :
+	s2
+	s1
+
+found a scalar event : e2
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	a1
+process_action_info: a1
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s2
+populate_action_array returning false
+found a machine named foo
+	with 2 events and 2 states
+Actions return events
+Translators return void
+The states :
+	0:	s1; This state is implemented by machine bar.
+
+	1:	s2
+
+The events :
+	0:	e1; This event is shared by 2 sub-machines:
+			bar
+			baz
+
+
+	1:	e2
+
+1 events reference the parent machine.
+The actions :
+	a1
+		which occurs for these events
+				e2
+		in these states
+				s2
+
+The 0 transitions :
+this machine has data
+int i;
+
+this machine has 2 sub-machines
+the sub-machine depth is 1
+
+found a single machine

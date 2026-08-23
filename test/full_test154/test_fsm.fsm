@@ -13,6 +13,7 @@ native
 
 }
 machine communicator
+	data translators return events;
 
 native impl
 {
@@ -37,7 +38,7 @@ data
 
 	event activate;
 
-	event command data translator grab_command {command_str command;};
+	event command data translator grab_command implemented by machine commands {command_str command;};
 	event configuration_complete;
 
 	event ble_comm data translator grab_ble_comm {ble_event_str ble_e;};
@@ -65,7 +66,7 @@ data
 	include first_connection.fsms
 
 	action activate_all     [activate, (all)]                 transition waiting;
-	action forward_command  [command, waiting];
+	//action forward_command  [command, waiting];
 	action start_looking    [configuration_complete, waiting] transition first_time_connect;
 
 	/*
