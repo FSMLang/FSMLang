@@ -2452,9 +2452,7 @@ static bool define_shared_event_lists(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	if (ped->psharing_sub_machines
-		&& (ped->psharing_sub_machines->count != 
-			(ped->state_implementing_sharer_count + ped->translator_implementing_sharer_count)
-			)
+		&& (ped->psharing_sub_machines->count != ped->state_implementing_sharer_count)
 	   )
 	{
 		pich->ih.pid   = pevent;
@@ -3766,8 +3764,7 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 
 		/* and, that event will have a list of sharing machines */
 		if (ped->psharing_sub_machines
-			&& (ped->psharing_sub_machines->count
-				!= (ped->state_implementing_sharer_count + ped->translator_implementing_sharer_count))
+			&& (ped->psharing_sub_machines->count != ped->state_implementing_sharer_count)
 		   )
 		{
 			fprintf(pich->pcmd->cFile
@@ -4016,16 +4013,19 @@ static bool declare_shared_event_data_blocks(pLIST_ELEMENT pelem, void *data)
 	pMACHINE_INFO pmi    = (pMACHINE_INFO)pelem->mbr;
 	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER)data;
 
-	fprintf(pich->ih.fout, "extern ");
+	if (!(pmi->modFlags & mfStateImplementing))
+	{
+		fprintf(pich->ih.fout, "extern ");
 
-	print_shared_event_data_block_signature(pich->ih.fout
-											, pich->pcmd
-											, pmi
-											, pich->ih.pid->name
-											, true /* include type information */
-										   );
+		print_shared_event_data_block_signature(pich->ih.fout
+												, pich->pcmd
+												, pmi
+												, pich->ih.pid->name
+												, true /* include type information */
+											   );
 
-	fprintf(pich->ih.fout, ";\n");
+		fprintf(pich->ih.fout, ";\n");
+	}
 
 	return false;
 }
@@ -4040,7 +4040,7 @@ static bool declare_shared_event_lists(pLIST_ELEMENT pelem, void *data)
 
 	if (ped->psharing_sub_machines
 		&& (ped->psharing_sub_machines->count
-			!= (ped->state_implementing_sharer_count + ped->translator_implementing_sharer_count))
+			!= ped->state_implementing_sharer_count)
 	   )
 	{
 
@@ -4277,6 +4277,14 @@ static bool write_sub_machine_event_data_manager_switch_case(pLIST_ELEMENT pelem
 				, "\tcase THIS(%s):\n"
 				, pevent->name
 			   );
+		
+		if (pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
+		{
+			fprintf(pich->pcmd->cFile
+					, "\tcase PARENT(%s):\n"
+					, pevent->name
+				   );
+		}
 
 		fprintf(pich->pcmd->cFile
 				, pevent->type_data.event_data.puser_event_data->translator

@@ -8,11 +8,11 @@ TRANSLATOR_RETURN_TYPE UFMN(grab_command)(pCOMMUNICATOR pfsm, pCOMMUNICATOR_COMM
 	return run_communicator_commands(pfsm, event);
 }
 
-TRANSLATOR_RETURN_TYPE UFMN(grab_ble_comm)(pCOMMUNICATOR_DATA pfsm_data, pCOMMUNICATOR_BLE_COMM_DATA pble_comm_data, COMMUNICATOR_EVENT_ENUM event)
+TRANSLATOR_RETURN_TYPE UFMN(grab_ble_comm)(pCOMMUNICATOR pfsm, pCOMMUNICATOR_BLE_COMM_DATA pble_comm_data, COMMUNICATOR_EVENT_ENUM event)
 {
 	DBG_PRINTF("%s", __func__);
 	
-	pfsm_data->pcurr_ble_event = &pble_comm_data->ble_e;
+	pfsm->data.pcurr_ble_event = &pble_comm_data->ble_e;
 
 	return run_communicator_ble(pfsm, event);
 }
