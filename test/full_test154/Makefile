@@ -18,13 +18,13 @@ override CFLAGS += -I../                  \
 override DIFF_FLAGS= -I \"warning: (test_fsm_sub_subSub): all events are handled identically in all states.\"  \
             -I \"warning: (test_fsm_sub2_subSub): all events are handled identically in all states.\"  
 
-FSM_FLAGS+=--add-profiling-macros=true --profile-sub-fsms=true
-
 VARIANTS=s
 #TARGET=pass
 
 #include ../weak_variants.mk
 include ../variants.mk
+
+FSM_FLAGS+=--add-profiling-macros=true --profile-sub-fsms=true
 
 FSM_FLAGS += -i3
 

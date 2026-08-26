@@ -104,7 +104,7 @@ void test_fsm_exit_s1(pTEST_FSM_DATA pdata /**< Pointer to the FSM's data */);
 	Grab e1 data.
 
 */
-void test_fsm_grab_e1_data(pTEST_FSM_DATA pfsm_data /**< Pointer to the FSM's data*/,pTEST_FSM_E1_DATA pdata /**< Pointer to the event's data*/);
+void test_fsm_grab_e1_data(pTEST_FSM_DATA pfsm_data /**< Pointer to the FSM's data */, pTEST_FSM_E1_DATA pdata /**< Pointer to the event's data*/);
 
 
 

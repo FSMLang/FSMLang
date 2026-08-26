@@ -418,7 +418,7 @@ void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator pfsmcog)
 	pCMachineData pcmd = pfsmcog->pcmd;
 	pMACHINE_INFO pmi  = pcmd->pmi;
 
-	if (pmi->modFlags & mfStateImplementing)
+	if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
 	{
 		fprintf(pcmd->cFile
 			   , "\tdo\n\t{\n\n"
@@ -468,7 +468,7 @@ void writeOriginalSwitchSubFSMLoopAre(pFSMCOutputGenerator pfsmcog)
                );
    }
 
-   if (pmi->modFlags & mfStateImplementing)
+   if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
    {
 	   fprintf(pcmd->cFile
 			  , "\n\t} while (((e != THIS(noEvent)) && (e >= THIS(firstEvent)))"

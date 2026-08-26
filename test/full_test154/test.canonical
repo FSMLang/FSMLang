@@ -13,9 +13,7 @@ end state: communicator_ble_waiting
 communicator_set_defaults
 end state: communicator_waiting
 communicator_grab_command
-event: communicator_command; state: communicator_waiting
-communicator_forward_command
-event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+event: communicator_command; state: communicator_commands_waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -28,9 +26,7 @@ communicator_commands_check_pairing_info
 end state: communicator_commands_waiting_pairing_info
 end state: communicator_waiting
 communicator_grab_command
-event: communicator_command; state: communicator_waiting
-communicator_forward_command
-event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+event: communicator_command; state: communicator_commands_waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: [012345678901]
@@ -53,8 +49,6 @@ communicator_first_connection_noAction
 end state: communicator_first_connection_waiting
 end state: communicator_first_time_connect
 communicator_grab_ble_comm
-event: communicator_ble_comm; state: communicator_first_time_connect
-communicator_forward_ble_comm
 communicator_ble_translate_ble_comm
 event: communicator_ble_adv_packet; state: communicator_ble_scanning
 communicator_ble_parse_adv_packet
@@ -98,9 +92,7 @@ end state: communicator_ble_waiting
 communicator_set_defaults
 end state: communicator_waiting
 communicator_grab_command
-event: communicator_command; state: communicator_waiting
-communicator_forward_command
-event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+event: communicator_command; state: communicator_commands_waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -113,9 +105,7 @@ communicator_commands_check_pairing_info
 end state: communicator_commands_waiting_pairing_info
 end state: communicator_waiting
 communicator_grab_command
-event: communicator_command; state: communicator_waiting
-communicator_forward_command
-event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+event: communicator_command; state: communicator_commands_waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -128,9 +118,7 @@ communicator_commands_check_pairing_info
 end state: communicator_commands_waiting_pairing_info
 end state: communicator_waiting
 communicator_grab_command
-event: communicator_command; state: communicator_waiting
-communicator_forward_command
-event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+event: communicator_command; state: communicator_commands_waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -143,9 +131,7 @@ communicator_commands_check_pairing_info
 end state: communicator_commands_waiting_pairing_info
 end state: communicator_waiting
 communicator_grab_command
-event: communicator_command; state: communicator_waiting
-communicator_forward_command
-event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+event: communicator_command; state: communicator_commands_waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -158,9 +144,7 @@ communicator_commands_check_pairing_info
 end state: communicator_commands_waiting_pairing_info
 end state: communicator_waiting
 communicator_grab_command
-event: communicator_command; state: communicator_waiting
-communicator_forward_command
-event: communicator_commands_command; state: communicator_commands_waiting_pairing_info
+event: communicator_command; state: communicator_commands_waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []

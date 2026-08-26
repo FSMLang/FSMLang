@@ -765,7 +765,7 @@ static bool print_event_table_event_row(pLIST_ELEMENT pelem, void *data)
 				fprintf(pih->fout, "</ul>\n");
 			}
 
-			if (translator->type_data.translator_data.consuming)
+			if (translator->type_data.translator_data.flags & tf_consuming)
 			{
 				fprintf(pih->fout
 						, "<p>The translator completely consumes the "

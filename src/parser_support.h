@@ -39,6 +39,9 @@
 #include "fsm_priv.h"
 
 pID_INFO state_implemented_by(pID_INFO,pID_INFO);
+pID_INFO data_translator(pID_INFO);
+pID_INFO consuming_data_translator(pID_INFO);
+pID_INFO translator_implemented_by(pID_INFO,pID_INFO);
 pMACHINE_PREFIX machine_declared_by_id(pNATIVE_INFO,MOD_FLAGS,pID_INFO);
 pMACHINE_PREFIX machine_declared_by_machine_pid(pNATIVE_INFO,MOD_FLAGS,pID_INFO);
 

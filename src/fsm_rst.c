@@ -1087,6 +1087,23 @@ static void print_machine_statistics(pFSMRSTOutputGenerator pfsmrstog)
 			);
 
 	fprintf(FOUT(pfsmrstog)
+			, "%s* - Number of events with data translators:\n%s  - %u\n"
+			, indent
+			, indent
+			, PMI(pfsmrstog)->data_translator_count
+			);
+
+	if (PMI(pfsmrstog)->data_translator_count)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "%s* - Number of data translators implemented by sub-machine:\n%s  - %u\n"
+				, indent
+				, indent
+				, PMI(pfsmrstog)->translators_implemented_by_machine
+				);
+	}
+
+	fprintf(FOUT(pfsmrstog)
 			, "%s* - Number of states:\n%s  - %u\n"
 			, indent
 			, indent
