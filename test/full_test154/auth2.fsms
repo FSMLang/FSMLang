@@ -1,0 +1,25 @@
+/**
+	This machine handles the auth2 chores.
+*/
+machine auth2
+native impl
+{
+#define FSM_ENTRY(A)
+#define FSM_EXIT(A) DBG_PRINTF("end state: %s", AUTH2_STATE_NAMES[(A)->state])
+#define ACTION_ENTRY(A)
+#define ACTION_EXIT(A)
+}
+{
+	state initial;
+	state active;
+	state done;
+
+	event parent::activate;
+	event parent::start_auth2;
+	event parent::auth2_gatt;
+
+	transition [activate, (all)] active;
+	action report_auth2_complete[auth2_gatt, active] transition done;
+
+}
+
