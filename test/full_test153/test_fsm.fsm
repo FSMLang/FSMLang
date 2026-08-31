@@ -65,12 +65,6 @@ data
 	action forward_command  [command, waiting];
 	action start_looking    [configuration_complete, waiting] transition first_time_connect;
 
-	/*
-	action forward_peer_connected [peer_connected, first_time_connect];
-	action forward_auth1_complete [auth1_complete, first_time_connect];
-	action forward_auth2_complete [auth2_complete, first_time_connect];
-	action forward_peer_data_synced [peer_data_synced, first_time_connect] transition connected_to_peer;
-	*/
 	transition [peer_data_synced, first_time_connect] connected_to_peer;
 
 	action forward_ble_comm [ble_comm, (all)];

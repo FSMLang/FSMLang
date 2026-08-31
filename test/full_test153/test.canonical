@@ -54,7 +54,8 @@ end state: communicator_first_connection_waiting
 end state: communicator_first_time_connect
 communicator_grab_ble_comm
 event: communicator_ble_comm; state: communicator_first_time_connect
-communicator_forward_ble_comm
+event: communicator_ble_comm; state: communicator_first_connection_waiting
+communicator_first_connection_share_parent_ble_comm
 communicator_ble_translate_ble_comm
 event: communicator_ble_adv_packet; state: communicator_ble_scanning
 communicator_ble_parse_adv_packet
@@ -63,14 +64,13 @@ communicator_ble_report_connection
 communicator_ble_stop_scanning
 communicator_ble_set_defaults
 end state: communicator_ble_waiting
-event: communicator_peer_connected; state: communicator_first_time_connect
 event: communicator_peer_connected; state: communicator_first_connection_waiting
-communicator_first_connection_start_auth1
+communicator_first_connection_act_start_auth1
 end state: communicator_first_connection_auth1
 end state: communicator_first_time_connect
 event: communicator_auth1_complete; state: communicator_first_time_connect
 event: communicator_auth1_complete; state: communicator_first_connection_auth1
-communicator_first_connection_start_auth2
+communicator_first_connection_act_start_auth2
 end state: communicator_first_connection_auth2
 end state: communicator_first_time_connect
 event: communicator_auth2_complete; state: communicator_first_time_connect
@@ -80,8 +80,10 @@ end state: communicator_first_connection_data_sync
 end state: communicator_first_time_connect
 event: communicator_peer_data_synced; state: communicator_first_time_connect
 event: communicator_peer_data_synced; state: communicator_first_connection_data_sync
-communicator_first_connection_noAction
+communicator_first_connection_report_done
 end state: communicator_first_connection_done
+event: communicator_peer_data_synced; state: communicator_connected_to_peer
+communicator_noAction
 end state: communicator_connected_to_peer
 
 test: connect_happy_path

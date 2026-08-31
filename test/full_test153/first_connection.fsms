@@ -21,9 +21,11 @@ native impl
 	event activate data translator grab_parent_data_ptrs;
 
 	event parent::peer_connected;
+	event parent::start_auth1;
 	event parent::auth1_complete;
 	event parent::auth2_complete;
 	event parent::peer_data_synced;
+	event parent::ble_comm;
 
 	state initial;
 	state waiting;
@@ -34,9 +36,14 @@ native impl
 
 	transition              [activate, initial] waiting;
 
-	action start_auth1      [peer_connected, waiting] transition auth1;
-	action start_auth2      [auth1_complete, auth1] transition auth2;
-	action start_data_sync  [auth2_complete, auth2] transition data_sync;
-	transition              [peer_data_synced, data_sync] done;
+	action act_start_auth1  [peer_connected, waiting]     transition auth1;
+	action act_start_auth2  [auth1_complete, auth1]       transition auth2;
+	action start_data_sync  [auth2_complete, auth2]       transition data_sync;
+	action report_done      [peer_data_synced, data_sync] transition done;
+
+	/* forward to peer sub-machines. */
+	action share_parent_start_auth1 [start_auth1, (all)];
+	action share_parent_ble_comm    [ble_comm, (all)];
+
 }
 

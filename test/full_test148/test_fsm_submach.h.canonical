@@ -51,6 +51,8 @@ extern TEST_FSM_SHARED_EVENT_STR sub2_share_test_fsm_e1_str;
 extern pTEST_FSM_SHARED_EVENT_STR sharing_test_fsm_e1[];
 
 
+TEST_FSM_EVENT_ENUM share_parent_event_e1(unsigned);
+
 struct _test_fsm_data_struct_ {
 	int e1_count;
 };

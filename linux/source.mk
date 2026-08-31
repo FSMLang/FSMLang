@@ -21,5 +21,6 @@ SRC =   lexer.c                		\
          fsm_c_single_switch.c 		\
          action_info_list.c    		\
 	 		fsm_python_transitions.c   \
-			parser_support.c
+			parser_support.c           \
+			fsm_c_common_submach.c
 

@@ -224,7 +224,7 @@ code {
 		<tr><th>Number of events</th><td>2</td></tr>
 		<tr><th>Events not handled</th><td>0</td></tr>
 		<tr><th>Events handled in one state</th><td>2</td></tr>
-		<tr><th>At least one event handled the same in all states?</th><td>yes</td></tr>
+		<tr><th>At least one event handled the same in all states?</th><td>no</td></tr>
 		<tr><th>Number of states</th><td>2</td></tr>
 		<tr><th>Number of states with entry functions</th><td>1</td></tr>
 		<tr><th>Number of states with exit functions</th><td>1</td></tr>

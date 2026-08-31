@@ -197,6 +197,7 @@ struct _event_data_
    pID_INFO         externalDesignation;
    pLIST            psharing_sub_machines;
    bool             shared_with_parent;
+   pID_INFO         parent_event;
    unsigned         state_implementing_sharer_count;
    unsigned         translator_implementing_sharer_count;
    unsigned         single_pai_state_count;
@@ -424,6 +425,7 @@ struct _machine_info_ {
   unsigned      average_state_event_density_pct;
   unsigned      average_event_state_density_pct;
   pLIST         sequences;
+  pID_INFO      implemented_state;
 };
 
 /* lexer id list handlers */

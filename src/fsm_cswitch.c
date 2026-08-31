@@ -38,6 +38,7 @@
 #include "fsm_c_switch_common.h"
 #include "fsm_unused.h"
 #include "ancestry.h"
+#include "fsm_c_common_submach.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 #include <stdio.h>
@@ -614,6 +615,11 @@ static int writeCSwitchMachineInternal(pFSMCOutputGenerator pfsmcog)
 
    define_artifact_implementing_machine_run_functions(pcmd);
 
+   if (pmi->states_implemented_by_machine)
+   {
+	   define_needed_event_sharing_functions(pfsmcog);
+   }
+
    writeDebugInfo(pcmd, pmi);
 
 	addNativeImplementationEpilogIfThereIsAny(pmi, pcmd->cFile);
@@ -833,12 +839,27 @@ static void defineCSwitchMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 		   , generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 		   );
 
-   fprintf(fout
-		   , "\t%-*s instance;\n"
-		   , (int) pcmd->sub_machine_struct_format_width
-		   , "unsigned"
-		   );
-   
+   if (generate_instance)
+   {
+	   fprintf(fout
+			   , "\t%-*s instance;\n"
+			   , (int) pcmd->sub_machine_struct_format_width
+			   , "unsigned"
+			   );
+   }
+
+   if (!generate_instance
+	   && pcmd->parent_pcmd
+	   && pcmd->parent_pcmd->pmi->states_implemented_by_machine
+	   )
+   {
+	   fprintf(fout
+			   , "\tp%s parent;\n"
+			   , fsmType(pcmd->parent_pcmd)
+			   );
+	   
+   }
+
    if (pmi->data)
    {
       fprintf(fout
@@ -1526,8 +1547,8 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
 					, pevent->name
 					);
 
-			if ((pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
-				&& pevent->type_data.event_data.shared_with_parent
+			if (pevent->type_data.event_data.shared_with_parent
+				&& (pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
 				)
 			{
 				fprintf(pich->pcmd->cFile
@@ -2171,8 +2192,12 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
       pich->counter++;
 
       fprintf(pich->pcmd->cFile
-			  , "\t\tcase %s_%s:\n"
-			  , fqMachineName(pich->pcmd)
+			  , "\t\tcase %s(%s):\n"
+			  , (ped->shared_with_parent
+				  && (pich->ih.pmi->modFlags & mfStateImplementing)
+				  )
+				? "PARENT"
+				: "THIS"
 			  , event->name
 			  );
 

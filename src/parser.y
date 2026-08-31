@@ -1991,6 +1991,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 
            pid->type_data.event_data.puser_event_data   = $5;
            pid->type_data.event_data.shared_with_parent = true;
+           pid->type_data.event_data.parent_event       = $3;
            pid->powningMachine                          = pmachineInfo;
  					pid->docCmnt                                 = $2;
 
@@ -2076,6 +2077,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 
            pid->type_data.event_data.puser_event_data    = $6;
            pid->type_data.event_data.shared_with_parent  = true;
+           pid->type_data.event_data.parent_event        = $4;
            pid->powningMachine                           = pmachineInfo;
  					 pid->docCmnt                                  = $3;
 

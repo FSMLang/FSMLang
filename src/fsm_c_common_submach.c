@@ -66,10 +66,15 @@ static bool declare_needed_parent_event_sharers(pLIST_ELEMENT, void *);
 static void print_parent_event_sharer_signature(pCMachineData pcmd, pID_INFO pevent, FILE *fout, DECLARE_OR_DEFINE dod)
 {
 	fprintf(fout
-			, "%s share_parent_event_%s(unsigned%s)%s\n"
+			, "%s share_parent_event_%s(%s%s%s)%s\n"
 			, eventType(pcmd)
 			, pevent->name
-			, dod == dod_declare ? "" : " instance"
+			, generate_instance ? "unsigned" : "p"
+			, generate_instance ? "" : fsmType(pcmd)
+			, dod == dod_declare
+			  ? ""
+			  : generate_instance
+				? " instance" : " pfsm"
 			, dod == dod_declare ? ";" : "\n{"
 			);
 }
@@ -81,7 +86,8 @@ bool find_legitimate_sharer(pLIST_ELEMENT pelem, void *data)
 
 	return (
 			(pmi != pich->ih.pmi)
-			&& (!(pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS))
+			&& (!(pmi->modFlags & mfStateImplementing))
+			&& (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
 			);
 }
 
@@ -108,16 +114,23 @@ static bool define_needed_parent_event_sharers(pLIST_ELEMENT pelem, void *data)
 	pich->ih.pid = pevent;
 
 	if (ped->psharing_sub_machines
+//		&& (pich->ih.pmi->modFlags & mfStateImplementing)
 		&& iterate_list(ped->psharing_sub_machines, find_legitimate_sharer, pich)
 		)
 	{
 		print_parent_event_sharer_signature(pich->pcmd, pevent, pich->ih.fout, dod_define);
 
+		if (generate_instance)
+		{
+			fprintf(pich->ih.fout
+					, "\tp%s pfsm = %s_INSTANCES[instance];\n"
+					, fsmType(pich->pcmd)
+					, machineName(pich->pcmd)
+					);
+		}
+
 		fprintf(pich->ih.fout
-				, "\tp%s pfsm = %s_INSTANCES[instance];\n"
-				  "\treturn %s_pass_shared_event(pfsm, sharing_%s_%s);\n"
-				, fsmType(pich->pcmd)
-				, machineName(pich->pcmd)
+				, "\treturn %s_pass_shared_event(pfsm, sharing_%s_%s);\n"
 				, machineName(pich->pcmd)
 				, machineName(pich->pcmd)
 				, pevent->name
@@ -141,6 +154,7 @@ static bool declare_needed_parent_event_sharers(pLIST_ELEMENT pelem, void *data)
 	pich->ih.pid = pevent;
 
 	if (ped->psharing_sub_machines
+//		&& (pich->ih.pmi->modFlags & mfStateImplementing)
 		&& iterate_list(ped->psharing_sub_machines, find_legitimate_sharer, pich)
 		)
 	{
@@ -179,7 +193,9 @@ void declare_needed_event_sharing_functions(pFSMCOutputGenerator pfsmcog)
 	ITERATOR_CALLBACK_HELPER ich = {
 		.ih = {
 			.pmi = pfsmcog->pcmd->pmi
-			, .fout = pfsmcog->pcmd->subMachineHFile
+			, .fout = generate_instance
+			          ? pfsmcog->pcmd->subMachineHFile
+					  : pfsmcog->pcmd->pubHFile
 		}
 		, .pcmd = pfsmcog->pcmd
 	};
