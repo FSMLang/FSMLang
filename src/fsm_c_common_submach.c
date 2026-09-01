@@ -67,7 +67,7 @@ static void print_parent_event_sharer_signature(pCMachineData pcmd, pID_INFO pev
 {
 	fprintf(fout
 			, "%s share_parent_event_%s(%s%s%s)%s\n"
-			, eventType(pcmd)
+			, subFsmFnReturnType(pcmd)
 			, pevent->name
 			, generate_instance ? "unsigned" : "p"
 			, generate_instance ? "" : fsmType(pcmd)
@@ -130,7 +130,8 @@ static bool define_needed_parent_event_sharers(pLIST_ELEMENT pelem, void *data)
 		}
 
 		fprintf(pich->ih.fout
-				, "\treturn %s_pass_shared_event(pfsm, sharing_%s_%s);\n"
+				, "\t%s%s_pass_shared_event(pfsm, sharing_%s_%s);\n"
+				, pich->pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
 				, machineName(pich->pcmd)
 				, machineName(pich->pcmd)
 				, pevent->name

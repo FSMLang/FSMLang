@@ -3840,12 +3840,15 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 				   );
 
 			fprintf(pich->pcmd->cFile
-					, "\t%sshare_parent_event_%s(pfsm->%s);\n}\n\n"
+					, "\t%sshare_parent_event_%s(pfsm->%s);\n%s}\n\n"
 					, pich->pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS
 					  ? ""
 					  : "return "
 					, pevent->name
 					, generate_instance ? "instance" : "parent"
+					, pich->pcmd->pmi->modFlags & mfActionsReturnStates
+					  ? "\treturn STATE(noTransition);\n"
+					  : ""
 					);
 
 		}
