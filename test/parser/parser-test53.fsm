@@ -18,6 +18,7 @@ data
 	}
 
 	machine baz
+		actions return void;
 	{
 		event parent::e1, e2;
 		state s1, s2;

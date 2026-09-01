@@ -152,16 +152,6 @@ pID_INFO translator_implemented_by(pID_INFO ptranslator, pID_INFO pmachine)
 		   );
 #endif
 
-	if (
-		(pmachineInfo->modFlags & mfTranslatorsReturnEvents)
-		&& (pmachineInfo->modFlags & ACTIONS_RETURN_FLAGS)
-		)
-	{
-		yyerror("It does not make sense to implement data translators which return events"
-				"with sub-machines which do not."
-				);
-	}
-
 	ptranslator->type_data.translator_data.flags               |= tf_implemented_by_sub_machine;
 	ptranslator->type_data.translator_data.implementingMachine  = pmachine;
 

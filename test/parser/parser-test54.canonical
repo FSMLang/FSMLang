@@ -81,7 +81,7 @@ process_action_info: a3
 populate_action_array returning false
 found a machine named bar
 	with 2 events and 2 states
-Actions return events
+Actions return void
 Translators return void
 The states :
 	0:	s1
@@ -173,7 +173,7 @@ process_action_info: a3
 populate_action_array returning false
 found a machine named baz
 	with 2 events and 2 states
-Actions return events
+Actions return void
 Translators return void
 The states :
 	0:	s1
@@ -210,4 +210,4 @@ The 2 transitions :
 	s1
 
 test: parser-test54.fsm: syntax error
-	line 30 : baz
+	line 32 : baz

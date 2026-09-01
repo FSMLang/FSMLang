@@ -8,6 +8,7 @@ data
 	state s1 implemented by machine bar, s2;
 
 	machine bar
+		actions return void;
 	{
 		event parent::e1, e2;
 		state s1, s2;
@@ -18,6 +19,7 @@ data
 	}
 
 	machine baz
+		actions return void;
 	{
 		event parent::e1, e2;
 		state s1, s2;
@@ -28,6 +30,7 @@ data
 	}
 
 	machine baz
+		actions return void;
 	{
 		event parent::e1, e2;
 		state s1, s2;

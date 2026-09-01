@@ -562,14 +562,14 @@ machine_qualifier:
  					$$->modFlags          |= $2;
 
 		     }
-//    | machine_qualifier translator_return_spec
-//		     {
-//           if ($1->modFlags & mfTranslatorsReturnDeclared)
-//             yyerror("only one translator return spec allowed per machine");
-//
-// 					$$->modFlags          |= $2;
-//
-//		     }
+    | machine_qualifier translator_return_spec
+		     {
+           if ($1->modFlags & mfTranslatorsReturnDeclared)
+             yyerror("only one translator return spec allowed per machine");
+
+ 					$$->modFlags          |= $2;
+
+		     }
     | machine_qualifier native_impl
 		     {
            if ($1->native_impl_prologue)
@@ -2027,7 +2027,34 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 
 						if (pmachineInfo->modFlags & mfTranslatorImplementing)
 						{
-							$3->type_data.event_data.translator_implementing_sharer_count++;
+							if (pmachineInfo->modFlags & mfActionsReturnStates)
+							{
+								yyerror("Translator implementing sub-machine may not have "
+												"actions which return states."
+											 );
+							}
+							else if (
+									(pmachineInfo->modFlags & mfActionsReturnVoid)
+									&& (pmachineInfo->parent->modFlags & mfTranslatorsReturnEvents)
+								 )
+							{
+								yyerror("It does not make sense to implement data translators "
+												"which return events with sub-machines which do not."
+											);
+							}
+							else if (
+												!(pmachineInfo->parent->modFlags & mfTranslatorsReturnEvents)
+												&& !(pmachineInfo->modFlags & mfActionsReturnVoid)
+											 )
+							{
+								yyerror("It does not make sense to implement data translators "
+												"which return void with sub-machines which return events."
+											);
+							}
+							else
+							{
+								$3->type_data.event_data.translator_implementing_sharer_count++;
+							}
 						}
 
 					}

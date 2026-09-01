@@ -1,0 +1,143 @@
+found a data translator: xlate_e1
+translator xlate_e1 implemented by submachine bar
+found simple data type id
+found data field: TYPE: simple; NAME: i
+Starting data_fields list
+Data block done
+found data fields
+int i;
+
+The 1 events in this list:
+	0:	e1
+
+added another id to the event declaration list
+added another id to the event declaration list
+The 3 events in this list:
+	0:	e2
+
+	1:	e3
+
+	2:	e4
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s1
+
+Found a namespace event reference
+The 1 events in this list:
+	0:	e1
+
+found the start of a state declaration list
+The 1 states in this list :
+	0:	s1
+
+found a scalar event : e1
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	a1
+process_action_info: a1
+	iterate_matrix_states: event: e1
+		add_to_action_array: state: s1
+populate_action_array returning false
+found a machine named bar
+	with 1 events and 1 states
+Actions return states
+Translators return void
+The states :
+	0:	s1
+
+The events :
+	0:	e1
+
+The actions :
+	a1
+		which occurs for these events
+				e1
+		in these states
+				s1
+
+The 0 transitions :
+
+found a scalar event : e2
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	a1
+found a scalar event : e3
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	a2
+found a scalar event : e4
+found a state scalar
+found a matrix
+found an action matrix
+found an action without transition
+started an action declaration
+The actions in this list:
+	a3
+process_action_info: a1
+	iterate_matrix_states: event: e2
+		add_to_action_array: state: s1
+process_action_info: a2
+	iterate_matrix_states: event: e3
+		add_to_action_array: state: s1
+process_action_info: a3
+	iterate_matrix_states: event: e4
+		add_to_action_array: state: s1
+populate_action_array returning false
+found a machine named foo
+	with 4 events and 1 states
+Actions return void
+Translators return void
+The states :
+	0:	s1
+
+The events :
+	0:	e1; This event is shared by 1 sub-machine:
+			bar
+
+
+	1:	e2
+
+	2:	e3
+
+	3:	e4
+
+1 events reference the parent machine.
+The actions :
+	a1
+		which occurs for these events
+				e2
+		in these states
+				s1
+	a2
+		which occurs for these events
+				e3
+		in these states
+				s1
+	a3
+		which occurs for these events
+				e4
+		in these states
+				s1
+
+The 0 transitions :
+this machine has 1 sub-machines
+the sub-machine depth is 1
+
+found a single machine
+test: parser-test56.fsm: Translator implementing sub-machine may not have actions which return states.
+	line 11 : ;
+test: parser-test56.fsm: data translators returning void are not allowed for machines having no data
+	line 20 : }
