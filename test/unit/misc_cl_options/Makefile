@@ -84,16 +84,16 @@ FSM=$(OUTPUT_DIR)/fsm
 all: test_file_listers test_file_creators test_file_failers clean
 
 test_file_failers: $(FAILERS)
-	@rm -f *.result
-	@rm -f fsmout
+	-@rm -f *.result
+	-@rm -f fsmout
 
 test_file_creators: $(CREATORS)
-	@rm $?
-	@rm -f *.result
+	-@rm $?
+	-@rm -f *.result
 
 test_file_listers: $(LISTERS)
-	@rm -f *.out
-	@rm -f *.result
+	-@rm -f *.out
+	-@rm -f *.result
 
 $(LISTERS): $(FSM) Makefile
 	$(FSM) $(FSM_FLAGS) test.fsm > $@.out
@@ -108,7 +108,7 @@ $(FAILERS): $(FSM) Makefile expectFailure.mk
 	@$(DIFF) fsmout $@.canonical
 
 clean::
-	@rm -f *.out        2> /dev/null
-	@rm -f *.result     2> /dev/null
+	-@rm -f *.out        2> /dev/null
+	-@rm -f *.result     2> /dev/null
 	-@rm -f $(CREATORS) 2> /dev/null
 
