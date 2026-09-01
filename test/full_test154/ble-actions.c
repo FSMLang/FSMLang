@@ -4,7 +4,7 @@ TRANSLATOR_RETURN_TYPE UFMN(grab_parent_data_ptrs)(FSM_DATA_PTR pfsm_data, PAREN
 {
 	DBG_PRINTF("%s", __func__);
 	
-	pfsm_data->pconfiguration = &pparent_data->configuration;
+	pfsm_data->pconfiguration   = &pparent_data->configuration;
 
 	return THIS(activate);
 }
@@ -16,6 +16,8 @@ TRANSLATOR_RETURN_TYPE UFMN(translate_ble_comm)(FSM_DATA_PTR pfsm_data, PARENT_D
 	(void) pfsm_data;
 
 	ACTION_RETURN_TYPE ret;
+
+	pfsm_data->pcurr_ble_event = pparent_data->pcurr_ble_event;
 
 	switch (pparent_data->pcurr_ble_event->type)
 	{
@@ -51,12 +53,19 @@ TRANSLATOR_RETURN_TYPE UFMN(check_configuration)(FSM_DATA_PTR pfsm_data, pCOMMUN
 	else if ((pconfiguration->config_bits & CONNECT_BITS) == CONNECT_BITS)
 		return THIS(do_connect);
 	else
-		return THIS(noEvent); //This line should not be reached; we should only be executing this function when the configuration has reached
-                            // the scan or connect state.
+		return THIS(noEvent); //This line should not be reached; we should only be executing this function
+                            // when the configuration has reached the scan or connect state.
 }
 
 
 ACTION_RETURN_TYPE UFMN(parse_adv_packet)(FSM_TYPE_PTR pfsm)
+{
+	DBG_PRINTF("%s",__func__);
+	(void) pfsm;
+	return THIS(connection);
+}
+
+ACTION_RETURN_TYPE UFMN(look_for_peer)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s",__func__);
 	(void) pfsm;
@@ -68,6 +77,27 @@ ACTION_RETURN_TYPE UFMN(report_connection)(FSM_TYPE_PTR pfsm)
 	DBG_PRINTF("%s",__func__);
 	(void) pfsm;
 	return PARENT(peer_connected);
+}
+
+ACTION_RETURN_TYPE UFMN(report_gatt_characteristic)(FSM_TYPE_PTR pfsm)
+{
+	DBG_PRINTF("%s",__func__);
+	switch (pfsm->data.pcurr_ble_event->data.gatt_msg.characteristic)
+	{
+	case AUTH1_GATT:
+		return PARENT(auth1_gatt);
+		break;
+	case AUTH2_GATT:
+		return PARENT(auth2_gatt);
+		break;
+	case SYNC_GATT:
+		return PARENT(sync_gatt);
+		break;
+	default:
+		return THIS(noEvent);
+		break;
+	}
+	
 }
 
 ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)

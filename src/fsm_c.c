@@ -1561,11 +1561,26 @@ static void declareCMachineStruct(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			);
 
-	fprintf(fout
-			, "\t%-*s instance;\n"
-			, (int) pcmd->c_machine_struct_format_width
-			, "unsigned"
-			);
+	if (generate_instance)
+	{
+		fprintf(fout
+				, "\t%-*s instance;\n"
+				, (int) pcmd->c_machine_struct_format_width
+				, "unsigned"
+				);
+	}
+
+	if (!generate_instance
+		&& pcmd->parent_pcmd
+		&& pcmd->parent_pcmd->pmi->states_implemented_by_machine
+		)
+	{
+		fprintf(fout
+				, "\tp%s parent;\n"
+				, fsmType(pcmd->parent_pcmd)
+				);
+
+	}
 
 	if (pmi->data)
 	{

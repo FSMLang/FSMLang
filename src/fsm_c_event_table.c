@@ -520,6 +520,18 @@ static void defineCEventTableMachineStruct(pCMachineData pcmd)
 			   );
    }
 
+   if (!generate_instance
+	   && pcmd->parent_pcmd
+	   && pcmd->parent_pcmd->pmi->states_implemented_by_machine
+	   )
+   {
+	   fprintf(fout
+			   , "\tp%s parent;\n"
+			   , fsmType(pcmd->parent_pcmd)
+			   );
+	   
+   }
+
    if (pmi->data)
    {
       fprintf(fout

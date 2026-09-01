@@ -27,6 +27,13 @@ native impl
 	event parent::auth1_complete;
 	event parent::auth2_complete;
 	event parent::peer_data_synced;
+	event parent::start_auth1;
+	event parent::auth1_gatt;
+	event parent::start_auth2;
+	event parent::auth2_gatt;
+	event parent::start_sync;
+	event parent::sync_gatt;
+	event parent::comm_window_timer_expired;
 
 	state initial;
 	state waiting;
@@ -37,9 +44,19 @@ native impl
 
 	transition              [activate, initial] waiting;
 
-	action start_auth1      [peer_connected, waiting] transition auth1;
-	action start_auth2      [auth1_complete, auth1] transition auth2;
-	action start_data_sync  [auth2_complete, auth2] transition data_sync;
-	transition              [peer_data_synced, data_sync] done;
+	action act_start_auth1  [peer_connected, waiting]     transition auth1;
+	action act_start_auth2  [auth1_complete, auth1]       transition auth2;
+	action start_data_sync  [auth2_complete, auth2]       transition data_sync;
+	action report_done      [peer_data_synced, data_sync] transition done;
+
+	/* forward to peer sub-machines. */
+	action share_parent_start_auth1                 [start_auth1, (all)];
+	action share_parent_auth1_gatt                  [auth1_gatt, (all)];
+	action share_parent_start_auth2                 [start_auth2, (all)];
+	action share_parent_auth2_gatt                  [auth2_gatt, (all)];
+	action share_parent_start_sync                  [start_sync, (all)];
+	action share_parent_sync_gatt                   [sync_gatt, (all)];
+	action share_parent_comm_window_timer_expired   [comm_window_timer_expired, (all)];
+
 }
 

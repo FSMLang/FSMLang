@@ -43,10 +43,17 @@ data
 
 	event ble_comm data translator grab_ble_comm implemented by machine ble {ble_event_str ble_e;};
 
+	event comm_window_timer_expired;
+
 	event peer_connected;
 	event start_auth1;
+	event auth1_gatt;
 	event auth1_complete;
+	event start_auth2;
+	event auth2_gatt;
 	event auth2_complete;
+	event start_sync;
+	event sync_gatt;
 	event peer_data_synced;
 
 	state initial;
@@ -64,12 +71,14 @@ data
 	include commands.fsms
 	include ble.fsms
 	include first_connection.fsms
+	include auth1.fsms
+	include auth2.fsms
+	include sync.fsms
 
 	action activate_all     [activate, (all)]                 transition waiting;
 	action start_looking    [configuration_complete, waiting] transition first_time_connect;
 
 	transition [peer_data_synced, first_time_connect] connected_to_peer;
-
 
 }
 

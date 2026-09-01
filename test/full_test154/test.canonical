@@ -10,6 +10,15 @@ event: communicator_ble_activate; state: communicator_ble_initial
 communicator_ble_noAction
 communicator_ble_set_defaults
 end state: communicator_ble_waiting
+event: communicator_auth1_activate; state: communicator_auth1_initial
+communicator_auth1_noAction
+end state: communicator_auth1_active
+event: communicator_auth2_activate; state: communicator_auth2_initial
+communicator_auth2_noAction
+end state: communicator_auth2_active
+event: communicator_sync_activate; state: communicator_sync_initial
+communicator_sync_noAction
+end state: communicator_sync_active
 communicator_set_defaults
 end state: communicator_waiting
 communicator_grab_command
@@ -59,21 +68,55 @@ communicator_ble_set_defaults
 end state: communicator_ble_waiting
 event: communicator_peer_connected; state: communicator_first_time_connect
 event: communicator_peer_connected; state: communicator_first_connection_waiting
-communicator_first_connection_start_auth1
+communicator_first_connection_act_start_auth1
 end state: communicator_first_connection_auth1
 end state: communicator_first_time_connect
-event: communicator_auth1_complete; state: communicator_first_time_connect
+communicator_grab_ble_comm
+communicator_ble_translate_ble_comm
+event: communicator_ble_gatt_msg; state: communicator_ble_waiting
+communicator_ble_report_gatt_characteristic
+end state: communicator_ble_waiting
+event: communicator_auth1_gatt; state: communicator_first_time_connect
+event: communicator_auth1_gatt; state: communicator_first_connection_auth1
+communicator_first_connection_share_parent_auth1_gatt
+event: communicator_auth1_auth1_gatt; state: communicator_auth1_active
+communicator_auth1_report_auth1_complete
+end state: communicator_auth1_done
 event: communicator_auth1_complete; state: communicator_first_connection_auth1
-communicator_first_connection_start_auth2
+communicator_first_connection_act_start_auth2
 end state: communicator_first_connection_auth2
 end state: communicator_first_time_connect
-event: communicator_auth2_complete; state: communicator_first_time_connect
+communicator_grab_ble_comm
+communicator_ble_translate_ble_comm
+event: communicator_ble_gatt_msg; state: communicator_ble_waiting
+communicator_ble_report_gatt_characteristic
+end state: communicator_ble_waiting
+event: communicator_auth2_gatt; state: communicator_first_time_connect
+event: communicator_auth2_gatt; state: communicator_first_connection_auth2
+communicator_first_connection_share_parent_auth2_gatt
+event: communicator_auth2_auth2_gatt; state: communicator_auth2_active
+communicator_auth2_report_auth2_complete
+end state: communicator_auth2_done
 event: communicator_auth2_complete; state: communicator_first_connection_auth2
 communicator_first_connection_start_data_sync
 end state: communicator_first_connection_data_sync
 end state: communicator_first_time_connect
-event: communicator_peer_data_synced; state: communicator_first_time_connect
+communicator_grab_ble_comm
+communicator_ble_translate_ble_comm
+event: communicator_ble_gatt_msg; state: communicator_ble_waiting
+communicator_ble_report_gatt_characteristic
+end state: communicator_ble_waiting
+event: communicator_sync_gatt; state: communicator_first_time_connect
+event: communicator_sync_gatt; state: communicator_first_connection_data_sync
+communicator_first_connection_share_parent_sync_gatt
+event: communicator_sync_sync_gatt; state: communicator_sync_active
+communicator_sync_report_sync_complete
+end state: communicator_sync_done
 event: communicator_peer_data_synced; state: communicator_first_connection_data_sync
+communicator_first_connection_report_done
+end state: communicator_first_connection_done
+event: communicator_peer_data_synced; state: communicator_first_time_connect
+event: communicator_peer_data_synced; state: communicator_first_connection_done
 communicator_first_connection_noAction
 end state: communicator_first_connection_done
 end state: communicator_connected_to_peer
@@ -89,6 +132,15 @@ event: communicator_ble_activate; state: communicator_ble_initial
 communicator_ble_noAction
 communicator_ble_set_defaults
 end state: communicator_ble_waiting
+event: communicator_auth1_activate; state: communicator_auth1_initial
+communicator_auth1_noAction
+end state: communicator_auth1_active
+event: communicator_auth2_activate; state: communicator_auth2_initial
+communicator_auth2_noAction
+end state: communicator_auth2_active
+event: communicator_sync_activate; state: communicator_sync_initial
+communicator_sync_noAction
+end state: communicator_sync_active
 communicator_set_defaults
 end state: communicator_waiting
 communicator_grab_command
@@ -166,6 +218,44 @@ event: communicator_first_connection_activate; state: communicator_first_connect
 communicator_first_connection_noAction
 end state: communicator_first_connection_waiting
 end state: communicator_first_time_connect
+event: communicator_comm_window_timer_expired; state: communicator_first_time_connect
+event: communicator_comm_window_timer_expired; state: communicator_first_connection_waiting
+communicator_first_connection_share_parent_comm_window_timer_expired
+event: communicator_ble_comm_window_timer_expired; state: communicator_ble_waiting_for_connection_window
+communicator_ble_look_for_peer
+event: communicator_ble_connection; state: communicator_ble_waiting_for_connection_window
+communicator_ble_report_connection
+communicator_ble_stop_connection_timer
+communicator_ble_set_defaults
+end state: communicator_ble_waiting
+event: communicator_peer_connected; state: communicator_first_connection_waiting
+communicator_first_connection_act_start_auth1
+end state: communicator_first_connection_auth1
+end state: communicator_first_time_connect
+communicator_grab_ble_comm
+communicator_ble_translate_ble_comm
+event: communicator_ble_gatt_msg; state: communicator_ble_waiting
+communicator_ble_report_gatt_characteristic
+end state: communicator_ble_waiting
+event: communicator_auth1_gatt; state: communicator_connected_to_peer
+communicator_noAction
+end state: communicator_connected_to_peer
+communicator_grab_ble_comm
+communicator_ble_translate_ble_comm
+event: communicator_ble_gatt_msg; state: communicator_ble_waiting
+communicator_ble_report_gatt_characteristic
+end state: communicator_ble_waiting
+event: communicator_auth2_gatt; state: communicator_connected_to_peer
+communicator_noAction
+end state: communicator_connected_to_peer
+communicator_grab_ble_comm
+communicator_ble_translate_ble_comm
+event: communicator_ble_gatt_msg; state: communicator_ble_waiting
+communicator_ble_report_gatt_characteristic
+end state: communicator_ble_waiting
+event: communicator_sync_gatt; state: communicator_connected_to_peer
+communicator_noAction
+end state: communicator_connected_to_peer
 
 test: force_find_and_run
 event: communicator_first_connection_activate; state: communicator_initial

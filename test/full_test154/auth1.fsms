@@ -1,0 +1,25 @@
+/**
+	This machine handles the auth1 chores.
+*/
+machine auth1
+native impl
+{
+#define FSM_ENTRY(A)
+#define FSM_EXIT(A) DBG_PRINTF("end state: %s", AUTH1_STATE_NAMES[(A)->state])
+#define ACTION_ENTRY(A)
+#define ACTION_EXIT(A)
+}
+{
+	state initial;
+	state active;
+	state done;
+
+	event parent::activate;
+	event parent::start_auth1;
+	event parent::auth1_gatt;
+
+	transition [activate, (all)] active;
+	action report_auth1_complete[auth1_gatt, active] transition done;
+
+}
+

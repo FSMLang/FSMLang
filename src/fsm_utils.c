@@ -498,7 +498,7 @@ static bool iterate_matrix_states(pLIST_ELEMENT pelem, void *data)
    paaph->error = false;
    iterate_list(paaph->pai->matrix->state_list,add_to_action_array,paaph);
 
-   if (ped->single_pai_state_count == (paaph->pmi->state_list->count - paaph->pmi->states_implemented_by_machine))
+   if (ped->single_pai_state_count == paaph->pmi->state_list->count)
    {
       ped->single_pai_for_all_states    = true;
       paaph->pmi->has_single_pai_events = true;

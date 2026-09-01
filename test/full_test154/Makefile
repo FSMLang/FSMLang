@@ -12,7 +12,10 @@ override CFLAGS += -I../                  \
     -DCOMMUNICATOR_DEBUG                  \
     -DCOMMUNICATOR_COMMANDS_DEBUG         \
     -DCOMMUNICATOR_BLE_DEBUG              \
-    -DCOMMUNICATOR_FIRST_CONNECTION_DEBUG
+    -DCOMMUNICATOR_FIRST_CONNECTION_DEBUG \
+    -DCOMMUNICATOR_AUTH1_DEBUG            \
+    -DCOMMUNICATOR_AUTH2_DEBUG            \
+    -DCOMMUNICATOR_SYNC_DEBUG 
 
 
 override DIFF_FLAGS= -I \"warning: (test_fsm_sub_subSub): all events are handled identically in all states.\"  \

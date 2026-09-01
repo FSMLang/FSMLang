@@ -22,12 +22,13 @@ native impl
 	data
 	{
 		pconfiguration_str pconfiguration;
-		pble_event_str     *ppcurr_ble_event;
+		pble_event_str     pcurr_ble_event;
 	}
 
 	event parent::activate data translator grab_parent_data_ptrs;
 	event parent::ble_comm consuming data translator translate_ble_comm;
 	event parent::configuration_complete consuming data translator check_configuration;
+	event parent::comm_window_timer_expired;
 
 	event do_scan;
 	event do_connect;
@@ -55,6 +56,9 @@ native impl
 	transition [do_connect, waiting] waiting_for_connection_window;
 
 	action parse_adv_packet[adv_packet, scanning];
-	action report_connection [connection, scanning] transition waiting;
+	action look_for_peer[comm_window_timer_expired, waiting_for_connection_window];
+	action report_connection [connection, (scanning, waiting_for_connection_window)] transition waiting;
+	action report_gatt_characteristic [gatt_msg, waiting];
+
 }
 

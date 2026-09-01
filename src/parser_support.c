@@ -263,6 +263,7 @@ pMACHINE_PREFIX machine_declared_by_machine_pid(pNATIVE_INFO pnative, MOD_FLAGS 
 	}
 
 	machine_pid->type_data.machine_pid_data.pmi = pmachine_prefix->pmachineInfo;
+	pmachine_prefix->pmachineInfo->implemented_state = machine_pid->type_data.machine_pid_data.implementedArtifact;
 
 	return pmachine_prefix;
 }

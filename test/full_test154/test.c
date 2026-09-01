@@ -44,13 +44,19 @@ static void scan_happy_path()
 	e.event_data.ble_comm_data.ble_e.type = ble_adv_packet;
 	run_communicator_instance0(&e);
 
-	e.event = THIS(auth1_complete);
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT;
 	run_communicator_instance0(&e);
 
-	e.event = THIS(auth2_complete);
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT;
 	run_communicator_instance0(&e);
 
-	e.event = THIS(peer_data_synced);
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT;
 	run_communicator_instance0(&e);
 
 }
@@ -91,6 +97,24 @@ static void connect_happy_path()
 	e.event_data.command_data.command.tag = command_peer_comm_period;
 	e.event_data.command_data.command.data.peer_comm_period = 0;
 	run_communicator_instance1(&e);
+
+	e.event = THIS(comm_window_timer_expired);
+	run_communicator_instance1(&e);
+
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT;
+	run_communicator_instance0(&e);
+
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT;
+	run_communicator_instance0(&e);
+
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT;
+	run_communicator_instance0(&e);
 
 }
 

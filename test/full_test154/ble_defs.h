@@ -13,8 +13,12 @@ typedef enum
 	, ble_num_entries
 } ble_event_e;
 
-#define GATT_MSG_SIZE   252  //Accuracy is not important here.
-#define ADV_PACKET_SIZE 252  //Accuracy is not important here.
+#define GATT_MSG_SIZE   252
+#define ADV_PACKET_SIZE 252
+
+#define AUTH1_GATT 0x0001
+#define AUTH2_GATT 0x0002
+#define SYNC_GATT  0x0003
 
 typedef struct _gatt_message_str_ gatt_message_str, *pgatt_message_str;
 typedef union  _ble_event_data_u_ ble_event_data, *pble_event_data;

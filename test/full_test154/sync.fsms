@@ -1,0 +1,25 @@
+/**
+	This machine handles the sync chores.
+*/
+machine sync
+native impl
+{
+#define FSM_ENTRY(A)
+#define FSM_EXIT(A) DBG_PRINTF("end state: %s", SYNC_STATE_NAMES[(A)->state])
+#define ACTION_ENTRY(A)
+#define ACTION_EXIT(A)
+}
+{
+	state initial;
+	state active;
+	state done;
+
+	event parent::activate;
+	event parent::start_sync;
+	event parent::sync_gatt;
+
+	transition [activate, (all)] active;
+	action report_sync_complete[sync_gatt, active] transition done;
+
+}
+

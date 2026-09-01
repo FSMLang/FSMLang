@@ -38,6 +38,7 @@
 #include "ancestry.h"
 #include "util_file_inclusion.h"
 #include "revision.h"
+#include "fsm_c_common_submach.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -953,6 +954,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 
 		printSubMachinesDeclarations(pcmd, pmi);
 		declare_artifact_implementing_machine_run_functions(pcmd);
+		declare_needed_event_sharing_functions(pfsmcog);
 	}
 
 	/* put the data structure definition into the header */
@@ -962,7 +964,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 		fprintf(pmi->machine_list
 				? generate_instance ? pcmd->subMachineHFile : fout
 				: fout
-				, "struct _%s_data_struct_ {\n"
+				, "\nstruct _%s_data_struct_ {\n"
 				, generate_instance ? machineName(pcmd) : fqMachineName(pcmd)
 			   );
 
@@ -1268,7 +1270,9 @@ void generateInstance(pCMachineData pcmd
 			   );
 	}
 
-	if (pmi->parent != NULL)
+	if ((pmi->parent != NULL)
+		|| (pmi->states_implemented_by_machine)
+		)
 	{
 
 		fprintf(pcmd->cFile
@@ -1347,6 +1351,12 @@ void generateInstanceMacro(pCMachineData pcmd
 
 	fprintf(pcmd->pubHFile
 			, ")\\\n"
+		   );
+
+	/* Forward declare our pointer so that sub-machines can reference it. */
+	fprintf(pcmd->pubHFile
+			, "static %s A;\\\n"
+			, fsmType(pcmd)
 		   );
 
 	// we need to invoke each sub-machine macro
@@ -1480,8 +1490,9 @@ void generateSubMachineInstanceMacro(pCMachineData pcmd
 		   );
 
 	fprintf(pcmd->parent_pcmd->instanceMacrosHFile
-			, "#define %s_INSTANCE(A%s"
+			, "#define %s_INSTANCE(A%s%s"
 			, ucfqMachineName(pcmd)
+			, pmi->parent->states_implemented_by_machine ? ", PARENT_PTR" : ""
 			, pmi->data ? ", B" : ""
 		   );
 
@@ -1531,6 +1542,14 @@ void generateSubMachineInstanceMacro(pCMachineData pcmd
 			, stateEnumMemberPmi(stateNameByIndex(pmi, 0), pmi, &cp)
 		   );
 	CHECK_AND_FREE(cp);
+
+	if (pcmd->parent_pcmd->pmi->states_implemented_by_machine)
+	{
+		fprintf(pcmd->parent_pcmd->instanceMacrosHFile
+				, "\t, .parent = (p%s) (PARENT_PTR)\\\n"
+				, fsmType(pcmd->parent_pcmd)
+				);
+	}
 
 	fprintf(pcmd->parent_pcmd->instanceMacrosHFile
 			, "\t, .event = %s_%s\\\n"
@@ -3769,7 +3788,7 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 		{
 			fprintf(pich->pcmd->cFile
 					, "%s UFMN(%s)(p%s pfsm)\n{\n"
-					, pich->pcmd->pmi->modFlags & mfActionsReturnStates
+					, pich->pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS
 					? actionReturnType(pich->pcmd)
 					: subFsmFnReturnType(pich->pcmd)
 					, pid_info->name
@@ -3799,6 +3818,39 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 					? "\treturn STATE(noTransition);\n"
 					: ""
 				   );
+		}
+		else if (ped->shared_with_parent
+				 && (pich->ih.pmi->modFlags & mfStateImplementing)
+				 && iterate_list(ped->parent_event->type_data.event_data.psharing_sub_machines, find_legitimate_sharer, pich)
+				 )
+		{
+			fprintf(pich->pcmd->cFile
+					, "%s UFMN(%s)(p%s pfsm)\n{\n"
+					, pich->pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS
+					? actionReturnType(pich->pcmd)
+					: subFsmFnReturnType(pich->pcmd)
+					, pid_info->name
+					, fsmType(pich->pcmd)
+				   );
+
+			fprintf(pich->pcmd->cFile
+					, "\t%s(\"%s%%s\", __func__);\n"
+					, core_logging_only ? "NON_CORE_DEBUG_PRINTF" : "DBG_PRINTF"
+					, force_generation_of_event_passing_actions ? "" : "weak: "
+				   );
+
+			fprintf(pich->pcmd->cFile
+					, "\t%sshare_parent_event_%s(pfsm->%s);\n%s}\n\n"
+					, pich->pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS
+					  ? ""
+					  : "return "
+					, pevent->name
+					, generate_instance ? "instance" : "parent"
+					, pich->pcmd->pmi->modFlags & mfActionsReturnStates
+					  ? "\treturn STATE(noTransition);\n"
+					  : ""
+					);
+
 		}
 
 	}
@@ -4985,8 +5037,9 @@ static bool possibly_invoke_sub_machine_macro(pLIST_ELEMENT pelem, void *data)
 	char          *name;
 
 	fprintf(pcmd->parent_pcmd ? pcmd->parent_pcmd->instanceMacrosHFile : pcmd->pubHFile
-			, "%s_INSTANCE(A"
+			, "%s_INSTANCE(A%s"
 			, ucfqMachineNamePmi(pmi, &name)
+			, pmi->parent->states_implemented_by_machine ?  ", &(A)" : ""
 		   );
 	CHECK_AND_FREE(name);
 
