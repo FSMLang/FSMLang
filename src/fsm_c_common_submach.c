@@ -83,11 +83,23 @@ bool find_legitimate_sharer(pLIST_ELEMENT pelem, void *data)
 {
 	pMACHINE_INFO             pmi  = (pMACHINE_INFO) pelem->mbr;
 	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+	pEVENT_DATA               ped = &pich->ih.pid->type_data.event_data;
+
+	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	return (
 			(pmi != pich->ih.pmi)
 			&& (!(pmi->modFlags & mfStateImplementing))
+			/*
 			&& (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+			*/
+
+			&& (!(pmi->modFlags & mfTranslatorImplementing)
+				|| (!ped->puser_event_data
+					|| !ped->puser_event_data->translator
+					|| (ped->puser_event_data->translator->type_data.translator_data.implementingMachine->type_data.machine_pid_data.pmi != pmi)
+					)
+				)
 			);
 }
 
@@ -114,7 +126,6 @@ static bool define_needed_parent_event_sharers(pLIST_ELEMENT pelem, void *data)
 	pich->ih.pid = pevent;
 
 	if (ped->psharing_sub_machines
-//		&& (pich->ih.pmi->modFlags & mfStateImplementing)
 		&& iterate_list(ped->psharing_sub_machines, find_legitimate_sharer, pich)
 		)
 	{

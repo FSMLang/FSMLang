@@ -222,6 +222,7 @@ struct _translator_data_
 	pLIST            translator_returns_decl;
    bool             consuming;
    pID_INFO         implementingMachine;
+   pID_INFO         pevent;
 };
 
 struct _machine_pid_data_

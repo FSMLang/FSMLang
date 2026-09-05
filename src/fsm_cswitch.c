@@ -451,15 +451,31 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    pfsmcog->pcmd->pmi = pmi;
 
    /* for sub machines, some output strings are taken from the parent */
-   if (!(pfsmcog->pcmd->pmi->modFlags & mfActionsReturnStates))
-   {
-	   pfsmcog->pcmd->action_return_type      = pfsmcog->parent_fsmcog->pcmd->action_return_type;
-   }
    pfsmcog->pcmd->fsm_fn_event_type       = pfsmcog->parent_fsmcog->pcmd->event_type;
-   pfsmcog->pcmd->sub_fsm_fn_event_type   = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_event_type;
-   pfsmcog->pcmd->sub_fsm_fn_return_type  = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_return_type;
    pfsmcog->pcmd->event_type              = pfsmcog->parent_fsmcog->pcmd->event_type;
-   pfsmcog->pcmd->instance_type           = pfsmcog->parent_fsmcog->pcmd->instance_type;
+   pfsmcog->pcmd->sub_fsm_fn_return_type  = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_return_type;
+   if ((pfsmcog->pcmd->pmi->modFlags & mfTranslatorImplementing)
+	   && (pmi->modFlags & ACTIONS_RETURN_FLAGS)
+	   )
+   {
+	   //For now, actions returning states are not allowed for translator implementing machines.
+	   //This is not a valid restriction; actions returning states can be allowed in the same
+	   //  cirmucstance as actions returning void are allowed/required.
+	   // TODO: fix this
+	   if (!(pmi->modFlags & mfActionsReturnVoid))
+	   {
+		   pfsmcog->pcmd->action_return_type      = pfsmcog->parent_fsmcog->pcmd->action_return_type;
+	   }
+   }
+   else
+   {
+	   if (!(pfsmcog->pcmd->pmi->modFlags & mfActionsReturnStates))
+	   {
+		   pfsmcog->pcmd->action_return_type      = pfsmcog->parent_fsmcog->pcmd->action_return_type;
+	   }
+	   pfsmcog->pcmd->sub_fsm_fn_event_type   = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_event_type;
+	   pfsmcog->pcmd->instance_type           = pfsmcog->parent_fsmcog->pcmd->instance_type;
+   }
 
    chooseWorkerFunctions(pfsmcog);
 
@@ -1798,6 +1814,16 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                     , "\tcase THIS(%s):\n"
                     , pevent->name
                     );
+
+			if (pevent->type_data.event_data.shared_with_parent
+				&& (pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
+				)
+			{
+				fprintf(pich->pcmd->cFile
+						, "\tcase PARENT(%s):\n"
+						, pevent->name
+						);
+			}
 
             if (pai != paiNext)
             {

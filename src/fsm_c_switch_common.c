@@ -533,6 +533,15 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
 	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
    }
 
+   if ((pmi->modFlags & mfTranslatorImplementing)
+	   && !(pmi->parent->modFlags & ACTIONS_RETURN_FLAGS)
+	   )
+   {
+	   /* In this case we must return a value, since our parent expects it. */
+	   fprintf(pcmd->cFile, "\treturn PARENT(noEvent);\n");
+	   
+   }
+
    FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: End %s */\n", __func__);
 }
 
