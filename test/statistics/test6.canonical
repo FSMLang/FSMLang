@@ -72,7 +72,7 @@ action a1 [e1, s1];
 machine name: testFSM::baz
 reentrance protection:  no
 machine transition: none
-actions return: events
+actions return: void
 number of events: 1
 number of events handled in zero states: 0
 number of events handled in one state: 1

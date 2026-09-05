@@ -1,0 +1,33 @@
+event: test_fsm_e0; state: test_fsm_s1
+test_fsm_a0
+event: test_fsm_e1_translator_e0; state: test_fsm_e1_translator_s1
+test_fsm_e1_translator_a0
+test_fsm_xlate_e1
+test_fsm_e1_translator_grab_data
+event: test_fsm_e1; state: test_fsm_e1_translator_s1
+test_fsm_e1_translator_a1
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 0; k: 0; l: 0
+test_fsm_xlate_e1
+test_fsm_e1_translator_grab_data
+event: test_fsm_e1; state: test_fsm_e1_translator_s2
+test_fsm_e1_translator_a2
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 1; k: 0; l: 0
+test_fsm_xlate_e1
+test_fsm_e1_translator_grab_data
+event: test_fsm_e1; state: test_fsm_e1_translator_s3
+test_fsm_e1_translator_a3
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 1; k: 1; l: 0
+test_fsm_xlate_e1
+test_fsm_e1_translator_grab_data
+event: test_fsm_e1; state: test_fsm_e1_translator_s4
+test_fsm_e1_translator_a4
+event: test_fsm_e1; state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 1; k: 1; l: 1
+warning: (test_fsm): all events are handled identically in all states.

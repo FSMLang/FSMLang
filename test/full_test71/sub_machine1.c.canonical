@@ -29,7 +29,7 @@ static const SUB_MACHINE1_STATE_FN sub_machine1_state_fn_array[sub_machine1_numS
 
 TOP_LEVEL_EVENT THIS(sub_machine_fn)(const void *pfsm, TOP_LEVEL_EVENT e)
 {
-	return ((FSM_TYPE_PTR)pfsm)->fsm((FSM_TYPE_PTR)pfsm,e);
+	return((FSM_TYPE_PTR)pfsm)->fsm((FSM_TYPE_PTR)pfsm,e);
 }
 
 TOP_LEVEL_SUB_FSM_IF top_level_sub_machine1_sub_fsm_if =

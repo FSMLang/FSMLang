@@ -16,6 +16,7 @@ int i;
 	}
 
 	machine baz
+		actions return void;
 	{
 		state s1;
 		event parent::e1;
