@@ -313,7 +313,6 @@ machine:	machine_prefix machine_qualifier
 						}
 					}
 
-
 					count_external_declarations($$->state_list
 																				,&($$->external_state_designation_count)
 																				);
@@ -334,6 +333,12 @@ machine:	machine_prefix machine_qualifier
 						if (allocateActionArray($$))
  						yyerror("out of memory");
 
+					if ($$->parent && !$$->parent->heterogeneous_children)
+					{
+						$$->parent->heterogeneous_children = ( ($$->parent->modFlags & ACTIONS_RETURN_FLAGS)
+																													!= ($$->modFlags & ACTIONS_RETURN_FLAGS)
+																							   );
+					}
  					enumerate_pid_list($$->state_list);
  					enumerate_pid_list($$->event_list);
 

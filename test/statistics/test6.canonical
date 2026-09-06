@@ -21,6 +21,7 @@ number of actions: 4
 machine has data
 number of sub-machines: 2
 depth of sub-machines: 1
+sub-machines are heterogeneous in action return type
 Action Array:
 Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
 e1                  multiple       2           40         a1, a4

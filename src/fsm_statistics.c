@@ -296,6 +296,10 @@ static bool write_machine_statistics(pLIST_ELEMENT pelem, void *data)
 	   printf("depth of sub-machines: %u\n"
 			  , pmi->sub_machine_depth 
 			  );
+
+	   printf("sub-machines are %sgeneous in action return type\n"
+			  , pmi->heterogeneous_children ? "hetero" : "homo"
+			  );
    }
 
    unsigned        str_len = 0;

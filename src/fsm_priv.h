@@ -427,6 +427,7 @@ struct _machine_info_ {
   unsigned      average_event_state_density_pct;
   pLIST         sequences;
   pID_INFO      implemented_state;
+  bool          heterogeneous_children;
 };
 
 /* lexer id list handlers */
