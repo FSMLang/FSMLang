@@ -36,6 +36,7 @@
 #include "fsm_c_common_submach.h"
 #include "ancestry.h"
 #include "list.h"
+#include "y.tab.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 	#include <stdio.h>

@@ -61,7 +61,7 @@ typedef enum NEW_MACHINE_EVENT_ENUM {
 	, newMachine_subMachine2_eee3
 	, newMachine_subMachine2_noEvent
 	, newMachine_numAllEvents
-}  NEW_MACHINE_EVENT_ENUM;
+}  NEW_MACHINE_EVENT_ENUM, *pNEW_MACHINE_EVENT_ENUM;
 
 
 #endif

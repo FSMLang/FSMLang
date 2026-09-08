@@ -453,7 +453,6 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    /* for sub machines, some output strings are taken from the parent */
    pfsmcog->pcmd->fsm_fn_event_type       = pfsmcog->parent_fsmcog->pcmd->event_type;
    pfsmcog->pcmd->event_type              = pfsmcog->parent_fsmcog->pcmd->event_type;
-   pfsmcog->pcmd->sub_fsm_fn_return_type  = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_return_type;
    if ((pfsmcog->pcmd->pmi->modFlags & mfTranslatorImplementing)
 	   && (pmi->modFlags & ACTIONS_RETURN_FLAGS)
 	   )
@@ -475,6 +474,7 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
 	   }
 	   pfsmcog->pcmd->sub_fsm_fn_event_type   = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_event_type;
 	   pfsmcog->pcmd->instance_type           = pfsmcog->parent_fsmcog->pcmd->instance_type;
+	   pfsmcog->pcmd->sub_fsm_fn_return_type  = pfsmcog->parent_fsmcog->pcmd->sub_fsm_fn_return_type;
    }
 
    chooseWorkerFunctions(pfsmcog);
@@ -1075,8 +1075,20 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
    }
 
    fprintf(pcmd->cFile
-		   , ", %s event)\n{\n"
+		   , ", %s event"
 		   , fsmFnEventType(pcmd)
+		   );
+
+   if (pcmd->parent_pcmd->pmi->heterogeneous_children)
+   {
+	   fprintf(pcmd->cFile
+			   , ", p%s preturn_event"
+			   , fsmFnEventType(pcmd)
+			  );
+   }
+
+   fprintf(pcmd->cFile
+		   , ")\n{\n"
 		   );
 
    if (add_profiling_macros && profile_sub_fsms)
@@ -2067,6 +2079,7 @@ static void writeSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tab
 
    pCMachineData pcmd = pfsmcog->pcmd;
    pMACHINE_INFO pmi  = pfsmcog->pcmd->pmi;
+   char *tab          = pmi->has_single_pai_events ? "\t" : "";
 
    if (pmi->has_single_pai_events)
    {
@@ -2085,7 +2098,8 @@ static void writeSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tab
    }
 
    fprintf(pcmd->cFile
-           , "\t\tif (((%s >= THIS(firstEvent)) && (%s < THIS(noEvent)))\n"
+           , "%s\tif (((%s >= THIS(firstEvent)) && (%s < THIS(noEvent)))\n"
+		   , tab
 		   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
 		   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
            );
@@ -2093,35 +2107,40 @@ static void writeSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tab
    if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
    {
 	   fprintf(pcmd->cFile
-			   , "\t\t   || ((%s >= PARENT(firstEvent)) && (%s < PARENT(noEvent)))\n"
+			   , "%s\t   || ((%s >= PARENT(firstEvent)) && (%s < PARENT(noEvent)))\n"
+			   , tab
 			   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
 			   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
 			   );
    }
 
    fprintf(pcmd->cFile
-		   , "\t\t   )\n\t\t{\n"
+		   , "%s\t   )\n\t\t{\n"
+		   , tab
            );
 
    if (pmi->modFlags & ACTIONS_RETURN_FLAGS)
    {
       fprintf(pcmd->cFile
 			   , compact_action_array
-			     ? "\t\t\t(*pfsm->currentState)(pfsm,event);\n"
-			     : "\t\t\t(*(*pfsm->statesArray)[pfsm->state])(pfsm,event);\n"
+			     ? "%s\t\t(*pfsm->currentState)(pfsm,event);\n"
+			     : "%s\t\t(*(*pfsm->statesArray)[pfsm->state])(pfsm,event);\n"
+			  , tab
               );
    }
    else
    {
       fprintf(pcmd->cFile
 			  , compact_action_array
-			    ? "\t\t\te = (*pfsm->currentState)(pfsm,e);\n"
-                : "\t\t\te = (*(*pfsm->statesArray)[pfsm->state])(pfsm,e);\n"
+			    ? "%s\t\te = (*pfsm->currentState)(pfsm,e);\n"
+                : "%s\t\te = (*(*pfsm->statesArray)[pfsm->state])(pfsm,e);\n"
+			  , tab
               );
    }
 
    fprintf(pcmd->cFile
-           , "\t\t}\n"
+           , "%s\t}\n"
+		   , tab
            );
 
    if (pmi->has_single_pai_events)

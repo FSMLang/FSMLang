@@ -507,11 +507,11 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
    printFSMSubMachineDebugBlock(pcmd, pmi, false);
 
    fprintf(pcmd->cFile
-           , "\t\t/* This is read-only data to facilitate error reporting in action functions */\n"
+           , "\t/* This is read-only data to facilitate error reporting in action functions */\n"
            );
 
    fprintf(pcmd->cFile
-           , "\t\tpfsm->event = event;\n\n"
+           , "\tpfsm->event = event;\n\n"
            );
 
    writeCFSMLoopInnards("");
@@ -519,27 +519,23 @@ void writeOriginalSwitchSubFSMLoopArv(pFSMCOutputGenerator pfsmcog)
    if (pmi->machine_list)
    {
        fprintf(pcmd->cFile
-               , "\n\t\tif ((event > THIS(noEvent))\n\t\t\t&& (event < THIS(lastEvent)))\n\t\t{\n\t\t\t"
+               , "\n\tif ((event > THIS(noEvent))\n\t\t&& (event < THIS(lastEvent)))\n\t{\n\t\t"
               );
 
 	   fprintf(pcmd->cFile
-			   , "%sfindAndRunSubMachine(pfsm, event);\n\t\t}\n"
-			   , pmi->submachine_inhibitor_count ? "if (doNotInhibitSubMachines(pfsm->state))\n\t\t\t\t  " : ""
+			   , "%sfindAndRunSubMachine(pfsm, event);\n\t}\n"
+			   , pmi->submachine_inhibitor_count ? "if (doNotInhibitSubMachines(pfsm->state))\n\t\t\t  " : ""
 			   );
    }
 
    if (add_profiling_macros && profile_sub_fsms)
    {
-	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n\n");
+	   fprintf(pcmd->cFile, "\n\tFSM_EXIT(pfsm);\n");
    }
 
-   if ((pmi->modFlags & mfTranslatorImplementing)
-	   && !(pmi->parent->modFlags & ACTIONS_RETURN_FLAGS)
-	   )
+   if (pcmd->parent_pcmd->pmi->heterogeneous_children)
    {
-	   /* In this case we must return a value, since our parent expects it. */
-	   fprintf(pcmd->cFile, "\treturn PARENT(noEvent);\n");
-	   
+	   fprintf(pcmd->cFile, "\n\t(void) preturn_event;\n");
    }
 
    FSMLANG_DEVELOP_PRINTF(pfsmcog->pcmd->cFile, "/* FSMLANG_DEVELOP: End %s */\n", __func__);

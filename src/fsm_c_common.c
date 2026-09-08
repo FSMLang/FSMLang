@@ -750,8 +750,9 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 		   );
 
 	fprintf(pcmd->eventsHFile
-			, "}%s %s;\n\n"
+			, "}%s %s, *p%s;\n\n"
 			, compact_action_array ? "__attribute__((__packed__)) " : " "
+			, eventType(pcmd)
 			, eventType(pcmd)
 		   );
 
@@ -930,8 +931,8 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 
 	/* typedef the FSM function */
 	fprintf(generate_instance ? pcmd->hFile : pcmd->pubHFile
-			, "typedef void (*%s_FSM)(p%s,%s);\n\n"
-			, fsmType(pcmd)
+			, "typedef void (*%s)(p%s,%s);\n\n"
+			, fsmFnType(pcmd)
 			, fsmType(pcmd)
 			, fsmFnEventType(pcmd)
 		   );
@@ -2602,14 +2603,15 @@ static void define_parent_event_reference_elements(pCMachineData pcmd, pMACHINE_
 		 */
 		fprintf(pcmd->cFile
 				, "\t\t%s(*(*pcurrent_sharer)->psub_fsm_if->subFSM)"
-				, pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return_event = "
+				, (pmi->heterogeneous_children || (pmi->modFlags & ACTIONS_RETURN_FLAGS)) ? "" : "return_event = "
 			   );
 
 		fprintf(pcmd->cFile
-				, "(pinstance%s, (*pcurrent_sharer)->event);\n"
+				, "(pinstance%s, (*pcurrent_sharer)->event%s);\n"
 				, pmi->submachines_wanting_parent_data_count
 				? ", &pfsm->data"
 				: ""
+				, pmi->heterogeneous_children ? ", &return_event" : ""
 			   );
 
 		fprintf(pcmd->cFile
@@ -3328,9 +3330,9 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 
 	/* typedef the FSM function */
 	fprintf(pcmd->hFile
-			, "typedef %s (*%s_FSM)(p%s"
+			, "typedef %s (*%s)(p%s"
 			, subFsmFnReturnType(pcmd)
-			, fsmType(pcmd)
+			, fsmFnType(pcmd)
 			, fsmType(pcmd)
 		   );
 
@@ -3343,12 +3345,25 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 	}
 
 	fprintf(pcmd->hFile
-			, ",%s);\n\n"
+			, ",%s"
 			, fsmFnEventType(pcmd)
 		   );
 
+	if (pmi->parent->heterogeneous_children)
+	{
+		fprintf(pcmd->hFile
+				, ",p%s"
+				, subFsmFnEventType(pcmd->parent_pcmd)
+			   );
+	}
+
+	fprintf(pcmd->hFile
+			, ");\n\n"
+			);
+
 	/* declare the FSM function */
-	fprintf(generate_instance ? pcmd->cFile : pcmd->hFile
+	FILE *fout_instance = generate_instance ? pcmd->cFile : pcmd->hFile;
+	fprintf(fout_instance
 			, "%s %s %sFSM(p%s"
 			, generate_instance ? "static" : "extern"
 			, subFsmFnReturnType(pcmd)
@@ -3358,16 +3373,28 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 
 	if (pmi->parent->submachines_wanting_parent_data_count)
 	{
-		fprintf(generate_instance ? pcmd->cFile : pcmd->hFile
+		fprintf(fout_instance
 				, ",p%s"
 				, fsmDataType(pcmd->parent_pcmd)
 			   );
 	}
 
-	fprintf(generate_instance ? pcmd->cFile : pcmd->hFile
-			, ",%s);\n\n"
+	fprintf(fout_instance
+			, ",%s"
 			, fsmFnEventType(pcmd)
 		   );
+
+	if (pmi->parent->heterogeneous_children)
+	{
+		fprintf(fout_instance
+				, ",p%s"
+				, subFsmFnEventType(pcmd->parent_pcmd)
+				);
+	}
+
+	fprintf(fout_instance
+			, ");\n\n"
+			);
 
 	if (generate_instance)
 	{
@@ -3516,7 +3543,10 @@ void possiblyDefineSubMachineSharedEventStructures(pCMachineData pcmd, pMACHINE_
 		ich.pcmd = pcmd;
 		ich.ih.fout = pcmd->cFile;
 
-		iterate_list(pmi->event_list, define_needed_shared_event_structures, &ich);
+		iterate_list(pmi->event_list
+					 , define_needed_shared_event_structures
+					 , &ich
+					 );
 	}
 
 }
@@ -3539,28 +3569,27 @@ void defineSubMachineIF(pCMachineData pcmd)
 	}
 
 	fprintf(pcmd->cFile
-			, ", %s e)\n{\n"
+			, ", %s e"
 			, fsmFnEventType(pcmd)
 		   );
 
-	fprintf(pcmd->cFile
-			, "\t%s((FSM_TYPE_PTR)pfsm)->fsm((FSM_TYPE_PTR)pfsm"
-			, (!(pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS)
-			   || ((pcmd->pmi->modFlags & mfTranslatorImplementing)
-				   && !(pcmd->parent_pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS)
-				   )
-			   ) ? "return" : ""
-		   );
-
-	if (pcmd->pmi->parent->submachines_wanting_parent_data_count)
+	if (pcmd->parent_pcmd->pmi->heterogeneous_children)
 	{
 		fprintf(pcmd->cFile
-				, ",pparent_data"
-			   );
+				, ", p%s preturn_event"
+				, subFsmFnEventType(pcmd->parent_pcmd)
+				);
 	}
 
 	fprintf(pcmd->cFile
-			, ",e);\n}\n\n"
+			, ")\n{\n"
+			);
+
+	fprintf(pcmd->cFile
+			, "\t%s((FSM_TYPE_PTR)pfsm)->fsm((FSM_TYPE_PTR)pfsm%s, e%s);\n}\n\n"
+			, !(pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "return " : ""
+			, (pcmd->pmi->parent->submachines_wanting_parent_data_count) ? ", pparent_data" : ""
+			, pcmd->parent_pcmd->pmi->heterogeneous_children ? ", preturn_event" : ""
 		   );
 
 	fprintf(pcmd->cFile
@@ -3994,6 +4023,14 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
 			, eventType(pcmd)
 		   );
 
+	if (pmi->heterogeneous_children)
+	{
+		fprintf(pcmd->cFile
+				, "\t%s return_event = THIS(noEvent);\n\n"
+				, subFsmFnEventType(pcmd)
+				);
+	}
+
 	fprintf(pcmd->cFile
 			, "\tfor (%s machineIterator = THIS(firstSubMachine);\n"
 			"\t     machineIterator < THIS(numSubMachines);\n"
@@ -4017,7 +4054,9 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	fprintf(pcmd->cFile
 			, "\t\t\t\t%s((*(*pfsm->subMachineArray)[machineIterator]->subFSM)(pinstance"
-			, pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
+			, pmi->heterogeneous_children
+			  ? ""
+			  : pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
 		   );
 
 	if (pmi->submachines_wanting_parent_data_count)
@@ -4028,7 +4067,9 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
 	}
 
 	fprintf(pcmd->cFile
-			, ", e));\n"
+			, ", e%s));\n%s"
+			, pmi->heterogeneous_children ? ", &return_event" : ""
+			, pmi->heterogeneous_children ? "\t\t\t\tbreak;\n" : ""
 		   );
 
 	fprintf(pcmd->cFile
@@ -4037,7 +4078,11 @@ void defineSubMachineFinder(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	fprintf(pcmd->cFile
 			, "\t}\n\n%s\n\n}\n\n"
-			, pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "\treturn THIS(noEvent);"
+			, pmi->modFlags & ACTIONS_RETURN_FLAGS
+			  ? ""
+			: pmi->heterogeneous_children
+			   ? "\treturn return_event;"
+			   : "\treturn THIS(noEvent);"
 		   );
 }
 
@@ -4609,7 +4654,7 @@ void printSubMachinesDeclarations(pCMachineData pcmd, pMACHINE_INFO pmi)
 
 	fprintf(fout
 			, "typedef %s (*%s)(const void*"
-			, subFsmFnReturnType(pcmd)
+			, pmi->heterogeneous_children ? "void" : subFsmFnReturnType(pcmd)
 			, subMachineFnType(pcmd)
 		   );
 
@@ -4622,9 +4667,21 @@ void printSubMachinesDeclarations(pCMachineData pcmd, pMACHINE_INFO pmi)
 	}
 
 	fprintf(fout
-			, ",%s);\n"
+			, ",%s"
 			, subFsmFnEventType(pcmd)
 		   );
+
+	if (pmi->heterogeneous_children)
+	{
+		fprintf(fout
+				, ",p%s"
+				, subFsmFnEventType(pcmd)
+				);
+	}
+
+	fprintf(fout
+			, ");\n"
+			);
 
 	fprintf(fout
 			, "typedef struct _%s_sub_fsm_if_ %s, *p%s;\n"
@@ -5210,9 +5267,18 @@ static bool define_artifact_implementing_machine_run_function(pLIST_ELEMENT pele
 
 		fqMachineNamePmi(pmi, &name);
 
+		if (pich->ih.pmi->heterogeneous_children)
+		{
+			fprintf(pich->pcmd->cFile
+					, "\n\t%s return_event = THIS(noEvent);\n"
+					, subFsmFnReturnType(pich->pcmd)
+				   );
+		}
+
 		fprintf(pich->pcmd->cFile
 				, "\n\tconst void * pinstance = "
 				);
+
 		if (generate_instance)
 		{
 			fprintf(pich->pcmd->cFile
@@ -5228,15 +5294,21 @@ static bool define_artifact_implementing_machine_run_function(pLIST_ELEMENT pele
 					);
 		}
 		fprintf(pich->pcmd->cFile
-				, "\n\t%s(*%s_sub_fsm_if.subFSM)(pinstance,%sevent);\n"
-				, pich->ih.pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
+				, "\n\t%s(*%s_sub_fsm_if.subFSM)(pinstance,%sevent%s);\n"
+				, pich->ih.pmi->heterogeneous_children
+				  ? ""
+				  : pich->ih.pmi->modFlags & ACTIONS_RETURN_FLAGS ? "" : "return "
 				, name
 				, pich->ih.pmi->data ? "&pfsm->data," : ""
+				, pich->ih.pmi->heterogeneous_children ? ", &return_event" : ""
 				);
 		CHECK_AND_FREE(name);
 
 		fprintf(pich->pcmd->cFile
-				, "\n}\n\n"
+				, "%s\n}\n\n"
+				, (pich->ih.pmi->heterogeneous_children && !(pich->ih.pmi->modFlags & ACTIONS_RETURN_FLAGS))
+				  ? "\n\treturn return_event;"
+				  : ""
 				);
 	}
 
