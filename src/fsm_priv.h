@@ -40,8 +40,14 @@
 
 #ifdef FSMLANG_DEVELOP
 #define FSMLANG_DEVELOP_PRINTF(A, ...) if (A) fprintf(A, __VA_ARGS__)
+#define FDPC(A, B, ...)\
+(fprintf(A, "/* [%s] is %s */\n", #B, (B) ? "true" : "false"), (B))
+#define FDPC_NR(A, B, ...)\
+fprintf(A, "/* [%s] is %s */\n", #B, (B) ? "true" : "false")
 #else
 #define FSMLANG_DEVELOP_PRINTF(...)
+#define FDPC(...)
+#define FDPC_NR(...)
 #endif
 
 #define RETURN_IF_NULL(A) \
@@ -426,7 +432,7 @@ struct _machine_info_ {
   unsigned      average_state_event_density_pct;
   unsigned      average_event_state_density_pct;
   pLIST         sequences;
-  pID_INFO      implemented_state;
+  pID_INFO      implemented_artifact;
   bool          heterogeneous_children;
 };
 
