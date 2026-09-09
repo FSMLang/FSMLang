@@ -1079,7 +1079,9 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 		   , fsmFnEventType(pcmd)
 		   );
 
-   if (pcmd->parent_pcmd->pmi->heterogeneous_children)
+   if (pcmd->parent_pcmd->pmi->heterogeneous_children
+	   && (pmi->modFlags & ACTIONS_RETURN_FLAGS)
+	   )
    {
 	   fprintf(pcmd->cFile
 			   , ", p%s preturn_event"
@@ -1256,7 +1258,7 @@ static void print_state_fn_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi, pID_I
               );
     }
 
-    if (!(pmi->modFlags & mfActionsReturnVoid))
+	if (!(pmi->modFlags & mfActionsReturnVoid))
     {
        fprintf(pcmd->cFile
                , "\n\treturn retVal;\n"
@@ -1335,9 +1337,11 @@ static bool define_event_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 					);
 		}
 		fprintf(pich->pcmd->cFile
-				, "\n\tretVal = (*%s_sub_fsm_if.subFSM)(pinstance,%se);\n"
+				, "\n\t%s(*%s_sub_fsm_if.subFSM)(pinstance,%se%s);\n"
+				, pich->ih.pmi->heterogeneous_children ? "" : "retVal = "
 				, name
 				, pich->ih.pmi->data ? "&pfsm->data," : ""
+				, pich->ih.pmi->heterogeneous_children ? ", &retVal" : ""
 				);
 		CHECK_AND_FREE(name);
 

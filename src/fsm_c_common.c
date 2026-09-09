@@ -3349,7 +3349,9 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 			, fsmFnEventType(pcmd)
 		   );
 
-	if (pmi->parent->heterogeneous_children)
+	if (pmi->parent->heterogeneous_children
+		&& (pmi->modFlags & ACTIONS_RETURN_FLAGS)
+		)
 	{
 		fprintf(pcmd->hFile
 				, ",p%s"
@@ -3384,7 +3386,9 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 			, fsmFnEventType(pcmd)
 		   );
 
-	if (pmi->parent->heterogeneous_children)
+	if (pmi->parent->heterogeneous_children
+		&& (pmi->modFlags & ACTIONS_RETURN_FLAGS)
+		)
 	{
 		fprintf(fout_instance
 				, ",p%s"
@@ -3557,7 +3561,7 @@ void defineSubMachineIF(pCMachineData pcmd)
 
 	fprintf(pcmd->cFile
 			, "\n%s THIS(sub_machine_fn)(const void *pfsm"
-			, subFsmFnReturnType(pcmd)
+			, pcmd->parent_pcmd->pmi->heterogeneous_children ? "void" : subFsmFnReturnType(pcmd)
 		   );
 
 	if (pcmd->pmi->parent->submachines_wanting_parent_data_count)
@@ -3587,9 +3591,21 @@ void defineSubMachineIF(pCMachineData pcmd)
 
 	fprintf(pcmd->cFile
 			, "\t%s((FSM_TYPE_PTR)pfsm)->fsm((FSM_TYPE_PTR)pfsm%s, e%s);\n}\n\n"
-			, !(pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "return " : ""
+			, pcmd->parent_pcmd->pmi->heterogeneous_children
+			  ? (!(pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS)
+			    ? "*preturn_event =  "
+				: ""
+				)
+	          : (pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS
+	             ? ""
+	             : "return "
+				 )
 			, (pcmd->pmi->parent->submachines_wanting_parent_data_count) ? ", pparent_data" : ""
-			, pcmd->parent_pcmd->pmi->heterogeneous_children ? ", preturn_event" : ""
+			, (pcmd->parent_pcmd->pmi->heterogeneous_children
+			   && (pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS)
+			   )
+			  ? ", preturn_event"
+			  : ""
 		   );
 
 	fprintf(pcmd->cFile
@@ -3830,6 +3846,8 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 
 	if (pid_info->name && strlen(pid_info->name))
 	{
+		FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* action: %s */\n", pid_info->name);
+
 		/* if this action is associated with a shared event, it will have exactly one event */
 		pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->type_data.action_data.actionInfo->matrix->event_list, 0);
 		pEVENT_DATA ped = &pevent->type_data.event_data;
