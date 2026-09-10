@@ -16,6 +16,24 @@ int main(void)
 	run_test_fsm(&e);
 	run_test_fsm(&e);
 
+	e.event = THIS(e2);
+	run_test_fsm(&e);
+
+	e.event = THIS(e1);
+	run_test_fsm(&e);
+
+	e.event = THIS(e2);
+	run_test_fsm(&e);
+
+	e.event = THIS(e3);
+	run_test_fsm(&e);
+
+	e.event = THIS(e4);
+	run_test_fsm(&e);
+
+	e.event = THIS(e3);
+	run_test_fsm(&e);
+
 	return 0;
 }
 

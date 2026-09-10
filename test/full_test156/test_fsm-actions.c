@@ -25,3 +25,10 @@ void UFMN(init_s2_implementor)(FSM_TYPE_PTR pfsm)
 	run_test_fsm_s2_implementor(pfsm, THIS(e0));
 }
 
+void UFMN(init_s3_implementor)(FSM_TYPE_PTR pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+
+	run_test_fsm_s3_implementor(pfsm, THIS(e0));
+}
+

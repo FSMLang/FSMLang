@@ -22,10 +22,16 @@ native impl
 	event e0;
 	event e1 data translator xlate_e1 implemented by machine e1_translator {int i;};
 	event e2;
+	event e3;
+	event e4;
 
 	state s1;
 	state s2 implemented by machine s2_implementor
 				on entry init_s2_implementor
+				;
+
+	state s3 implemented by machine s3_implementor
+				on entry init_s3_implementor
 				;
 
 	machine e1_translator
@@ -55,6 +61,7 @@ native impl
 		event parent::e0;
 		event parent::e1;
 		event parent::e2;
+		event parent::e3;
 
 		state s1;
 		state s2;
@@ -63,11 +70,39 @@ native impl
 
 		action a1 [e1, s2];
 		action a2 [e2, s2];
+		action a3 [e3, s2];
 	}
 
+	machine s3_implementor
+	{
+		event parent::e0;
+		event parent::e1;
+		event parent::e2;
+		event parent::e3;
+
+		state s1;
+		state s2;
+
+		transition [e0, s1] s2;
+
+		action a1 [e1, s2];
+		action a2 [e2, s2];
+		action a3 [e3, s2];
+	}
+
+	machine misc_work
+	{
+		event parent::e3;
+
+		state s1;
+
+		transition [e3, s1] s1;
+
+	}
 
 	action a0[e0, s1];
 	action a1[e1, s1];
 	transition [e2, s1] s2;
+	transition [e4, s2] s3;
 
 }
