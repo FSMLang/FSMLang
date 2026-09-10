@@ -82,23 +82,20 @@ static void print_parent_event_sharer_signature(pCMachineData pcmd, pID_INFO pev
 
 bool find_legitimate_sharer(pLIST_ELEMENT pelem, void *data)
 {
-	pMACHINE_INFO             pmi  = (pMACHINE_INFO) pelem->mbr;
-	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
-	pEVENT_DATA               ped = &pich->ih.pid->type_data.event_data;
+	pMACHINE_INFO             pmi    = (pMACHINE_INFO) pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
+	pID_INFO                  pevent = pich->ih.pid;
+	pEVENT_DATA               ped    = &pevent->type_data.event_data;
 
-	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s; machine: %s */\n", __func__, pmi->name->name);
 
 	return (
 			(pmi != pich->ih.pmi)
 			&& (!(pmi->modFlags & mfStateImplementing))
-			/*
-			&& (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
-			*/
-
 			&& (!(pmi->modFlags & mfTranslatorImplementing)
-				|| (!ped->puser_event_data
-					|| !ped->puser_event_data->translator
-					|| (ped->puser_event_data->translator->type_data.translator_data.implementingMachine->type_data.machine_pid_data.pmi != pmi)
+				|| (FDPC(pich->ih.fout, !ped->puser_event_data)
+					|| FDPC(pich->ih.fout, !ped->puser_event_data->translator)
+					|| FDPC(pich->ih.fout, (ped->puser_event_data->translator->type_data.translator_data.implementingMachine->type_data.machine_pid_data.pmi != pmi))
 					)
 				)
 			);

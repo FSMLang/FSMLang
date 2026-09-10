@@ -3838,22 +3838,25 @@ bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
 bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 {
 	pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
-	pID_INFO pid_info              = ((pID_INFO)pelem->mbr);
+	pID_INFO paction               = ((pID_INFO)pelem->mbr);
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	pich->ih.fout = pich->pcmd->cFile;
 
-	if (pid_info->name && strlen(pid_info->name))
+	if (paction->name && strlen(paction->name))
 	{
-		FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* action: %s */\n", pid_info->name);
 
 		/* if this action is associated with a shared event, it will have exactly one event */
-		pID_INFO pevent = (pID_INFO)find_nth_list_member(pid_info->type_data.action_data.actionInfo->matrix->event_list, 0);
+		pID_INFO pevent = (pID_INFO)find_nth_list_member(paction->type_data.action_data.actionInfo->matrix->event_list, 0);
 		pEVENT_DATA ped = &pevent->type_data.event_data;
 
 		pich->ih.pid = pevent;
 
+		FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile
+							   , "/* action: %s; event: %s */\n"
+							   , paction->name, pevent->name
+							   );
 		/* and, that event will have a list of sharing machines */
 		if (ped->psharing_sub_machines
 			&& iterate_list(ped->psharing_sub_machines, find_legitimate_sharer, pich)
@@ -3864,7 +3867,7 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 					, pich->pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS
 					? actionReturnType(pich->pcmd)
 					: subFsmFnReturnType(pich->pcmd)
-					, pid_info->name
+					, paction->name
 					, fsmType(pich->pcmd)
 				   );
 
@@ -3893,6 +3896,8 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 				   );
 		}
 		else if (ped->shared_with_parent
+				 // We're now looking at the parent event
+				 && (pich->ih.pid = ped->parent_event, true)
 				 && (pich->ih.pmi->modFlags & mfStateImplementing)
 				 && iterate_list(ped->parent_event->type_data.event_data.psharing_sub_machines, find_legitimate_sharer, pich)
 				 )
@@ -3902,7 +3907,7 @@ bool define_event_passing_actions(pLIST_ELEMENT pelem, void *data)
 					, pich->pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS
 					? actionReturnType(pich->pcmd)
 					: subFsmFnReturnType(pich->pcmd)
-					, pid_info->name
+					, paction->name
 					, fsmType(pich->pcmd)
 				   );
 

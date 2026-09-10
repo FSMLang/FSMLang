@@ -46,8 +46,8 @@
 fprintf(A, "/* [%s] is %s */\n", #B, (B) ? "true" : "false")
 #else
 #define FSMLANG_DEVELOP_PRINTF(...)
-#define FDPC(...)
-#define FDPC_NR(...)
+#define FDPC(A, B, ...) (B)
+#define FDPC_NR(A, B, ...) (B)
 #endif
 
 #define RETURN_IF_NULL(A) \
