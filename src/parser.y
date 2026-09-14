@@ -2695,7 +2695,7 @@ const struct option longopts[] =
     }
     , {
         .name      = "force-generation-of-event-passing-actions"
-        , .has_arg = no_argument
+        , .has_arg = optional_argument
         , .flag    = &longval
         , .val     = lo_force_generation_of_event_passing_actions
     }
@@ -2947,6 +2947,8 @@ int main(int argc, char **argv)
                 break;
             case lo_force_generation_of_event_passing_actions:
                 force_generation_of_event_passing_actions = true;
+                if (optarg && !strcmp(optarg,"false"))
+                    force_generation_of_event_passing_actions= false;
                 break;
             case lo_generate_run_function:
                 if (optarg && !strcmp(optarg,"false"))
