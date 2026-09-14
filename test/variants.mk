@@ -16,7 +16,7 @@ c c.size c_run: FSM_FLAGS+=-tc --generate-weak-fns=false --force-generation-of-e
 c c.size c_run: CFLAGS+=-DFSM_VARIANT_C
 
 #s s.size s_run: FSM_FLAGS=-ts
-s s.size s_run: FSM_FLAGS+=-ts --generate-weak-fns=false --force-generation-of-event-passing-actions
+s s.size s_run: FSM_FLAGS+=-ts --generate-weak-fns=false --force-generation-of-event-passing-actions $(FINAL_FSM_FLAGS)
 s s.size s_run: CFLAGS+=-DFSM_VARIANT_S
 ss ss.size ss_run: FSM_FLAGS+=-tss --generate-weak-fns=false --force-generation-of-event-passing-actions
 ss ss.size ss_run: CFLAGS+=-DFSM_VARIANT_SS

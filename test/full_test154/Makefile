@@ -15,7 +15,8 @@ override CFLAGS += -I../                  \
     -DCOMMUNICATOR_FIRST_CONNECTION_DEBUG \
     -DCOMMUNICATOR_AUTH1_DEBUG            \
     -DCOMMUNICATOR_AUTH2_DEBUG            \
-    -DCOMMUNICATOR_SYNC_DEBUG 
+    -DCOMMUNICATOR_SYNC_DEBUG             \
+	 -DCOMMUNICATOR_STEADY_STATE_DEBUG
 
 
 VARIANTS=s
@@ -25,6 +26,7 @@ VARIANTS=s
 include ../variants.mk
 
 FSM_FLAGS+=--add-profiling-macros=true --profile-sub-fsms=true
+FINAL_FSM_FLAGS=--force-generation-of-event-passing-actions=false
 
 FSM_FLAGS += -i3
 
