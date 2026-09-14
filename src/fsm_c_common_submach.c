@@ -90,9 +90,9 @@ bool find_legitimate_sharer(pLIST_ELEMENT pelem, void *data)
 	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s; machine: %s */\n", __func__, pmi->name->name);
 
 	return (
-			(pmi != pich->ih.pmi)
-			&& (!(pmi->modFlags & mfStateImplementing))
-			&& (!(pmi->modFlags & mfTranslatorImplementing)
+			FDPC(pich->ih.fout, (pmi != pich->ih.pmi))
+			&& (FDPC(pich->ih.fout, !(pmi->modFlags & mfStateImplementing)))
+			&& (FDPC(pich->ih.fout, !(pmi->modFlags & mfTranslatorImplementing))
 				|| (FDPC(pich->ih.fout, !ped->puser_event_data)
 					|| FDPC(pich->ih.fout, !ped->puser_event_data->translator)
 					|| FDPC(pich->ih.fout, (ped->puser_event_data->translator->type_data.translator_data.implementingMachine->type_data.machine_pid_data.pmi != pmi))

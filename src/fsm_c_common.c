@@ -2473,7 +2473,11 @@ static bool define_shared_event_lists(pLIST_ELEMENT pelem, void *data)
 	pEVENT_DATA ped      = &pevent->type_data.event_data;
 	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER)data;
 
-	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+	FSMLANG_DEVELOP_PRINTF(pich->ih.fout
+						   , "/* FSMLANG_DEVELOP: %s; event: %s */\n"
+						   , __func__
+						   , pevent->name
+						   );
 
 	pich->ih.pid   = pevent;
 	if (ped->psharing_sub_machines
