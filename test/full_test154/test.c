@@ -7,10 +7,12 @@ typedef void (*test_fn)(void);
 static void scan_happy_path(void);
 static void connect_happy_path(void);
 static void force_find_and_run(void);
+static void steady_state(void);
 test_fn tests[] = {
 	scan_happy_path
 	, connect_happy_path
 	, force_find_and_run
+	, steady_state
 	, NULL
 };
 
@@ -47,6 +49,42 @@ static void scan_happy_path()
 	e.event = THIS(ble_comm);
 	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
 	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT;
+	run_communicator_instance0(&e);
+
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT;
+	run_communicator_instance0(&e);
+
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT;
+	run_communicator_instance0(&e);
+
+}
+
+static void steady_state()
+{
+	COMMUNICATOR_EVENT e;
+
+	printf("\ntest: %s\n", __func__);
+
+	/* first window */
+	e.event = THIS(comm_window_timer_expired);
+	run_communicator_instance0(&e);
+
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT;
+	run_communicator_instance0(&e);
+
+	e.event = THIS(ble_comm);
+	e.event_data.ble_comm_data.ble_e.type = ble_gatt_message;
+	e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT;
+	run_communicator_instance0(&e);
+
+	/* second window */
+	e.event = THIS(comm_window_timer_expired);
 	run_communicator_instance0(&e);
 
 	e.event = THIS(ble_comm);
