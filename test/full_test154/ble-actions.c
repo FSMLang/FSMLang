@@ -13,8 +13,6 @@ TRANSLATOR_RETURN_TYPE UFMN(translate_ble_comm)(FSM_DATA_PTR pfsm_data, PARENT_D
 {
 	DBG_PRINTF("%s", __func__);
 	
-	(void) pfsm_data;
-
 	ACTION_RETURN_TYPE ret;
 
 	pfsm_data->pcurr_ble_event = pparent_data->pcurr_ble_event;

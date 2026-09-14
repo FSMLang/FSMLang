@@ -29,6 +29,7 @@ native impl
 	event parent::ble_comm consuming data translator translate_ble_comm;
 	event parent::configuration_complete consuming data translator check_configuration;
 	event parent::comm_window_timer_expired;
+	event parent::peer_data_synced;
 
 	event do_scan;
 	event do_connect;
@@ -54,11 +55,12 @@ native impl
 	transition [activate, (all)] waiting;
 	transition [do_scan, waiting] scanning;
 	transition [do_connect, waiting] waiting_for_connection_window;
+	transition [peer_data_synced, waiting] waiting_for_connection_window;
 
 	action parse_adv_packet[adv_packet, scanning];
 	action look_for_peer[comm_window_timer_expired, waiting_for_connection_window];
-	action report_connection [connection, (scanning, waiting_for_connection_window)] transition waiting;
-	action report_gatt_characteristic [gatt_msg, waiting];
+	action report_connection [connection, (scanning, waiting_for_connection_window)] transition waiting_for_connection_window;
+	action report_gatt_characteristic [gatt_msg, waiting_for_connection_window];
 
 }
 

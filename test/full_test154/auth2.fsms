@@ -17,9 +17,11 @@ native impl
 	event parent::activate;
 	event parent::start_auth2;
 	event parent::auth2_gatt;
+	event parent::comm_window_starting;
 
 	transition [activate, (all)] active;
 	action report_auth2_complete[auth2_gatt, active] transition done;
+	transition [comm_window_starting, done] active;
 
 }
 

@@ -17,8 +17,10 @@ native impl
 	event parent::activate;
 	event parent::start_sync;
 	event parent::sync_gatt;
+	event parent::comm_window_starting;
 
 	transition [activate, (all)] active;
+	transition [comm_window_starting, done] active;
 	action report_sync_complete[sync_gatt, active] transition done;
 
 }
