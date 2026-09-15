@@ -453,15 +453,18 @@ static void writeCSwitchSubMachine(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi
    /* for sub machines, some output strings are taken from the parent */
    pfsmcog->pcmd->fsm_fn_event_type       = pfsmcog->parent_fsmcog->pcmd->event_type;
    pfsmcog->pcmd->event_type              = pfsmcog->parent_fsmcog->pcmd->event_type;
-   if ((pfsmcog->pcmd->pmi->modFlags & mfTranslatorImplementing)
+   if ((pfsmcog->pcmd->pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
 	   && (pmi->modFlags & ACTIONS_RETURN_FLAGS)
 	   )
    {
+
 	   //For now, actions returning states are not allowed for translator implementing machines.
 	   //This is not a valid restriction; actions returning states can be allowed in the same
 	   //  cirmucstance as actions returning void are allowed/required.
 	   // TODO: fix this
-	   if (!(pmi->modFlags & mfActionsReturnVoid))
+	   if (!(pmi->modFlags & mfActionsReturnVoid)
+		   && !(pmi->modFlags & mfStateImplementing)
+		   )
 	   {
 		   pfsmcog->pcmd->action_return_type      = pfsmcog->parent_fsmcog->pcmd->action_return_type;
 	   }
