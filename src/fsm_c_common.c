@@ -39,6 +39,7 @@
 #include "util_file_inclusion.h"
 #include "revision.h"
 #include "fsm_c_common_submach.h"
+#include "fsm_c_utils.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -3210,10 +3211,7 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 
 	pfsmcog->wconvenience_macros(pfsmcog);
 
-	fprintf(pcmd->hFile
-			, "#undef PARENT\n#define PARENT(A) %s_##A\n"
-			, fqMachineName(pcmd->parent_pcmd)
-		   );
+	define_ancestor_macros(pcmd->hFile, pcmd);
 
 	if (pmi->parent && pmi->parent->data)
 	{
@@ -4843,6 +4841,8 @@ void printFSMMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool all_s
 
 void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool all_states)
 {
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	char *event_str = (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "event" : "e";
 
 	fprintf(pcmd->cFile
@@ -4867,7 +4867,7 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(%s))\n   )\n{\n"
 			, event_str
 			, event_str
-			, (pmi->parent->modFlags & ACTIONS_RETURN_FLAGS) ? "numEvents" : "noEvent"
+			, (ultimateAncestor(pmi)->modFlags & ACTIONS_RETURN_FLAGS) ? "numEvents" : "noEvent"
 		   );
 
 	fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");
@@ -4902,7 +4902,7 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 				, "    && (%s >= PARENT(firstEvent))\n    && (%s < PARENT(%s))\n   )\n{\n"
 				, event_str
 				, event_str
-				, (pmi->modFlags & ACTIONS_RETURN_FLAGS) ? "numEvents" : "noEvent"
+				, (ultimateAncestor(pmi)->modFlags & ACTIONS_RETURN_FLAGS) ? "numEvents" : "noEvent"
 			   );
 
 		fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");
@@ -4917,7 +4917,7 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 
 		fprintf(pcmd->cFile, "event: %%s; state: %%s\"\n,");
 		fprintf(pcmd->cFile
-				, "%s_EVENT_NAMES[%s]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
+				, "%s_EVENT_NAMES[%s - PARENT(firstEvent)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
 				, ucMachineName(pcmd->parent_pcmd)
 				, event_str
 				, ucMachineName(pcmd)
