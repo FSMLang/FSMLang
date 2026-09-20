@@ -1,21 +1,28 @@
+immediate_PARENT
 []
 
+child_PARENT
 [PARENT]
 
+grand_child_PARENT
 [PARENT_PARENT]
 
+great_grand_child_PARENT
 [PARENT_PARENT_PARENT]
 
+immediate_MACROS
 [
 me: who_knows
 ]
 
+child_MACROS
 [
 me: george_c
 #undef PARENT
 #define PARENT(A) who_knows_##A
 ]
 
+grand_child_MACROS
 [
 me: george_charles
 #undef PARENT_PARENT
@@ -24,6 +31,7 @@ me: george_charles
 #define PARENT(A) george_c_##A
 ]
 
+great_grand_child_MACROS
 [
 me: steve
 #undef PARENT_PARENT_PARENT
@@ -34,46 +42,63 @@ me: steve
 #define PARENT(A) george_charles_##A
 ]
 
+immediate_GENERATION_COUNT
 [0]
 
+child_GENERATION_COUNT
 [1]
 
+grand_child_GENERATION_COUNT
 [2]
 
+great_grand_child_GENERATION_COUNT
 [3]
 
+immediate_NTH_GENERATION
 []
 
+child_NTH_GENERATION
 generation 1: who_knows
 
+grand_child_NTH_GENERATION
 generation 2: who_knows
 generation 1: george_c
 
+great_grand_child_NTH_GENERATION
 generation 3: who_knows
 generation 2: george_c
 generation 1: george_charles
 
+immediate_ULTIMATE_ANCESTOR
 [Me: who_knows; ultimate ancestor: who_knows]
 
+child_ULTIMATE_ANCESTOR
 [Me: george_c; ultimate ancestor: who_knows]
 
+grand_child_ULTIMATE_ANCESTOR
 [Me: george_charles; ultimate ancestor: who_knows]
 
+great_grand_child_ULTIMATE_ANCESTOR
 [Me: steve; ultimate ancestor: who_knows]
 
+great_grand_child_NTH_GENERATION
 generation 3: who_knows
 generation 2: george_c
 generation 1: george_charles
 
+immediate_CASE_STATEMENTS
 []
 
+child_CASE_STATEMENTS
 [case PARENT(e1):
 ]
 
+grand_child_CASE_STATEMENTS
 [case PARENT_PARENT(e1):
 case PARENT(e1):
 ]
 
+great_grand_child_CASE_STATEMENTS
 [case PARENT_PARENT_PARENT(e1):
 case PARENT_PARENT(e1):
 case PARENT(e1):

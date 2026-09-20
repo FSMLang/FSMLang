@@ -122,6 +122,7 @@ int main(void)
 
 static void immediate_PARENT(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	print_ancestor_macro(stdout, &cmd_who_knows);
 	printf("]\n");
@@ -129,6 +130,7 @@ static void immediate_PARENT(void)
 
 static void child_PARENT(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	print_ancestor_macro(stdout, &cmd_george_c);
 	printf("]\n");
@@ -136,6 +138,7 @@ static void child_PARENT(void)
 
 static void grand_child_PARENT(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	print_ancestor_macro(stdout, &cmd_george_charles);
 	printf("]\n");
@@ -143,6 +146,7 @@ static void grand_child_PARENT(void)
 
 static void great_grand_child_PARENT(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	print_ancestor_macro(stdout, &cmd_steve);
 	printf("]\n");
@@ -150,6 +154,7 @@ static void great_grand_child_PARENT(void)
 
 static void immediate_MACROS(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("\nme: %s\n", cmd_who_knows.pmi->name->name);
 	define_ancestor_macros(stdout, &cmd_who_knows);
@@ -158,6 +163,7 @@ static void immediate_MACROS(void)
 
 static void child_MACROS(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("\nme: %s\n", cmd_george_c.pmi->name->name);
 	define_ancestor_macros(stdout, &cmd_george_c);
@@ -166,6 +172,7 @@ static void child_MACROS(void)
 
 static void grand_child_MACROS(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("\nme: %s\n", cmd_george_charles.pmi->name->name);
 	define_ancestor_macros(stdout, &cmd_george_charles);
@@ -174,6 +181,7 @@ static void grand_child_MACROS(void)
 
 static void great_grand_child_MACROS(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("\nme: %s\n", cmd_steve.pmi->name->name);
 	define_ancestor_macros(stdout, &cmd_steve);
@@ -182,6 +190,7 @@ static void great_grand_child_MACROS(void)
 
 static void immediate_GENERATION_COUNT(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("%u", count_generations(&cmd_who_knows));
 	printf("]\n");
@@ -189,6 +198,7 @@ static void immediate_GENERATION_COUNT(void)
 
 static void child_GENERATION_COUNT(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("%u", count_generations(&cmd_george_c));
 	printf("]\n");
@@ -196,6 +206,7 @@ static void child_GENERATION_COUNT(void)
 
 static void grand_child_GENERATION_COUNT(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("%u", count_generations(&cmd_george_charles));
 	printf("]\n");
@@ -203,6 +214,7 @@ static void grand_child_GENERATION_COUNT(void)
 
 static void great_grand_child_GENERATION_COUNT(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("%u", count_generations(&cmd_steve));
 	printf("]\n");
@@ -210,6 +222,7 @@ static void great_grand_child_GENERATION_COUNT(void)
 
 static void immediate_NTH_GENERATION(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	for (unsigned generation = count_generations(&cmd_who_knows);
 			generation;
@@ -226,6 +239,7 @@ static void immediate_NTH_GENERATION(void)
 
 static void child_NTH_GENERATION(void)
 {
+	printf("%s\n", __func__);
 	for (unsigned generation = count_generations(&cmd_george_c);
 			generation;
 			generation--
@@ -240,6 +254,7 @@ static void child_NTH_GENERATION(void)
 
 static void grand_child_NTH_GENERATION(void)
 {
+	printf("%s\n", __func__);
 	for (unsigned generation = count_generations(&cmd_george_charles);
 			generation;
 			generation--
@@ -254,6 +269,7 @@ static void grand_child_NTH_GENERATION(void)
 
 static void great_grand_child_NTH_GENERATION(void)
 {
+	printf("%s\n", __func__);
 	for (unsigned generation = count_generations(&cmd_steve);
 			generation;
 			generation--
@@ -268,6 +284,7 @@ static void great_grand_child_NTH_GENERATION(void)
 
 static void immediate_ULTIMATE_ANCESTOR(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("Me: %s; ultimate ancestor: %s"
 			 , cmd_who_knows.pmi->name->name
@@ -278,6 +295,7 @@ static void immediate_ULTIMATE_ANCESTOR(void)
 
 static void child_ULTIMATE_ANCESTOR(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("Me: %s; ultimate ancestor: %s"
 			 , cmd_george_c.pmi->name->name
@@ -288,6 +306,7 @@ static void child_ULTIMATE_ANCESTOR(void)
 
 static void grand_child_ULTIMATE_ANCESTOR(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("Me: %s; ultimate ancestor: %s"
 			 , cmd_george_charles.pmi->name->name
@@ -298,6 +317,7 @@ static void grand_child_ULTIMATE_ANCESTOR(void)
 
 static void great_grand_child_ULTIMATE_ANCESTOR(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	printf("Me: %s; ultimate ancestor: %s"
 			 , cmd_steve.pmi->name->name
@@ -308,6 +328,7 @@ static void great_grand_child_ULTIMATE_ANCESTOR(void)
 
 static void immediate_CASE_STATEMENTS(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	print_ancestor_case_statements(stdout, &cmd_who_knows, "", "e1");
 	printf("]\n");
@@ -315,6 +336,7 @@ static void immediate_CASE_STATEMENTS(void)
 
 static void child_CASE_STATEMENTS(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	print_ancestor_case_statements(stdout, &cmd_george_c, "", "e1");
 	printf("]\n");
@@ -322,6 +344,7 @@ static void child_CASE_STATEMENTS(void)
 
 static void grand_child_CASE_STATEMENTS(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	print_ancestor_case_statements(stdout, &cmd_george_charles, "", "e1");
 	printf("]\n");
@@ -329,6 +352,7 @@ static void grand_child_CASE_STATEMENTS(void)
 
 static void great_grand_child_CASE_STATEMENTS(void)
 {
+	printf("%s\n", __func__);
 	printf("[");
 	print_ancestor_case_statements(stdout, &cmd_steve, "", "e1");
 	printf("]\n");
