@@ -20,6 +20,7 @@ number of states implemented by machine: 1
 number of actions: 4
 number of sub-machines: 1
 depth of sub-machines: 1
+sub-machines are homogeneous in action return type
 Action Array:
 Event Name          PAI Count      State Count Avg Use (%) Actions Triggered 
 e1                  multiple       2           40         a1, a4

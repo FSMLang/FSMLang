@@ -1,0 +1,126 @@
+native
+{
+#include <stdio.h>
+#define DBG_PRINTF(...) printf(__VA_ARGS__); printf("\n");
+}
+
+machine test_fsm
+	data translators return events;
+native impl
+{
+	#define INIT_FSM_DATA { .i = 0, .j = 0, .k = 0, .l = 0, .pe1_data = NULL }
+}
+{
+	data
+	{
+		int i;
+		int j;
+		int k;
+		int l;
+		pTEST_FSM_E1_DATA pe1_data;
+	}
+
+	event e0;
+	event e1 data translator xlate_e1 implemented by machine e1_translator {int i;};
+	event e2;
+	event e3;
+	event e4;
+
+	state s1;
+	state s2 implemented by machine s2_implementor
+				on entry init_s2_implementor
+				;
+
+	state s3 implemented by machine s3_implementor
+				on entry init_s3_implementor
+				;
+
+	machine e1_translator
+		native impl
+		{
+			#define INIT_FSM_DATA { .pparent_data = NULL}
+		}
+	{
+		data
+		{
+			pTEST_FSM_DATA pparent_data;
+		}
+		event parent::e0;
+		event parent::e1 data translator grab_data;
+		state s1, s2, s3, s4;
+		state s5, s6, s7, s8, s9, s10;
+
+		action a0[e0, s1];
+		action a1[e1, s1] transition s2;
+		action a2[e1, s2] transition s3;
+		action a3[e1, s3] transition s4;
+		action a4[e1, s4] transition s5;
+
+		action a5 [e1, s5]  transition s6;
+		action a6 [e1, s6]  transition s7;
+		action a7 [e1, s7]  transition s8;
+		action a8 [e1, s8]  transition s9;
+		action a9 [e1, s9]  transition s10;
+		action a10[e1, s10] transition s1;
+
+		a5  returns parent::e2;
+		a6  returns parent::e1;
+		a7  returns parent::e2;
+		a8  returns parent::e3;
+		a9  returns parent::e4;
+		a10 returns parent::e3;
+
+	}
+
+	machine s2_implementor
+		actions return void;
+	{
+		event parent::e0;
+		event parent::e1;
+		event parent::e2;
+		event parent::e3;
+
+		state s1;
+		state s2;
+
+		transition [e0, s1] s2;
+
+		action a1 [e1, s2];
+		action a2 [e2, s2];
+		action a3 [e3, s2];
+	}
+
+	machine s3_implementor
+		actions return void;
+	{
+		event parent::e0;
+		event parent::e1;
+		event parent::e2;
+		event parent::e3;
+
+		state s1;
+		state s2;
+
+		transition [e0, s1] s2;
+
+		action a1 [e1, s2];
+		action a2 [e2, s2];
+		action a3 [e3, s2];
+	}
+
+	machine misc_work
+	{
+		event parent::e3;
+
+		state s1;
+
+		transition [e3, s1] s1;
+
+	}
+
+	action a0[e0, s1];
+	action a1[e1, s1];
+	transition [e2, s1] s2;
+	transition [e4, s2] s3;
+
+}

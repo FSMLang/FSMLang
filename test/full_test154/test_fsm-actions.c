@@ -17,6 +17,18 @@ TRANSLATOR_RETURN_TYPE UFMN(grab_ble_comm)(pCOMMUNICATOR pfsm, pCOMMUNICATOR_BLE
 	return run_communicator_ble(pfsm, event);
 }
 
+COMMUNICATOR_EVENT_ENUM UFMN(activate_all)(pCOMMUNICATOR pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return communicator_pass_shared_event(pfsm, sharing_communicator_activate);
+}
+
+COMMUNICATOR_EVENT_ENUM UFMN(start_looking)(pCOMMUNICATOR pfsm)
+{
+	DBG_PRINTF("%s", __func__);
+	return communicator_pass_shared_event(pfsm, sharing_communicator_configuration_complete);
+}
+
 ACTION_RETURN_TYPE UFMN(noAction)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
@@ -40,5 +52,10 @@ void UFMN(initialize_ftc)(FSM_TYPE_PTR pfsm)
 void UFMN(decommission_ftc)(FSM_TYPE_PTR pfsm)
 {
 	(void) pfsm;
+}
+
+void UFMN(initialize_ss)(FSM_TYPE_PTR pfsm)
+{
+	(void) run_communicator_steady_state(pfsm, STEADY_STATE(activate));
 }
 

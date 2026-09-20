@@ -57,7 +57,7 @@ noEvent signals the completion of event processing.
 	, test_fsm_sub2_subSub_noEvent
 	, test_fsm_sub2_lastEvent = test_fsm_sub2_subSub_noEvent
 	, test_fsm_numAllEvents
-}  TEST_FSM_EVENT_ENUM;
+}  TEST_FSM_EVENT_ENUM, *pTEST_FSM_EVENT_ENUM;
 
 
 #endif

@@ -20,15 +20,24 @@ COMMUNICATOR_EVENT_ENUM UFMN(parse_command)(FSM_TYPE_PTR pfsm)
 	switch ((*pfsm_data->ppcommand)->tag)
 	{
 	case command_peer_id:
-		memcpy(&pfsm_data->pconfiguration->peer_id, &pcommand->data.peer_id, sizeof(pfsm_data->pconfiguration->peer_id));
+		memcpy(&pfsm_data->pconfiguration->peer_id
+				, &pcommand->data.peer_id
+				, sizeof(pfsm_data->pconfiguration->peer_id)
+				);
 		pfsm_data->pconfiguration->config_bits |= (1 << config_item_peer_id);
 		break;
 	case command_peer_sn:
-		memcpy(&pfsm_data->pconfiguration->peer_sn, &pcommand->data.peer_sn, sizeof(pfsm_data->pconfiguration->peer_sn));
+		memcpy(&pfsm_data->pconfiguration->peer_sn
+				, &pcommand->data.peer_sn
+				, sizeof(pfsm_data->pconfiguration->peer_sn)
+				);
 		pfsm_data->pconfiguration->config_bits |= (1 << config_item_peer_sn);
 		break;
 	case command_peer_ble_addr:
-		memcpy(&pfsm_data->pconfiguration->peer_ble_addr, &pcommand->data.peer_ble_addr, sizeof(pfsm_data->pconfiguration->peer_ble_addr));
+		memcpy(&pfsm_data->pconfiguration->peer_ble_addr
+				, &pcommand->data.peer_ble_addr
+				, sizeof(pfsm_data->pconfiguration->peer_ble_addr)
+				);
 		pfsm_data->pconfiguration->config_bits |= (1 << config_item_peer_ble_addr);
 		break;
 	case command_peer_ble_addr_type:

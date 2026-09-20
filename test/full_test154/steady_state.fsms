@@ -1,0 +1,53 @@
+/**
+	This machine handles the steady-state condition.
+
+	A connection is re-established at prescribed intervals.
+*/
+machine steady_state
+native impl
+{
+#define FSM_ENTRY(A)
+#define FSM_EXIT(A) DBG_PRINTF("end state: %s", STEADY_STATE_STATE_NAMES[(A)->state])
+#define ACTION_ENTRY(A)
+#define ACTION_EXIT(A)
+#define INIT_FSM_DATA0 {NULL}
+#define INIT_FSM_DATA1 {NULL}
+#define INIT_FSM_DATA2 {NULL}
+}
+{
+	data
+	{
+		pconfiguration_str pconfiguration;
+	}
+
+	event activate data translator grab_parent_data_ptrs;
+
+	event parent::peer_connected;
+	event parent::auth2_complete;
+	event parent::peer_data_synced;
+	event parent::start_auth2;
+	event parent::auth2_gatt;
+	event parent::start_sync;
+	event parent::sync_gatt;
+	event parent::comm_window_timer_expired;
+
+	state initial;
+	state waiting;
+	state auth2;
+	state data_sync;
+
+	transition [activate, initial] waiting;
+
+	action share_parent_comm_window_timer_expired   [comm_window_timer_expired, waiting];
+	action act_start_auth2                          [peer_connected, waiting]             transition auth2;
+	action start_data_sync                          [auth2_complete, auth2]               transition data_sync;
+	action report_done                              [peer_data_synced, data_sync]         transition waiting;
+
+	/* forward to peer sub-machines. */
+	action share_parent_start_auth2                 [start_auth2, (all)];
+	action share_parent_auth2_gatt                  [auth2_gatt, (all)];
+	action share_parent_start_sync                  [start_sync, (all)];
+	action share_parent_sync_gatt                   [sync_gatt, (all)];
+
+}
+

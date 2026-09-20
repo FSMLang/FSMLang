@@ -46,6 +46,8 @@
 #define RETURN_STATE(A, B) A = STATE(B)
 #undef TR_FN_RETURN_TYPE
 #define TR_FN_RETURN_TYPE SUB_SUB_STATE
+#undef PARENT_PARENT
+#define PARENT_PARENT(A) test_fsm_##A
 #undef PARENT
 #define PARENT(A) test_fsm_sub2_##A
 #undef PARENT_DATA_TYPE_PTR

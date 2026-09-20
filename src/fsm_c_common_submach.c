@@ -36,6 +36,7 @@
 #include "fsm_c_common_submach.h"
 #include "ancestry.h"
 #include "list.h"
+#include "y.tab.h"
 
 #if defined (CYGWIN) || defined (LINUX)
 	#include <stdio.h>
@@ -81,13 +82,22 @@ static void print_parent_event_sharer_signature(pCMachineData pcmd, pID_INFO pev
 
 bool find_legitimate_sharer(pLIST_ELEMENT pelem, void *data)
 {
-	pMACHINE_INFO             pmi  = (pMACHINE_INFO) pelem->mbr;
-	pITERATOR_CALLBACK_HELPER pich = (pITERATOR_CALLBACK_HELPER) data;
+	pMACHINE_INFO             pmi    = (pMACHINE_INFO) pelem->mbr;
+	pITERATOR_CALLBACK_HELPER pich   = (pITERATOR_CALLBACK_HELPER) data;
+	pID_INFO                  pevent = pich->ih.pid;
+	pEVENT_DATA               ped    = &pevent->type_data.event_data;
+
+	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s; machine: %s */\n", __func__, pmi->name->name);
 
 	return (
-			(pmi != pich->ih.pmi)
-			&& (!(pmi->modFlags & mfStateImplementing))
-			&& (!(pmi->modFlags & ACTIONS_RETURN_FLAGS))
+			FDPC(pich->ih.fout, (pmi != pich->ih.pmi))
+			&& (FDPC(pich->ih.fout, !(pmi->modFlags & mfStateImplementing)))
+			&& (FDPC(pich->ih.fout, !(pmi->modFlags & mfTranslatorImplementing))
+				|| (FDPC(pich->ih.fout, !ped->puser_event_data)
+					|| FDPC(pich->ih.fout, !ped->puser_event_data->translator)
+					|| FDPC(pich->ih.fout, (ped->puser_event_data->translator->type_data.translator_data.implementingMachine->type_data.machine_pid_data.pmi != pmi))
+					)
+				)
 			);
 }
 
@@ -114,7 +124,6 @@ static bool define_needed_parent_event_sharers(pLIST_ELEMENT pelem, void *data)
 	pich->ih.pid = pevent;
 
 	if (ped->psharing_sub_machines
-//		&& (pich->ih.pmi->modFlags & mfStateImplementing)
 		&& iterate_list(ped->psharing_sub_machines, find_legitimate_sharer, pich)
 		)
 	{

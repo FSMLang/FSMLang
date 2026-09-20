@@ -1,0 +1,21 @@
+machine foo
+	actions return void;
+{
+	event e1 data translator xlate_e1 implemented by machine bar {int i;};
+	event e2, e3, e4;
+	state s1;
+
+	machine bar
+		actions return states;
+	{
+		event parent::e1;
+		state s1;
+
+		action a1[e1,s1];
+	}
+
+	action a1[e2, s1];
+	action a2[e3, s1];
+	action a3[e4, s1];
+}
+

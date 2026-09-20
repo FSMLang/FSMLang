@@ -44,11 +44,11 @@ struct _test_fsm_shared_event_str_
 	TEST_FSM_EVENT_ENUM           event;
 	pTEST_FSM_SUB_FSM_IF          psub_fsm_if;
 };
-extern TEST_FSM_EVENT_ENUM test_fsm_pass_shared_event(pTEST_FSM,pTEST_FSM_SHARED_EVENT_STR[]);
-
 extern TEST_FSM_SHARED_EVENT_STR sub_share_test_fsm_e1_str;
 extern TEST_FSM_SHARED_EVENT_STR sub2_share_test_fsm_e1_str;
 extern pTEST_FSM_SHARED_EVENT_STR sharing_test_fsm_e1[];
+
+extern TEST_FSM_EVENT_ENUM test_fsm_pass_shared_event(pTEST_FSM,pTEST_FSM_SHARED_EVENT_STR[]);
 
 
 TEST_FSM_EVENT_ENUM share_parent_event_e1(unsigned);

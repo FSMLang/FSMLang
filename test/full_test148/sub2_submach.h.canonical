@@ -42,10 +42,10 @@ struct _sub2_shared_event_str_
 	TEST_FSM_EVENT_ENUM       event;
 	pSUB2_SUB_FSM_IF          psub_fsm_if;
 };
-extern TEST_FSM_EVENT_ENUM sub2_pass_shared_event(pSUB2,pSUB2_SHARED_EVENT_STR[]);
-
 extern SUB2_SHARED_EVENT_STR subSub_share_sub2_e1_str;
 extern pSUB2_SHARED_EVENT_STR sharing_sub2_e1[];
+
+extern TEST_FSM_EVENT_ENUM sub2_pass_shared_event(pSUB2,pSUB2_SHARED_EVENT_STR[]);
 
 
 

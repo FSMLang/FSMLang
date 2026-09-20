@@ -676,9 +676,12 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 	}
 	else
 	{
-		fprintf(FOUT(pfsmrstog)
-				, "\n\n.. warning::\n\n   There is no way into this state.\n\n"
-				);
+		if (pelem->ordinal)
+		{
+			fprintf(FOUT(pfsmrstog)
+					, "\n\n.. warning::\n\n   There is no way into this state.\n\n"
+					);
+		}
 
 	}
 

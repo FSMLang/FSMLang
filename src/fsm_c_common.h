@@ -158,6 +158,11 @@ struct _c_machine_data_
    pMACHINE_INFO pmi;
 
    bool a_sub_machine_was_encountered;
+   /** 
+       This will count the number of shared event lists actually
+       created
+   */
+   unsigned shared_event_str_count;
 
 };
 

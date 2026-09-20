@@ -55,6 +55,7 @@ data
 	event start_sync;
 	event sync_gatt;
 	event peer_data_synced;
+	event comm_window_starting;
 
 	state initial;
 
@@ -66,8 +67,11 @@ data
 			on entry initialize_ftc
 			on exit  decommission_ftc
 			;
-	state connected_to_peer;
+	state connected_to_peer implemented by machine steady_state
+			on entry initialize_ss
+			;
 
+	include steady_state.fsms
 	include commands.fsms
 	include ble.fsms
 	include first_connection.fsms

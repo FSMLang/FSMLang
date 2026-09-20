@@ -248,265 +248,12 @@ machine_prefix: native machine_modifier MACHINE_KEY ID
 
 machine:	machine_prefix machine_qualifier 
          {
-            if (!($2->modFlags & ACTIONS_RETURN_FLAGS))
-            {
-   						pID_INFO pid_event;
-							/* note that this is not added to the machine event list;
-								 it is here only to be found as an event id for return
-								 decls.
-              */
-   						add_id(id_list, EVENT,"noEvent",&pid_event);
-              pid_event->powningMachine = pmachineInfo;
-							pid_event->order          = NO_EVENT; // This makes it easier to detect.
-            }
-
-						/* as with 'noEvent', we need this to support return decls */
-						pID_INFO pid_state;
-						add_id(id_list, STATE, "noTransition",&pid_state);
-						pid_state->powningMachine = pmachineInfo;
-						pid_state->order          = NO_TRANSITION;  // This makes it easier to detect.
-
-					pmachineInfo->modFlags |= $2->modFlags;
+					capture_machine_qualifier($2);
          } 
         '{' statement_decl_list '}'
 					{
-
-						$$                     = $1->pmachineInfo;
-
- 			      $$->modFlags          |= $2->modFlags;
- 			      $$->machineTransition  = $2->machineTransition;
-            $$->native_impl_prologue = $2->native_impl_prologue;
-            $$->native_impl_epilogue = $2->native_impl_epilogue;
-
-						/* harvest the lists */
- 					$$->data               = $5->data;
- 					$$->state_list         = $5->pstate_and_event_decls->state_decls;
- 					$$->event_list         = $5->pstate_and_event_decls->event_decls;
- 					$$->action_list        = $5->pactions_and_transitions->action_list;
- 					$$->action_info_list   = $5->pactions_and_transitions->action_info_list;
- 					$$->transition_list    = $5->pactions_and_transitions->transition_list;
- 					$$->transition_fn_list = $5->pactions_and_transitions->transition_fn_list;
- 					$$->machine_list       = $5->pactions_and_transitions->machine_list;
-					$$->sequences          = $5->sequences;
-
-						count_external_declarations     ($$->event_list,&($$->external_event_designation_count));
-						count_parent_event_referenced   ($$->event_list,&($$->parent_event_reference_count));
-						count_shared_events             ($$->event_list,&($$->shared_event_count));
-						count_event_user_data_attributes($$->event_list
-																						 ,&($$->data_translator_count)
-																						 ,&($$->data_block_count)
-																						 );
-
- 					/* sanity checks */
- 					if ($$->parent && $$->data_block_count && !output_generated_file_names_only)
-					{
- 					   yyerror("event user data not allowed in sub-machines");
-					}
-
-					if ($$->data_translator_count && !$$->data && !output_generated_file_names_only)
-					{
-						if (!($$->modFlags & mfTranslatorsReturnEvents))
-						{
-							yyerror("data translators returning void are "
-											"not allowed for machines having no data"
-											);
-						}
-					}
-
-
-					count_external_declarations($$->state_list
-																				,&($$->external_state_designation_count)
-																				);
- 					count_states_with_entry_exit_fns($$->state_list
-																					 ,&($$->states_with_entry_fns_count)
-																					 ,&($$->states_with_exit_fns_count)
-																					 );
-
-          $$->executes_fns_on_state_transitions = (
-                                                   (($$->states_with_entry_fns_count + $$->states_with_exit_fns_count) > 0)
-                                                   || ($$->machineTransition != NULL)
-                                                   );
- 					if ($$->machine_list)
-						{
-						    count_sub_machine_inhibitors  ($$->state_list,&($$->submachine_inhibitor_count));
-						}
-
-						if (allocateActionArray($$))
- 						yyerror("out of memory");
-
- 					enumerate_pid_list($$->state_list);
- 					enumerate_pid_list($$->event_list);
-
-					 count_states_implemented_by_machine($$->state_list
-																			 , &($$->states_implemented_by_machine)
-																			 );
-
-					 count_translators_implemented_by_machine($$->event_list
-																			 , &($$->translators_implemented_by_machine)
-																			 );
-
-						if (populate_action_array($$, yyout))
-							yyerror("Action array population failed");
-
-					 count_states_with_zero_events($$->state_list
-																				 , &($$->states_with_zero_events)
-																				 );
-					 count_states_with_one_event($$->state_list
-																			 , &($$->states_with_one_event)
-																			 );
-					 count_states_with_no_way_in($$->state_list
-																			 , &($$->states_with_no_way_in)
-																			 );
-					 count_states_with_no_way_out($$->state_list
-																			 , &($$->states_with_no_way_out)
-																			 );
-					 count_events_with_zero_handlers($$->event_list
-																					 , &($$->events_with_zero_handlers)
-																					 );
-					 count_events_with_one_handler($$->event_list
-																				 , &($$->events_with_one_handler)
-																				 );
-
-					 compute_event_and_state_density_pct($$);
-
-           free($1);
-
-           /* reset context */
-           pmachineInfo = $$->parent;
-           if ($$->parent)
-           {
-            id_list = $$->parent->id_list;
-						pmachineInfo = $$->parent;
-           }
-           else
-           {
-            id_list = root_id_list;
-           }
-
-						#ifdef PARSER_DEBUG
-
-						fprintf(yyout
-                   ,"found a machine named %s\n"
-                   , $$->name->name
-                   );
-						fprintf(yyout
-								,"\twith %d events and %d states\n"
-								,$$->event_list->count
-								,$$->state_list->count
-								);
-
-						if ($$->modFlags & mfReentrant) {
-
-							fprintf(yyout,"The machine is reentrant\n");
-
-						}
-
-						fprintf(yyout,"Actions return ");
-						if ($$->modFlags & mfActionsReturnStates) {
-
-							fprintf(yyout,"states\n");
-
-						}
-						else if ($$->modFlags & mfActionsReturnVoid) {
-
-							fprintf(yyout,"void\n");
-
-						}
-						else {
-
-							fprintf(yyout,"events\n");
-
-						}
-
-						fprintf(yyout,"Translators return ");
-						if ($$->modFlags & mfTranslatorsReturnEvents) {
-
-							fprintf(yyout,"events\n");
-
-						}
-						else {
-
-							fprintf(yyout,"void\n");
-
-						}
-
-           if ($$->machineTransition)
-           {
-               fprintf(yyout
-                       ,"on transition: %s\n"
-                       ,$$->machineTransition->name
-                       );
-           }
-
-						fprintf(yyout,"The states :\n");
- 					parser_debug_print_state_list($$->state_list,yyout);
-
-						fprintf(yyout,"The events :\n");
- 					parser_debug_print_event_list($$->event_list,yyout);
-
-           if ($$->parent_event_reference_count > 0)
-           {
-						   fprintf(yyout
-                      ,"%d events reference the parent machine.\n"
-                      , $$->parent_event_reference_count);
-           }
-
-					 if ($$->sequences)
-					 {
-						 fprintf(yyout
-										 , "There %s %d event sequence%s given:\n"
-										 , $$->sequences->count == 1 ? "is" : "are"
-										 , $$->sequences->count
-										 , $$->sequences->count == 1 ? "" : "s"
-										 );
-
-						 parser_debug_print_event_sequences($$, yyout);
-
-					 }
-
-						fprintf(yyout,"The actions :\n");
- 					parser_debug_print_action_list_deep($$->action_list,$$,yyout);
-
-           fprintf(yyout,"\nThe %d transitions :\n"
-                   , $$->transition_list->count
-                   );
-					  parser_debug_print_transition_list($$->transition_list,yyout);
-
-           if ($$->transition_fn_list->count)
-           {
-		           fprintf(yyout,"\nThe %d transition functions :\n"
-                      , $$->transition_fn_list->count
-                      );
-
-								parser_debug_print_transition_fn_list($$->transition_fn_list,yyout);
-           }
-
-           if ($$->data)
-           {
-             fprintf(yyout
-                     , "this machine has data\n"
-                     );
-
-             parser_debug_print_data_block($$->data, yyout);
-
-           }
-
-            if ($$->machine_list)
-            {
-                fprintf(yyout
-                     ,"this machine has %u sub-machines\n"
-                     ,$$->machine_list->count
-                     );
-
-								fprintf(yyout
-												, "the sub-machine depth is %u\n"
-												, $$->sub_machine_depth
-												);
-            }
-
-						fprintf(yyout,"\n");
-						#endif
-
+						$$ = capture_machine($1, $2, $5);
+						free($1);
 					}
 	;
 
@@ -562,14 +309,14 @@ machine_qualifier:
  					$$->modFlags          |= $2;
 
 		     }
-//    | machine_qualifier translator_return_spec
-//		     {
-//           if ($1->modFlags & mfTranslatorsReturnDeclared)
-//             yyerror("only one translator return spec allowed per machine");
-//
-// 					$$->modFlags          |= $2;
-//
-//		     }
+    | machine_qualifier translator_return_spec
+		     {
+           if ($1->modFlags & mfTranslatorsReturnDeclared)
+             yyerror("only one translator return spec allowed per machine");
+
+ 					$$->modFlags          |= $2;
+
+		     }
     | machine_qualifier native_impl
 		     {
            if ($1->native_impl_prologue)
@@ -1999,6 +1746,8 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					 {
 						 pid->type_data.event_data.consumed_by_translator
 							 = ($5->translator->type_data.translator_data.flags & tf_consuming);
+
+						 $5->translator->type_data.translator_data.pevent = pid;
 					 }
 
  					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
@@ -2027,7 +1776,34 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 
 						if (pmachineInfo->modFlags & mfTranslatorImplementing)
 						{
-							$3->type_data.event_data.translator_implementing_sharer_count++;
+							if (pmachineInfo->modFlags & mfActionsReturnStates)
+							{
+								yyerror("Translator implementing sub-machine may not have "
+												"actions which return states."
+											 );
+							}
+							else if (
+									(pmachineInfo->modFlags & mfActionsReturnVoid)
+									&& (pmachineInfo->parent->modFlags & mfTranslatorsReturnEvents)
+								 )
+							{
+								yyerror("It does not make sense to implement data translators "
+												"which return events with sub-machines which do not."
+											);
+							}
+							else if (
+												!(pmachineInfo->parent->modFlags & mfTranslatorsReturnEvents)
+												&& !(pmachineInfo->modFlags & mfActionsReturnVoid)
+											 )
+							{
+								yyerror("It does not make sense to implement data translators "
+												"which return void with sub-machines which return events."
+											);
+							}
+							else
+							{
+								$3->type_data.event_data.translator_implementing_sharer_count++;
+							}
 						}
 
 					}
@@ -2919,7 +2695,7 @@ const struct option longopts[] =
     }
     , {
         .name      = "force-generation-of-event-passing-actions"
-        , .has_arg = no_argument
+        , .has_arg = optional_argument
         , .flag    = &longval
         , .val     = lo_force_generation_of_event_passing_actions
     }
@@ -3171,6 +2947,8 @@ int main(int argc, char **argv)
                 break;
             case lo_force_generation_of_event_passing_actions:
                 force_generation_of_event_passing_actions = true;
+                if (optarg && !strcmp(optarg,"false"))
+                    force_generation_of_event_passing_actions= false;
                 break;
             case lo_generate_run_function:
                 if (optarg && !strcmp(optarg,"false"))
