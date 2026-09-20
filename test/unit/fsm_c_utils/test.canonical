@@ -1,0 +1,81 @@
+[]
+
+[PARENT]
+
+[PARENT_PARENT]
+
+[PARENT_PARENT_PARENT]
+
+[
+me: who_knows
+]
+
+[
+me: george_c
+#undef PARENT
+#define PARENT(A) who_knows_##A
+]
+
+[
+me: george_charles
+#undef PARENT_PARENT
+#define PARENT_PARENT(A) who_knows_##A
+#undef PARENT
+#define PARENT(A) george_c_##A
+]
+
+[
+me: steve
+#undef PARENT_PARENT_PARENT
+#define PARENT_PARENT_PARENT(A) who_knows_##A
+#undef PARENT_PARENT
+#define PARENT_PARENT(A) george_c_##A
+#undef PARENT
+#define PARENT(A) george_charles_##A
+]
+
+[0]
+
+[1]
+
+[2]
+
+[3]
+
+[]
+
+generation 1: who_knows
+
+generation 2: who_knows
+generation 1: george_c
+
+generation 3: who_knows
+generation 2: george_c
+generation 1: george_charles
+
+[Me: who_knows; ultimate ancestor: who_knows]
+
+[Me: george_c; ultimate ancestor: who_knows]
+
+[Me: george_charles; ultimate ancestor: who_knows]
+
+[Me: steve; ultimate ancestor: who_knows]
+
+generation 3: who_knows
+generation 2: george_c
+generation 1: george_charles
+
+[]
+
+[case PARENT(e1):
+]
+
+[case PARENT_PARENT(e1):
+case PARENT(e1):
+]
+
+[case PARENT_PARENT_PARENT(e1):
+case PARENT_PARENT(e1):
+case PARENT(e1):
+]
+
