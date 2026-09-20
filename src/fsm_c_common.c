@@ -3795,6 +3795,7 @@ bool define_weak_action_function(pLIST_ELEMENT pelem, void *data)
 		pEVENT_DATA ped = &pevent->type_data.event_data;
 
 		/* and, that event will have a list of sharing machines */
+		pich->ih.pid = pevent;
 		if (ped->psharing_sub_machines
 			&& iterate_list(ped->psharing_sub_machines, find_legitimate_sharer, pich)
 		   )
