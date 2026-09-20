@@ -39,8 +39,8 @@
 #include "fsm_c_common.h"
 
 pCMachineData ultimatePcmdAncestor(pCMachineData);
-unsigned countGenerations(pCMachineData);
-pCMachineData nthGeneration(pCMachineData,unsigned);
+unsigned count_generations(pCMachineData);
+pCMachineData nth_generation(pCMachineData,unsigned);
 void print_ancestor_macro(FILE*,pCMachineData);
 void define_ancestor_macros(FILE*,pCMachineData);
 void print_ancestor_case_statements(FILE*,pCMachineData,char*,char*);

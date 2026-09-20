@@ -56,7 +56,7 @@ pCMachineData ultimatePcmdAncestor(pCMachineData pcmd)
 			;
 }
 
-unsigned countGenerations(pCMachineData pcmd)
+unsigned count_generations(pCMachineData pcmd)
 {
 	unsigned num_generations = 0;
 	for (pCMachineData pcmd_iterator = pcmd->parent_pcmd;
@@ -70,7 +70,7 @@ unsigned countGenerations(pCMachineData pcmd)
 	return num_generations;
 }
 
-pCMachineData nthGeneration(pCMachineData pcmd, unsigned generation)
+pCMachineData nth_generation(pCMachineData pcmd, unsigned generation)
 {
 	pCMachineData nth_generation = pcmd;
 	for (unsigned gen_count = generation; gen_count; gen_count--)
@@ -97,7 +97,7 @@ void define_ancestor_macros(FILE *fout, pCMachineData pcmd)
 {
 	pCMachineData pcmd_iterator;
 	unsigned      num_generations;
-	for (pcmd_iterator = pcmd, num_generations = countGenerations(pcmd);
+	for (pcmd_iterator = pcmd, num_generations = count_generations(pcmd);
 		 pcmd_iterator && pcmd_iterator->parent_pcmd;
 		 pcmd_iterator = pcmd_iterator->parent_pcmd, num_generations--
 		)
@@ -112,7 +112,7 @@ void define_ancestor_macros(FILE *fout, pCMachineData pcmd)
 		print_ancestor_macro(fout, pcmd_iterator);
 		fprintf(fout
 				, "(A) %s_##A\n"
-				, fqMachineName(nthGeneration(pcmd, num_generations))
+				, fqMachineName(nth_generation(pcmd, num_generations))
 			   );
 	}
 }
