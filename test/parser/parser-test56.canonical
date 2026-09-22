@@ -137,7 +137,5 @@ this machine has 1 sub-machines
 the sub-machine depth is 1
 
 found a single machine
-test: parser-test56.fsm: Translator implementing sub-machine may not have actions which return states.
-	line 11 : ;
 test: parser-test56.fsm: data translators returning void are not allowed for machines having no data
 	line 20 : }

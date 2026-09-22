@@ -1,0 +1,87 @@
+event: test_fsm_e0; start state: test_fsm_s1
+test_fsm_a0
+test_fsm_e1_translator_grab_data
+event: test_fsm_e1_translator_e0; state: test_fsm_e1_translator_s1
+test_fsm_e1_translator_s1_implementor_grab_data
+event: test_fsm_e1_translator_e0; state: test_fsm_e1_translator_s1_implementor_s1
+test_fsm_e1_translator_s1_implementor_a0
+end state: test_fsm_e1_translator_s1_implementor_noTransition
+end state: test_fsm_e1_translator_s1
+end state: test_fsm_s1
+test_fsm_xlate_e1
+event: test_fsm_e1; state: test_fsm_e1_translator_s1
+test_fsm_e1_translator_s1_implementor_a1
+end state: test_fsm_e1_translator_s1_implementor_noTransition
+end state: test_fsm_e1_translator_s2
+event: test_fsm_e1; start state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 0; k: 0; l: 0
+end state: test_fsm_s1
+test_fsm_xlate_e1
+event: test_fsm_e1; state: test_fsm_e1_translator_s2
+test_fsm_e1_translator_a2
+end state: test_fsm_e1_translator_s3
+event: test_fsm_e1; start state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 1; k: 0; l: 0
+end state: test_fsm_s1
+test_fsm_xlate_e1
+event: test_fsm_e1; state: test_fsm_e1_translator_s3
+test_fsm_e1_translator_a3
+end state: test_fsm_e1_translator_s4
+event: test_fsm_e1; start state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 1; k: 1; l: 0
+end state: test_fsm_s1
+test_fsm_xlate_e1
+event: test_fsm_e1; state: test_fsm_e1_translator_s4
+test_fsm_e1_translator_a4
+end state: test_fsm_e1_translator_s1
+event: test_fsm_e1; start state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 1; k: 1; l: 1
+end state: test_fsm_s1
+event: test_fsm_e2; start state: test_fsm_s1
+test_fsm_init_s2_implementor
+event: test_fsm_e0; state: test_fsm_s2_implementor_s1
+end state: test_fsm_s2_implementor_s2
+end state: test_fsm_s2
+test_fsm_xlate_e1
+event: test_fsm_e1; state: test_fsm_e1_translator_s1
+test_fsm_e1_translator_s1_implementor_a1
+end state: test_fsm_e1_translator_s1_implementor_noTransition
+end state: test_fsm_e1_translator_s2
+event: test_fsm_e1; start state: test_fsm_s2
+event: test_fsm_e1; state: test_fsm_s2_implementor_s2
+test_fsm_s2_implementor_a1
+end state: test_fsm_s2_implementor_s2
+end state: test_fsm_s2
+event: test_fsm_e2; start state: test_fsm_s2
+event: test_fsm_e2; state: test_fsm_s2_implementor_s2
+test_fsm_s2_implementor_a2
+end state: test_fsm_s2_implementor_s2
+end state: test_fsm_s2
+event: test_fsm_e3; start state: test_fsm_s2
+event: test_fsm_e3; state: test_fsm_s2_implementor_s2
+test_fsm_s2_implementor_a3
+event: test_fsm_misc_work_e3; state: test_fsm_misc_work_s1
+end state: test_fsm_misc_work_s1
+end state: test_fsm_s2_implementor_s2
+end state: test_fsm_s2
+event: test_fsm_e4; start state: test_fsm_s2
+event: test_fsm_e4; state: test_fsm_s2_implementor_s2
+test_fsm_s2_implementor_noAction
+end state: test_fsm_s2_implementor_s2
+test_fsm_init_s3_implementor
+event: test_fsm_e0; state: test_fsm_s3_implementor_s1
+end state: test_fsm_s3_implementor_s2
+end state: test_fsm_s3
+event: test_fsm_e3; start state: test_fsm_s3
+event: test_fsm_e3; state: test_fsm_s3_implementor_s2
+test_fsm_s3_implementor_a3
+event: test_fsm_misc_work_e3; state: test_fsm_misc_work_s1
+end state: test_fsm_misc_work_s1
+end state: test_fsm_s3_implementor_s2
+end state: test_fsm_s3
+warning: (test_fsm_e1_translator_s1_implementor): all events are handled identically in all states.
+warning: (test_fsm_misc_work): all events are handled identically in all states.
