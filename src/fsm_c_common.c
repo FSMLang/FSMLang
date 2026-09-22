@@ -4867,12 +4867,9 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 			, event_str
 		   );
 	fprintf(pcmd->cFile
-			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(%s))\n   )\n{\n"
+			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(noEvent))\n   )\n{\n"
 			, event_str
 			, event_str
-			, (pmi->modFlags & ACTIONS_RETURN_FLAGS)
-				? "numEvents"
-				: "noEvent"
 		   );
 
 	fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");
@@ -4907,9 +4904,12 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 				, "    && (%s >= PARENT(firstEvent))\n    && (%s < PARENT(%s))\n   )\n{\n"
 				, event_str
 				, event_str
-				, (pmi->parent->modFlags & ACTIONS_RETURN_FLAGS)
-					? "numEvents"
-					: "noEvent"
+				, ( (pmi->parent->parent && (pmi->parent->modFlags & ACTIONS_RETURN_FLAGS))
+					|| (!pmi->parent->parent && !(pmi->parent->modFlags & ACTIONS_RETURN_FLAGS))
+					)
+					? "noEvent"
+					: "numEvents"
+				);
 
 		fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");
 
