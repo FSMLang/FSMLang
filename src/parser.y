@@ -1776,10 +1776,12 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 
 						if (pmachineInfo->modFlags & mfTranslatorImplementing)
 						{
-							if (pmachineInfo->modFlags & mfActionsReturnStates)
+							if ((pmachineInfo->modFlags & mfActionsReturnStates)
+									&& (pmachineInfo->modFlags & mfTranslatorsReturnEvents)
+									)
 							{
 								yyerror("Translator implementing sub-machine may not have "
-												"actions which return states."
+												"actions which return states when translators return events."
 											 );
 							}
 							else if (
@@ -1793,7 +1795,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 							}
 							else if (
 												!(pmachineInfo->parent->modFlags & mfTranslatorsReturnEvents)
-												&& !(pmachineInfo->modFlags & mfActionsReturnVoid)
+												&& !(pmachineInfo->modFlags & ACTIONS_RETURN_FLAGS)
 											 )
 							{
 								yyerror("It does not make sense to implement data translators "

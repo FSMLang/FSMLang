@@ -4510,9 +4510,11 @@ static void print_event_data_manager_main_body(pCMachineData pcmd)
 
 static void print_state_entry_or_exit_manager_signature(pCMachineData pcmd, pMACHINE_INFO pmi, ENTRY_OR_EXIT eoe, DECLARE_OR_DEFINE dod)
 {
+	FSMLANG_DEVELOP_PRINTF(pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
 	/* Set up the parameter strings. */
 	char *param_type, *param_name;
-	if (pmi->states_implemented_by_machine != 0)
+	if (FDPC(pcmd->cFile, pmi->states_implemented_by_machine != 0))
 	{
 		param_type = fsmType(pcmd);
 		param_name = " pfsm";
@@ -4865,10 +4867,9 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 			, event_str
 		   );
 	fprintf(pcmd->cFile
-			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(%s))\n   )\n{\n"
+			, "    && (%s >= THIS(firstEvent))\n    && (%s < THIS(noEvent))\n   )\n{\n"
 			, event_str
 			, event_str
-			, (ultimateAncestor(pmi)->modFlags & ACTIONS_RETURN_FLAGS) ? "numEvents" : "noEvent"
 		   );
 
 	fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");
@@ -4903,7 +4904,11 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 				, "    && (%s >= PARENT(firstEvent))\n    && (%s < PARENT(%s))\n   )\n{\n"
 				, event_str
 				, event_str
-				, (ultimateAncestor(pmi)->modFlags & ACTIONS_RETURN_FLAGS) ? "numEvents" : "noEvent"
+				, ( (pmi->parent->parent && (pmi->parent->modFlags & ACTIONS_RETURN_FLAGS))
+				   || (!pmi->parent->parent && !(pmi->parent->modFlags & ACTIONS_RETURN_FLAGS))
+				   )
+					? "noEvent"
+					: "numEvents"
 			   );
 
 		fprintf(pcmd->cFile, "\tDBG_PRINTF(\"");
