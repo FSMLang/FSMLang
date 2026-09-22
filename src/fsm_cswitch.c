@@ -1514,11 +1514,9 @@ static bool define_state_returning_state_fn(pLIST_ELEMENT pelem, void *data)
 			fprintf(pich->pcmd->cFile
 					, "\tdefault:\n"
 					  "\t\tbreak;\n"
-					  "\t}\n"
 					);
-
 		}
-	}
+		fprintf(pich->pcmd->cFile, "\t}\n");
 	else
 	{
 		fprintf(pich->pcmd->cFile, "\n\tswitch(e)\n\t{\n");
