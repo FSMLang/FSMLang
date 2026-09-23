@@ -1,5 +1,5 @@
 /**
-*  ancestry2.c
+*  fsm_c_utils.c
 *
 *    Additional (cf ancestry.[ch]) ancestry functions.
 *

@@ -1,5 +1,5 @@
 /**
-*  ancestry2.h
+*  fsm_c_utils.h
 *
 *    Additional (cf ancestry.[ch]) ancestry functions.
 *
@@ -33,8 +33,8 @@
 *
 */
 
-#ifndef ANCESTRY2_H
-#define ANCESTRY2_H
+#ifndef FSM_C_UTILS_H
+#define FSM_C_UTILS_H
 
 #include "fsm_c_common.h"
 
