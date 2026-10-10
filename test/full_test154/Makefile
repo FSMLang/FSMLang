@@ -6,17 +6,17 @@
 
 .PHONY: docs
 
-override CFLAGS += -I../                  \
-	 -Wall                                 \
-	 -ggdb                                 \
-    -DCOMMUNICATOR_DEBUG                  \
-    -DCOMMUNICATOR_COMMANDS_DEBUG         \
-    -DCOMMUNICATOR_BLE_DEBUG              \
-    -DCOMMUNICATOR_FIRST_CONNECTION_DEBUG \
-    -DCOMMUNICATOR_AUTH1_DEBUG            \
-    -DCOMMUNICATOR_AUTH2_DEBUG            \
-    -DCOMMUNICATOR_SYNC_DEBUG             \
-	 -DCOMMUNICATOR_STEADY_STATE_DEBUG
+override CFLAGS += -I../     \
+	 -Wall                    \
+	 -ggdb                    \
+    -DCOMMUNICATOR_DEBUG     \
+    -DCOMMANDS_DEBUG         \
+    -DBLE_DEBUG              \
+    -DFIRST_CONNECTION_DEBUG \
+    -DAUTH1_DEBUG            \
+    -DAUTH2_DEBUG            \
+    -DSYNC_DEBUG             \
+	 -DSTEADY_STATE_DEBUG
 
 
 VARIANTS=s
@@ -25,7 +25,7 @@ VARIANTS=s
 #include ../weak_variants.mk
 include ../variants.mk
 
-FSM_FLAGS+=--add-profiling-macros=true --profile-sub-fsms=true
+FSM_FLAGS+=--add-profiling-macros=true --profile-sub-fsms=true --short-debug-names --add-machine-name
 FINAL_FSM_FLAGS=--force-generation-of-event-passing-actions=false
 
 FSM_FLAGS += -i3
