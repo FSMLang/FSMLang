@@ -3009,7 +3009,7 @@ static void print_sub_machine_data_translator_fn_signature(FILE *file, pCMachine
 	{
 		/* Set up the parameter strings. */
 		char *param_type, *param_name, *doxygen_block;
-		if ( (ptranslator && (ptranslator->type_data.translator_data.flags & tf_implemented_by_sub_machine)) )
+		if (ptranslator->type_data.translator_data.flags & tf_implemented_by_sub_machine)
 		{
 			param_type = fsmType(pcmd);
 			param_name = ((dod == dod_define) || add_doxygen_blocks) ? " pfsm" : empty_str;
@@ -4359,10 +4359,10 @@ static void print_sub_machine_data_manager_signature(pCMachineData pcmd, DECLARE
 
 	fprintf(pcmd->cFile
 			, "%s%s%s%s"
-			, param_type == empty_str ? "" : "p"
+			, *param_type == '\0' ? "" : "p"
 			, param_type
 			, param_name
-			, param_type == empty_str ? "" : ","
+			, *param_type == '\0' ? "" : ","
 		   );
 
 	fprintf(pcmd->cFile
@@ -4975,6 +4975,13 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 					, "%s%s: "
 					, pmi->name->name
 					, (num_instances > 1) ? "[%u]" : ""
+				   );
+		}
+		else
+		{
+			fprintf(pcmd->cFile
+					, "%s"
+					, (num_instances > 1) ? "instance: %u; " : ""
 				   );
 		}
 

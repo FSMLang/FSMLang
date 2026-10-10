@@ -156,7 +156,7 @@ void print_ancestor_event_conditional(FILE *fout, pCMachineData pcmd, char *inde
 		print_ancestor_macro(fout, pcmd_iterator);
 		fprintf(fout
 				, "(%s))))\n"
-				, (!pcmd->parent_pcmd && !(pcmd->pmi->modFlags && ACTIONS_RETURN_FLAGS))
+				, (!pcmd_iterator->parent_pcmd->parent_pcmd)
 				  ? "numEvents"
 				  : "noEvent"
 				);
