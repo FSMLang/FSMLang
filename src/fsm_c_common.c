@@ -4972,14 +4972,16 @@ void printFSMSubMachineDebugBlock(pCMachineData pcmd, pMACHINE_INFO pmi, bool al
 		if (short_dbg_names && add_machine_name)
 		{
 			fprintf(pcmd->cFile
-					, "%s: "
+					, "%s%s: "
 					, pmi->name->name
+					, (num_instances > 1) ? "[%u]" : ""
 				   );
 		}
 
 		fprintf(pcmd->cFile, "event: %%s; state: %%s\"\n,");
 		fprintf(pcmd->cFile
-				, "%s_EVENT_NAMES[%s - PARENT(firstEvent)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
+				, "%s%s_EVENT_NAMES[%s - PARENT(firstEvent)]\n,%s_STATE_NAMES[pfsm->state]\n);\n}\n"
+				, (num_instances > 1) ? "pfsm->instance\n," : ""
 				, ucMachineName(pcmd->parent_pcmd)
 				, event_str
 				, ucMachineName(pcmd)

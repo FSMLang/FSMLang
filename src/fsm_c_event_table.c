@@ -1520,23 +1520,7 @@ static void writeActionsReturnStateEventTableFSM(pFSMCOutputGenerator pfsmcog)
 			, stateType(pcmd)
 			);
 
-	fprintf(pcmd->cFile
-			, "\n#ifdef %s_DEBUG\n"
-			, fsmType(pcmd)
-			);
-	fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
-	fprintf(pcmd->cFile
-			, "%s_EVENT_NAMES[%s]\n\t\t,"
-			, ucfqMachineName(pcmd)
-			, (pmi->data_block_count == 0) ? "event" : "e"
-			);
-	fprintf(pcmd->cFile
-			, "%s_STATE_NAMES[pfsm->state]\n\t\t);\n\n"
-			, ucnfMachineName(pcmd)
-			);
-	fprintf(pcmd->cFile
-			, "\n#endif\n"
-			);
+	printFSMMachineDebugBlock(pcmd, pmi, false);
 
 	if (pmi->machine_list)
 	{
@@ -1642,23 +1626,7 @@ static void writeActionsReturnStateEventTableSubFSM(pFSMCOutputGenerator pfsmcog
 			, stateType(pcmd)
 			);
 
-	fprintf(pcmd->cFile
-			, "\n#ifdef %s_DEBUG\n"
-			, ucfqMachineName(pcmd)
-			);
-	fprintf(pcmd->cFile, "\n\tDBG_PRINTF(\"event: %%s; start state: %%s\"\n\t\t,");
-	fprintf(pcmd->cFile
-			, "%s_EVENT_NAMES[%s - THIS(firstEvent)]\n\t\t,"
-			, ucfqMachineName(pcmd)
-			, (pmi->data_block_count == 0) ? "event" : "e"
-			);
-	fprintf(pcmd->cFile
-			, "%s_STATE_NAMES[pfsm->state]\n\t\t);\n\n"
-			, ucnfMachineName(pcmd)
-			);
-	fprintf(pcmd->cFile
-			, "\n#endif\n"
-			);
+	printFSMSubMachineDebugBlock(pcmd, pmi, false);
 
 	if (pmi->machine_list)
 	{
