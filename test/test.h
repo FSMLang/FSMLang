@@ -7,5 +7,7 @@
 
 #define FSM_END_CRITICAL printf("end state: %s\n\n",TEST_FSM_STATE_NAMES[pfsm->state]);
 
+#define RECORD(A) (printf("!test input: [%s]\n",#A), A)
+
 
 #endif /* --------------------------  Nothing below  ----------------------- */
