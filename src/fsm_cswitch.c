@@ -790,6 +790,13 @@ static int writeCSwitchSubMachineInternal(pFSMCOutputGenerator pfsmcog)
       defineEventPassingActions(pcmd, pmi);
    }
 
+   define_artifact_implementing_machine_run_functions(pcmd);
+
+   if (pmi->states_implemented_by_machine)
+   {
+	   define_needed_event_sharing_functions(pfsmcog);
+   }
+
    writeDebugInfo(pcmd, pmi);
 
 	addNativeImplementationEpilogIfThereIsAny(pmi, pcmd->cFile);
@@ -967,7 +974,7 @@ static void declareOrDefineSinglePAIEventHandler(pCMachineData pcmd, pMACHINE_IN
 	{
 		fprintf(pcmd->cFile
 				, "#ifdef %s_DEBUG\n\tbool action_taken = true;\n#endif\n"
-				, ucfqMachineName(pcmd)
+				, short_dbg_names ? ucMachineName(pcmd ) : ucfqMachineName(pcmd)
 				);
 	}
 
@@ -1647,6 +1654,7 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
     /* interpret our data */
     pITERATOR_CALLBACK_HELPER pich       = (pITERATOR_CALLBACK_HELPER) data;
     pID_INFO                  pevent     = (pID_INFO)                  pelem->mbr;
+	pEVENT_DATA               ped        = &pevent->type_data.event_data;
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -1663,7 +1671,9 @@ static bool print_event_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                                            : NULL
                                            ;
 
-    if (!pevent->type_data.event_data.single_pai_for_all_states)
+    if (FDPC(pich->pcmd->cFile, !ped->single_pai_for_all_states)
+		|| FDPC(pich->pcmd->cFile, (pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS))
+		)
     {
         if (pai)
         {
@@ -1900,6 +1910,7 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
     /* interpret our data */
     pITERATOR_CALLBACK_HELPER pich       = (pITERATOR_CALLBACK_HELPER) data;
     pID_INFO                  pevent     = (pID_INFO)                  pelem->mbr;
+	pEVENT_DATA               ped        = &pevent->type_data.event_data;
 
 	FSMLANG_DEVELOP_PRINTF(pich->pcmd->cFile, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
@@ -1917,7 +1928,9 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                                            : NULL
                                            ;
 
-    if (!pevent->type_data.event_data.single_pai_for_all_states)
+    if (FDPC(pich->pcmd->cFile, !ped->single_pai_for_all_states)
+		|| FDPC(pich->pcmd->cFile, (pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS))
+		)
     {
         if (pai)
         {
@@ -1927,7 +1940,7 @@ static bool print_void_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                     , pevent->name
                     );
 
-			if (pevent->type_data.event_data.shared_with_parent
+			if (ped->shared_with_parent
 				&& (pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
 				)
 			{
@@ -2060,7 +2073,9 @@ static bool print_state_returning_state_fn_case(pLIST_ELEMENT pelem, void *data)
                                            : NULL
                                            ;
 
-    if (!pevent->type_data.event_data.single_pai_for_all_states)
+    if (FDPC(pich->pcmd->cFile, !ped->single_pai_for_all_states)
+		|| FDPC(pich->pcmd->cFile, (pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS))
+		)
     {
         if (pai)
         {
@@ -2221,12 +2236,13 @@ static void writeSwitchSubFSMLoopInnards(pFSMCOutputGenerator pfsmcog, char *tab
 
    if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
    {
-	   fprintf(pcmd->cFile
-			   , "%s\t   || ((%s >= PARENT(firstEvent)) && (%s < PARENT(noEvent)))\n"
-			   , tab
-			   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
-			   , pmi->modFlags & ACTIONS_RETURN_FLAGS ? "event" : "e"
-			   );
+	   print_ancestor_event_conditional(pcmd->cFile
+										, pcmd
+										, tab
+										, pmi->modFlags & ACTIONS_RETURN_FLAGS
+										  ? "event"
+										  : "e"
+										);
    }
 
    fprintf(pcmd->cFile
@@ -2355,17 +2371,6 @@ static bool print_switch_cases_for_events_handled_in_all_states_arev(pLIST_ELEME
 			  , "\t\tcase THIS(%s):\n"
 			  , event->name
 			  );
-
-	  if (ped->shared_with_parent
-		  && (pich->ih.pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
-		  )
-	  {
-		  print_ancestor_case_statements(pich->pcmd->cFile
-										 , pich->pcmd
-										 , "\t\t"
-										 , event->name
-										);
-	  }
 
       if (pich->ih.pmi->modFlags & mfActionsReturnVoid)
       {
@@ -2742,7 +2747,7 @@ static void defineAllStateHandler(pCMachineData pcmd, pMACHINE_INFO pmi)
    {
 	   fprintf(pcmd->cFile
 			   , "\t\t\t#ifdef %s_DEBUG\n\t\t\taction_taken = false;\n\t\t\t#endif\n"
-			   , ucfqMachineName(pcmd)
+			   , short_dbg_names ? ucMachineName(pcmd ) : ucfqMachineName(pcmd)
 			  );
    }
 
@@ -3048,7 +3053,9 @@ static void set_local_sub_machine_fsm_fn_event_var(pCMachineData pcmd)
 			fprintf(pcmd->cFile
 					, "\t%s e = translateEventData(%spparent_data, event);\n\n"
 					, eventType(pcmd)
-					, pmi->data ? "&pfsm->data, " : ""
+					, pmi->translators_implemented_by_machine
+					  ? "pfsm, "
+					  : pmi->data ? "&pfsm->data, " : ""
 				   );
 		}
 		else

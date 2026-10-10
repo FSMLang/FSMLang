@@ -274,6 +274,26 @@ void usage(void)
 			);
 
 	fprintf(stdout
+			,"%s--short-debug-names%scauses debug names to omit ancestry%s"
+			, item_start
+			, expl_start
+			, item_end
+			);
+
+	fprintf(stdout
+			,"%s--add-machine-name%sadds the machine name to the event, state callout%s"
+			, item_start
+			, expl_start
+			, item_end
+			);
+
+	fprintf(stdout
+			, "%swhen short debug names are used.%s"
+			, inner_item_start
+			, item_end
+			);
+
+	fprintf(stdout
 			,"%s--force-generation-of-event-passing-actions%sforces the generation of actions which pass events%s"
 			, item_start
       , expl_start
