@@ -3,15 +3,13 @@
 ACTION_RETURN_TYPE UFMN(act_start_auth2)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
-	(void) pfsm;
-	return THIS(noEvent);
+	return share_parent_event_start_auth2(pfsm->instance);
 }
 
 ACTION_RETURN_TYPE UFMN(start_data_sync)(FSM_TYPE_PTR pfsm)
 {
 	DBG_PRINTF("%s", __func__);
-	(void) pfsm;
-	return THIS(noEvent);
+	return share_parent_event_start_sync(pfsm->instance);
 }
 
 ACTION_RETURN_TYPE UFMN(report_done)(FSM_TYPE_PTR pfsm)

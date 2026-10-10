@@ -1,6 +1,6 @@
 #include "commands_priv.h"
 
-#ifdef COMMUNICATOR_COMMANDS_DEBUG
+#ifdef COMMANDS_DEBUG
 static void print_configuration(FSM_DATA_PTR);
 #endif
 
@@ -56,7 +56,7 @@ COMMUNICATOR_EVENT_ENUM UFMN(parse_command)(FSM_TYPE_PTR pfsm)
 		break;
 	}
 
-#ifdef COMMUNICATOR_COMMANDS_DEBUG
+#ifdef COMMANDS_DEBUG
 	print_configuration(&pfsm->data);
 #endif
 
@@ -140,7 +140,7 @@ void UFMN(set_defaults)(FSM_DATA_PTR pfsm_data)
 	memset(&pfsm_data->pconfiguration->peer_sn,0,sizeof(pfsm_data->pconfiguration->peer_sn));
 }
 
-#ifdef COMMUNICATOR_COMMANDS_DEBUG
+#ifdef COMMANDS_DEBUG
 char * command_strings[command_num_commands] = {
 	"peer_id"
 	, "peer_sn"

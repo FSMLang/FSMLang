@@ -7,7 +7,7 @@ machine steady_state
 native impl
 {
 #define FSM_ENTRY(A)
-#define FSM_EXIT(A) DBG_PRINTF("end state: %s", STEADY_STATE_STATE_NAMES[(A)->state])
+#define FSM_EXIT(A) DBG_PRINTF("steady_state: end state: %s", STEADY_STATE_STATE_NAMES[(A)->state])
 #define ACTION_ENTRY(A)
 #define ACTION_EXIT(A)
 #define INIT_FSM_DATA0 {NULL}

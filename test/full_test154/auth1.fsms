@@ -5,13 +5,15 @@ machine auth1
 native impl
 {
 #define FSM_ENTRY(A)
-#define FSM_EXIT(A) DBG_PRINTF("end state: %s", AUTH1_STATE_NAMES[(A)->state])
+#define FSM_EXIT(A) DBG_PRINTF("auth1: end state: %s", AUTH1_STATE_NAMES[(A)->state])
 #define ACTION_ENTRY(A)
 #define ACTION_EXIT(A)
 }
 {
 	state initial;
 	state active;
+	state step1;
+	state step2;
 	state done;
 
 	event parent::activate;
@@ -19,7 +21,9 @@ native impl
 	event parent::auth1_gatt;
 
 	transition [activate, (all)] active;
-	action report_auth1_complete[auth1_gatt, active] transition done;
+	action send_step1[start_auth1, active] transition step1;
+	action send_step2[auth1_gatt, step1] transition step2;
+	action report_auth1_complete[auth1_gatt, step2] transition done;
 
 }
 
