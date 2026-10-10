@@ -25,7 +25,7 @@ communicator: end state: waiting
 !test input: [e.event = THIS(command)]
 !test input: [e.event_data.command_data.command.tag = command_peer_id]
 communicator_grab_command
-commands: event: command; state: waiting_pairing_info
+commands[0]: event: command; state: waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -39,7 +39,7 @@ commands: end state: waiting_pairing_info
 communicator: end state: waiting
 !test input: [e.event_data.command_data.command.tag = command_peer_sn]
 communicator_grab_command
-commands: event: command; state: waiting_pairing_info
+commands[0]: event: command; state: waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: [012345678901]
@@ -73,7 +73,7 @@ communicator_ble_stop_scanning
 communicator_ble_start_connection_timer
 ble: end state: waiting_for_connection_window
 communicator[0]: event: peer_connected; state: first_time_connect
-first_connection: event: peer_connected; state: waiting
+first_connection[0]: event: peer_connected; state: waiting
 communicator_first_connection_act_start_auth1
 auth1[0]: event: start_auth1; state: active
 communicator_auth1_send_step1
@@ -89,7 +89,7 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: auth1_gatt; state: first_time_connect
-first_connection: event: auth1_gatt; state: auth1
+first_connection[0]: event: auth1_gatt; state: auth1
 communicator_first_connection_share_parent_auth1_gatt
 auth1[0]: event: auth1_gatt; state: step1
 communicator_auth1_send_step2
@@ -104,14 +104,14 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: auth1_gatt; state: first_time_connect
-first_connection: event: auth1_gatt; state: auth1
+first_connection[0]: event: auth1_gatt; state: auth1
 communicator_first_connection_share_parent_auth1_gatt
 auth1[0]: event: auth1_gatt; state: step2
 communicator_auth1_report_auth1_complete
 auth1: end state: done
 first_connection: end state: auth1
 communicator[0]: event: auth1_complete; state: first_time_connect
-first_connection: event: auth1_complete; state: auth1
+first_connection[0]: event: auth1_complete; state: auth1
 communicator_first_connection_act_start_auth2
 auth2[0]: event: start_auth2; state: active
 communicator_auth2_send_step1
@@ -126,7 +126,7 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: auth2_gatt; state: first_time_connect
-first_connection: event: auth2_gatt; state: auth2
+first_connection[0]: event: auth2_gatt; state: auth2
 communicator_first_connection_share_parent_auth2_gatt
 auth2[0]: event: auth2_gatt; state: step1
 communicator_auth2_send_step2
@@ -141,14 +141,14 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: auth2_gatt; state: first_time_connect
-first_connection: event: auth2_gatt; state: auth2
+first_connection[0]: event: auth2_gatt; state: auth2
 communicator_first_connection_share_parent_auth2_gatt
 auth2[0]: event: auth2_gatt; state: step2
 communicator_auth2_report_auth2_complete
 auth2: end state: done
 first_connection: end state: auth2
 communicator[0]: event: auth2_complete; state: first_time_connect
-first_connection: event: auth2_complete; state: auth2
+first_connection[0]: event: auth2_complete; state: auth2
 communicator_first_connection_start_data_sync
 sync[0]: event: start_sync; state: active
 communicator_sync_send_step1
@@ -163,7 +163,7 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: sync_gatt; state: first_time_connect
-first_connection: event: sync_gatt; state: data_sync
+first_connection[0]: event: sync_gatt; state: data_sync
 communicator_first_connection_share_parent_sync_gatt
 sync[0]: event: sync_gatt; state: step1
 communicator_sync_send_step2
@@ -178,7 +178,7 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: sync_gatt; state: first_time_connect
-first_connection: event: sync_gatt; state: data_sync
+first_connection[0]: event: sync_gatt; state: data_sync
 communicator_first_connection_share_parent_sync_gatt
 sync[0]: event: sync_gatt; state: step2
 communicator_sync_send_step3
@@ -193,7 +193,7 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: sync_gatt; state: first_time_connect
-first_connection: event: sync_gatt; state: data_sync
+first_connection[0]: event: sync_gatt; state: data_sync
 communicator_first_connection_share_parent_sync_gatt
 sync[0]: event: sync_gatt; state: step3
 communicator_sync_send_step4
@@ -208,21 +208,21 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: sync_gatt; state: first_time_connect
-first_connection: event: sync_gatt; state: data_sync
+first_connection[0]: event: sync_gatt; state: data_sync
 communicator_first_connection_share_parent_sync_gatt
 sync[0]: event: sync_gatt; state: step4
 communicator_sync_report_sync_complete
 sync: end state: done
 first_connection: end state: data_sync
 communicator[0]: event: peer_data_synced; state: first_time_connect
-first_connection: event: peer_data_synced; state: data_sync
+first_connection[0]: event: peer_data_synced; state: data_sync
 communicator_first_connection_report_done
 first_connection: end state: done
 steady_state[0]: event: activate; state: initial
 communicator_steady_state_noAction
 steady_state: end state: waiting
 communicator[0]: event: peer_data_synced; state: connected_to_peer
-steady_state: event: peer_data_synced; state: waiting
+steady_state[0]: event: peer_data_synced; state: waiting
 communicator_steady_state_noAction
 steady_state: end state: waiting
 communicator: end state: connected_to_peer
@@ -253,7 +253,7 @@ communicator: end state: waiting
 !test input: [e.event = THIS(command)]
 !test input: [e.event_data.command_data.command.tag = command_peer_id]
 communicator_grab_command
-commands: event: command; state: waiting_pairing_info
+commands[1]: event: command; state: waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -267,7 +267,7 @@ commands: end state: waiting_pairing_info
 communicator: end state: waiting
 !test input: [e.event_data.command_data.command.tag = command_peer_ble_addr]
 communicator_grab_command
-commands: event: command; state: waiting_pairing_info
+commands[1]: event: command; state: waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -281,7 +281,7 @@ commands: end state: waiting_pairing_info
 communicator: end state: waiting
 !test input: [e.event_data.command_data.command.tag = command_peer_ble_addr_type]
 communicator_grab_command
-commands: event: command; state: waiting_pairing_info
+commands[1]: event: command; state: waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -295,7 +295,7 @@ commands: end state: waiting_pairing_info
 communicator: end state: waiting
 !test input: [e.event_data.command_data.command.tag = command_peer_comm_window]
 communicator_grab_command
-commands: event: command; state: waiting_pairing_info
+commands[1]: event: command; state: waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -309,7 +309,7 @@ commands: end state: waiting_pairing_info
 communicator: end state: waiting
 !test input: [e.event_data.command_data.command.tag = command_peer_comm_period]
 communicator_grab_command
-commands: event: command; state: waiting_pairing_info
+commands[1]: event: command; state: waiting_pairing_info
 communicator_commands_parse_command
 peer_id: [5678]
 peer_sn: []
@@ -333,7 +333,7 @@ first_connection: end state: waiting
 communicator: end state: first_time_connect
 !test input: [e.event = THIS(comm_window_timer_expired)]
 communicator[1]: event: comm_window_timer_expired; state: first_time_connect
-first_connection: event: comm_window_timer_expired; state: waiting
+first_connection[1]: event: comm_window_timer_expired; state: waiting
 communicator_first_connection_share_parent_comm_window_timer_expired
 ble[1]: event: comm_window_timer_expired; state: waiting_for_connection_window
 communicator_ble_look_for_peer
@@ -342,7 +342,7 @@ communicator_ble_report_connection
 ble: end state: waiting_for_connection_window
 first_connection: end state: waiting
 communicator[1]: event: peer_connected; state: first_time_connect
-first_connection: event: peer_connected; state: waiting
+first_connection[1]: event: peer_connected; state: waiting
 communicator_first_connection_act_start_auth1
 auth1[1]: event: start_auth1; state: active
 communicator_auth1_send_step1
@@ -358,7 +358,7 @@ ble[1]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[1]: event: auth1_gatt; state: first_time_connect
-first_connection: event: auth1_gatt; state: auth1
+first_connection[1]: event: auth1_gatt; state: auth1
 communicator_first_connection_share_parent_auth1_gatt
 auth1[1]: event: auth1_gatt; state: step1
 communicator_auth1_send_step2
@@ -372,14 +372,14 @@ ble[1]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[1]: event: auth1_gatt; state: first_time_connect
-first_connection: event: auth1_gatt; state: auth1
+first_connection[1]: event: auth1_gatt; state: auth1
 communicator_first_connection_share_parent_auth1_gatt
 auth1[1]: event: auth1_gatt; state: step2
 communicator_auth1_report_auth1_complete
 auth1: end state: done
 first_connection: end state: auth1
 communicator[1]: event: auth1_complete; state: first_time_connect
-first_connection: event: auth1_complete; state: auth1
+first_connection[1]: event: auth1_complete; state: auth1
 communicator_first_connection_act_start_auth2
 auth2[1]: event: start_auth2; state: active
 communicator_auth2_send_step1
@@ -393,7 +393,7 @@ ble[1]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[1]: event: auth2_gatt; state: first_time_connect
-first_connection: event: auth2_gatt; state: auth2
+first_connection[1]: event: auth2_gatt; state: auth2
 communicator_first_connection_share_parent_auth2_gatt
 auth2[1]: event: auth2_gatt; state: step1
 communicator_auth2_send_step2
@@ -408,14 +408,14 @@ ble[1]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[1]: event: auth2_gatt; state: first_time_connect
-first_connection: event: auth2_gatt; state: auth2
+first_connection[1]: event: auth2_gatt; state: auth2
 communicator_first_connection_share_parent_auth2_gatt
 auth2[1]: event: auth2_gatt; state: step2
 communicator_auth2_report_auth2_complete
 auth2: end state: done
 first_connection: end state: auth2
 communicator[1]: event: auth2_complete; state: first_time_connect
-first_connection: event: auth2_complete; state: auth2
+first_connection[1]: event: auth2_complete; state: auth2
 communicator_first_connection_start_data_sync
 sync[1]: event: start_sync; state: active
 communicator_sync_send_step1
@@ -429,7 +429,7 @@ ble[1]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[1]: event: sync_gatt; state: first_time_connect
-first_connection: event: sync_gatt; state: data_sync
+first_connection[1]: event: sync_gatt; state: data_sync
 communicator_first_connection_share_parent_sync_gatt
 sync[1]: event: sync_gatt; state: step1
 communicator_sync_send_step2
@@ -443,7 +443,7 @@ ble[1]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[1]: event: sync_gatt; state: first_time_connect
-first_connection: event: sync_gatt; state: data_sync
+first_connection[1]: event: sync_gatt; state: data_sync
 communicator_first_connection_share_parent_sync_gatt
 sync[1]: event: sync_gatt; state: step2
 communicator_sync_send_step3
@@ -457,7 +457,7 @@ ble[1]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[1]: event: sync_gatt; state: first_time_connect
-first_connection: event: sync_gatt; state: data_sync
+first_connection[1]: event: sync_gatt; state: data_sync
 communicator_first_connection_share_parent_sync_gatt
 sync[1]: event: sync_gatt; state: step3
 communicator_sync_send_step4
@@ -471,21 +471,21 @@ ble[1]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[1]: event: sync_gatt; state: first_time_connect
-first_connection: event: sync_gatt; state: data_sync
+first_connection[1]: event: sync_gatt; state: data_sync
 communicator_first_connection_share_parent_sync_gatt
 sync[1]: event: sync_gatt; state: step4
 communicator_sync_report_sync_complete
 sync: end state: done
 first_connection: end state: data_sync
 communicator[1]: event: peer_data_synced; state: first_time_connect
-first_connection: event: peer_data_synced; state: data_sync
+first_connection[1]: event: peer_data_synced; state: data_sync
 communicator_first_connection_report_done
 first_connection: end state: done
 steady_state[1]: event: activate; state: initial
 communicator_steady_state_noAction
 steady_state: end state: waiting
 communicator[1]: event: peer_data_synced; state: connected_to_peer
-steady_state: event: peer_data_synced; state: waiting
+steady_state[1]: event: peer_data_synced; state: waiting
 communicator_steady_state_noAction
 steady_state: end state: waiting
 communicator: end state: connected_to_peer
@@ -500,7 +500,7 @@ communicator: end state: initial
 test: steady_state
 !test input: [e.event = THIS(comm_window_timer_expired)]
 communicator[0]: event: comm_window_timer_expired; state: connected_to_peer
-steady_state: event: comm_window_timer_expired; state: waiting
+steady_state[0]: event: comm_window_timer_expired; state: waiting
 communicator_steady_state_share_parent_comm_window_timer_expired
 auth2[0]: event: comm_window_starting; state: done
 communicator_auth2_noAction
@@ -512,7 +512,7 @@ communicator_ble_report_connection
 ble: end state: waiting_for_connection_window
 steady_state: end state: waiting
 communicator[0]: event: peer_connected; state: connected_to_peer
-steady_state: event: peer_connected; state: waiting
+steady_state[0]: event: peer_connected; state: waiting
 communicator_steady_state_act_start_auth2
 auth2[0]: event: start_auth2; state: active
 communicator_auth2_send_step1
@@ -528,7 +528,7 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: auth2_gatt; state: connected_to_peer
-steady_state: event: auth2_gatt; state: auth2
+steady_state[0]: event: auth2_gatt; state: auth2
 communicator_steady_state_share_parent_auth2_gatt
 auth2[0]: event: auth2_gatt; state: step1
 communicator_auth2_send_step2
@@ -542,14 +542,14 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: auth2_gatt; state: connected_to_peer
-steady_state: event: auth2_gatt; state: auth2
+steady_state[0]: event: auth2_gatt; state: auth2
 communicator_steady_state_share_parent_auth2_gatt
 auth2[0]: event: auth2_gatt; state: step2
 communicator_auth2_report_auth2_complete
 auth2: end state: done
 steady_state: end state: auth2
 communicator[0]: event: auth2_complete; state: connected_to_peer
-steady_state: event: auth2_complete; state: auth2
+steady_state[0]: event: auth2_complete; state: auth2
 communicator_steady_state_start_data_sync
 sync[0]: event: start_sync; state: done
 communicator_sync_send_step3
@@ -563,7 +563,7 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: sync_gatt; state: connected_to_peer
-steady_state: event: sync_gatt; state: data_sync
+steady_state[0]: event: sync_gatt; state: data_sync
 communicator_steady_state_share_parent_sync_gatt
 sync[0]: event: sync_gatt; state: step3
 communicator_sync_send_step4
@@ -577,24 +577,24 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: sync_gatt; state: connected_to_peer
-steady_state: event: sync_gatt; state: data_sync
+steady_state[0]: event: sync_gatt; state: data_sync
 communicator_steady_state_share_parent_sync_gatt
 sync[0]: event: sync_gatt; state: step4
 communicator_sync_report_sync_complete
 sync: end state: done
 steady_state: end state: data_sync
 communicator[0]: event: peer_data_synced; state: connected_to_peer
-steady_state: event: peer_data_synced; state: data_sync
+steady_state[0]: event: peer_data_synced; state: data_sync
 communicator_steady_state_report_done
 steady_state: end state: waiting
 communicator[0]: event: peer_data_synced; state: connected_to_peer
-steady_state: event: peer_data_synced; state: waiting
+steady_state[0]: event: peer_data_synced; state: waiting
 communicator_steady_state_noAction
 steady_state: end state: waiting
 communicator: end state: connected_to_peer
 !test input: [e.event = THIS(comm_window_timer_expired)]
 communicator[0]: event: comm_window_timer_expired; state: connected_to_peer
-steady_state: event: comm_window_timer_expired; state: waiting
+steady_state[0]: event: comm_window_timer_expired; state: waiting
 communicator_steady_state_share_parent_comm_window_timer_expired
 auth2[0]: event: comm_window_starting; state: done
 communicator_auth2_noAction
@@ -606,7 +606,7 @@ communicator_ble_report_connection
 ble: end state: waiting_for_connection_window
 steady_state: end state: waiting
 communicator[0]: event: peer_connected; state: connected_to_peer
-steady_state: event: peer_connected; state: waiting
+steady_state[0]: event: peer_connected; state: waiting
 communicator_steady_state_act_start_auth2
 auth2[0]: event: start_auth2; state: active
 communicator_auth2_send_step1
@@ -622,7 +622,7 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: auth2_gatt; state: connected_to_peer
-steady_state: event: auth2_gatt; state: auth2
+steady_state[0]: event: auth2_gatt; state: auth2
 communicator_steady_state_share_parent_auth2_gatt
 auth2[0]: event: auth2_gatt; state: step1
 communicator_auth2_send_step2
@@ -636,14 +636,14 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: auth2_gatt; state: connected_to_peer
-steady_state: event: auth2_gatt; state: auth2
+steady_state[0]: event: auth2_gatt; state: auth2
 communicator_steady_state_share_parent_auth2_gatt
 auth2[0]: event: auth2_gatt; state: step2
 communicator_auth2_report_auth2_complete
 auth2: end state: done
 steady_state: end state: auth2
 communicator[0]: event: auth2_complete; state: connected_to_peer
-steady_state: event: auth2_complete; state: auth2
+steady_state[0]: event: auth2_complete; state: auth2
 communicator_steady_state_start_data_sync
 sync[0]: event: start_sync; state: done
 communicator_sync_send_step3
@@ -657,7 +657,7 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: sync_gatt; state: connected_to_peer
-steady_state: event: sync_gatt; state: data_sync
+steady_state[0]: event: sync_gatt; state: data_sync
 communicator_steady_state_share_parent_sync_gatt
 sync[0]: event: sync_gatt; state: step3
 communicator_sync_send_step4
@@ -671,18 +671,18 @@ ble[0]: event: gatt_msg; state: waiting_for_connection_window
 communicator_ble_report_gatt_characteristic
 ble: end state: waiting_for_connection_window
 communicator[0]: event: sync_gatt; state: connected_to_peer
-steady_state: event: sync_gatt; state: data_sync
+steady_state[0]: event: sync_gatt; state: data_sync
 communicator_steady_state_share_parent_sync_gatt
 sync[0]: event: sync_gatt; state: step4
 communicator_sync_report_sync_complete
 sync: end state: done
 steady_state: end state: data_sync
 communicator[0]: event: peer_data_synced; state: connected_to_peer
-steady_state: event: peer_data_synced; state: data_sync
+steady_state[0]: event: peer_data_synced; state: data_sync
 communicator_steady_state_report_done
 steady_state: end state: waiting
 communicator[0]: event: peer_data_synced; state: connected_to_peer
-steady_state: event: peer_data_synced; state: waiting
+steady_state[0]: event: peer_data_synced; state: waiting
 communicator_steady_state_noAction
 steady_state: end state: waiting
 communicator: end state: connected_to_peer
