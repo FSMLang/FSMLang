@@ -136,3 +136,32 @@ void print_ancestor_case_statements(FILE *fout, pCMachineData pcmd, char *indent
 	}
 }
 
+void print_ancestor_event_conditional(FILE *fout, pCMachineData pcmd, char *indent, char *e_str)
+{
+	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
+
+	for (pCMachineData pcmd_iterator = pcmd;
+		 pcmd_iterator && pcmd_iterator->parent_pcmd;
+		 pcmd_iterator = pcmd_iterator->parent_pcmd
+		)
+	{
+		fprintf(fout
+				, "%s   || ((%s >= "
+				, indent
+				, e_str
+				);
+		print_ancestor_macro(fout, pcmd_iterator);
+		fprintf(fout
+				, "(firstEvent)) && ((%s < "
+				, e_str
+				);
+		print_ancestor_macro(fout, pcmd_iterator);
+		fprintf(fout
+				, "(%s))))\n"
+				, (!pcmd_iterator->parent_pcmd->parent_pcmd && !(pcmd->pmi->modFlags & ACTIONS_RETURN_FLAGS))
+				  ? "numEvents"
+				  : "noEvent"
+				);
+	}
+}
+

@@ -44,6 +44,7 @@ pCMachineData nth_generation(pCMachineData,unsigned);
 void print_ancestor_macro(FILE*,pCMachineData);
 void define_ancestor_macros(FILE*,pCMachineData);
 void print_ancestor_case_statements(FILE*,pCMachineData,char*,char*);
+void print_ancestor_event_conditional(FILE*,pCMachineData,char*,char*);
 
 #endif
 

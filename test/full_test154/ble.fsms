@@ -11,7 +11,7 @@ machine ble
 native impl
 {
 #define FSM_ENTRY(A)
-#define FSM_EXIT(A) DBG_PRINTF("end state: %s", BLE_STATE_NAMES[(A)->state])
+#define FSM_EXIT(A) DBG_PRINTF("ble: end state: %s", BLE_STATE_NAMES[(A)->state])
 #define ACTION_ENTRY(A)
 #define ACTION_EXIT(A)
 #define INIT_FSM_DATA0 {NULL, NULL}

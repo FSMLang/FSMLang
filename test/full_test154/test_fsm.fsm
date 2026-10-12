@@ -8,6 +8,9 @@ native
 #include "configuration.h"
 #include "ble_defs.h"
 
+#ifdef DBG_PRINTF
+#undef DBG_PRINTF
+#endif
 #define DBG_PRINTF(...) fprintf(stdout, __VA_ARGS__); fprintf(stdout, "\n");
 
 
@@ -19,7 +22,7 @@ native impl
 {
 #define INIT_FSM_DATA {{0},NULL,NULL}
 #define FSM_ENTRY(A)
-#define FSM_EXIT(A) DBG_PRINTF("end state: %s", COMMUNICATOR_STATE_NAMES[(A)->state])
+#define FSM_EXIT(A) DBG_PRINTF("communicator: end state: %s", COMMUNICATOR_STATE_NAMES[(A)->state])
 #define ACTION_ENTRY(A)
 #define ACTION_EXIT(A)
 #define INIT_FSM_DATA0 {{0}, NULL, NULL}

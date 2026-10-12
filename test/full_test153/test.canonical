@@ -64,6 +64,8 @@ communicator_ble_report_connection
 communicator_ble_stop_scanning
 communicator_ble_set_defaults
 end state: communicator_ble_waiting
+end state: communicator_first_connection_waiting
+event: communicator_peer_connected; state: communicator_first_time_connect
 event: communicator_peer_connected; state: communicator_first_connection_waiting
 communicator_first_connection_act_start_auth1
 end state: communicator_first_connection_auth1

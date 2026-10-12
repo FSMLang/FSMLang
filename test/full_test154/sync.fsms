@@ -5,23 +5,31 @@ machine sync
 native impl
 {
 #define FSM_ENTRY(A)
-#define FSM_EXIT(A) DBG_PRINTF("end state: %s", SYNC_STATE_NAMES[(A)->state])
+#define FSM_EXIT(A) DBG_PRINTF("sync: end state: %s", SYNC_STATE_NAMES[(A)->state])
 #define ACTION_ENTRY(A)
 #define ACTION_EXIT(A)
 }
 {
 	state initial;
 	state active;
+	state step1;
+	state step2;
+	state step3;
+	state step4;
 	state done;
 
 	event parent::activate;
 	event parent::start_sync;
 	event parent::sync_gatt;
-	event parent::comm_window_starting;
 
 	transition [activate, (all)] active;
-	transition [comm_window_starting, done] active;
-	action report_sync_complete[sync_gatt, active] transition done;
+
+	action send_step1           [start_sync, active] transition step1;
+	action send_step3           [start_sync, done]   transition step3;
+	action send_step2           [sync_gatt,  step1]  transition step2;
+	action send_step3           [sync_gatt,  step2]  transition step3;
+	action send_step4           [sync_gatt,  step3]  transition step4;
+	action report_sync_complete [sync_gatt,  step4]  transition done;
 
 }
 

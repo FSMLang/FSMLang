@@ -22,7 +22,7 @@ native impl
 {
 #define INIT_FSM_DATA {NULL,NULL}
 #define FSM_ENTRY(A)
-#define FSM_EXIT(A) DBG_PRINTF("end state: %s", COMMANDS_STATE_NAMES[(A)->state])
+#define FSM_EXIT(A) DBG_PRINTF("commands: end state: %s", COMMANDS_STATE_NAMES[(A)->state])
 #define ACTION_ENTRY(A)
 #define ACTION_EXIT(A)
 #define INIT_FSM_DATA0 {NULL, NULL}
