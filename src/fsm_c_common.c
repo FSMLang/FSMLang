@@ -217,17 +217,41 @@ void writeCFilePreambles(pFSMCOutputGenerator pfsmcog)
 			continue;
 		}
 
-		/* When initializing for sub-machines, do not open a public header. */
-		if (!sub_machine || (sub_machine && cf != cf_pubH))
+		/* An event data file is only needed for top-level machines having machine implemented translators. */
+		if (cf == cf_eventDataH)
 		{
-			error = ((pcmd->file_array[cf] = openFile(pcmd->file_name_array[cf], "w")) == NULL);
+			if (sub_machine
+				|| (pcmd->pmi->translators_implemented_by_machine == 0)
+				)
+			{
+				pcmd->eventDataHFile = pcmd->pubHFile;
+				continue;
+			}
 		}
+
+		/* When initializing for sub-machines, do not open a public header. */
+		if ((cf == cf_pubH) && sub_machine) 
+		{
+			continue;
+		}
+
+		error = ((pcmd->file_array[cf] = openFile(pcmd->file_name_array[cf], "w")) == NULL);
 	}
 
+	/* Sub-machines do not have a public header. */
 	if (sub_machine)
 	{
-		/* Sub-machines use the same file for public and private matters. */
-		pcmd->pubHFile            = pcmd->hFile;
+		pcmd->pubHFile  = pcmd->hFile;
+	}
+
+	/* Sub-machines and top-level machines having no machine implemented translators do not use
+	   a separate event data file.
+	*/
+	if (sub_machine
+		|| (pcmd->pmi->translators_implemented_by_machine == 0)
+		)
+	{
+		pcmd->eventDataHFile = pcmd->pubHFile;
 	}
 
 	if (error)
@@ -291,7 +315,17 @@ void writeCFilePreambles(pFSMCOutputGenerator pfsmcog)
 				/* the header files */
 
 				/* Skip the public header when it is the same as the private. */
-				if (cf == cf_pubH && (pcmd->file_array[cf_pubH] == pcmd->file_array[cf_h]))
+				if ((cf == cf_pubH)
+					&& (pcmd->file_array[cf_pubH] == pcmd->file_array[cf_h])
+					)
+				{
+					continue;
+				}
+
+				/* Skip the event data header when it is the same as the public. */
+				if ((cf == cf_eventDataH)
+					&& (pcmd->file_array[cf_eventDataH] == pcmd->file_array[cf_pubH])
+					)
 				{
 					continue;
 				}
@@ -362,6 +396,15 @@ void writeCFilePreambles(pFSMCOutputGenerator pfsmcog)
 					, "#include \"%s\"\n"
 					, pfsmcog->pcmd->eventsHName
 				   );
+
+			/* include the events data header, when appropriate */
+			if (!pfsmcog->parent_fsmcog && (pfsmcog->pcmd->pmi->translators_implemented_by_machine > 0))
+			{
+				fprintf(pfsmcog->pcmd->pubHFile
+						, "#include \"%s\"\n"
+						, pfsmcog->pcmd->eventDataHName
+					   );
+			}
 		}
 
 	}
@@ -607,7 +650,7 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 		}, .pcmd    = pcmd
 	};
 
-	/* put the native code segment out to the header */
+	/* put the native code segment out to relevant headers */
 	if (pmi->native_prologue) print_native_prologue(pcmd, pmi);
 
 	fprintf(pcmd->hFile
@@ -761,24 +804,24 @@ void commonHeaderStart(pFSMCOutputGenerator pfsmcog
 	if (pmi->data_block_count)
 	{
 		ich.ih.pmi = pmi;
-		ich.ih.fout = pcmd->pubHFile;
+		ich.ih.fout = pcmd->eventDataHFile;
 		iterate_list(pmi->event_list, declare_event_user_data_structs, &ich);
 
 		/* create the union of pointers */
-		fprintf(pcmd->pubHFile
+		fprintf(pcmd->eventDataHFile
 				, "typedef union {\n"
 			   );
 
 		iterate_list(pmi->event_list, declare_event_user_data_union_mbrs, &ich);
 
-		fprintf(pcmd->pubHFile
+		fprintf(pcmd->eventDataHFile
 				, "} %s_EVENT_DATA, *p%s_EVENT_DATA;\n\n"
 				, fsmType(pcmd)
 				, fsmType(pcmd)
 			   );
 
 		/* create the event struct */
-		fprintf(pcmd->pubHFile
+		fprintf(pcmd->eventDataHFile
 				, "typedef struct {\n\t%s_EVENT_ENUM event;\n\t%s_EVENT_DATA event_data;\n} %s_EVENT, *p%s_EVENT;\n\n"
 				, fsmType(pcmd)
 				, fsmType(pcmd)
@@ -1111,7 +1154,7 @@ void commonHeaderEnd(pFSMCOutputGenerator pfsmcog, bool needNoOp)
 					);
 	}
 
-	/* put the native_epilogue code segment out to the header */
+	/* put the native_epilogue code segment out to relevant headers */
 	if (pmi->native_epilogue) print_native_epilogue(pcmd, pmi);
 
 }
@@ -2066,6 +2109,7 @@ pCMachineData	newCMachineData(char *baseFileName)
 			pcmd->hName               = createFileName(baseFileName, "_priv.h");
 			pcmd->subMachineHName     = createFileName(baseFileName, "_submach.h");
 			pcmd->eventsHName         = createFileName(baseFileName, "_events.h");
+			pcmd->eventDataHName      = createFileName(baseFileName, "_event_data.h");
 			if (!generate_instance)
 			{
 				pcmd->instanceMacrosHName = createFileName(baseFileName, "_instance_macros.h");
@@ -2106,6 +2150,11 @@ void destroyCMachineData(pCMachineData pcmd, int good)
 			fprintf(pcmd->pubHFile, "\n#endif\n");
 		}
 
+		if (pcmd->eventDataHFile && (pcmd->eventDataHFile != pcmd->pubHFile))
+		{
+			fprintf(pcmd->eventDataHFile, "\n#endif\n");
+		}
+
 		if (!pcmd->a_sub_machine_was_encountered)
 		{
 			FCLOSE_AND_CLEAR(pcmd->subMachineHFile);
@@ -2115,6 +2164,7 @@ void destroyCMachineData(pCMachineData pcmd, int good)
 			FCLOSE_AND_CLEAR(pcmd->instanceMacrosHFile);
 			(void)unlink(pcmd->instanceMacrosHName);
 			pcmd->instanceMacrosHName = NULL;
+
 		}
 
 		if (pcmd->parent_pcmd)
@@ -2126,7 +2176,11 @@ void destroyCMachineData(pCMachineData pcmd, int good)
 
 	}
 
-	/* A special case */
+	/* A special case, or two */
+	if (pcmd->eventDataHFile == pcmd->pubHFile)
+	{
+		pcmd->eventDataHFile = NULL;
+	}
 	if (pcmd->pubHFile == pcmd->hFile)
 	{
 		pcmd->pubHFile = NULL;
@@ -2902,7 +2956,7 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 							;
 
 	/* Set up the parameter strings. */
-	char *param_type, *param_name, *doxygen_block, *event_param, *event_name;
+	char *param_type, *param_name, *doxygen_block;
 	if ((pcmd->pmi->translators_implemented_by_machine != 0)
 		&& (ptranslator && (ptranslator->type_data.translator_data.flags & tf_implemented_by_sub_machine))
 		)
@@ -2910,15 +2964,12 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 		param_type = fsmType(pcmd);
 		param_name = ((dod == dod_define) || add_doxygen_blocks) ? " pfsm" : empty_str;
 		doxygen_block = add_doxygen_blocks ? " /**< Pointer to the FSM */" : empty_str;
-		event_param = eventType(pcmd);
-		event_name = " event";
 	}
 	else
 	{
 		param_type = fsmDataType(pcmd);
 		param_name = " pfsm_data";
 		doxygen_block = add_doxygen_blocks ? " /**< Pointer to FSM instance data.*/" : empty_str;
-		event_param = event_name = empty_str;
 	}
 
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
@@ -2947,7 +2998,7 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 				   );
 		}
 		fprintf(fout
-				, "(p%s%s%s, p%s_%s_DATA%s%s%s%s%s)%s\n"
+				, "(p%s%s%s, p%s_%s_DATA%s%s)%s\n"
 				, param_type
 				, param_name
 				, doxygen_block
@@ -2955,9 +3006,6 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 				, event_name_cp
 				, ((dod == dod_define) || add_doxygen_blocks) ? " pdata" : ""
 				, add_doxygen_blocks ? " /**< Pointer to the event's data*/" : ""
-				, event_param == empty_str ? empty_str : ", "
-				, event_param
-				, ((dod == dod_define) || add_doxygen_blocks) ? event_name : empty_str
 				, dod == dod_define ? "\n{" : ";"
 			   );
 	}
@@ -3137,12 +3185,17 @@ static void print_native_prologue(pCMachineData pcmd, pMACHINE_INFO pmi)
 		, pcmd->subMachineHFile
 		, pcmd->pubHFile
 		, pcmd->eventsHFile
+		, pcmd->eventDataHFile == pcmd->pubHFile ? NULL : pcmd->eventDataHFile
 	};
 
 	for (unsigned long f_iterator = 0; f_iterator < sizeof(f_array) / sizeof(f_array[0]); f_iterator++)
 	{
+		if (f_array[f_iterator] == NULL)
+		{
+			continue;
+		}
 		fprintf(f_array[f_iterator]
-				, "#ifndef %s_NATIVE_PROLOG\n#define %s_NATIVE_PROLOG\n%s\n#endif\n"
+				, "#ifndef %s_NATIVE_PROLOG\n#define %s_NATIVE_PROLOG\n%s\n#endif\n\n"
 				, fsmType(pcmd)
 				, fsmType(pcmd)
 				, pmi->native_prologue
@@ -3157,12 +3210,17 @@ void print_native_epilogue(pCMachineData pcmd, pMACHINE_INFO pmi)
 		, pcmd->subMachineHFile
 		, pcmd->pubHFile
 		, pcmd->eventsHFile
+		, pcmd->eventDataHFile == pcmd->pubHFile ? NULL : pcmd->eventDataHFile
 	};
 
 	for (unsigned long f_iterator = 0; f_iterator < sizeof(f_array) / sizeof(f_array[0]); f_iterator++)
 	{
+		if (f_array[f_iterator] == NULL)
+		{
+			continue;
+		}
 		fprintf(f_array[f_iterator]
-				, "#ifndef %s_NATIVE_EPILOG\n#define %s_NATIVE_EPILOG\n%s\n#endif\n"
+				, "#ifndef %s_NATIVE_EPILOG\n#define %s_NATIVE_EPILOG\n%s\n#endif\n\n"
 				, fsmType(pcmd)
 				, fsmType(pcmd)
 				, pmi->native_epilogue
@@ -3186,7 +3244,7 @@ void subMachineHeaderStart(pFSMCOutputGenerator pfsmcog
 	ich.ih.fout      = pcmd->hFile;
 	ich.ih.pmi       = pmi;
 
-	/* put the native code segment out to the header */
+	/* put the native code segment out to relevant headers */
 	if (pmi->native_prologue) print_native_prologue(pcmd, pmi);
 
 	fprintf(pcmd->hFile
@@ -4359,10 +4417,10 @@ static void print_sub_machine_data_manager_signature(pCMachineData pcmd, DECLARE
 
 	fprintf(pcmd->cFile
 			, "%s%s%s%s"
-			, *param_type == '\0' ? "" : "p"
+			, param_type == empty_str ? "" : "p"
 			, param_type
 			, param_name
-			, *param_type == '\0' ? "" : ","
+			, param_type == empty_str ? "" : ","
 		   );
 
 	fprintf(pcmd->cFile
@@ -4401,7 +4459,7 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 				, pevent->name
 			   );
 
-		char *param_name, *event_param;
+		char *param_name;
 		if (pich->ih.pmi->translators_implemented_by_machine)
 		{
 			if (ped->puser_event_data->translator
@@ -4409,24 +4467,21 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 						  )
 			{
 				 param_name = "pfsm";
-				 event_param = ", pevent->event";
 			}
 			else
 			{
 				param_name = "&pfsm->data";
-				event_param = empty_str;
 			}
 		}
 		else
 		{
 			param_name = "pfsm_data";
-			event_param = empty_str;
 		}
 
 		fprintf(pich->pcmd->cFile
 				, ped->puser_event_data->translator
-				  ? "\t\t%sUFMN(%s)(%s, &pevent->event_data.%s_data%s);\n\t\tbreak;\n"
-				  : "\t\t%sUFMN(translate_%s_data)(%s, &pevent->event_data.%s_data%s);\n\t\tbreak;\n"
+				  ? "\t\t%sUFMN(%s)(%s, &pevent->event_data.%s_data);\n\t\tbreak;\n"
+				  : "\t\t%sUFMN(translate_%s_data)(%s, &pevent->event_data.%s_data);\n\t\tbreak;\n"
 				, pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
 				  ? "retVal = "
 				  : ""
@@ -4435,7 +4490,6 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 				  : pevent->name
 				, param_name
 				, pevent->name
-				, event_param
 			   );
 
 	}
@@ -5146,6 +5200,14 @@ void writeCMachineFN(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 				{
 					continue;
 				}
+			}
+
+			//event data files only exist in a special case
+			if ((cf == cf_eventDataH)
+				&& (pmi->parent || (pmi->translators_implemented_by_machine == 0))
+				)
+			{
+				continue;
 			}
 
 			//special source file rules

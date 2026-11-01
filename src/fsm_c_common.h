@@ -88,6 +88,7 @@ typedef enum CREATED_FILES
 	, cf_pubH
 	, cf_subMachineH
     , cf_eventsH
+    , cf_eventDataH
 	, cf_instanceMacrosH
 	, cf_numCreatedFiles
 } CREATED_FILES;
@@ -99,6 +100,7 @@ typedef enum CREATED_FILES
 #define pubHFile            file_array[cf_pubH]
 #define subMachineHFile     file_array[cf_subMachineH]
 #define eventsHFile         file_array[cf_eventsH]
+#define eventDataHFile      file_array[cf_eventDataH]
 #define instanceMacrosHFile file_array[cf_instanceMacrosH]
 
 #define cName               file_name_array[cf_c]
@@ -107,6 +109,7 @@ typedef enum CREATED_FILES
 #define pubHName            file_name_array[cf_pubH]
 #define subMachineHName     file_name_array[cf_subMachineH]
 #define eventsHName         file_name_array[cf_eventsH]
+#define eventDataHName      file_name_array[cf_eventDataH]
 #define instanceMacrosHName file_name_array[cf_instanceMacrosH]
 
 struct _c_machine_data_
