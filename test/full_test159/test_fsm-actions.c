@@ -10,13 +10,13 @@ ACTION_RETURN_TYPE UFMN(a1)(pTEST_FSM pfsm)
 	return STATE(noTransition);
 }
 
-void UFMN(xlate_e1)(pTEST_FSM pfsm, pTEST_FSM_E1_DATA pe1_data, TEST_FSM_EVENT_ENUM event)
+void UFMN(xlate_e1)(pTEST_FSM pfsm, pTEST_FSM_E1_DATA pe1_data)
 {
 	DBG_PRINTF("%s", __func__);
 
 	pfsm->data.pe1_data = pe1_data;
 
-	(void) run_test_fsm_e1_translator(pfsm, event);
+	(void) run_test_fsm_e1_translator(pfsm, THIS(e1));
 }
 
 void UFMN(init_s2_implementor)(FSM_TYPE_PTR pfsm)
