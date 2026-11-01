@@ -1,5 +1,26 @@
 include $(OUTPUT_DIR)/system.mk
 
+INPUT ?= test
+
+test_mh_c_1: FSM_FLAGS=-Mh -tc
+test_mh_c_1: INPUT=test1
+test_md_c_1: FSM_FLAGS=-Md -tc
+test_md_c_1: INPUT=test1
+test_mh_s_1: FSM_FLAGS=-Mh -ts
+test_mh_s_1: INPUT=test1
+test_md_s_1: FSM_FLAGS=-Md -ts
+test_md_s_1: INPUT=test1
+test_mh_e_1: FSM_FLAGS=-Mh -te
+test_mh_e_1: INPUT=test1
+test_md_e_1: FSM_FLAGS=-Md -te
+test_md_e_1: INPUT=test1
+test_m_c_1: FSM_FLAGS=-M -tc
+test_m_c_1: INPUT=test1
+test_m_s_1: FSM_FLAGS=-M -ts
+test_m_s_1: INPUT=test1
+test_m_e_1: FSM_FLAGS=-M -te
+test_m_e_1: INPUT=test1
+
 test_m_c: FSM_FLAGS=-M -tc
 test_m_s: FSM_FLAGS=-M -ts
 test_m_e: FSM_FLAGS=-M -te
@@ -62,6 +83,15 @@ LISTERS = \
         test_md_c_w \
         test_md_s_w \
         test_md_e_w \
+        test_mh_c_1 \
+        test_md_c_1 \
+        test_mh_s_1 \
+        test_md_s_1 \
+        test_mh_e_1 \
+        test_md_e_1 \
+        test_m_c_1  \
+        test_m_s_1  \
+        test_m_e_1
 
 CREATORS = \
          test.json   \
@@ -96,15 +126,15 @@ test_file_listers: $(LISTERS)
 	-@rm -f *.result
 
 $(LISTERS): $(FSM) Makefile
-	$(FSM) $(FSM_FLAGS) test.fsm > $@.out
+	$(FSM) $(FSM_FLAGS) $(INPUT).fsm > $@.out
 	@$(DIFF) $@.out $@.canonical > $@.result
 
 $(CREATORS): $(FSM) Makefile
-	$(FSM) $(FSM_FLAGS) -o $(basename $@) test.fsm 
+	$(FSM) $(FSM_FLAGS) -o $(basename $@) $(INPUT).fsm 
 	@$(DIFF) $@ $@.canonical > $@.result
 
 $(FAILERS): $(FSM) Makefile expectFailure.mk
-	$(MAKE) -f expectFailure.mk FSM_SRC=test.fsm FSM_FLAGS="$(FSM_FLAGS)" runtest
+	$(MAKE) -f expectFailure.mk FSM_SRC=$(INPUT).fsm FSM_FLAGS="$(FSM_FLAGS)" runtest
 	@$(DIFF) fsmout $@.canonical
 
 clean::

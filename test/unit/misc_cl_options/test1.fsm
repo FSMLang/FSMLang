@@ -1,0 +1,19 @@
+machine top
+{
+data
+{
+	int i;
+}
+
+	event e1 data translator foo implemented by machine sub1 {int i;};
+	state s1;
+
+	include sub1.fsms
+
+	include sub2.fsms
+
+	action a1 [e1, s1];
+
+	sequence start s1 e1 end s1;
+
+}

@@ -1,0 +1,2 @@
+test1.c: test1.fsm sub1.fsms sub2.fsms sub2Sub1.fsms 
+test1_priv.h test1.h test1_submach.h test1_events.h test1_event_data.h sub1.c sub1_priv.h sub2.c sub2_priv.h sub2_submach.h sub2_sub2Sub1.c sub2_sub2Sub1_priv.h : test1.c
