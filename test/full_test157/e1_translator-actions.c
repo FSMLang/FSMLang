@@ -1,9 +1,10 @@
 #include "e1_translator_priv.h"
 
 
-void UFMN(grab_data)(FSM_DATA_PTR pfsm_data, PARENT_DATA_TYPE_PTR pparent_data)
+void UFMN(grab_data)(FSM_DATA_PTR pfsm_data, PARENT_DATA_TYPE_PTR pparent_data, pTEST_FSM_EVENT_DATA pevent_data)
 {
 	DBG_PRINTF("%s", __func__);
+	(void) pevent_data;
 
 	pfsm_data->pparent_data = pparent_data;
 }
