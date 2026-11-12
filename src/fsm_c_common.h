@@ -117,6 +117,9 @@ struct _c_machine_data_
    FILE	*file_array[cf_numCreatedFiles];
    char	*file_name_array[cf_numCreatedFiles];
 
+   /* This will be initialized iff the machine has events with data. */
+   char **event_data_types;
+
    char *action_return_type
 	   , *fsm_type
 	   , *fsm_data_type
@@ -128,6 +131,7 @@ struct _c_machine_data_
 	   , *state_type
 	   , *sub_fsm_if_type
 	   , *sub_machine_fn_type
+	   , *translator_sub_machine_fn_type
 	   , *sub_machine_enum_type
 	   , *sub_fsm_data_handler_if_stem
 	   , *data_translation_fn_type
@@ -147,6 +151,7 @@ struct _c_machine_data_
 	   , *instance_type
 	   , *ultimate_ancestor
 	   , *translator_return_type
+       , *event_data_type
       ;
 
    unsigned long sub_fsm_if_format_width
