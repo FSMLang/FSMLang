@@ -273,6 +273,32 @@ char* fsmType(pCMachineData pcmd)
 	return pcmd->fsm_type;
 }
 
+char* fsmTypePtrPmi(pMACHINE_INFO pmi, char **cp)
+{
+	FILE          *tmp;
+
+	/* only create the string once */
+	if (!*cp)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			fprintf(tmp, "p");
+			if (generate_instance)
+			{
+				streamHungarianToUnderbarCaps(tmp, pmi->name->name);
+			}
+			else
+			{
+				printAncestry(pmi, tmp, "_", alc_upper, ai_include_self);
+			}
+			*cp = create_string_from_file(tmp, NULL);
+		}
+	}
+
+	return *cp;
+}
+
 char* actionFnType(pCMachineData pcmd)
 {
 	FILE          *tmp;
@@ -741,6 +767,33 @@ char* subMachineFnType(pCMachineData pcmd)
 	}
 
 	return pcmd->sub_machine_fn_type;
+}
+
+char* translatorSubMachineFnType(pCMachineData pcmd)
+{
+	FILE          *tmp;
+	unsigned long str_len;
+
+	/* only create the string once */
+	if (!pcmd->translator_sub_machine_fn_type)
+	{
+		/* use a temporary file to exploit streaming function, avoiding messy strlen calc */
+		if (NULL != (tmp = tmpfile()))
+		{
+			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			fprintf(tmp ,"_TRANSLATOR_SUB_MACHINE_FN");
+
+			pcmd->translator_sub_machine_fn_type = create_string_from_file(tmp, &str_len);
+
+			if (pcmd->sub_fsm_if_format_width < str_len + 2)
+			{
+				pcmd->sub_fsm_if_format_width = str_len + 2;
+			}
+
+		}
+	}
+
+	return pcmd->translator_sub_machine_fn_type;
 }
 
 char* subMachineEnumType(pCMachineData pcmd)
