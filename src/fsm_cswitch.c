@@ -1062,7 +1062,7 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
    if (pmi->parent->submachines_wanting_parent_data_count)
    {
 	   fprintf(pcmd->cFile
-			   , ",p%s pparent_data"
+			   , ", p%s pparent_data"
 			   , fsmDataType(pcmd->parent_pcmd)
 			   );
    }
@@ -1071,6 +1071,14 @@ static void defineCSwitchSubMachineFSM(pFSMCOutputGenerator pfsmcog)
 		   , ", %s event"
 		   , fsmFnEventType(pcmd)
 		   );
+
+   if (pmi->modFlags & mfTranslatorImplementing)
+   {
+	   fprintf(pcmd->cFile
+			   , ", p%s pevent_data"
+			   , machine_event_data_type(pcmd->parent_pcmd)
+			   );
+   }
 
    if (pcmd->parent_pcmd->pmi->heterogeneous_children
 	   && (pmi->modFlags & ACTIONS_RETURN_FLAGS)
@@ -3051,11 +3059,14 @@ static void set_local_sub_machine_fsm_fn_event_var(pCMachineData pcmd)
 		if (pmi->modFlags & mfTranslatorsReturnEvents)
 		{
 			fprintf(pcmd->cFile
-					, "\t%s e = translateEventData(%spparent_data, event);\n\n"
+					, "\t%s e = translateEventData(%spparent_data, event%s);\n\n"
 					, eventType(pcmd)
 					, pmi->translators_implemented_by_machine
 					  ? "pfsm, "
 					  : pmi->data ? "&pfsm->data, " : ""
+					, pmi->modFlags & mfTranslatorImplementing
+					  ? ", pevent_data"
+					  : ""
 				   );
 		}
 		else
@@ -3069,8 +3080,11 @@ static void set_local_sub_machine_fsm_fn_event_var(pCMachineData pcmd)
 			}
 
 			fprintf(pcmd->cFile
-					, "\ttranslateEventData(%spparent_data, event);\n\n"
+					, "\ttranslateEventData(%spparent_data, event%s);\n\n"
 					, pmi->data ? "&pfsm->data, " : ""
+					, pmi->modFlags & mfTranslatorImplementing
+					  ? ", pevent_data"
+					  : ""
 					);
 		}
 	}
