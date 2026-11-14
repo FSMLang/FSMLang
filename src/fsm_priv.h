@@ -40,14 +40,14 @@
 
 #ifdef FSMLANG_DEVELOP
 #define FSMLANG_DEVELOP_PRINTF(A, ...) if (A) fprintf(A, __VA_ARGS__)
-#define FDPC(A, B, ...)\
+#define FDPC(A, B)\
 (fprintf(A, "/* [%s] is %s */\n", #B, (B) ? "true" : "false"), (B))
-#define FDPC_NR(A, B, ...)\
+#define FDPC_NR(A, B)\
 fprintf(A, "/* [%s] is %s */\n", #B, (B) ? "true" : "false")
 #else
 #define FSMLANG_DEVELOP_PRINTF(...)
-#define FDPC(A, B, ...) (B)
-#define FDPC_NR(A, B, ...) (B)
+#define FDPC(A, B) (B)
+#define FDPC_NR(A, B) (B)
 #endif
 
 #define RETURN_IF_NULL(A) \
