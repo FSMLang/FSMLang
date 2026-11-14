@@ -1053,7 +1053,7 @@ int safe_strlen(const char *s)
 */
 char *getFileNameNoDir(const char *path)
 {
-  char *cp1 = NULL;
+  const char *cp1 = NULL;
   const char *cp;
 
   if (path)
@@ -1062,10 +1062,10 @@ char *getFileNameNoDir(const char *path)
 			;
 
 		if ((cp1 = malloc(safe_strlen(cp)+1)) != NULL)
-			strcpy(cp1,cp);
+			strcpy((char*)cp1,cp);
   }
 
-  return cp1;
+  return (char*)cp1;
 
 }
 
