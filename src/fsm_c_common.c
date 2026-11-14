@@ -123,7 +123,7 @@ static void print_transition_function_body(FILE *, pCMachineData, char *);
 static void print_user_transition_function_body(FILE *, pMACHINE_INFO);
 static void print_state_entry_or_exit_manager_signature(pCMachineData, pMACHINE_INFO, ENTRY_OR_EXIT, DECLARE_OR_DEFINE);
 static void print_native_prologue(pCMachineData, pMACHINE_INFO);
-static void print_data_translator_fn_signature(FILE *, pCMachineData, pID_INFO, DECLARE_OR_DEFINE);
+static void print_data_translator_fn_signature(FILE *, pCMachineData, pID_INFO, DECLARE_OR_DEFINE,bool*);
 static void print_sub_machine_data_translator_fn_signature(FILE *, pCMachineData, pID_INFO, DECLARE_OR_DEFINE);
 static void print_instance_selection_find(pCMachineData);
 static void print_instance_selection_share(pCMachineData);
@@ -2962,16 +2962,16 @@ bool define_state_entry_and_exit_functions(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
-static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, pID_INFO pevent, DECLARE_OR_DEFINE dod)
+static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, pID_INFO pevent, DECLARE_OR_DEFINE dod, bool *implemented_by_sub_machine)
 {
 	pID_INFO ptranslator = pevent->type_data.event_data.puser_event_data
 							? pevent->type_data.event_data.puser_event_data->translator
 							: NULL
 							;
+	bool machine_implemented;
 
 	/* Set up the parameter strings. */
 	char *param_type, *param_name, *doxygen_block;
-	bool implemented_by_sub_machine;
 	if ((pcmd->pmi->translators_implemented_by_machine != 0)
 		&& (ptranslator && (ptranslator->type_data.translator_data.flags & tf_implemented_by_sub_machine))
 		)
@@ -2979,14 +2979,14 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 		param_type = fsmType(pcmd);
 		param_name = ((dod == dod_define) || add_doxygen_blocks) ? " pfsm" : empty_str;
 		doxygen_block = add_doxygen_blocks ? " /**< Pointer to the FSM */" : empty_str;
-		implemented_by_sub_machine = true;
+		machine_implemented = true;
 	}
 	else
 	{
 		param_type = fsmDataType(pcmd);
 		param_name = " pfsm_data";
 		doxygen_block = add_doxygen_blocks ? " /**< Pointer to FSM instance data.*/" : empty_str;
-		implemented_by_sub_machine = false;
+		machine_implemented = false;
 	}
 
 	FSMLANG_DEVELOP_PRINTF(fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
@@ -3019,8 +3019,8 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 				, param_type
 				, param_name
 				, doxygen_block
-				, implemented_by_sub_machine ? "" : "p"
-				, implemented_by_sub_machine
+				, machine_implemented ? "" : "p"
+				, machine_implemented
 				  ? fsmFnEventType(pcmd)
 				  : event_data_type(pevent, pcmd)
 				, ((dod == dod_define) || add_doxygen_blocks) ? " pdata" : ""
@@ -3029,6 +3029,10 @@ static void print_data_translator_fn_signature(FILE *fout, pCMachineData pcmd, p
 			   );
 	}
 
+	if (implemented_by_sub_machine)
+	{
+		*implemented_by_sub_machine = machine_implemented;
+	}
 
 }
 
@@ -3060,7 +3064,7 @@ bool declare_data_translator_functions(pLIST_ELEMENT pelem, void *data)
 										, true
 									   );
 	}
-	print_data_translator_fn_signature(pich->pcmd->hFile, pich->pcmd, pevent, dod_declare);
+	print_data_translator_fn_signature(pich->pcmd->hFile, pich->pcmd, pevent, dod_declare, NULL);
 
 	return false;
 }
@@ -3165,17 +3169,24 @@ bool sub_machine_declare_data_translator_functions(pLIST_ELEMENT pelem, void *da
 
 bool define_weak_data_translator_functions(pLIST_ELEMENT pelem, void *data)
 {
-	pITERATOR_CALLBACK_HELPER pich = ((pITERATOR_CALLBACK_HELPER)data);
-	pID_INFO pevent                = ((pID_INFO)pelem->mbr);
+	pITERATOR_CALLBACK_HELPER pich      = ((pITERATOR_CALLBACK_HELPER)data);
+	pID_INFO pevent                     = ((pID_INFO)pelem->mbr);
+	bool     implemented_by_sub_machine = false;
 
 	FSMLANG_DEVELOP_PRINTF(pich->ih.fout, "/* FSMLANG_DEVELOP: %s */\n", __func__);
 
 	if (pevent->type_data.event_data.puser_event_data)
 	{
-		print_data_translator_fn_signature(pich->ih.fout, pich->pcmd, pevent, dod_define);
+		print_data_translator_fn_signature(pich->ih.fout
+										   , pich->pcmd
+										   , pevent
+										   , dod_define
+										   , &implemented_by_sub_machine
+										   );
 
 		fprintf(pich->ih.fout
-				, "\t(void) pfsm_data;\n\t(void) pdata;\n\n\t%s(\"weak: %%s\", __func__);%s\n}\n\n"
+				, "\t(void) %s;\n\t(void) pdata;\n\n\t%s(\"weak: %%s\", __func__);%s\n}\n\n"
+				, implemented_by_sub_machine ? "pfsm" : "pfsm_data"
 				, core_logging_only
 				? "NON_CORE_DEBUG_PRINTF"
 				: "DBG_PRINTF"
