@@ -146,21 +146,6 @@ The actions :
 				s3
 	noAction
 		which occurs for these events
-				e4
-		in these states
-				s3
-		and transitions to state s1
-		and which occurs for these events
-				e4
-		in these states
-				s2
-		and transitions to state s3
-		and which occurs for these events
-				e4
-		in these states
-				s1
-		and transitions to state s2
-		and which occurs for these events
 				e2
 				e3
 		in these states
@@ -168,6 +153,24 @@ The actions :
 				s2
 				s3
 		and transitions using function transitionFn1
+	noAction
+		which occurs for these events
+				e4
+		in these states
+				s1
+		and transitions to state s2
+	noAction
+		which occurs for these events
+				e4
+		in these states
+				s2
+		and transitions to state s3
+	noAction
+		which occurs for these events
+				e4
+		in these states
+				s3
+		and transitions to state s1
 
 The 3 transitions :
 	s2

@@ -56,15 +56,16 @@ The events :
 The actions :
 	noAction
 		which occurs for these events
-				e4
-		in these states
-				s4
-		and transitions to state s3
-		and which occurs for these events
 				e3
 		in these states
 				s3
 		and transitions to state s4
+	noAction
+		which occurs for these events
+				e4
+		in these states
+				s4
+		and transitions to state s3
 
 The 2 transitions :
 	s4
@@ -115,15 +116,16 @@ The events :
 The actions :
 	noAction
 		which occurs for these events
-				e4
-		in these states
-				s4
-		and transitions to state s3
-		and which occurs for these events
 				e3
 		in these states
 				s3
 		and transitions to state s4
+	noAction
+		which occurs for these events
+				e4
+		in these states
+				s4
+		and transitions to state s3
 
 The 2 transitions :
 	s4
@@ -174,15 +176,16 @@ The events :
 The actions :
 	noAction
 		which occurs for these events
-				e4
-		in these states
-				s4
-		and transitions to state s3
-		and which occurs for these events
 				e3
 		in these states
 				s3
 		and transitions to state s4
+	noAction
+		which occurs for these events
+				e4
+		in these states
+				s4
+		and transitions to state s3
 
 The 2 transitions :
 	s4
@@ -220,15 +223,16 @@ The events :
 The actions :
 	noAction
 		which occurs for these events
-				e2
-		in these states
-				s2
-		and transitions to state s1
-		and which occurs for these events
 				e1
 		in these states
 				s1
 		and transitions to state s2
+	noAction
+		which occurs for these events
+				e2
+		in these states
+				s2
+		and transitions to state s1
 
 The 2 transitions :
 	s2
