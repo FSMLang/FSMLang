@@ -9,13 +9,13 @@ TRANSLATOR_RETURN_TYPE UFMN(grab_parent_data_ptrs)(FSM_DATA_PTR pfsm_data, PAREN
 	return THIS(activate);
 }
 
-TRANSLATOR_RETURN_TYPE UFMN(translate_ble_comm)(FSM_DATA_PTR pfsm_data, PARENT_DATA_TYPE_PTR pparent_data)
+TRANSLATOR_RETURN_TYPE UFMN(translate_ble_comm)(FSM_DATA_PTR pfsm_data, PARENT_DATA_TYPE_PTR pparent_data, pCOMMUNICATOR_EVENT_DATA pevent_data)
 {
 	DBG_PRINTF("%s", __func__);
 	
 	ACTION_RETURN_TYPE ret;
 
-	pfsm_data->pcurr_ble_event = pparent_data->pcurr_ble_event;
+	pfsm_data->pcurr_ble_event = pparent_data->pcurr_ble_event = &pevent_data->ble_comm_data.ble_e;
 
 	switch (pparent_data->pcurr_ble_event->type)
 	{

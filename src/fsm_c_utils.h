@@ -45,6 +45,10 @@ void print_ancestor_macro(FILE*,pCMachineData);
 void define_ancestor_macros(FILE*,pCMachineData);
 void print_ancestor_case_statements(FILE*,pCMachineData,char*,char*);
 void print_ancestor_event_conditional(FILE*,pCMachineData,char*,char*);
+void initialize_data_types_array(pCMachineData);
+void destroy_data_types_array(pCMachineData);
+char *event_data_type(pID_INFO,pCMachineData);
+char *machine_event_data_type(pCMachineData);
 
 #endif
 

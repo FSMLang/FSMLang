@@ -165,3 +165,62 @@ void print_ancestor_event_conditional(FILE *fout, pCMachineData pcmd, char *inde
 	}
 }
 
+void initialize_data_types_array(pCMachineData pcmd)
+{
+	if (pcmd && pcmd->pmi && pcmd->pmi->event_list)
+	{
+		pcmd->event_data_types = (char **) calloc(pcmd->pmi->event_list->count, sizeof(char*));
+	}
+}
+
+void destroy_data_types_array(pCMachineData pcmd)
+{
+	if (pcmd && pcmd->event_data_types && pcmd->pmi->event_list)
+	{
+		for (unsigned edt = 0; edt < pcmd->pmi->event_list->count; edt++)
+		{
+			if (pcmd->event_data_types[edt])
+			{
+				free(pcmd->event_data_types[edt]);
+			}
+		}
+		free(pcmd->event_data_types);
+	}
+}
+
+char* event_data_type(pID_INFO pevent, pCMachineData pcmd)
+{
+	FILE *tmp;
+	if (!pcmd->event_data_types[pevent->order])
+	{
+		if (NULL != (tmp = tmpfile()))
+		{
+			streamHungarianToUnderbarCaps(tmp, pcmd->pmi->name->name);
+			streamHungarianToUnderbarCaps(tmp, "_");
+			streamHungarianToUnderbarCaps(tmp, pevent->name);
+			streamHungarianToUnderbarCaps(tmp, "_DATA");
+
+			pcmd->event_data_types[pevent->order] = create_string_from_file(tmp, NULL);
+		}
+	}
+
+	return pcmd->event_data_types[pevent->order];
+}
+
+char* machine_event_data_type(pCMachineData pcmd)
+{
+	FILE *tmp;
+	if (!pcmd->event_data_type)
+	{
+		if (NULL != (tmp = tmpfile()))
+		{
+			fprintf(tmp,"%s_EVENT_DATA"
+					,fsmType(pcmd)
+					);
+			pcmd->event_data_type = create_string_from_file(tmp, NULL);
+		}
+	}
+
+	return pcmd->event_data_type;
+}
+

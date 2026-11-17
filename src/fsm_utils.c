@@ -133,7 +133,9 @@ int add_id(pLIST id_list, int type, char *name, pID_INFO *ppid_info)
    int ret_val;
 
   /* not already defined ? */
-  if ((ret_val = lookup_id(id_list, name, ppid_info)) == LOOKUP)
+  if ( (*name == '\0')
+      || ((ret_val = lookup_id(id_list, name, ppid_info)) == LOOKUP)
+     )
   {
      /* allocate new entry and link to list */
      if ((*ppid_info = (pID_INFO) malloc(sizeof(ID_INFO))) == NULL) {
@@ -1053,7 +1055,7 @@ int safe_strlen(const char *s)
 */
 char *getFileNameNoDir(const char *path)
 {
-  char *cp1 = NULL;
+  const char *cp1 = NULL;
   const char *cp;
 
   if (path)
@@ -1062,10 +1064,10 @@ char *getFileNameNoDir(const char *path)
 			;
 
 		if ((cp1 = malloc(safe_strlen(cp)+1)) != NULL)
-			strcpy(cp1,cp);
+			strcpy((char*)cp1,cp);
   }
 
-  return cp1;
+  return (char*)cp1;
 
 }
 

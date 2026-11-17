@@ -13,6 +13,7 @@
 #include "test.h"
 
 #endif
+
 typedef enum TEST_FSM_EVENT_ENUM {
 
 /**
