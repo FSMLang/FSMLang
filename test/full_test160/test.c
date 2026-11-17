@@ -1,0 +1,218 @@
+#include <stdio.h>
+#include <string.h>
+
+#include "test.h"
+
+#include "test_fsm.h"
+
+typedef void (*test_fn)(void);
+static void scan_happy_path(void);
+static void connect_happy_path(void);
+static void force_find_and_run(void);
+static void steady_state(void);
+test_fn tests[] = {
+	scan_happy_path
+	, connect_happy_path
+	, force_find_and_run
+	, steady_state
+	, NULL
+};
+
+
+static void scan_happy_path()
+{
+	printf("\ntest: %s\n", __func__);
+
+	COMMUNICATOR_EVENT e;
+
+	RECORD(e.event = THIS(activate));
+
+	run_communicator_instance0(&e);
+
+	RECORD(e.event = THIS(command));
+	RECORD(e.event_data.command_data.command.tag = command_peer_id);
+	memcpy(&e.event_data.command_data.command.data.peer_id
+          , "5678"
+          , sizeof(e.event_data.command_data.command.data.peer_id)
+         );
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.command_data.command.tag = command_peer_sn);
+	memcpy(&e.event_data.command_data.command.data.peer_sn
+          , "012345678901"
+          , sizeof(e.event_data.command_data.command.data.peer_sn)
+         );
+	run_communicator_instance0(&e);
+
+	RECORD(e.event = THIS(ble_comm));
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_adv_packet);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event = THIS(ble_comm));
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance0(&e);
+
+}
+
+static void steady_state()
+{
+	COMMUNICATOR_EVENT e;
+
+	printf("\ntest: %s\n", __func__);
+
+	/* first window */
+	RECORD(e.event = THIS(comm_window_timer_expired));
+	run_communicator_instance0(&e);
+
+	RECORD(e.event = THIS(ble_comm));
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance0(&e);
+
+	/* second window */
+	RECORD(e.event = THIS(comm_window_timer_expired));
+	run_communicator_instance0(&e);
+
+	RECORD(e.event = THIS(ble_comm));
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance0(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance0(&e);
+
+}
+
+static void connect_happy_path()
+{
+	printf("\ntest: %s\n", __func__);
+
+	COMMUNICATOR_EVENT e;
+
+	RECORD(e.event = THIS(activate));
+
+	run_communicator_instance1(&e);
+
+	RECORD(e.event = THIS(command));
+	RECORD(e.event_data.command_data.command.tag = command_peer_id);
+	memcpy(&e.event_data.command_data.command.data.peer_id
+          , "5678"
+          , sizeof(e.event_data.command_data.command.data.peer_id)
+         );
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.command_data.command.tag = command_peer_ble_addr);
+	memcpy(&e.event_data.command_data.command.data.peer_ble_addr
+          , "012345"
+          , sizeof(e.event_data.command_data.command.data.peer_ble_addr)
+         );
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.command_data.command.tag = command_peer_ble_addr_type);
+	e.event_data.command_data.command.data.peer_ble_addr_type = 1;
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.command_data.command.tag = command_peer_comm_window);
+	e.event_data.command_data.command.data.peer_comm_window = 0;
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.command_data.command.tag = command_peer_comm_period);
+	e.event_data.command_data.command.data.peer_comm_period = 0;
+	run_communicator_instance1(&e);
+
+	RECORD(e.event = THIS(comm_window_timer_expired));
+	run_communicator_instance1(&e);
+
+	RECORD(e.event = THIS(ble_comm));
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT);
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT);
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT);
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.type = ble_gatt_message);
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT);
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance1(&e);
+
+	RECORD(e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT);
+	run_communicator_instance1(&e);
+
+}
+
+static void force_find_and_run(void)
+{
+	printf("\ntest: %s\n", __func__);
+
+	COMMUNICATOR_EVENT e;
+	e.event = FIRST_CONNECTION(activate);
+
+	run_communicator_instance2(&e);
+}
+
+int main(void)
+{
+	test_fn *tf;
+
+	for (tf = &tests[0]; *tf; tf++)
+		(*tf)();
+	
+	return 0;
+
+}

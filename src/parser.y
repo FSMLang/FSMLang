@@ -1645,13 +1645,17 @@ data_translator_fn: DATA_KEY TRANSLATOR_KEY ID
     {
 			$$ = data_translator($3);
     }
-	| CONSUMING DATA_KEY TRANSLATOR_KEY ID
+	| CONSUMING data_translator_fn
 	  {
-			$$ = consuming_data_translator($4);
+			$$ = consuming_data_translator($2);
 	  }
 	| data_translator_fn IMPLEMENTED BY MACHINE_KEY ID
 	{
-		$$ = translator_implemented_by($1, $5);
+		$$ = translator_fn_implemented_by($1, $5, false);
+	}
+	| DATA_KEY TRANSLATOR_KEY IMPLEMENTED BY MACHINE_KEY ID
+	{
+		$$ = translator_implemented_by(id_list, $6);
 	}
 	;
 

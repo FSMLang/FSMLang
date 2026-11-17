@@ -123,9 +123,27 @@ pID_INFO data_translator(pID_INFO ptranslator)
 
 pID_INFO consuming_data_translator(pID_INFO ptranslator)
 {
-	data_translator_common(ptranslator);
 	ptranslator->type_data.translator_data.flags |= tf_consuming;
 	return ptranslator;
+}
+
+/**
+ * Handle the case that a translator is directly implemented by
+ * a machine (with no translator function involved).
+ * 
+ * @author Steven Stanton (11/13/2026)
+ * 
+ * @param pmachine    
+ * 
+ * @return pID_INFO 
+ */
+pID_INFO translator_implemented_by(pLIST id_list, pID_INFO pmachine)
+{
+	pID_INFO ptranslator;
+
+	add_id(id_list, TRANSLATOR_FN, "", &ptranslator);
+	data_translator_common(ptranslator);
+	return translator_fn_implemented_by(ptranslator, pmachine, true);
 }
 
 /**
@@ -140,24 +158,30 @@ pID_INFO consuming_data_translator(pID_INFO ptranslator)
  * @param ptranslator   The translator being implemented by a machine.
  * @param pmachine The name of the machine which will implement
  *  			   the translator.
+ * @param exclusive when true, this indicates that the machine
+ *  				exclusively implements the translator; there is
+ *  				no additional translator function.
  * 
  * @return pID_INFO The translator, as needed by the parsing tree.
  */
-pID_INFO translator_implemented_by(pID_INFO ptranslator, pID_INFO pmachine)
+pID_INFO translator_fn_implemented_by(pID_INFO ptranslator, pID_INFO pmachine, bool exclusive)
 {
 #ifdef PARSER_DEBUG
 	fprintf(yyout
 			, "translator %s implemented by submachine %s\n"
-			, ptranslator->name
+			, exclusive ? "exclusively" : ptranslator->name
 			, pmachine->name
 		   );
 #endif
 
-	ptranslator->type_data.translator_data.flags               |= tf_implemented_by_sub_machine;
+	ptranslator->type_data.translator_data.flags |= exclusive
+		? tf_exclusively_implemented_by_sub_machine
+		: tf_implemented_by_sub_machine
+		;
 	ptranslator->type_data.translator_data.implementingMachine  = pmachine;
 
 	set_id_type(pmachine, UNDEFINED_TI_MACHINE);
-	pmachine->type_data.machine_pid_data.mpid_flags          = mpidf_implements_translator;
+	pmachine->type_data.machine_pid_data.mpid_flags          |= mpidf_implements_translator;
 	pmachine->type_data.machine_pid_data.implementedArtifact = ptranslator;
 
 	return ptranslator;
