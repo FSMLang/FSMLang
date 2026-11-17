@@ -93,9 +93,11 @@ typedef enum {
 
 typedef enum {
     tf_none
-    , tf_consuming                  = 1
-    , tf_implemented_by_sub_machine = 2
+    , tf_consuming                              = 1
+    , tf_implemented_by_sub_machine             = 2
+    , tf_exclusively_implemented_by_sub_machine = 4
 } TRANSLATOR_FLAGS;
+#define TF_BY_MACHINE (tf_implemented_by_sub_machine | tf_exclusively_implemented_by_sub_machine)
 
 typedef enum HORIZONTAL_PLACEMENT {
    hp_none_given

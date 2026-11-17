@@ -1,0 +1,663 @@
+
+test: scan_happy_path
+!test input: [e.event = THIS(activate)]
+communicator[0]: event: activate; state: initial
+communicator_activate_all
+commands[0]: event: activate; state: initial
+communicator_commands_noAction
+commands: end state: waiting_pairing_info
+communicator_ble_grab_parent_data_ptrs
+ble[0]: event: activate; state: initial
+communicator_ble_noAction
+communicator_ble_set_defaults
+ble: end state: waiting
+auth1[0]: event: activate; state: initial
+communicator_auth1_noAction
+auth1: end state: active
+auth2[0]: event: activate; state: initial
+communicator_auth2_noAction
+auth2: end state: active
+sync[0]: event: activate; state: initial
+communicator_sync_noAction
+sync: end state: active
+communicator_set_defaults
+communicator: end state: waiting
+!test input: [e.event = THIS(command)]
+!test input: [e.event_data.command_data.command.tag = command_peer_id]
+communicator_grab_command
+commands[0]: event: command; state: waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: []
+peer_ble_addr_type: [0]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id ]
+communicator_commands_check_pairing_info
+commands: end state: waiting_pairing_info
+communicator: end state: waiting
+!test input: [e.event_data.command_data.command.tag = command_peer_sn]
+communicator_grab_command
+commands[0]: event: command; state: waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: [012345678901]
+peer_ble_addr: []
+peer_ble_addr_type: [0]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_sn ]
+communicator_commands_check_pairing_info
+commands: end state: pairing_info_found
+communicator[0]: event: configuration_complete; state: waiting
+communicator_start_looking
+communicator_ble_check_configuration
+ble[0]: event: do_scan; state: waiting
+communicator_ble_noAction
+communicator_ble_start_scanning
+ble: end state: scanning
+first_connection[0]: event: activate; state: initial
+communicator_first_connection_noAction
+first_connection: end state: waiting
+communicator: end state: first_time_connect
+!test input: [e.event = THIS(ble_comm)]
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_adv_packet]
+communicator_ble_translate_ble_comm
+ble[0]: event: adv_packet; state: scanning
+communicator_ble_parse_adv_packet
+ble[0]: event: connection; state: scanning
+communicator_ble_report_connection
+communicator_ble_stop_scanning
+communicator_ble_start_connection_timer
+ble: end state: waiting_for_connection_window
+communicator[0]: event: peer_connected; state: first_time_connect
+first_connection[0]: event: peer_connected; state: waiting
+communicator_first_connection_act_start_auth1
+auth1[0]: event: start_auth1; state: active
+communicator_auth1_send_step1
+auth1: end state: step1
+first_connection: end state: auth1
+communicator: end state: first_time_connect
+!test input: [e.event = THIS(ble_comm)]
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: auth1_gatt; state: first_time_connect
+first_connection[0]: event: auth1_gatt; state: auth1
+communicator_first_connection_share_parent_auth1_gatt
+auth1[0]: event: auth1_gatt; state: step1
+communicator_auth1_send_step2
+auth1: end state: step2
+first_connection: end state: auth1
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: auth1_gatt; state: first_time_connect
+first_connection[0]: event: auth1_gatt; state: auth1
+communicator_first_connection_share_parent_auth1_gatt
+auth1[0]: event: auth1_gatt; state: step2
+communicator_auth1_report_auth1_complete
+auth1: end state: done
+first_connection: end state: auth1
+communicator[0]: event: auth1_complete; state: first_time_connect
+first_connection[0]: event: auth1_complete; state: auth1
+communicator_first_connection_act_start_auth2
+auth2[0]: event: start_auth2; state: active
+communicator_auth2_send_step1
+auth2: end state: step1
+first_connection: end state: auth2
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: auth2_gatt; state: first_time_connect
+first_connection[0]: event: auth2_gatt; state: auth2
+communicator_first_connection_share_parent_auth2_gatt
+auth2[0]: event: auth2_gatt; state: step1
+communicator_auth2_send_step2
+auth2: end state: step2
+first_connection: end state: auth2
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: auth2_gatt; state: first_time_connect
+first_connection[0]: event: auth2_gatt; state: auth2
+communicator_first_connection_share_parent_auth2_gatt
+auth2[0]: event: auth2_gatt; state: step2
+communicator_auth2_report_auth2_complete
+auth2: end state: done
+first_connection: end state: auth2
+communicator[0]: event: auth2_complete; state: first_time_connect
+first_connection[0]: event: auth2_complete; state: auth2
+communicator_first_connection_start_data_sync
+sync[0]: event: start_sync; state: active
+communicator_sync_send_step1
+sync: end state: step1
+first_connection: end state: data_sync
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: sync_gatt; state: first_time_connect
+first_connection[0]: event: sync_gatt; state: data_sync
+communicator_first_connection_share_parent_sync_gatt
+sync[0]: event: sync_gatt; state: step1
+communicator_sync_send_step2
+sync: end state: step2
+first_connection: end state: data_sync
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: sync_gatt; state: first_time_connect
+first_connection[0]: event: sync_gatt; state: data_sync
+communicator_first_connection_share_parent_sync_gatt
+sync[0]: event: sync_gatt; state: step2
+communicator_sync_send_step3
+sync: end state: step3
+first_connection: end state: data_sync
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: sync_gatt; state: first_time_connect
+first_connection[0]: event: sync_gatt; state: data_sync
+communicator_first_connection_share_parent_sync_gatt
+sync[0]: event: sync_gatt; state: step3
+communicator_sync_send_step4
+sync: end state: step4
+first_connection: end state: data_sync
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: sync_gatt; state: first_time_connect
+first_connection[0]: event: sync_gatt; state: data_sync
+communicator_first_connection_share_parent_sync_gatt
+sync[0]: event: sync_gatt; state: step4
+communicator_sync_report_sync_complete
+sync: end state: done
+first_connection: end state: data_sync
+communicator[0]: event: peer_data_synced; state: first_time_connect
+first_connection[0]: event: peer_data_synced; state: data_sync
+communicator_first_connection_report_done
+first_connection: end state: done
+steady_state[0]: event: activate; state: initial
+communicator_steady_state_noAction
+steady_state: end state: waiting
+communicator[0]: event: peer_data_synced; state: connected_to_peer
+steady_state[0]: event: peer_data_synced; state: waiting
+communicator_steady_state_noAction
+steady_state: end state: waiting
+communicator: end state: connected_to_peer
+
+test: connect_happy_path
+!test input: [e.event = THIS(activate)]
+communicator[1]: event: activate; state: initial
+communicator_activate_all
+commands[1]: event: activate; state: initial
+communicator_commands_noAction
+commands: end state: waiting_pairing_info
+communicator_ble_grab_parent_data_ptrs
+ble[1]: event: activate; state: initial
+communicator_ble_noAction
+communicator_ble_set_defaults
+ble: end state: waiting
+auth1[1]: event: activate; state: initial
+communicator_auth1_noAction
+auth1: end state: active
+auth2[1]: event: activate; state: initial
+communicator_auth2_noAction
+auth2: end state: active
+sync[1]: event: activate; state: initial
+communicator_sync_noAction
+sync: end state: active
+communicator_set_defaults
+communicator: end state: waiting
+!test input: [e.event = THIS(command)]
+!test input: [e.event_data.command_data.command.tag = command_peer_id]
+communicator_grab_command
+commands[1]: event: command; state: waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: []
+peer_ble_addr_type: [0]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id ]
+communicator_commands_check_pairing_info
+commands: end state: waiting_pairing_info
+communicator: end state: waiting
+!test input: [e.event_data.command_data.command.tag = command_peer_ble_addr]
+communicator_grab_command
+commands[1]: event: command; state: waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [0]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_ble_addr ]
+communicator_commands_check_pairing_info
+commands: end state: waiting_pairing_info
+communicator: end state: waiting
+!test input: [e.event_data.command_data.command.tag = command_peer_ble_addr_type]
+communicator_grab_command
+commands[1]: event: command; state: waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [1]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_ble_addr_type peer_ble_addr ]
+communicator_commands_check_pairing_info
+commands: end state: waiting_pairing_info
+communicator: end state: waiting
+!test input: [e.event_data.command_data.command.tag = command_peer_comm_window]
+communicator_grab_command
+commands[1]: event: command; state: waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [1]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_ble_addr_type peer_ble_addr peer_comm_window ]
+communicator_commands_check_pairing_info
+commands: end state: waiting_pairing_info
+communicator: end state: waiting
+!test input: [e.event_data.command_data.command.tag = command_peer_comm_period]
+communicator_grab_command
+commands[1]: event: command; state: waiting_pairing_info
+communicator_commands_parse_command
+peer_id: [5678]
+peer_sn: []
+peer_ble_addr: [012345]
+peer_ble_addr_type: [1]
+next_peer_comm_window: [0]
+peer_comm_period: [0]
+config_bits: [ peer_id peer_ble_addr_type peer_ble_addr peer_comm_window peer_comm_period ]
+communicator_commands_check_pairing_info
+commands: end state: pairing_info_found
+communicator[1]: event: configuration_complete; state: waiting
+communicator_start_looking
+communicator_ble_check_configuration
+ble[1]: event: do_connect; state: waiting
+communicator_ble_noAction
+communicator_ble_start_connection_timer
+ble: end state: waiting_for_connection_window
+first_connection[1]: event: activate; state: initial
+communicator_first_connection_noAction
+first_connection: end state: waiting
+communicator: end state: first_time_connect
+!test input: [e.event = THIS(comm_window_timer_expired)]
+communicator[1]: event: comm_window_timer_expired; state: first_time_connect
+first_connection[1]: event: comm_window_timer_expired; state: waiting
+communicator_first_connection_share_parent_comm_window_timer_expired
+ble[1]: event: comm_window_timer_expired; state: waiting_for_connection_window
+communicator_ble_look_for_peer
+ble[1]: event: connection; state: waiting_for_connection_window
+communicator_ble_report_connection
+ble: end state: waiting_for_connection_window
+first_connection: end state: waiting
+communicator[1]: event: peer_connected; state: first_time_connect
+first_connection[1]: event: peer_connected; state: waiting
+communicator_first_connection_act_start_auth1
+auth1[1]: event: start_auth1; state: active
+communicator_auth1_send_step1
+auth1: end state: step1
+first_connection: end state: auth1
+communicator: end state: first_time_connect
+!test input: [e.event = THIS(ble_comm)]
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT]
+communicator_ble_translate_ble_comm
+ble[1]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[1]: event: auth1_gatt; state: first_time_connect
+first_connection[1]: event: auth1_gatt; state: auth1
+communicator_first_connection_share_parent_auth1_gatt
+auth1[1]: event: auth1_gatt; state: step1
+communicator_auth1_send_step2
+auth1: end state: step2
+first_connection: end state: auth1
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH1_GATT]
+communicator_ble_translate_ble_comm
+ble[1]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[1]: event: auth1_gatt; state: first_time_connect
+first_connection[1]: event: auth1_gatt; state: auth1
+communicator_first_connection_share_parent_auth1_gatt
+auth1[1]: event: auth1_gatt; state: step2
+communicator_auth1_report_auth1_complete
+auth1: end state: done
+first_connection: end state: auth1
+communicator[1]: event: auth1_complete; state: first_time_connect
+first_connection[1]: event: auth1_complete; state: auth1
+communicator_first_connection_act_start_auth2
+auth2[1]: event: start_auth2; state: active
+communicator_auth2_send_step1
+auth2: end state: step1
+first_connection: end state: auth2
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT]
+communicator_ble_translate_ble_comm
+ble[1]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[1]: event: auth2_gatt; state: first_time_connect
+first_connection[1]: event: auth2_gatt; state: auth2
+communicator_first_connection_share_parent_auth2_gatt
+auth2[1]: event: auth2_gatt; state: step1
+communicator_auth2_send_step2
+auth2: end state: step2
+first_connection: end state: auth2
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT]
+communicator_ble_translate_ble_comm
+ble[1]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[1]: event: auth2_gatt; state: first_time_connect
+first_connection[1]: event: auth2_gatt; state: auth2
+communicator_first_connection_share_parent_auth2_gatt
+auth2[1]: event: auth2_gatt; state: step2
+communicator_auth2_report_auth2_complete
+auth2: end state: done
+first_connection: end state: auth2
+communicator[1]: event: auth2_complete; state: first_time_connect
+first_connection[1]: event: auth2_complete; state: auth2
+communicator_first_connection_start_data_sync
+sync[1]: event: start_sync; state: active
+communicator_sync_send_step1
+sync: end state: step1
+first_connection: end state: data_sync
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[1]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[1]: event: sync_gatt; state: first_time_connect
+first_connection[1]: event: sync_gatt; state: data_sync
+communicator_first_connection_share_parent_sync_gatt
+sync[1]: event: sync_gatt; state: step1
+communicator_sync_send_step2
+sync: end state: step2
+first_connection: end state: data_sync
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[1]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[1]: event: sync_gatt; state: first_time_connect
+first_connection[1]: event: sync_gatt; state: data_sync
+communicator_first_connection_share_parent_sync_gatt
+sync[1]: event: sync_gatt; state: step2
+communicator_sync_send_step3
+sync: end state: step3
+first_connection: end state: data_sync
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[1]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[1]: event: sync_gatt; state: first_time_connect
+first_connection[1]: event: sync_gatt; state: data_sync
+communicator_first_connection_share_parent_sync_gatt
+sync[1]: event: sync_gatt; state: step3
+communicator_sync_send_step4
+sync: end state: step4
+first_connection: end state: data_sync
+communicator: end state: first_time_connect
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[1]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[1]: event: sync_gatt; state: first_time_connect
+first_connection[1]: event: sync_gatt; state: data_sync
+communicator_first_connection_share_parent_sync_gatt
+sync[1]: event: sync_gatt; state: step4
+communicator_sync_report_sync_complete
+sync: end state: done
+first_connection: end state: data_sync
+communicator[1]: event: peer_data_synced; state: first_time_connect
+first_connection[1]: event: peer_data_synced; state: data_sync
+communicator_first_connection_report_done
+first_connection: end state: done
+steady_state[1]: event: activate; state: initial
+communicator_steady_state_noAction
+steady_state: end state: waiting
+communicator[1]: event: peer_data_synced; state: connected_to_peer
+steady_state[1]: event: peer_data_synced; state: waiting
+communicator_steady_state_noAction
+steady_state: end state: waiting
+communicator: end state: connected_to_peer
+
+test: force_find_and_run
+communicator[2]: event: activate; state: initial
+first_connection[2]: event: activate; state: initial
+communicator_first_connection_noAction
+first_connection: end state: waiting
+communicator: end state: initial
+
+test: steady_state
+!test input: [e.event = THIS(comm_window_timer_expired)]
+communicator[0]: event: comm_window_timer_expired; state: connected_to_peer
+steady_state[0]: event: comm_window_timer_expired; state: waiting
+communicator_steady_state_share_parent_comm_window_timer_expired
+auth2[0]: event: comm_window_starting; state: done
+communicator_auth2_noAction
+auth2: end state: active
+ble[0]: event: comm_window_timer_expired; state: waiting_for_connection_window
+communicator_ble_look_for_peer
+ble[0]: event: connection; state: waiting_for_connection_window
+communicator_ble_report_connection
+ble: end state: waiting_for_connection_window
+steady_state: end state: waiting
+communicator[0]: event: peer_connected; state: connected_to_peer
+steady_state[0]: event: peer_connected; state: waiting
+communicator_steady_state_act_start_auth2
+auth2[0]: event: start_auth2; state: active
+communicator_auth2_send_step1
+auth2: end state: step1
+steady_state: end state: auth2
+communicator: end state: connected_to_peer
+!test input: [e.event = THIS(ble_comm)]
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: auth2_gatt; state: connected_to_peer
+steady_state[0]: event: auth2_gatt; state: auth2
+communicator_steady_state_share_parent_auth2_gatt
+auth2[0]: event: auth2_gatt; state: step1
+communicator_auth2_send_step2
+auth2: end state: step2
+steady_state: end state: auth2
+communicator: end state: connected_to_peer
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: auth2_gatt; state: connected_to_peer
+steady_state[0]: event: auth2_gatt; state: auth2
+communicator_steady_state_share_parent_auth2_gatt
+auth2[0]: event: auth2_gatt; state: step2
+communicator_auth2_report_auth2_complete
+auth2: end state: done
+steady_state: end state: auth2
+communicator[0]: event: auth2_complete; state: connected_to_peer
+steady_state[0]: event: auth2_complete; state: auth2
+communicator_steady_state_start_data_sync
+sync[0]: event: start_sync; state: done
+communicator_sync_send_step3
+sync: end state: step3
+steady_state: end state: data_sync
+communicator: end state: connected_to_peer
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: sync_gatt; state: connected_to_peer
+steady_state[0]: event: sync_gatt; state: data_sync
+communicator_steady_state_share_parent_sync_gatt
+sync[0]: event: sync_gatt; state: step3
+communicator_sync_send_step4
+sync: end state: step4
+steady_state: end state: data_sync
+communicator: end state: connected_to_peer
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: sync_gatt; state: connected_to_peer
+steady_state[0]: event: sync_gatt; state: data_sync
+communicator_steady_state_share_parent_sync_gatt
+sync[0]: event: sync_gatt; state: step4
+communicator_sync_report_sync_complete
+sync: end state: done
+steady_state: end state: data_sync
+communicator[0]: event: peer_data_synced; state: connected_to_peer
+steady_state[0]: event: peer_data_synced; state: data_sync
+communicator_steady_state_report_done
+steady_state: end state: waiting
+communicator[0]: event: peer_data_synced; state: connected_to_peer
+steady_state[0]: event: peer_data_synced; state: waiting
+communicator_steady_state_noAction
+steady_state: end state: waiting
+communicator: end state: connected_to_peer
+!test input: [e.event = THIS(comm_window_timer_expired)]
+communicator[0]: event: comm_window_timer_expired; state: connected_to_peer
+steady_state[0]: event: comm_window_timer_expired; state: waiting
+communicator_steady_state_share_parent_comm_window_timer_expired
+auth2[0]: event: comm_window_starting; state: done
+communicator_auth2_noAction
+auth2: end state: active
+ble[0]: event: comm_window_timer_expired; state: waiting_for_connection_window
+communicator_ble_look_for_peer
+ble[0]: event: connection; state: waiting_for_connection_window
+communicator_ble_report_connection
+ble: end state: waiting_for_connection_window
+steady_state: end state: waiting
+communicator[0]: event: peer_connected; state: connected_to_peer
+steady_state[0]: event: peer_connected; state: waiting
+communicator_steady_state_act_start_auth2
+auth2[0]: event: start_auth2; state: active
+communicator_auth2_send_step1
+auth2: end state: step1
+steady_state: end state: auth2
+communicator: end state: connected_to_peer
+!test input: [e.event = THIS(ble_comm)]
+!test input: [e.event_data.ble_comm_data.ble_e.type = ble_gatt_message]
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: auth2_gatt; state: connected_to_peer
+steady_state[0]: event: auth2_gatt; state: auth2
+communicator_steady_state_share_parent_auth2_gatt
+auth2[0]: event: auth2_gatt; state: step1
+communicator_auth2_send_step2
+auth2: end state: step2
+steady_state: end state: auth2
+communicator: end state: connected_to_peer
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = AUTH2_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: auth2_gatt; state: connected_to_peer
+steady_state[0]: event: auth2_gatt; state: auth2
+communicator_steady_state_share_parent_auth2_gatt
+auth2[0]: event: auth2_gatt; state: step2
+communicator_auth2_report_auth2_complete
+auth2: end state: done
+steady_state: end state: auth2
+communicator[0]: event: auth2_complete; state: connected_to_peer
+steady_state[0]: event: auth2_complete; state: auth2
+communicator_steady_state_start_data_sync
+sync[0]: event: start_sync; state: done
+communicator_sync_send_step3
+sync: end state: step3
+steady_state: end state: data_sync
+communicator: end state: connected_to_peer
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: sync_gatt; state: connected_to_peer
+steady_state[0]: event: sync_gatt; state: data_sync
+communicator_steady_state_share_parent_sync_gatt
+sync[0]: event: sync_gatt; state: step3
+communicator_sync_send_step4
+sync: end state: step4
+steady_state: end state: data_sync
+communicator: end state: connected_to_peer
+!test input: [e.event_data.ble_comm_data.ble_e.data.gatt_msg.characteristic = SYNC_GATT]
+communicator_ble_translate_ble_comm
+ble[0]: event: gatt_msg; state: waiting_for_connection_window
+communicator_ble_report_gatt_characteristic
+ble: end state: waiting_for_connection_window
+communicator[0]: event: sync_gatt; state: connected_to_peer
+steady_state[0]: event: sync_gatt; state: data_sync
+communicator_steady_state_share_parent_sync_gatt
+sync[0]: event: sync_gatt; state: step4
+communicator_sync_report_sync_complete
+sync: end state: done
+steady_state: end state: data_sync
+communicator[0]: event: peer_data_synced; state: connected_to_peer
+steady_state[0]: event: peer_data_synced; state: data_sync
+communicator_steady_state_report_done
+steady_state: end state: waiting
+communicator[0]: event: peer_data_synced; state: connected_to_peer
+steady_state[0]: event: peer_data_synced; state: waiting
+communicator_steady_state_noAction
+steady_state: end state: waiting
+communicator: end state: connected_to_peer
