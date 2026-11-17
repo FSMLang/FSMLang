@@ -4624,18 +4624,33 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 		}
 		else
 		{
-			fprintf(pich->pcmd->cFile
-					, ped->puser_event_data->translator
-					? "\t\t%sUFMN(%s)(%s, pevent);\n\t\tbreak;\n"
-					: "\t\t%sUFMN(translate_%s_data)(%s, pevent);\n\t\tbreak;\n"
-					, pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
-					? "retVal = "
-					: ""
-					, ped->puser_event_data->translator
-					? ped->puser_event_data->translator->name
-					: pevent->name
-					, param_name
-				   );
+			if (FDPC(pich->pcmd->cFile, (ped->puser_event_data->translator->type_data.translator_data.flags & tf_exclusively_implemented_by_sub_machine)))
+			{
+				char *cp = NULL;
+				fprintf(pich->pcmd->cFile
+						, "\t\t%srun_%s(pfsm, pevent);\n\t\tbreak;\n"
+						, pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
+						  ? "retVal = "
+						  : ""
+						, fqMachineNamePmi(ped->puser_event_data->translator->type_data.translator_data.implementingMachine->type_data.machine_pid_data.pmi, &cp)
+						);
+				CHECK_AND_FREE(cp);
+			}
+			else
+			{
+				fprintf(pich->pcmd->cFile
+						, ped->puser_event_data->translator
+						? "\t\t%sUFMN(%s)(%s, pevent);\n\t\tbreak;\n"
+						: "\t\t%sUFMN(translate_%s_data)(%s, pevent);\n\t\tbreak;\n"
+						, pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
+						? "retVal = "
+						: ""
+						, ped->puser_event_data->translator
+						? ped->puser_event_data->translator->name
+						: pevent->name
+						, param_name
+					   );
+			}
 		}
 
 	}
@@ -4696,19 +4711,34 @@ static bool write_sub_machine_event_data_manager_switch_case(pLIST_ELEMENT pelem
 		}
 
 
-		fprintf(pich->pcmd->cFile
-				, pevent->type_data.event_data.puser_event_data->translator
-				  ? "\t\t%sUFMN(%s)(%spparent_data%s);\n\t\tbreak;\n"
-				  : "\t\t%sUFMN(translate_%s_data)(%spparent_data%s);\n\t\tbreak;\n"
-				, pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
-				  ? "retVal = "
-				  : ""
-				, pevent->type_data.event_data.puser_event_data->translator
-				  ? pevent->type_data.event_data.puser_event_data->translator->name
-				  : pevent->name
-				, param_name
-				, param_name1
-			   );
+		if (FDPC(pich->pcmd->cFile, (ped->puser_event_data->translator->type_data.translator_data.flags & tf_exclusively_implemented_by_sub_machine)))
+		{
+			char *cp = NULL;
+			fprintf(pich->pcmd->cFile
+					, "\t\t%srun_%s(pfsm, pevent);\n"
+					, pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
+					  ? "retVal = "
+					  : ""
+					, fqMachineNamePmi(ped->puser_event_data->translator->type_data.translator_data.implementingMachine->type_data.machine_pid_data.pmi, &cp)
+					);
+			CHECK_AND_FREE(cp);
+		}
+		else
+		{
+			fprintf(pich->pcmd->cFile
+					, ped->puser_event_data->translator
+					  ? "\t\t%sUFMN(%s)(%spparent_data%s);\n\t\tbreak;\n"
+					  : "\t\t%sUFMN(translate_%s_data)(%spparent_data%s);\n\t\tbreak;\n"
+					, pich->ih.pmi->modFlags & mfTranslatorsReturnEvents
+					  ? "retVal = "
+					  : ""
+					, ped->puser_event_data->translator
+					  ? ped->puser_event_data->translator->name
+					  : pevent->name
+					, param_name
+					, param_name1
+				   );
+		}
 
 	}
 
