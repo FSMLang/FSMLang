@@ -10,7 +10,7 @@ int i;
 The 1 events in this list:
 	0:	e1
 
-(2) translators exlusively implemented by bar
+(2) translators exclusively implemented by bar
 found a data translator: 
 translator exclusively implemented by submachine bar
 found simple data type name

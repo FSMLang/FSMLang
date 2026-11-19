@@ -91,7 +91,11 @@ pID_INFO state_implemented_by(pID_INFO pstate, pID_INFO pmachine)
 
 	set_id_type(pmachine, UNDEFINED_SI_MACHINE);
 	pmachine->type_data.machine_pid_data.mpid_flags          = mpidf_implements_state;
-	pmachine->type_data.machine_pid_data.implementedArtifacts = init_list();
+
+	if (!pmachine->type_data.machine_pid_data.implementedArtifacts)
+	{
+		pmachine->type_data.machine_pid_data.implementedArtifacts = init_list();
+	}
 	add_to_list(pmachine->type_data.machine_pid_data.implementedArtifacts, pstate);
 
 	return pstate;
@@ -151,7 +155,7 @@ pID_INFO additional_translator_implemented_by(pLIST id_list, pID_INFO pmachine)
 {
 #ifdef PARSER_DEBUG
 	fprintf(yyout
-			, "(%u) translators exlusively implemented by %s\n"
+			, "(%u) translators exclusively implemented by %s\n"
 			, pmachine->type_data.machine_pid_data.implementedArtifacts->count + 1
 			, pmachine->name
 			);
@@ -200,8 +204,11 @@ pID_INFO translator_fn_implemented_by(pID_INFO ptranslator, pID_INFO pmachine, b
 				  : UNDEFINED_TI_MACHINE
 				);
 	pmachine->type_data.machine_pid_data.mpid_flags          |= mpidf_implements_translator;
-	pmachine->type_data.machine_pid_data.implementedArtifacts = init_list();
 
+	if (!pmachine->type_data.machine_pid_data.implementedArtifacts)
+	{
+		pmachine->type_data.machine_pid_data.implementedArtifacts = init_list();
+	}
 	add_to_list(pmachine->type_data.machine_pid_data.implementedArtifacts, ptranslator);
 
 	return ptranslator;
