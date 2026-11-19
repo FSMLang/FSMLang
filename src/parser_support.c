@@ -157,12 +157,7 @@ pID_INFO additional_translator_implemented_by(pLIST id_list, pID_INFO pmachine)
 			);
  #endif
 
-	pID_INFO ptranslator;
-
-	add_id(id_list, TRANSLATOR_FN, "", &ptranslator);
-	data_translator_common(ptranslator);
-	
-	return translator_fn_implemented_by(ptranslator, pmachine, true);
+	return translator_implemented_by(id_list, pmachine);
 }
 
 /**
