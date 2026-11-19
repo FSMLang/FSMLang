@@ -236,7 +236,7 @@ struct _translator_data_
 struct _machine_pid_data_
 {
     MACHINE_PID_FLAGS mpid_flags;
-    pID_INFO          implementedArtifact;
+    pLIST             implementedArtifacts;
     pMACHINE_INFO     pmi;
 };
 
@@ -434,7 +434,7 @@ struct _machine_info_ {
   unsigned      average_state_event_density_pct;
   unsigned      average_event_state_density_pct;
   pLIST         sequences;
-  pID_INFO      implemented_artifact;
+  pLIST         implemented_artifacts;
   bool          heterogeneous_children;
 };
 

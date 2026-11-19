@@ -4587,7 +4587,7 @@ static bool write_event_data_manager_switch_case(pLIST_ELEMENT pelem, void *data
 
 		char *param_name;
 		bool implemented_by_sub_machine = false;
-		if (pich->ih.pmi->translators_implemented_by_machine)
+		if (FDPC(pich->pcmd->cFile, pich->ih.pmi->translators_implemented_by_machine))
 		{
 			if (ped->puser_event_data->translator
 						  && FDPC(pich->pcmd->cFile, (ped->puser_event_data->translator->type_data.translator_data.flags & TF_BY_MACHINE))
