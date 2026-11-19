@@ -1,0 +1,27 @@
+event: test_fsm_e0; state: test_fsm_s1
+test_fsm_a0
+test_fsm_e1_e2_translator_grab_parent_data_pointer
+test_fsm_e1_e2_translator_grab_e1_data
+event: test_fsm_e1_e2_translator_data_arrived; state: test_fsm_e1_e2_translator_s1
+test_fsm_e1_e2_translator_a1
+event: test_fsm_data_updated; state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 0; k: 0; l: 0
+test_fsm_e1_e2_translator_grab_e2_data
+event: test_fsm_e1_e2_translator_data_arrived; state: test_fsm_e1_e2_translator_s2
+test_fsm_e1_e2_translator_a2
+event: test_fsm_data_updated; state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 1; k: 0; l: 0
+test_fsm_e1_e2_translator_grab_e1_data
+event: test_fsm_e1_e2_translator_data_arrived; state: test_fsm_e1_e2_translator_s3
+test_fsm_e1_e2_translator_a3
+event: test_fsm_data_updated; state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 1; k: 1; l: 0
+test_fsm_e1_e2_translator_grab_e2_data
+event: test_fsm_e1_e2_translator_data_arrived; state: test_fsm_e1_e2_translator_s4
+test_fsm_e1_e2_translator_a4
+event: test_fsm_data_updated; state: test_fsm_s1
+test_fsm_a1
+i: 1; j: 1; k: 1; l: 1
