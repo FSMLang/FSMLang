@@ -863,10 +863,10 @@ static void print_simple_transition_as_dict(pID_INFO pevent, pITERATOR_HELPER pi
 static void print_transition_fn_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 {
 	pih->pid = pevent;
-	if (pih->pai->transition->transition_fn_returns_cond_decl)
+	if (pih->pai->transition->returns_cond_decl)
 	{
 		/* Mode B: use when/otherwise choices */
-		iterate_list(pih->pai->transition->transition_fn_returns_cond_decl
+		iterate_list(pih->pai->transition->returns_cond_decl
 					 , print_transition_fn_return_cond_option
 					 , pih
 					 );
@@ -874,7 +874,7 @@ static void print_transition_fn_as_dict(pID_INFO pevent, pITERATOR_HELPER pih)
 	else
 	{
 		/* Mode A: use plain state list with synthesized choose_<state> conditions */
-		iterate_list(pih->pai->transition->transition_fn_returns_decl
+		iterate_list(pih->pai->transition->returns_decl
 					 , print_transition_fn_return_option
 					 , pih
 					 );
@@ -1118,18 +1118,18 @@ static bool print_transition_fn_stubs(pLIST_ELEMENT pelem, void *data)
 	pID_INFO ptransition = (pID_INFO) pelem->mbr;
 	pITERATOR_HELPER pih         = (pITERATOR_HELPER) data;
 
-	if (ptransition->transition_fn_returns_cond_decl)
+	if (ptransition->returns_cond_decl)
 	{
 		/* Mode B: generate stubs from when/otherwise choices */
-		iterate_list(ptransition->transition_fn_returns_cond_decl
+		iterate_list(ptransition->returns_cond_decl
 					 , print_transition_fn_return_cond_stubs
 					 , pih
 					 );
 	}
-	else if (ptransition->transition_fn_returns_decl)
+	else if (ptransition->returns_decl)
 	{
 		/* Mode A: generate choose_<state> stubs */
-		iterate_list(ptransition->transition_fn_returns_decl
+		iterate_list(ptransition->returns_decl
 					 , print_transition_fn_return_stubs
 					 , pih
 					 );

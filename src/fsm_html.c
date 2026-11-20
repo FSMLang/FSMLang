@@ -562,12 +562,12 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 				   , pai->transition->name
 				   );
 
-		   if (pai->transition->transition_fn_returns_decl)
+		   if (pai->transition->returns_decl)
 		   {
 			  fprintf(pih->fout
 					  ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
 					  );
-			  iterate_list(pai->transition->transition_fn_returns_decl
+			  iterate_list(pai->transition->returns_decl
 						   , print_id_info_as_html_list_element
 						   , pih
 						   );
@@ -646,13 +646,13 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 		if (
 			pai
 			&& pai->transition 
-			&& pai->transition->transition_fn_returns_decl
+			&& pai->transition->returns_decl
 			)
 		{
 		   fprintf(pih->fout
 				   ,"<br/>returns:\n\t<ul class=\"return_decl\">\n"
 				   );
-		   iterate_list(pai->transition->transition_fn_returns_decl
+		   iterate_list(pai->transition->returns_decl
 						, print_id_info_as_html_list_element
 						, pih
 						);
@@ -1045,13 +1045,13 @@ static bool print_transition_fn_table_transition_fn_row(pLIST_ELEMENT pelem, voi
 
 	}
 
-	if (ptransition_fn->transition_fn_returns_decl)
+	if (ptransition_fn->returns_decl)
 	{
 		fprintf(pih->fout
 				, "<p>Returns:\n\t<ul>\n"
 			   );
 
-		iterate_list(ptransition_fn->transition_fn_returns_decl
+		iterate_list(ptransition_fn->returns_decl
 					 , print_id_info_as_html_list_element
 					 , pih
 					);

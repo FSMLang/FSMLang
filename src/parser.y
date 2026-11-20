@@ -2474,13 +2474,13 @@ transition_fn_return_decl:
 			if (add_unique_to_list($3, $4) == NULL)
  			yyerror("out of memory");
 
- 	 if (!$1->transition_fn_returns_decl)
+ 	 if (!$1->returns_decl)
 		 {
-		    if (($1->transition_fn_returns_decl = init_list()) == NULL) 
+		    if (($1->returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			move_list_unique($1->transition_fn_returns_decl, $3);
+			move_list_unique($1->returns_decl, $3);
  		free_list($3);
 
     #ifdef PARSER_DEBUG
@@ -2494,13 +2494,13 @@ transition_fn_return_decl:
     fprintf(yyout,"Found a transition_fn return declaration\n");
     #endif
 
- 	 if (!$1->transition_fn_returns_decl)
+ 	 if (!$1->returns_decl)
 		 {
-		    if (($1->transition_fn_returns_decl = init_list()) == NULL) 
+		    if (($1->returns_decl = init_list()) == NULL) 
 				   yyerror("out of memory");
 		 }
 
-			add_unique_to_list($1->transition_fn_returns_decl, $3);
+			add_unique_to_list($1->returns_decl, $3);
 
   }
   | TRANSITION_FN RETURNS return_choice_cond_list return_choice_cond ';'
@@ -2512,13 +2512,13 @@ transition_fn_return_decl:
     if (add_to_list($3, $4) == NULL)
         yyerror("out of memory");
 
-    if (!$1->transition_fn_returns_cond_decl)
+    if (!$1->returns_cond_decl)
     {
-        if (($1->transition_fn_returns_cond_decl = init_list()) == NULL)
+        if (($1->returns_cond_decl = init_list()) == NULL)
             yyerror("out of memory");
     }
 
-    move_list($1->transition_fn_returns_cond_decl, $3);
+    move_list($1->returns_cond_decl, $3);
     free_list($3);
 
   }
@@ -2528,13 +2528,13 @@ transition_fn_return_decl:
     fprintf(yyout,"Found a Mode B transition_fn return declaration (single choice)\n");
     #endif
 
-    if (!$1->transition_fn_returns_cond_decl)
+    if (!$1->returns_cond_decl)
     {
-        if (($1->transition_fn_returns_cond_decl = init_list()) == NULL)
+        if (($1->returns_cond_decl = init_list()) == NULL)
             yyerror("out of memory");
     }
 
-    if (add_to_list($1->transition_fn_returns_cond_decl, $3) == NULL)
+    if (add_to_list($1->returns_cond_decl, $3) == NULL)
         yyerror("out of memory");
 
   }

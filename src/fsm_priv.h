@@ -349,14 +349,13 @@ struct _id_info_ {
   char           *name;
   int             type;
   int             order;
-  pID_INFO        nextID;
   char           *docCmnt;
   PID_TYPE_DATA   type_data;
   pMACHINE_INFO   powningMachine;
   pID_INFO        pfield_type;
   pDATA_FIELD     pdata_field;
-  pLIST           transition_fn_returns_decl;
-  pLIST           transition_fn_returns_cond_decl; /* Mode B: list of pRETURN_CHOICE_DATA; NULL means Mode A */
+  pLIST           returns_decl;
+  pLIST           returns_cond_decl; /* Mode B: list of pRETURN_CHOICE_DATA; NULL means Mode A */
 };
 
 struct _action_se_info_ {

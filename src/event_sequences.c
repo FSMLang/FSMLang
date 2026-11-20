@@ -64,7 +64,7 @@ TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pes
 			}
 			else if (ptransition->type != STATE)
 			{
-				note_on_transition = member_is_in_list(ptransition->transition_fn_returns_decl
+				note_on_transition = member_is_in_list(ptransition->returns_decl
 													   , pesn->pnew_state
 													   ) ? tn_fn_match : tn_fn_mismatch;
 			}
@@ -83,7 +83,7 @@ TRANSITION_NOTE determine_next_state(pMACHINE_INFO pmi, pEVENT_SEQUENCE_NODE pes
 		else
 		{
 			pID_INFO next_state = (pID_INFO) find_nth_list_member(
-				ptransition->transition_fn_returns_decl
+				ptransition->returns_decl
 				, 0
 				);
 			if (next_state)
