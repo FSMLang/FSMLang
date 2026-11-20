@@ -975,7 +975,7 @@ static bool count_implemented_by_machine_translators(pLIST_ELEMENT pelem, void *
     {
         pID_INFO ptranslator = pevent->type_data.event_data.puser_event_data->translator;
 
-        if (ptranslator && ptranslator->type_data.translator_data.flags & tf_implemented_by_sub_machine)
+        if (ptranslator && ptranslator->type_data.translator_data.flags & TF_BY_MACHINE)
         {
             (*count)++;
         }

@@ -38,6 +38,9 @@ include ../test.mk
 runtest: $(TESTS)
 	@echo "all parser tests pass"
 
+recordtest: runtest
+	@echo $(notdir $(shell pwd)) >> ../done
+
 $(TESTS): test 
 	@./test $@.fsm > $@.out 2> $@.stderr
 	@cat $@.stderr >> $@.out; rm -f $@.stderr

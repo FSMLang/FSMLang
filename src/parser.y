@@ -125,6 +125,7 @@ static char *fsm_strndup(const char *s, size_t n)
 %token <pid_info> UNDEFINED_SI_MACHINE
 %token <pid_info> SI_MACHINE
 %token <pid_info> UNDEFINED_TI_MACHINE
+%token <pid_info> UNDEFINED_XTI_MACHINE
 %token <pid_info> TI_MACHINE
 %token <pid_info> STATE
 %token <pid_info> EVENT
@@ -241,6 +242,10 @@ machine_prefix: native machine_modifier MACHINE_KEY ID
 		 $$ = machine_declared_by_machine_pid($1, $2, $4);
 	 }
 	 | native machine_modifier MACHINE_KEY UNDEFINED_TI_MACHINE
+	 {
+		 $$ = machine_declared_by_machine_pid($1, $2, $4);
+	 }
+	 | native machine_modifier MACHINE_KEY UNDEFINED_XTI_MACHINE
 	 {
 		 $$ = machine_declared_by_machine_pid($1, $2, $4);
 	 }
@@ -1657,13 +1662,15 @@ data_translator_fn: DATA_KEY TRANSLATOR_KEY ID
 	{
 		$$ = translator_implemented_by(id_list, $6);
 	}
+	| DATA_KEY TRANSLATOR_KEY IMPLEMENTED BY MACHINE_KEY UNDEFINED_XTI_MACHINE
+	{
+		$$ = additional_translator_implemented_by(id_list, $6);
+	}
 	;
 
 user_event_data: { $$ = NULL; }
   | data_translator_fn
    {
-
-
   		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
   		   yyerror("out of memory");
  
@@ -1671,7 +1678,6 @@ user_event_data: { $$ = NULL; }
    }
   | data_translator_fn data_block
    {
-
   		if (NULL == ($$ = ((pUSER_EVENT_DATA) calloc(1, sizeof(USER_EVENT_DATA)))))
   		   yyerror("out of memory");
  

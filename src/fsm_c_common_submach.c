@@ -164,7 +164,6 @@ static bool declare_needed_parent_event_sharers(pLIST_ELEMENT pelem, void *data)
 	pich->ih.pid = pevent;
 
 	if (ped->psharing_sub_machines
-//		&& (pich->ih.pmi->modFlags & mfStateImplementing)
 		&& iterate_list(ped->psharing_sub_machines, find_legitimate_sharer, pich)
 		)
 	{

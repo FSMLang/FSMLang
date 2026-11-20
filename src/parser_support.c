@@ -91,7 +91,12 @@ pID_INFO state_implemented_by(pID_INFO pstate, pID_INFO pmachine)
 
 	set_id_type(pmachine, UNDEFINED_SI_MACHINE);
 	pmachine->type_data.machine_pid_data.mpid_flags          = mpidf_implements_state;
-	pmachine->type_data.machine_pid_data.implementedArtifact = pstate;
+
+	if (!pmachine->type_data.machine_pid_data.implementedArtifacts)
+	{
+		pmachine->type_data.machine_pid_data.implementedArtifacts = init_list();
+	}
+	add_to_list(pmachine->type_data.machine_pid_data.implementedArtifacts, pstate);
 
 	return pstate;
 }
@@ -146,6 +151,19 @@ pID_INFO translator_implemented_by(pLIST id_list, pID_INFO pmachine)
 	return translator_fn_implemented_by(ptranslator, pmachine, true);
 }
 
+pID_INFO additional_translator_implemented_by(pLIST id_list, pID_INFO pmachine)
+{
+#ifdef PARSER_DEBUG
+	fprintf(yyout
+			, "(%u) translators exclusively implemented by %s\n"
+			, pmachine->type_data.machine_pid_data.implementedArtifacts->count + 1
+			, pmachine->name
+			);
+ #endif
+
+	return translator_implemented_by(id_list, pmachine);
+}
+
 /**
  * Capture the info for the translator and the machine implementing
  * it.
@@ -180,9 +198,18 @@ pID_INFO translator_fn_implemented_by(pID_INFO ptranslator, pID_INFO pmachine, b
 		;
 	ptranslator->type_data.translator_data.implementingMachine  = pmachine;
 
-	set_id_type(pmachine, UNDEFINED_TI_MACHINE);
+	set_id_type(pmachine
+				, exclusive
+				  ? UNDEFINED_XTI_MACHINE
+				  : UNDEFINED_TI_MACHINE
+				);
 	pmachine->type_data.machine_pid_data.mpid_flags          |= mpidf_implements_translator;
-	pmachine->type_data.machine_pid_data.implementedArtifact = ptranslator;
+
+	if (!pmachine->type_data.machine_pid_data.implementedArtifacts)
+	{
+		pmachine->type_data.machine_pid_data.implementedArtifacts = init_list();
+	}
+	add_to_list(pmachine->type_data.machine_pid_data.implementedArtifacts, ptranslator);
 
 	return ptranslator;
 }
@@ -278,7 +305,7 @@ pMACHINE_PREFIX machine_declared_by_machine_pid(pNATIVE_INFO pnative, MOD_FLAGS 
 	}
 
 	machine_pid->type_data.machine_pid_data.pmi = pmachine_prefix->pmachineInfo;
-	pmachine_prefix->pmachineInfo->implemented_artifact = machine_pid->type_data.machine_pid_data.implementedArtifact;
+	pmachine_prefix->pmachineInfo->implemented_artifacts = machine_pid->type_data.machine_pid_data.implementedArtifacts;
 
 	return pmachine_prefix;
 }
