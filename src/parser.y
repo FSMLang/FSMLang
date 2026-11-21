@@ -2302,7 +2302,7 @@ translator_machine_return_decl:
   TI_MACHINE RETURNS returns_comma_list ';'
   {
     #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found a translator return declaration\n");
+    fprintf(yyout,"Found a machine implementing translator return declaration\n");
     #endif
 
  	  grab_returns_decl(&$1->type_data.machine_pid_data.returns_decl, $3);
