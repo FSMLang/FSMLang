@@ -585,3 +585,17 @@ pMACHINE_INFO capture_machine(pMACHINE_PREFIX pprefix
 	return retVal;
 }
 
+void grab_returns_decl(pLIST *returns_decl, pLIST comma_list)
+{
+	if (!*returns_decl)
+	{
+		if ((*returns_decl = init_list()) == NULL)
+		{
+			yyerror("out of memory");
+		}
+	}
+
+	move_list_unique(*returns_decl, comma_list);
+	free_list(comma_list);
+}
+

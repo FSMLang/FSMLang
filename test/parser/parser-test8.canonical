@@ -44,6 +44,7 @@ The actions in this list:
 	a1
 found a scalar event : e4
 found the beginning of a state comma list
+found the continuation of a state comma list
 found a state vector
 	s2
 	s3
@@ -60,6 +61,7 @@ found an event vector
 	e3
 found the beginning of a state comma list
 found the continuation of a state comma list
+found the continuation of a state comma list
 found a state vector
 	s1
 	s2
@@ -69,6 +71,7 @@ found a transition matrix with new transition function
 Found an action return declaration
 Found an action return declaration
 found the beginning of a state comma list
+found the continuation of a state comma list
 Found a transition_fn return declaration
 process_action_info: a1
 	iterate_matrix_states: event: e1

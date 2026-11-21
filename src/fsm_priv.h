@@ -163,6 +163,7 @@ typedef struct _event_sequence_node_     EVENT_SEQUENCE_NODE,     *pEVENT_SEQUEN
 typedef struct _event_sequence_          EVENT_SEQUENCE,          *pEVENT_SEQUENCE;
 typedef struct _return_choice_data_      RETURN_CHOICE_DATA,      *pRETURN_CHOICE_DATA;
 typedef struct _machine_pid_data_        MACHINE_PID_DATA,        *pMACHINE_PID_DATA;
+typedef struct _transition_fn_data_      TRANSITION_FN_DATA,      *pTRANSITION_FN_DATA;
 
 typedef union  _pid_type_data_           PID_TYPE_DATA,           *pPID_TYPE_DATA;
 
@@ -238,6 +239,7 @@ struct _machine_pid_data_
     MACHINE_PID_FLAGS mpid_flags;
     pLIST             implementedArtifacts;
     pMACHINE_INFO     pmi;
+    pLIST             returns_decl;
 };
 
 /**
@@ -252,13 +254,20 @@ struct _return_choice_data_
 	bool     is_otherwise;  /* true only for the 'otherwise' choice */
 };
 
+struct _transition_fn_data_      
+{
+    pLIST           returns_decl;
+    pLIST           returns_cond_decl; /* Mode B: list of pRETURN_CHOICE_DATA; NULL means Mode A */
+};
+
 union _pid_type_data_
 {
-   EVENT_DATA       event_data;
-   STATE_DATA       state_data;
-   ACTION_DATA      action_data;
-   TRANSLATOR_DATA  translator_data;
-   MACHINE_PID_DATA machine_pid_data;
+    EVENT_DATA         event_data;
+    STATE_DATA         state_data;
+    ACTION_DATA        action_data;
+    TRANSLATOR_DATA    translator_data;
+    MACHINE_PID_DATA   machine_pid_data;
+    TRANSITION_FN_DATA transition_fn_data;
 };
 
 typedef enum
@@ -354,8 +363,6 @@ struct _id_info_ {
   pMACHINE_INFO   powningMachine;
   pID_INFO        pfield_type;
   pDATA_FIELD     pdata_field;
-  pLIST           returns_decl;
-  pLIST           returns_cond_decl; /* Mode B: list of pRETURN_CHOICE_DATA; NULL means Mode A */
 };
 
 struct _action_se_info_ {

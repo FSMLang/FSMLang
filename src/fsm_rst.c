@@ -538,13 +538,13 @@ static bool print_transition_fn_data(pLIST_ELEMENT pelem, void *data)
 
 	print_id_info_data(ptransition_fn, FOUT(pfsmrstog));
 
-	if (ptransition_fn->returns_decl)
+	if (ptransition_fn->type_data.transition_fn_data.returns_decl)
 	{
 		fprintf(FOUT(pfsmrstog)
 				, "\n\nReturns:\n\n"
 				);
 
-		iterate_list(ptransition_fn->returns_decl
+		iterate_list(ptransition_fn->type_data.transition_fn_data.returns_decl
 					 , print_pid_as_reference_in_list
 					 , pfsmrstog
 					 );
