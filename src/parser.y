@@ -1719,6 +1719,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					 {
 						 $2->type_data.event_data.consumed_by_translator
 							 = ($4->translator->type_data.translator_data.flags & tf_consuming);
+						 $4->translator->type_data.translator_data.pevent = $2;
 					 }
 
  					if (NULL == ($2->type_data.event_data.phandling_states = init_list()))
@@ -1837,6 +1838,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					 {
 						 $3->type_data.event_data.consumed_by_translator
 							 = ($5->translator->type_data.translator_data.flags & tf_consuming);
+						 $5->translator->type_data.translator_data.pevent = $3;
 					 }
 
  					if (NULL == ($3->type_data.event_data.phandling_states = init_list()))
@@ -1874,6 +1876,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					 {
 						 pid->type_data.event_data.consumed_by_translator
 							 = ($6->translator->type_data.translator_data.flags & tf_consuming);
+						 $6->translator->type_data.translator_data.pevent = pid;
 					 }
 
  					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))

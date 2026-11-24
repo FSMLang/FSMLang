@@ -7,6 +7,13 @@
 e1_e2_translator
 =================
 
+This machine directly translates these parent events:
+
+* :ref:`e1 <test_fsm.e1>`
+* :ref:`e2 <test_fsm.e2>`
+
+
+
 .. list-table:: Machine Statistics
    :align: left
 

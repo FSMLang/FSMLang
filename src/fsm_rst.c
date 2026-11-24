@@ -53,7 +53,7 @@ bool include_uml_objects       = false;
 bool use_sphinx_scrollable_ext = false;
 
 //!< A must be pFSMRSTOutputGenerator
-#define FOUT(A) (A)->pmd->rstFile
+#define FOUT(A) ((pFSMRSTOutputGenerator)(A))->pmd->rstFile
 
 //!< A must be pFSMRSTOutputGenerator
 #define PMI(A) (A)->pmd->pmi
@@ -78,6 +78,9 @@ static void closeRSTFileNameWriter(pFSMOutputGenerator,int);
 static void chooseWorkerFunctions(pFSMRSTOutputGenerator);
 
 static void print_toctree(pFSMRSTOutputGenerator);
+static void print_implemented_artifact_info(pFSMRSTOutputGenerator);
+static void print_implemented_state_info(pFSMRSTOutputGenerator);
+static void print_implemented_translator_info(pFSMRSTOutputGenerator);
 static bool print_sub_machine_toctree_entry(pLIST_ELEMENT,void*);
 static void print_actions(pFSMRSTOutputGenerator);
 static void print_states(pFSMRSTOutputGenerator);
@@ -102,6 +105,7 @@ static void print_transition_fns(pFSMRSTOutputGenerator);
 static void print_event_sequences(pFSMRSTOutputGenerator);
 static void eat_spaces(FILE*,char*);
 static bool print_pid_as_reference_in_list(pLIST_ELEMENT,void*);
+static bool print_translated_event_as_reference_in_list(pLIST_ELEMENT,void*);
 static bool print_pmi_as_doc_reference_in_list(pLIST_ELEMENT,void*);
 static bool print_sequence_svg(pLIST_ELEMENT,void*);
 static bool print_sequence(pLIST_ELEMENT,void*);
@@ -321,6 +325,11 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	fprintf(FOUT(pfsmrstog)
 			, "\n"
 			);
+
+	if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
+	{
+		print_implemented_artifact_info(pfsmrstog);
+	}
 
 	if (pmi->machine_list)
 	{
@@ -1238,6 +1247,22 @@ static bool print_pid_as_reference_in_list(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
+static bool print_translated_event_as_reference_in_list(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO               ptranslator = (pID_INFO) pelem->mbr;
+	pFSMRSTOutputGenerator pfsmrstog   = (pFSMRSTOutputGenerator) data;
+
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	fprintf(FOUT(pfsmrstog)
+			, "* :ref:`%s <%s.%s>`\n"
+			, pd->pevent->name
+			, pd->pevent->powningMachine->name->name
+			, pd->pevent->name
+			);
+
+	return false;
+}
 
 static bool print_pmi_as_doc_reference_in_list(pLIST_ELEMENT pelem, void *data)
 {
@@ -1653,6 +1678,60 @@ static void print_event_data_information(pFSMRSTOutputGenerator pfsmrstog, pID_I
 					 , print_data_field
 					 , &ih
 					 );
+	}
+}
+
+static void print_implemented_artifact_info(pFSMRSTOutputGenerator pfsmrstog)
+{
+	if (PMI(pfsmrstog)->modFlags & mfTranslatorImplementing)
+	{
+		print_implemented_translator_info(pfsmrstog);
+	}
+	else
+	{
+		print_implemented_state_info(pfsmrstog);
+	}
+}
+
+static void print_implemented_state_info(pFSMRSTOutputGenerator pfsmrstog)
+{
+	fprintf(FOUT(pfsmrstog)
+			, "\nThis machine implements the parent state %s.\n"
+			, ((pID_INFO)(PMI(pfsmrstog)->implemented_artifacts->head->mbr))->name
+			);
+}
+
+static void print_implemented_translator_info(pFSMRSTOutputGenerator pfsmrstog)
+{
+	pID_INFO ptranslator = (pID_INFO)(PMI(pfsmrstog)->implemented_artifacts->head->mbr);
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	if (pd->flags & tf_implemented_by_sub_machine)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\nThis machine implements parent machine translator %s, translating"
+				  " parent event: %s\n"
+				, ptranslator->name
+				, pd->pevent->name
+				);
+		
+	}
+	else
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\nThis machine directly translates %s parent event%s:\n\n"
+				, PMI(pfsmrstog)->implemented_artifacts->count > 1 ? "these" : "this"
+				, PMI(pfsmrstog)->implemented_artifacts->count > 1 ? "s" : ""
+				);
+
+		iterate_list(PMI(pfsmrstog)->implemented_artifacts
+					 , print_translated_event_as_reference_in_list
+					 , pfsmrstog
+					 );
+
+		fprintf(FOUT(pfsmrstog)
+				, "\n\n"
+				);
 	}
 }
 
