@@ -14,7 +14,6 @@ echotests:
 	@echo $(TESTS)
 
 runtest: $(TESTS) 
-	@echo "all rst tests pass"
 	@$(MAKE) clean
 
 ../index.rst:

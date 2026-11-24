@@ -12,6 +12,10 @@ DOCS=$(addsuffix .doc, $(SUITES))
 .PHONY: all clean $(SUITES) $(CLEAN_SUITES)
 
 runtest: $(SUITES)
+	@echo "all $(notdir $(shell pwd)) tests pass"
+
+recordtest: runtest
+	@echo $(notdir $(shell pwd)) >> ../done
 
 clean: $(CLEAN_SUITES) cleandocs
 
