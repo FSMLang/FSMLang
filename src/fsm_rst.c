@@ -65,6 +65,8 @@ typedef struct _fsm_rst_output_generator_ FSMRSTOutputGenerator, *pFSMRSTOutputG
 typedef struct _rst_machine_data_ RSTMachineData, *pRSTMachineData;
 typedef struct _rst_iterator_helper_ RST_ITERATOR_HELPER, *pRST_ITERATOR_HELPER;
 
+typedef void (*event_data_print_fn)(pFSMRSTOutputGenerator,pID_INFO);
+
 static int initRSTWriter(pFSMOutputGenerator,char *);
 static void writeRSTWriter(pFSMOutputGenerator,pMACHINE_INFO);
 static void closeRSTWriter(pFSMOutputGenerator,int);
@@ -72,6 +74,8 @@ static void closeRSTWriter(pFSMOutputGenerator,int);
 static int initRSTFileNameWriter(pFSMOutputGenerator,char *);
 static void writeRSTFileName(pFSMOutputGenerator,pMACHINE_INFO);
 static void closeRSTFileNameWriter(pFSMOutputGenerator,int);
+
+static void chooseWorkerFunctions(pFSMRSTOutputGenerator);
 
 static void print_toctree(pFSMRSTOutputGenerator);
 static bool print_sub_machine_toctree_entry(pLIST_ELEMENT,void*);
@@ -82,6 +86,10 @@ static bool print_transition_fn_data(pLIST_ELEMENT,void*);
 static bool print_action_data(pLIST_ELEMENT,void*);
 static bool print_state_data(pLIST_ELEMENT,void*);
 static bool print_event_data(pLIST_ELEMENT,void*);
+static void print_event_data_information(pFSMRSTOutputGenerator,pID_INFO);
+static void print_data_translator_information_plain(pFSMRSTOutputGenerator,pID_INFO);
+static void print_data_translator_information_sm(pFSMRSTOutputGenerator,pID_INFO);
+static void print_data_translator_information_xsm(pFSMRSTOutputGenerator,pID_INFO);
 static void print_id_info_data(pID_INFO,FILE*);
 static void print_state_chart(pFSMRSTOutputGenerator);
 static bool print_state_chart_event_header_row(pLIST_ELEMENT,void*);
@@ -94,7 +102,7 @@ static void print_transition_fns(pFSMRSTOutputGenerator);
 static void print_event_sequences(pFSMRSTOutputGenerator);
 static void eat_spaces(FILE*,char*);
 static bool print_pid_as_reference_in_list(pLIST_ELEMENT,void*);
-static bool print_pmi_in_list(pLIST_ELEMENT,void*);
+static bool print_pmi_as_doc_reference_in_list(pLIST_ELEMENT,void*);
 static bool print_sequence_svg(pLIST_ELEMENT,void*);
 static bool print_sequence(pLIST_ELEMENT,void*);
 static bool print_sequence_node_rst(pLIST_ELEMENT,void*);
@@ -118,6 +126,7 @@ struct _fsm_rst_output_generator_
    FSMOutputGenerator     fsmog;
    pRSTMachineData        pmd;
    pFSMRSTOutputGenerator parent_fsmrstog;
+   event_data_print_fn    print_event_data_info;
 };
 
 struct _rst_iterator_helper_
@@ -131,10 +140,11 @@ static FSMRSTOutputGenerator RSTMachineWriter = {
      initRSTWriter,
      writeRSTWriter,
      closeRSTWriter,
-	   generateRSTMachineWriter 
+     generateRSTMachineWriter 
   },
   NULL,
-  NULL
+  NULL,
+  print_event_data_information
 };
 
 static char *indent = "   ";
@@ -288,6 +298,7 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	pFSMRSTOutputGenerator pfsmrstog = (pFSMRSTOutputGenerator)pfsmog;
 
 	PMI(pfsmrstog) = pmi;
+	chooseWorkerFunctions(pfsmrstog);
 
 	int title_decoration_len = strlen(pmi->name->name) + 1;
 
@@ -758,7 +769,7 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 				);
 
 		iterate_list(pdata->psharing_sub_machines
-					 , print_pmi_in_list
+					 , print_pmi_as_doc_reference_in_list
 					 , pfsmrstog
 					 );
 
@@ -816,53 +827,7 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 
 	if (pdata->puser_event_data)
 	{
-		fprintf(FOUT(pfsmrstog)
-				, "\n\nThis event has data."
-				);
-
-		if (pdata->puser_event_data->translator)
-		{
-			pID_INFO translator = pdata->puser_event_data->translator;
-			fprintf(FOUT(pfsmrstog)
-					, "\n\nTranslator: %s"
-					, translator->name
-					);
-
-			if (translator->type_data.translator_data.translator_returns_decl)
-			{
-				
-				fprintf(FOUT(pfsmrstog)
-						, ", which returns:\n\n"
-						);
-				iterate_list(translator->type_data.translator_data.translator_returns_decl
-							 , print_pid_as_reference_in_list
-							 , pfsmrstog
-							 );
-			}
-			else
-			{
-				fprintf(FOUT(pfsmrstog)
-						, ".\n\n"
-						);
-			}
-		}
-
-		if (pdata->puser_event_data->data_fields)
-		{
-			fprintf(FOUT(pfsmrstog)
-					, "\n\nStructure:\n\n.. code:: c\n\n"
-					);
-
-			ITERATOR_HELPER ih = {
-				.fout = FOUT(pfsmrstog)
-				, .tab_level = 1
-			};
-
-			iterate_list(pdata->puser_event_data->data_fields
-						 , print_data_field
-						 , &ih
-						 );
-		}
+		pfsmrstog->print_event_data_info(pfsmrstog, pevent);
 	}
 
 	return false;
@@ -1274,14 +1239,14 @@ static bool print_pid_as_reference_in_list(pLIST_ELEMENT pelem, void *data)
 }
 
 
-static bool print_pmi_in_list(pLIST_ELEMENT pelem, void *data)
+static bool print_pmi_as_doc_reference_in_list(pLIST_ELEMENT pelem, void *data)
 {
 	pMACHINE_INFO          pmi       = (pMACHINE_INFO) pelem->mbr;
 	pFSMRSTOutputGenerator pfsmrstog = (pFSMRSTOutputGenerator) data;
 
 	                    ;
 	fprintf(FOUT(pfsmrstog)
-			, "* %s\n"
+			, "* :doc:`%s`\n"
 			, pmi->name->name
 			);
 
@@ -1546,5 +1511,148 @@ static bool print_sequence_node_rst(pLIST_ELEMENT pelem, void *data)
 	fprintf(pih->fout, "\n");
 
 	return false;
+}
+
+static void print_data_translator_information_plain(pFSMRSTOutputGenerator pfsmrstog, pID_INFO ptranslator)
+{
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nTranslator: %s"
+			, ptranslator->name
+			);
+
+	if (ptranslator->type_data.translator_data.returns_decl)
+	{
+
+		fprintf(FOUT(pfsmrstog)
+				, ", which returns:\n\n"
+				);
+		iterate_list(ptranslator->type_data.translator_data.returns_decl
+					 , print_pid_as_reference_in_list
+					 , pfsmrstog
+					 );
+	}
+	else
+	{
+		fprintf(FOUT(pfsmrstog)
+				, ".\n\n"
+				);
+	}
+}
+
+static void print_data_translator_information_sm(pFSMRSTOutputGenerator pfsmrstog, pID_INFO ptranslator)
+{
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nTranslator: %s"
+			, ptranslator->name
+			);
+
+	if (pd->returns_decl)
+	{
+
+		fprintf(FOUT(pfsmrstog)
+				, ", which returns:\n\n"
+				);
+		iterate_list(pd->returns_decl
+					 , print_pid_as_reference_in_list
+					 , pfsmrstog
+					 );
+
+		fprintf(FOUT(pfsmrstog)
+				, "\n\n"
+				);
+	}
+	fprintf(FOUT(pfsmrstog)
+			, "%sThis translator is implemented by machine :doc:`%s`.\n\n"
+			, pd->returns_decl ? "" : "\n\n"
+			, pd->implementingMachine->name
+			);
+}
+
+static void print_data_translator_information_xsm(pFSMRSTOutputGenerator pfsmrstog, pID_INFO ptranslator)
+{
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nThe translator is exclusively implemented by sub-machine %s"
+			, pd->implementingMachine->type_data.machine_pid_data.pmi->name->name
+			);
+
+	if (pd->implementingMachine->type_data.machine_pid_data.returns_decl)
+	{
+
+		fprintf(FOUT(pfsmrstog)
+				, ", which returns:\n\n"
+				);
+		iterate_list(pd->implementingMachine->type_data.machine_pid_data.returns_decl
+					 , print_pid_as_reference_in_list
+					 , pfsmrstog
+					 );
+	}
+	else
+	{
+		fprintf(FOUT(pfsmrstog)
+				, ".\n\n"
+				);
+	}
+}
+
+static void chooseWorkerFunctions(pFSMRSTOutputGenerator pfsmrstog)
+{
+	if (pfsmrstog->parent_fsmrstog)
+	{
+		pfsmrstog->print_event_data_info = print_event_data_information;
+	}
+}
+
+static void print_event_data_information(pFSMRSTOutputGenerator pfsmrstog, pID_INFO pevent)
+{
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nThis event has data."
+			);
+
+	pEVENT_DATA pdata    = &pevent->type_data.event_data;
+	pID_INFO ptranslator = pdata->puser_event_data->translator;
+	if (ptranslator)
+	{
+		switch (ptranslator->type_data.translator_data.flags & TF_BY_MACHINE)
+		{
+		case tf_implemented_by_sub_machine:
+			print_data_translator_information_sm(pfsmrstog, ptranslator);
+			break;
+		case tf_exclusively_implemented_by_sub_machine:
+			print_data_translator_information_xsm(pfsmrstog, ptranslator);
+			break;
+		default:
+			print_data_translator_information_plain(pfsmrstog, ptranslator);
+			break;
+		}
+	}
+	else
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\nNo translator is specified; a function will be"
+				  " declared with the name translate_%s_data."
+				, pevent->name
+				);
+	}
+
+	if (pdata->puser_event_data->data_fields)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\nStructure:\n\n.. code:: c\n\n"
+				);
+
+		ITERATOR_HELPER ih = {
+			.fout = FOUT(pfsmrstog)
+			, .tab_level = 1
+		};
+
+		iterate_list(pdata->puser_event_data->data_fields
+					 , print_data_field
+					 , &ih
+					 );
+	}
 }
 

@@ -1,0 +1,10 @@
+machine simple
+{
+	event e1, e2;
+	state s1, s2;
+
+	action a1[e1,s1] transition s2;
+	action a2[e2,s2] transition s1;
+
+}
+

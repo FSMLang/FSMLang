@@ -755,10 +755,10 @@ static bool print_event_table_event_row(pLIST_ELEMENT pelem, void *data)
 					, translator->name
 				   );
 
-			if (translator->type_data.translator_data.translator_returns_decl)
+			if (translator->type_data.translator_data.returns_decl)
 			{
 				fprintf(pih->fout, "<p>\nReturns:\n</p>\n<ul>\n");
-				iterate_list(translator->type_data.translator_data.translator_returns_decl
+				iterate_list(translator->type_data.translator_data.returns_decl
 							 , print_id_info_as_html_list_element
 							 , pih
 							 );

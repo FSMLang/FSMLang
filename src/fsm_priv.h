@@ -228,7 +228,7 @@ struct _action_data_
 struct _translator_data_
 {
    TRANSLATOR_FLAGS flags;
-	pLIST            translator_returns_decl;
+	pLIST            returns_decl;
    bool             consuming;
    pID_INFO         implementingMachine;
    pID_INFO         pevent;

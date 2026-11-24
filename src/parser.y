@@ -2293,7 +2293,7 @@ translator_return_decl:
     fprintf(yyout,"Found a translator return declaration\n");
     #endif
 
- 	  grab_returns_decl(&$1->type_data.translator_data.translator_returns_decl, $3);
+ 	  grab_returns_decl(&$1->type_data.translator_data.returns_decl, $3);
 
   }
 	;

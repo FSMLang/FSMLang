@@ -279,7 +279,10 @@ pMACHINE_PREFIX machine_declared_by_id(pNATIVE_INFO pnative, MOD_FLAGS machine_m
 	return create_machine_prefix(pnative,machine_modifier,pid);
 }
 
-pMACHINE_PREFIX machine_declared_by_machine_pid(pNATIVE_INFO pnative, MOD_FLAGS machine_modifier, pID_INFO machine_pid)
+pMACHINE_PREFIX machine_declared_by_machine_pid(pNATIVE_INFO pnative
+												, MOD_FLAGS machine_modifier
+												, pID_INFO machine_pid
+												)
 {
 	pMACHINE_PREFIX pmachine_prefix = NULL;
 
@@ -304,8 +307,12 @@ pMACHINE_PREFIX machine_declared_by_machine_pid(pNATIVE_INFO pnative, MOD_FLAGS 
 		yyerror("out of memory");
 	}
 
-	machine_pid->type_data.machine_pid_data.pmi = pmachine_prefix->pmachineInfo;
-	pmachine_prefix->pmachineInfo->implemented_artifacts = machine_pid->type_data.machine_pid_data.implementedArtifacts;
+	machine_pid->type_data.machine_pid_data.pmi
+		= pmachine_prefix->pmachineInfo
+		;
+	pmachine_prefix->pmachineInfo->implemented_artifacts
+		= machine_pid->type_data.machine_pid_data.implementedArtifacts
+		;
 
 	return pmachine_prefix;
 }
