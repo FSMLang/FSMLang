@@ -25,7 +25,6 @@ runtest: $(TESTS)
 		echo -n "\t$(SUITE)/$$f\n" >> ../index.rst; \
 	done
 	@echo -n "\n" >> ../index.rst
-	@cat ../index.rst
 
 docsrc: $(GENERATED_PLANTUML) $(GENERATED_RST) ../index.rst
 
