@@ -124,8 +124,6 @@ These events are handled in this state:
 
 This yields an event density of 50%.
 
-
-
 These actions are taken in this state:
 
 * :ref:`a1 <simple.a1>`
@@ -152,8 +150,6 @@ These events are handled in this state:
 
 
 This yields an event density of 50%.
-
-
 
 These actions are taken in this state:
 

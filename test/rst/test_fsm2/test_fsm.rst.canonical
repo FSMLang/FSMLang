@@ -176,8 +176,6 @@ These events are handled in this state:
 
 This yields an event density of 66%.
 
-
-
 These actions are taken in this state:
 
 * :ref:`a0 <test_fsm.a0>`
@@ -187,8 +185,6 @@ These actions are taken in this state:
 .. warning::
 
    There is no way out of this state.
-
-
 
 Actions
 --------

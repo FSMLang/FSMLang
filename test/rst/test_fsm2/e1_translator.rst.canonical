@@ -151,8 +151,6 @@ These events are handled in this state:
 
 This yields an event density of 33%.
 
-
-
 These actions are taken in this state:
 
 * :ref:`a1 <test_fsm.e1_translator.a1>`
@@ -179,8 +177,6 @@ These events are handled in this state:
 
 
 This yields an event density of 33%.
-
-
 
 These actions are taken in this state:
 
@@ -209,8 +205,6 @@ These events are handled in this state:
 
 This yields an event density of 33%.
 
-
-
 These actions are taken in this state:
 
 * :ref:`a3 <test_fsm.e1_translator.a3>`
@@ -237,8 +231,6 @@ These events are handled in this state:
 
 
 This yields an event density of 33%.
-
-
 
 These actions are taken in this state:
 

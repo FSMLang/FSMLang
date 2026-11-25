@@ -608,15 +608,23 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 	if (pdata->state_flags & sfInibitSubMachines)
 	{
 		fprintf(FOUT(pfsmrstog)
-				, "\n\nThis state prohibits sub machines from running.\n\n"
+				, "\n\nThis state prohibits sub machines from running."
 				);
 
+	}
+
+	if (pdata->state_flags & sfImplementedBySubMachine)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\nThis state is implemented by sub-machine :doc:`%s`."
+				, pdata->implementingMachine->name
+				);
 	}
 
 	if (pdata->entry_fn)
 	{
 		fprintf(FOUT(pfsmrstog)
-				, "\n\n%s is called on entry.\n\n"
+				, "\n\n%s is called on entry."
 				, pdata->entry_fn->name
 				);
 	}
@@ -641,16 +649,19 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 					 );
 
 		fprintf(FOUT(pfsmrstog)
-				, "\n\nThis yields an event density of %u%%.\n\n"
+				, "\n\nThis yields an event density of %u%%."
 				, pdata->event_density_pct
 				);
 
 	}
 	else
 	{
-		fprintf(FOUT(pfsmrstog)
-				, "\n\n.. attention::\n\n   This state handles no events.\n\n"
-				);
+		if (!(pdata->state_flags & sfImplementedBySubMachine))
+		{
+			fprintf(FOUT(pfsmrstog)
+					, "\n\n.. attention::\n\n   This state handles no events."
+				   );
+		}
 
 	}
 
@@ -670,9 +681,12 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 	{
 		if (pdata->pevents_handled->count)
 		{
-			fprintf(FOUT(pfsmrstog)
-					, "\n\n.. warning:\n\n   No actions are taken in this state.\n\n"
-				   );
+			if (!(pdata->state_flags & sfImplementedBySubMachine))
+			{
+				fprintf(FOUT(pfsmrstog)
+						, "\n\n.. warning:\n\n   No actions are taken in this state."
+					   );
+			}
 		}
 
 	}
@@ -694,7 +708,7 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 		if (pelem->ordinal)
 		{
 			fprintf(FOUT(pfsmrstog)
-					, "\n\n.. warning::\n\n   There is no way into this state.\n\n"
+					, "\n\n.. warning::\n\n   There is no way into this state."
 					);
 		}
 
@@ -715,7 +729,7 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 	else
 	{
 		fprintf(FOUT(pfsmrstog)
-				, "\n\n.. warning::\n\n   There is no way out of this state.\n\n"
+				, "\n\n.. warning::\n\n   There is no way out of this state."
 				);
 	}
 

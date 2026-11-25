@@ -149,8 +149,6 @@ These events are handled in this state:
 
 This yields an event density of 33%.
 
-
-
 These actions are taken in this state:
 
 * :ref:`a1 <anonymous_data_translator.a1>`
@@ -177,8 +175,6 @@ These events are handled in this state:
 
 
 This yields an event density of 33%.
-
-
 
 These actions are taken in this state:
 
