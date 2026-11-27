@@ -20,10 +20,10 @@ recordtest: runtest
 clean: $(CLEAN_SUITES) cleandocs
 
 $(SUITES):
-	$(MAKE) -C $@ OUTPUT_DIR="$(OUTPUT_DIR)" runtest
+	@$(MAKE) -C $@ OUTPUT_DIR="$(OUTPUT_DIR)" runtest
 
 $(CLEAN_SUITES):
-	$(MAKE) -C $(basename $@) OUTPUT_DIR="$(OUTPUT_DIR)" clean
+	@$(MAKE) -C $(basename $@) OUTPUT_DIR="$(OUTPUT_DIR)" clean
 
 $(DOCS):
 	@$(MAKE) -C $(basename $@) OUTPUT_DIR="$(OUTPUT_DIR)" SUITE="$(basename $@)" docsrc

@@ -33,7 +33,7 @@ sc sc.size sc_run: DIFF_FLAGS+=-I \"Warning: Ignoring compact array request beca
 TARGET ?= do_runtest
 
 runtest: $(TARGET)
-	@echo "all tests successful"
+	@echo "all $(notdir $(shell pwd)) tests successful"
 
 do_runtest: $(addsuffix _run, $(VARIANTS))
 

@@ -188,8 +188,6 @@ These events are handled in this state:
 
 This yields an event density of 75%.
 
-
-
 These actions are taken in this state:
 
 * :ref:`a1 <test_fsm.a1>`
@@ -221,8 +219,6 @@ These events are handled in this state:
 
 This yields an event density of 75%.
 
-
-
 These actions are taken in this state:
 
 * :ref:`a3 <test_fsm.a3>`
@@ -248,19 +244,13 @@ s3
 
    This state handles no events.
 
-
-
 .. warning::
 
    There is no way into this state.
 
-
-
 .. warning::
 
    There is no way out of this state.
-
-
 
 Actions
 --------

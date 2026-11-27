@@ -1,6 +1,8 @@
 #	Makefile for fsmlang
 #
 
+#MAKEFLAGS += --no-print-directory
+
 .SECONDEXPANSION:
 
 override CFLAGS += -I ../src -I . -Wall

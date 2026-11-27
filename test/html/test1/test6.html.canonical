@@ -326,6 +326,7 @@ code {
 <tr>
 <td class='label'>s1</td>
 <td>
+<p>This state is implemented by machine bof.</p>
 <p>On Entry: bar</p>
 <p> do this on entry </p>
 <p>On Exit: baz</p>
@@ -395,7 +396,7 @@ code {
 <tr>
 <td class="label"><a href="bof.html" target="FSMLang-bof">bof</a></td>
 <td>
-</td>
+&nbsp;</td>
 </tr>
 </tbody>
 </table>

@@ -53,7 +53,7 @@ bool include_uml_objects       = false;
 bool use_sphinx_scrollable_ext = false;
 
 //!< A must be pFSMRSTOutputGenerator
-#define FOUT(A) ((pFSMRSTOutputGenerator)(A))->pmd->rstFile
+#define FOUT(A) (A)->pmd->rstFile
 
 //!< A must be pFSMRSTOutputGenerator
 #define PMI(A) (A)->pmd->pmi

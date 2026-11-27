@@ -25,11 +25,11 @@ libu.a: $(LIB_OBJ)
 	@$(AR) rcs $@ $(LIB_OBJ)
 
 $(TESTS): $$(addsuffix .o, $$@) libu.a
-	gcc -o $@ $@.o -L. -lu
+	@gcc -o $@ $@.o -L. -lu
 
 $(addsuffix .run, $(TESTS)): $$(basename $$@)
-	./$(basename $@) > $(basename $@).out
-	$(DIFF) $(basename $@).out $(basename $@).canonical > $(basename $@).result
+	@./$(basename $@) > $(basename $@).out
+	@$(DIFF) $(basename $@).out $(basename $@).canonical > $(basename $@).result
 	@echo $(basename $@) passes.
 
 runtest: $(addsuffix .run, $(TESTS)) clean

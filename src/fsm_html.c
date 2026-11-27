@@ -88,6 +88,15 @@ static FSMHTMLOutputGenerator HTMLMachineWriter = {
   , NULL
 };
 
+//!< A must be pFSMHTMLOutputGenerator
+#define FOUT(A) (A)->pmd->htmlFile
+
+//!< A must be pFSMHTMLOutputGenerator
+#define PMI(A) (A)->pmd->pmi
+
+//!< A must be pFSMHTMLOutputGenerator
+#define PMD(A) (A)->pmd
+
 bool  css_content_internal = false;
 bool  include_svg_img      = false;
 char *css_content_filename = "fsmlang.css";
@@ -98,8 +107,10 @@ static bool print_event_sequence_puml(pLIST_ELEMENT,void*);
 static bool print_action_table_row(pLIST_ELEMENT,void*);
 static bool print_id_info_as_html_list_element(pLIST_ELEMENT,void*);
 static bool print_machine_name_as_list_element(pLIST_ELEMENT,void*);
+static bool print_non_translator_implementing_machine_name_as_list_element(pLIST_ELEMENT,void*);
 static bool print_state_table_state_row(pLIST_ELEMENT,void*);
 static bool print_event_table_event_row(pLIST_ELEMENT,void*);
+static void print_event_data_information(pITERATOR_HELPER, pEVENT_DATA);
 static bool print_state_chart_event_header_row(pLIST_ELEMENT,void*);
 static bool print_state_chart_state_row(pLIST_ELEMENT,void*);
 static bool print_state_chart_state_row_event(pLIST_ELEMENT,void*);
@@ -116,6 +127,14 @@ static void print_state_chart(pFSMHTMLOutputGenerator);
 static void print_machine_statistics(pFSMHTMLOutputGenerator);
 static void print_vector(pLIST,pITERATOR_HELPER);
 static void print_transition(pID_INFO,pITERATOR_HELPER);
+static void print_implemented_artifact_info(pFSMHTMLOutputGenerator);
+static void print_implemented_state_info(pFSMHTMLOutputGenerator);
+static void print_implemented_translator_info(pFSMHTMLOutputGenerator);
+static bool print_translated_event_as_reference_in_table(pLIST_ELEMENT,void*);
+static void print_data_translator_information_plain(pITERATOR_HELPER,pID_INFO);
+static void print_data_translator_information_sm(pITERATOR_HELPER,pID_INFO);
+static void print_data_translator_information_xsm(pITERATOR_HELPER,pID_INFO);
+static void print_machine_page_link(FILE*,char*);
 
 static void print_machine_statistics(pFSMHTMLOutputGenerator pfsmhtmlog)
 {
@@ -731,13 +750,15 @@ static bool print_event_table_event_row(pLIST_ELEMENT pelem, void *data)
 			, pevent->docCmnt ? pevent->docCmnt : ""
 			);
 
-	if (ped->psharing_sub_machines)
+	if (ped->psharing_sub_machines
+		&& (ped->psharing_sub_machines->count > pih->pmi->translators_implemented_by_machine)
+		)
 	{
 		fprintf(pih->fout
 				, "<p>This event is shared with:</p><ul class=\"return_decl\">\n"
 			   );
 		iterate_list(ped->psharing_sub_machines
-					 , print_machine_name_as_list_element
+					 , print_non_translator_implementing_machine_name_as_list_element
 					 , pih->fout
 					);
 		fprintf(pih->fout, "</ul>\n"
@@ -746,56 +767,7 @@ static bool print_event_table_event_row(pLIST_ELEMENT pelem, void *data)
 
 	if (ped->puser_event_data)
 	{
-		if (ped->puser_event_data->translator)
-		{
-			pID_INFO translator = ped->puser_event_data->translator;
-
-			fprintf(pih->fout
-					, "<p>\nData translator: %s\n</p>\n"
-					, translator->name
-				   );
-
-			if (translator->type_data.translator_data.returns_decl)
-			{
-				fprintf(pih->fout, "<p>\nReturns:\n</p>\n<ul>\n");
-				iterate_list(translator->type_data.translator_data.returns_decl
-							 , print_id_info_as_html_list_element
-							 , pih
-							 );
-				fprintf(pih->fout, "</ul>\n");
-			}
-
-			if (translator->type_data.translator_data.flags & tf_consuming)
-			{
-				fprintf(pih->fout
-						, "<p>The translator completely consumes the "
-						  "input event, which is thus never seen "
-						  "by the rest of the FSM.\n</p>\n"
-						);
-			}
-
-		}
-
-		if (ped->puser_event_data->data_fields)
-		{
-			ITERATOR_HELPER ih = {
-				.fout = pih->fout
-				, .tab_level = 0
-			};
-
-			fprintf(pih->fout, "<p>\n");
-			fprintf(pih->fout
-					, "Event data:"
-				   );
-			fprintf(pih->fout, "</p>\n");
-
-			fprintf(pih->fout, "<code>\n");
-			iterate_list(ped->puser_event_data->data_fields
-						 , print_data_field
-						 , &ih
-						);
-			fprintf(pih->fout, "</code>\n");
-		}
+		print_event_data_information(pih, ped);
 	}
 
 	if (ped->phandling_states->count)
@@ -847,14 +819,16 @@ static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
 
 	fprintf(pih->fout
 			,"<td class='label%s%s%s'>%s</td>\n<td>\n"
-			, psd->pevents_handled->count == 0       ? " lazyState"        : ""
+			, ((psd->pevents_handled->count == 0) && !(psd->state_flags & sfImplementedBySubMachine))
+				? " lazyState"        : ""
 			, ((psd->pinbound_transitions->count == 0) && (pelem->ordinal != 0))
 			    ? " stateWithNoEntry" : ""
-			, psd->poutbound_transitions->count == 0 ? " deadEndState"     : ""
+			, psd->poutbound_transitions->count == 0
+				? " deadEndState"     : ""
 			, pstate->name
 			);
 
-	if (psd->pevents_handled->count == 0)
+	if ((psd->pevents_handled->count == 0) && !(psd->state_flags & sfImplementedBySubMachine))
 	{
 		fprintf(pih->fout
 				, "<p class='lazyState'>This state handles no events.</p>\n"
@@ -888,6 +862,14 @@ static bool print_state_table_state_row(pLIST_ELEMENT pelem, void *data)
 				, pstate->docCmnt
 			   );
 		something_printed = true;
+	}
+
+	if (psd->state_flags & sfImplementedBySubMachine)
+	{
+		fprintf(pih->fout
+				, "<p>This state is implemented by machine %s.</p>\n"
+				, psd->implementingMachine->name
+				);
 	}
 
 	if (psd->state_flags & sfHasEntryFn)
@@ -1072,7 +1054,23 @@ static bool print_machine_name_as_list_element(pLIST_ELEMENT pelem, void *data)
    fprintf(fout
 		   , "<li>%s</li>\n"
 		   , pmi->name->name
-		   );
+		  );
+
+   return false;
+}
+
+static bool print_non_translator_implementing_machine_name_as_list_element(pLIST_ELEMENT pelem, void *data)
+{
+   pMACHINE_INFO pmi  = (pMACHINE_INFO) pelem->mbr;
+   FILE         *fout = (FILE*) data;
+
+   if (!(pmi->modFlags & mfTranslatorImplementing))
+   {
+	   fprintf(fout
+			   , "<li>%s</li>\n"
+			   , pmi->name->name
+			  );
+   }
 
    return false;
 }
@@ -1177,6 +1175,15 @@ static bool print_action_table_row(pLIST_ELEMENT pelem, void *data)
    return false;
 }
 
+static void print_machine_page_link(FILE *fout, char *name)
+{
+	fprintf(fout
+			, "<a href=\"%s.html\" target=\"FSMLang-%s\">%s</a>"
+			, name
+			, name
+			, name
+			);
+}
 static bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
 {
    pMACHINE_INFO           pmi        = ((pMACHINE_INFO)pelem->mbr);
@@ -1186,23 +1193,22 @@ static bool print_sub_machine_row(pLIST_ELEMENT pelem, void *data)
            ,"<tr>\n"
            );
    fprintf(pfsmhtmlog->pmd->htmlFile
-           ,"<td class=\"label\"><a href=\"%s.html\" target=\"FSMLang-%s\">%s</a></td>\n"
-           , pmi->name->name
-           , pmi->name->name
-           , pmi->name->name
+           ,"<td class=\"label\">"
+		   );
+
+   print_machine_page_link(pfsmhtmlog->pmd->htmlFile, pmi->name->name);
+
+   fprintf(pfsmhtmlog->pmd->htmlFile
+		   , "</td>\n"
 		   );
 
    fprintf(pfsmhtmlog->pmd->htmlFile
            ,"<td>\n"
            );
-   if (pmi->name->docCmnt)
-   {
-	   fprintf(pfsmhtmlog->pmd->htmlFile
-			   , "%s"
-			   , pmi->name->docCmnt
-			  );
-   }
-
+   fprintf(pfsmhtmlog->pmd->htmlFile
+		   , "%s"
+		   , pmi->name->docCmnt ? pmi->name->docCmnt : "&nbsp;"
+		  );
    fprintf(pfsmhtmlog->pmd->htmlFile, "</td>\n</tr>\n");
 
    return false;
@@ -1422,7 +1428,18 @@ static void writeHTMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	printAncestry(pmi, pfsmhtmlog->pmd->htmlFile, "::", alc_lower, ai_include_self);
 	fprintf(pfsmhtmlog->pmd->htmlFile, "</h2>\n");
 
-	if (pmi->name->docCmnt) fprintf(pfsmhtmlog->pmd->htmlFile, "<p>%s</p>\n", pmi->name->docCmnt);
+	if (pmi->name->docCmnt)
+	{
+		fprintf(pfsmhtmlog->pmd->htmlFile
+				, "<p>%s</p>\n"
+				, pmi->name->docCmnt
+				);
+	}
+
+	if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
+	{
+		print_implemented_artifact_info(pfsmhtmlog);
+	}
 
 	print_machine_statistics(pfsmhtmlog);
 
@@ -1635,3 +1652,264 @@ static bool print_event_sequence_puml(pLIST_ELEMENT pelem, void *data)
 
    return false;
 }
+
+static void print_implemented_artifact_info(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	if (PMI(pfsmhtmlog)->modFlags & mfTranslatorImplementing)
+	{
+		print_implemented_translator_info(pfsmhtmlog);
+	}
+	else
+	{
+		print_implemented_state_info(pfsmhtmlog);
+	}
+}
+
+static void print_implemented_state_info(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	fprintf(FOUT(pfsmhtmlog)
+			, "<p>This machine implements the parent state %s.</p>"
+			, ((pID_INFO)(PMI(pfsmhtmlog)->implemented_artifacts->head->mbr))->name
+			);
+}
+
+static void print_implemented_translator_info(pFSMHTMLOutputGenerator pfsmhtmlog)
+{
+	pID_INFO ptranslator = (pID_INFO)(PMI(pfsmhtmlog)->implemented_artifacts->head->mbr);
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	if (pd->flags & tf_implemented_by_sub_machine)
+	{
+		fprintf(FOUT(pfsmhtmlog)
+				, "<p>This machine implements parent machine translator %s, translating"
+				  " parent event %s.</p>"
+				, ptranslator->name
+				, pd->pevent->name
+				);
+		
+	}
+	else
+	{
+		fprintf(FOUT(pfsmhtmlog)
+				, "<p>This machine directly translates %s parent event%s:</p>\n<table>\n"
+				, PMI(pfsmhtmlog)->implemented_artifacts->count > 1 ? "these" : "this"
+				, PMI(pfsmhtmlog)->implemented_artifacts->count > 1 ? "s" : ""
+				);
+
+		iterate_list(PMI(pfsmhtmlog)->implemented_artifacts
+					 , print_translated_event_as_reference_in_table
+					 , FOUT(pfsmhtmlog)
+					 );
+
+		fprintf(FOUT(pfsmhtmlog)
+				, "</table>"
+				);
+	}
+}
+
+static bool print_translated_event_as_reference_in_table(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO ptranslator = (pID_INFO) pelem->mbr;
+	FILE     *fout       = (FILE*) data;
+
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	fprintf(fout
+			, "<tr><td>%s</td><td>%s</td></tr>\n"
+			, pd->pevent->name
+			, pd->pevent->powningMachine->name->name
+			);
+
+	return false;
+}
+
+static void print_event_data_information(pITERATOR_HELPER pih, pEVENT_DATA ped)
+{
+	pID_INFO ptranslator = ped->puser_event_data->translator;
+
+	fprintf(pih->fout
+			, "<p>This event has data.</p>"
+			);
+
+	if (ptranslator)
+	{
+		switch (ptranslator->type_data.translator_data.flags & TF_BY_MACHINE)
+		{
+		case tf_implemented_by_sub_machine:
+			print_data_translator_information_sm(pih, ptranslator);
+			break;
+		case tf_exclusively_implemented_by_sub_machine:
+			print_data_translator_information_xsm(pih, ptranslator);
+			break;
+		default:
+			print_data_translator_information_plain(pih, ptranslator);
+			break;
+		}
+
+		if (ptranslator->type_data.translator_data.returns_decl)
+		{
+			fprintf(pih->fout, "<p>\nReturns:\n</p>\n<ul>\n");
+			iterate_list(ptranslator->type_data.translator_data.returns_decl
+						 , print_id_info_as_html_list_element
+						 , pih
+						 );
+			fprintf(pih->fout, "</ul>\n");
+		}
+
+		if (ptranslator->type_data.translator_data.flags & tf_consuming)
+		{
+			fprintf(pih->fout
+					, "<p>The translator completely consumes the "
+					  "input event, which is thus never seen "
+					  "by the rest of the FSM.</p>\n"
+					);
+		}
+
+	}
+
+	if (ped->puser_event_data->data_fields)
+	{
+		ITERATOR_HELPER ih = {
+			.fout = pih->fout
+			, .tab_level = 0
+		};
+
+		fprintf(pih->fout
+				, "<p>Event data:</p>\n"
+			   );
+
+		fprintf(pih->fout, "<code>\n");
+		iterate_list(ped->puser_event_data->data_fields
+					 , print_data_field
+					 , &ih
+					);
+		fprintf(pih->fout, "</code>\n");
+	}
+}
+
+static void print_data_translator_information_plain(pITERATOR_HELPER pih, pID_INFO ptranslator)
+{
+	fprintf(pih->fout
+			, "<p>Translator: %s"
+			, ptranslator->name
+			);
+
+	if (ptranslator->type_data.translator_data.returns_decl)
+	{
+
+		fprintf(pih->fout
+				, ", which returns:</p>\n<ul>\n"
+				);
+
+		iterate_list(ptranslator->type_data.translator_data.returns_decl
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+
+		fprintf(pih->fout
+				, "</ul>\n"
+				);
+	}
+	else
+	{
+		fprintf(pih->fout
+				, ".</p>"
+				);
+	}
+
+	if (ptranslator->docCmnt)
+	{
+		fprintf(pih->fout
+				, "<p>%s</p>"
+				, ptranslator->docCmnt
+				);
+	}
+
+}
+
+static void print_data_translator_information_sm(pITERATOR_HELPER pih, pID_INFO ptranslator)
+{
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	fprintf(pih->fout
+			, "<p>Translator: %s"
+			, ptranslator->name
+			);
+
+	if (pd->returns_decl)
+	{
+
+		fprintf(pih->fout
+				, ", which returns:</p>\n<ul>\n"
+				);
+		iterate_list(pd->returns_decl
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+		fprintf(pih->fout
+				, "</ul>\n"
+				);
+
+	}
+	else
+	{
+		fprintf(pih->fout
+				, ".</p>"
+				);
+	}
+
+	if (ptranslator->docCmnt)
+	{
+		fprintf(pih->fout
+				, "<p>%s</p>"
+				, ptranslator->docCmnt
+				);
+	}
+
+	fprintf(pih->fout
+			, "<p>This translator is implemented by machine "
+			  ":doc:`%s`"
+			, pd->implementingMachine->name
+			);
+
+	print_machine_page_link(pih->fout , pd->implementingMachine->name);
+
+	fprintf(pih->fout
+			, ".</p>"
+			);
+}
+
+static void print_data_translator_information_xsm(pITERATOR_HELPER pih, pID_INFO ptranslator)
+{
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	fprintf(pih->fout
+			, "<p>The translator is exclusively implemented by sub-machine "
+			);
+
+	print_machine_page_link(pih->fout
+							, pd->implementingMachine->type_data.machine_pid_data.pmi->name->name
+							);
+
+	if (pd->implementingMachine->type_data.machine_pid_data.returns_decl)
+	{
+
+		fprintf(pih->fout
+				, ", which returns:</p>\n<ul>"
+				);
+		iterate_list(pd->implementingMachine->type_data.machine_pid_data.returns_decl
+					 , print_id_info_as_html_list_element
+					 , pih
+					 );
+		fprintf(pih->fout
+				, "</ul>\n"
+				);
+	}
+	else
+	{
+		fprintf(pih->fout
+				, ".</p>"
+				);
+	}
+}
+

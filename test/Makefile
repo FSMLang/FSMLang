@@ -2,6 +2,7 @@
 # manages test suites
 #
 #
+#MAKEFLAGS += --no-print-directory
  
 FULL_TESTS = $(shell find . -maxdepth 1 -type d -name "full_test*" -printf "%P ")
 
@@ -39,11 +40,11 @@ clean: $(CLEAN_SUITES)
 stats: $(STAT_FULL_TESTS)
 
 $(SUITES):
-	$(MAKE) -C $@ CFLAGS="$(CFLAGS)" ARCH="$(ARCH)" OUTPUT_DIR="$(OUTPUT_DIR)" runtest
+	@$(MAKE) -C $@ CFLAGS="$(CFLAGS)" ARCH="$(ARCH)" OUTPUT_DIR="$(OUTPUT_DIR)" runtest
 	@echo -n "$@ " >> done
 
 $(CLEAN_SUITES):
-	$(MAKE) -j -C $(basename $@) OUTPUT_DIR="$(OUTPUT_DIR)" clean
+	@$(MAKE) -j -C $(basename $@) OUTPUT_DIR="$(OUTPUT_DIR)" clean
 
 $(STAT_FULL_TESTS):
 	-@$(MAKE) -C $(basename $@) stats.txt > /dev/null
