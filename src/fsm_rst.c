@@ -65,6 +65,8 @@ typedef struct _fsm_rst_output_generator_ FSMRSTOutputGenerator, *pFSMRSTOutputG
 typedef struct _rst_machine_data_ RSTMachineData, *pRSTMachineData;
 typedef struct _rst_iterator_helper_ RST_ITERATOR_HELPER, *pRST_ITERATOR_HELPER;
 
+typedef void (*event_data_print_fn)(pFSMRSTOutputGenerator,pID_INFO);
+
 static int initRSTWriter(pFSMOutputGenerator,char *);
 static void writeRSTWriter(pFSMOutputGenerator,pMACHINE_INFO);
 static void closeRSTWriter(pFSMOutputGenerator,int);
@@ -74,6 +76,9 @@ static void writeRSTFileName(pFSMOutputGenerator,pMACHINE_INFO);
 static void closeRSTFileNameWriter(pFSMOutputGenerator,int);
 
 static void print_toctree(pFSMRSTOutputGenerator);
+static void print_implemented_artifact_info(pFSMRSTOutputGenerator);
+static void print_implemented_state_info(pFSMRSTOutputGenerator);
+static void print_implemented_translator_info(pFSMRSTOutputGenerator);
 static bool print_sub_machine_toctree_entry(pLIST_ELEMENT,void*);
 static void print_actions(pFSMRSTOutputGenerator);
 static void print_states(pFSMRSTOutputGenerator);
@@ -82,6 +87,10 @@ static bool print_transition_fn_data(pLIST_ELEMENT,void*);
 static bool print_action_data(pLIST_ELEMENT,void*);
 static bool print_state_data(pLIST_ELEMENT,void*);
 static bool print_event_data(pLIST_ELEMENT,void*);
+static void print_event_data_information(pFSMRSTOutputGenerator,pID_INFO);
+static void print_data_translator_information_plain(pFSMRSTOutputGenerator,pID_INFO);
+static void print_data_translator_information_sm(pFSMRSTOutputGenerator,pID_INFO);
+static void print_data_translator_information_xsm(pFSMRSTOutputGenerator,pID_INFO);
 static void print_id_info_data(pID_INFO,FILE*);
 static void print_state_chart(pFSMRSTOutputGenerator);
 static bool print_state_chart_event_header_row(pLIST_ELEMENT,void*);
@@ -94,7 +103,8 @@ static void print_transition_fns(pFSMRSTOutputGenerator);
 static void print_event_sequences(pFSMRSTOutputGenerator);
 static void eat_spaces(FILE*,char*);
 static bool print_pid_as_reference_in_list(pLIST_ELEMENT,void*);
-static bool print_pmi_in_list(pLIST_ELEMENT,void*);
+static bool print_translated_event_as_reference_in_list(pLIST_ELEMENT,void*);
+static bool print_pmi_as_doc_reference_in_list(pLIST_ELEMENT,void*);
 static bool print_sequence_svg(pLIST_ELEMENT,void*);
 static bool print_sequence(pLIST_ELEMENT,void*);
 static bool print_sequence_node_rst(pLIST_ELEMENT,void*);
@@ -131,10 +141,10 @@ static FSMRSTOutputGenerator RSTMachineWriter = {
      initRSTWriter,
      writeRSTWriter,
      closeRSTWriter,
-	   generateRSTMachineWriter 
+     generateRSTMachineWriter 
   },
   NULL,
-  NULL
+  NULL,
 };
 
 static char *indent = "   ";
@@ -289,7 +299,7 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 
 	PMI(pfsmrstog) = pmi;
 
-	int title_decoration_len = strlen(pmi->name->name) + 1;
+	int title_decoration_len = strlen(pmi->name->name);
 
 	print_nchar(FOUT(pfsmrstog), '=', title_decoration_len);
 
@@ -310,6 +320,11 @@ static void writeRSTWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
 	fprintf(FOUT(pfsmrstog)
 			, "\n"
 			);
+
+	if (pmi->modFlags & ARTIFACTS_IMPLEMENTING_FLAGS)
+	{
+		print_implemented_artifact_info(pfsmrstog);
+	}
 
 	if (pmi->machine_list)
 	{
@@ -515,7 +530,7 @@ static void print_id_info_data(pID_INFO pid, FILE *fout)
 				, pid->name
 				);
 
-		print_nchar(fout, '~', strlen(pid->name) + 1);
+		print_nchar(fout, '~', strlen(pid->name));
 
 		if (pid->docCmnt)
 		{
@@ -538,13 +553,13 @@ static bool print_transition_fn_data(pLIST_ELEMENT pelem, void *data)
 
 	print_id_info_data(ptransition_fn, FOUT(pfsmrstog));
 
-	if (ptransition_fn->transition_fn_returns_decl)
+	if (ptransition_fn->type_data.transition_fn_data.returns_decl)
 	{
 		fprintf(FOUT(pfsmrstog)
 				, "\n\nReturns:\n\n"
 				);
 
-		iterate_list(ptransition_fn->transition_fn_returns_decl
+		iterate_list(ptransition_fn->type_data.transition_fn_data.returns_decl
 					 , print_pid_as_reference_in_list
 					 , pfsmrstog
 					 );
@@ -593,15 +608,23 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 	if (pdata->state_flags & sfInibitSubMachines)
 	{
 		fprintf(FOUT(pfsmrstog)
-				, "\n\nThis state prohibits sub machines from running.\n\n"
+				, "\n\nThis state prohibits sub machines from running."
 				);
 
+	}
+
+	if (pdata->state_flags & sfImplementedBySubMachine)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\nThis state is implemented by sub-machine :doc:`%s`."
+				, pdata->implementingMachine->name
+				);
 	}
 
 	if (pdata->entry_fn)
 	{
 		fprintf(FOUT(pfsmrstog)
-				, "\n\n%s is called on entry.\n\n"
+				, "\n\n%s is called on entry."
 				, pdata->entry_fn->name
 				);
 	}
@@ -626,16 +649,19 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 					 );
 
 		fprintf(FOUT(pfsmrstog)
-				, "\n\nThis yields an event density of %u%%.\n\n"
+				, "\n\nThis yields an event density of %u%%."
 				, pdata->event_density_pct
 				);
 
 	}
 	else
 	{
-		fprintf(FOUT(pfsmrstog)
-				, "\n\n.. attention::\n\n   This state handles no events.\n\n"
-				);
+		if (!(pdata->state_flags & sfImplementedBySubMachine))
+		{
+			fprintf(FOUT(pfsmrstog)
+					, "\n\n.. attention::\n\n   This state handles no events."
+				   );
+		}
 
 	}
 
@@ -655,9 +681,12 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 	{
 		if (pdata->pevents_handled->count)
 		{
-			fprintf(FOUT(pfsmrstog)
-					, "\n\n.. warning:\n\n   No actions are taken in this state.\n\n"
-				   );
+			if (!(pdata->state_flags & sfImplementedBySubMachine))
+			{
+				fprintf(FOUT(pfsmrstog)
+						, "\n\n.. warning:\n\n   No actions are taken in this state."
+					   );
+			}
 		}
 
 	}
@@ -679,7 +708,7 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 		if (pelem->ordinal)
 		{
 			fprintf(FOUT(pfsmrstog)
-					, "\n\n.. warning::\n\n   There is no way into this state.\n\n"
+					, "\n\n.. warning::\n\n   There is no way into this state."
 					);
 		}
 
@@ -700,7 +729,7 @@ static bool print_state_data(pLIST_ELEMENT pelem, void *data)
 	else
 	{
 		fprintf(FOUT(pfsmrstog)
-				, "\n\n.. warning::\n\n   There is no way out of this state.\n\n"
+				, "\n\n.. warning::\n\n   There is no way out of this state."
 				);
 	}
 
@@ -758,7 +787,7 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 				);
 
 		iterate_list(pdata->psharing_sub_machines
-					 , print_pmi_in_list
+					 , print_pmi_as_doc_reference_in_list
 					 , pfsmrstog
 					 );
 
@@ -783,7 +812,7 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 	}
 	else
 	{
-		if (!pdata->psharing_sub_machines)
+		if (!pdata->psharing_sub_machines && !pdata->consumed_by_translator)
 		{
 			fprintf(FOUT(pfsmrstog)
 					, "\n\n.. warning::\n\n   This event is handled in no state.\n\n"
@@ -816,53 +845,7 @@ static bool print_event_data(pLIST_ELEMENT pelem, void *data)
 
 	if (pdata->puser_event_data)
 	{
-		fprintf(FOUT(pfsmrstog)
-				, "\n\nThis event has data."
-				);
-
-		if (pdata->puser_event_data->translator)
-		{
-			pID_INFO translator = pdata->puser_event_data->translator;
-			fprintf(FOUT(pfsmrstog)
-					, "\n\nTranslator: %s"
-					, translator->name
-					);
-
-			if (translator->type_data.translator_data.translator_returns_decl)
-			{
-				
-				fprintf(FOUT(pfsmrstog)
-						, ", which returns:\n\n"
-						);
-				iterate_list(translator->type_data.translator_data.translator_returns_decl
-							 , print_pid_as_reference_in_list
-							 , pfsmrstog
-							 );
-			}
-			else
-			{
-				fprintf(FOUT(pfsmrstog)
-						, ".\n\n"
-						);
-			}
-		}
-
-		if (pdata->puser_event_data->data_fields)
-		{
-			fprintf(FOUT(pfsmrstog)
-					, "\n\nStructure:\n\n.. code:: c\n\n"
-					);
-
-			ITERATOR_HELPER ih = {
-				.fout = FOUT(pfsmrstog)
-				, .tab_level = 1
-			};
-
-			iterate_list(pdata->puser_event_data->data_fields
-						 , print_data_field
-						 , &ih
-						 );
-		}
+		print_event_data_information(pfsmrstog, pevent);
 	}
 
 	return false;
@@ -916,13 +899,16 @@ static bool print_state_chart_event_header_row(pLIST_ELEMENT pelem, void *data)
 	pID_INFO               pevent    = (pID_INFO) pelem->mbr;
 	pFSMRSTOutputGenerator pfsmrstog = (pFSMRSTOutputGenerator) data;
 
-	fprintf(FOUT(pfsmrstog)
-			, "%s  - :ref:`%s <%s.%s>`\n"
-			, indent
-			, pevent->name
-			, fqMachineName(pfsmrstog->pmd)
-			, pevent->name
-			);
+	if (!pevent->type_data.event_data.consumed_by_translator)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "%s  - :ref:`%s <%s.%s>`\n"
+				, indent
+				, pevent->name
+				, fqMachineName(pfsmrstog->pmd)
+				, pevent->name
+			   );
+	}
 
 	return false;
 }
@@ -994,6 +980,13 @@ static bool print_state_chart_state_row_event(pLIST_ELEMENT pelem, void *data)
 {
 	pRST_ITERATOR_HELPER prstih = (pRST_ITERATOR_HELPER) data;
 	pACTION_INFO         pai    = PMI(prstih->pfsmrstog)->actionArray[pelem->ordinal][prstih->ih.state];
+
+	/* Early out for events not seen by the main machine. */
+	pID_INFO pevent = (pID_INFO) pelem->mbr;
+	if (pevent->type_data.event_data.consumed_by_translator)
+	{
+		return false;
+	}
 
 	fprintf(FOUT(prstih->pfsmrstog)
 			, "%s  - "
@@ -1273,15 +1266,31 @@ static bool print_pid_as_reference_in_list(pLIST_ELEMENT pelem, void *data)
 	return false;
 }
 
+static bool print_translated_event_as_reference_in_list(pLIST_ELEMENT pelem, void *data)
+{
+	pID_INFO               ptranslator = (pID_INFO) pelem->mbr;
+	pFSMRSTOutputGenerator pfsmrstog   = (pFSMRSTOutputGenerator) data;
 
-static bool print_pmi_in_list(pLIST_ELEMENT pelem, void *data)
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	fprintf(FOUT(pfsmrstog)
+			, "* :ref:`%s <%s.%s>`\n"
+			, pd->pevent->name
+			, pd->pevent->powningMachine->name->name
+			, pd->pevent->name
+			);
+
+	return false;
+}
+
+static bool print_pmi_as_doc_reference_in_list(pLIST_ELEMENT pelem, void *data)
 {
 	pMACHINE_INFO          pmi       = (pMACHINE_INFO) pelem->mbr;
 	pFSMRSTOutputGenerator pfsmrstog = (pFSMRSTOutputGenerator) data;
 
 	                    ;
 	fprintf(FOUT(pfsmrstog)
-			, "* %s\n"
+			, "* :doc:`%s`\n"
 			, pmi->name->name
 			);
 
@@ -1546,5 +1555,225 @@ static bool print_sequence_node_rst(pLIST_ELEMENT pelem, void *data)
 	fprintf(pih->fout, "\n");
 
 	return false;
+}
+
+static void print_data_translator_information_plain(pFSMRSTOutputGenerator pfsmrstog, pID_INFO ptranslator)
+{
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nTranslator: %s"
+			, ptranslator->name
+			);
+
+	if (ptranslator->type_data.translator_data.returns_decl)
+	{
+
+		fprintf(FOUT(pfsmrstog)
+				, ", which returns:\n\n"
+				);
+
+		iterate_list(ptranslator->type_data.translator_data.returns_decl
+					 , print_pid_as_reference_in_list
+					 , pfsmrstog
+					 );
+
+	}
+	else
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "."
+				);
+	}
+
+	if (ptranslator->docCmnt)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\n%s"
+				, ptranslator->docCmnt
+				);
+	}
+
+}
+
+static void print_data_translator_information_sm(pFSMRSTOutputGenerator pfsmrstog, pID_INFO ptranslator)
+{
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nTranslator: %s"
+			, ptranslator->name
+			);
+
+	if (pd->returns_decl)
+	{
+
+		fprintf(FOUT(pfsmrstog)
+				, ", which returns:\n\n"
+				);
+		iterate_list(pd->returns_decl
+					 , print_pid_as_reference_in_list
+					 , pfsmrstog
+					 );
+
+	}
+	else
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "."
+				);
+	}
+
+	if (ptranslator->docCmnt)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\n%s"
+				, ptranslator->docCmnt
+				);
+	}
+
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nThis translator is implemented by machine :doc:`%s`."
+			, pd->implementingMachine->name
+			);
+}
+
+static void print_data_translator_information_xsm(pFSMRSTOutputGenerator pfsmrstog, pID_INFO ptranslator)
+{
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nThe translator is exclusively implemented by sub-machine %s"
+			, pd->implementingMachine->type_data.machine_pid_data.pmi->name->name
+			);
+
+	if (pd->implementingMachine->type_data.machine_pid_data.returns_decl)
+	{
+
+		fprintf(FOUT(pfsmrstog)
+				, ", which returns:\n\n"
+				);
+		iterate_list(pd->implementingMachine->type_data.machine_pid_data.returns_decl
+					 , print_pid_as_reference_in_list
+					 , pfsmrstog
+					 );
+	}
+	else
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "."
+				);
+	}
+}
+
+static void print_event_data_information(pFSMRSTOutputGenerator pfsmrstog, pID_INFO pevent)
+{
+	fprintf(FOUT(pfsmrstog)
+			, "\n\nThis event has data."
+			);
+
+	pEVENT_DATA pdata    = &pevent->type_data.event_data;
+	pID_INFO ptranslator = pdata->puser_event_data->translator;
+	if (ptranslator)
+	{
+		switch (ptranslator->type_data.translator_data.flags & TF_BY_MACHINE)
+		{
+		case tf_implemented_by_sub_machine:
+			print_data_translator_information_sm(pfsmrstog, ptranslator);
+			break;
+		case tf_exclusively_implemented_by_sub_machine:
+			print_data_translator_information_xsm(pfsmrstog, ptranslator);
+			break;
+		default:
+			print_data_translator_information_plain(pfsmrstog, ptranslator);
+			break;
+		}
+
+		if (ptranslator->type_data.translator_data.flags & tf_consuming)
+		{
+			fprintf(FOUT(pfsmrstog)
+					, "\n\nThe translator completely consumes the "
+					"input event, which is thus never seen "
+					"by the rest of the FSM."
+				   );
+		}
+	}
+	else
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\nNo translator is specified; a function will be"
+				  " declared with the name translate_%s_data."
+				, pevent->name
+				);
+	}
+
+	if (pdata->puser_event_data->data_fields)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\n\nStructure:\n\n.. code:: c\n\n"
+				);
+
+		ITERATOR_HELPER ih = {
+			.fout = FOUT(pfsmrstog)
+			, .tab_level = 1
+		};
+
+		iterate_list(pdata->puser_event_data->data_fields
+					 , print_data_field
+					 , &ih
+					 );
+	}
+}
+
+static void print_implemented_artifact_info(pFSMRSTOutputGenerator pfsmrstog)
+{
+	if (PMI(pfsmrstog)->modFlags & mfTranslatorImplementing)
+	{
+		print_implemented_translator_info(pfsmrstog);
+	}
+	else
+	{
+		print_implemented_state_info(pfsmrstog);
+	}
+}
+
+static void print_implemented_state_info(pFSMRSTOutputGenerator pfsmrstog)
+{
+	fprintf(FOUT(pfsmrstog)
+			, "\nThis machine implements the parent state %s.\n"
+			, ((pID_INFO)(PMI(pfsmrstog)->implemented_artifacts->head->mbr))->name
+			);
+}
+
+static void print_implemented_translator_info(pFSMRSTOutputGenerator pfsmrstog)
+{
+	pID_INFO ptranslator = (pID_INFO)(PMI(pfsmrstog)->implemented_artifacts->head->mbr);
+	pTRANSLATOR_DATA pd = &ptranslator->type_data.translator_data;
+
+	if (pd->flags & tf_implemented_by_sub_machine)
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\nThis machine implements parent machine translator %s, translating"
+				  " parent event %s.\n"
+				, ptranslator->name
+				, pd->pevent->name
+				);
+		
+	}
+	else
+	{
+		fprintf(FOUT(pfsmrstog)
+				, "\nThis machine directly translates %s parent event%s:\n\n"
+				, PMI(pfsmrstog)->implemented_artifacts->count > 1 ? "these" : "this"
+				, PMI(pfsmrstog)->implemented_artifacts->count > 1 ? "s" : ""
+				);
+
+		iterate_list(PMI(pfsmrstog)->implemented_artifacts
+					 , print_translated_event_as_reference_in_list
+					 , pfsmrstog
+					 );
+
+		fprintf(FOUT(pfsmrstog)
+				, "\n\n"
+				);
+	}
 }
 

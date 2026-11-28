@@ -460,13 +460,13 @@ static bool add_to_action_array(pLIST_ELEMENT pelem, void *data)
 		  else
 		  {
 			  copy_list_unique_with_exception(psd->poutbound_transitions
-											  , transition->transition_fn_returns_decl
+											  , transition->type_data.transition_fn_data.returns_decl
 											  , pstate
 											  );
 
-			  if (transition->transition_fn_returns_decl)
+			  if (transition->type_data.transition_fn_data.returns_decl)
 			  {
-				  iterate_list(transition->transition_fn_returns_decl
+				  iterate_list(transition->type_data.transition_fn_data.returns_decl
 							   , add_inbound_state_wrapper
 							   , pstate
 							   );
@@ -2103,13 +2103,13 @@ static bool print_transition_info(pLIST_ELEMENT pelem, void *data)
 
    if (
 	   (ptransition->type == TRANSITION_FN)
-	   && (ptransition->transition_fn_returns_decl)
+	   && (ptransition->type_data.transition_fn_data.returns_decl)
 	   )
    {
        fprintf(phelper->fout,"\t\twhich returns\n");
        phelper->indenture = "\t\t\t";
        phelper->nullName  = "";
-       iterate_list(ptransition->transition_fn_returns_decl
+       iterate_list(ptransition->type_data.transition_fn_data.returns_decl
 					, print_pid_name
 					, phelper
 					);

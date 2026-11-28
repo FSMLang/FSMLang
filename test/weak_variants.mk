@@ -31,7 +31,7 @@ show_objs lib_objs: FSM_FLAGS+=--weak-fns-separate-file=true
 TARGET ?= do_runtest
 
 runtest: $(TARGET)
-	@echo "all tests successful"
+	@echo "all $(notdir $(shell pwd)) tests successful"
 
 do_runtest: $(addsuffix _run, $(VARIANTS))
 

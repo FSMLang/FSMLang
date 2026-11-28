@@ -36,7 +36,7 @@ NO_RUNTEST=TRUE
 include ../test.mk
 
 runtest: $(TESTS)
-	@echo "all parser tests pass"
+	@echo "all $(notdir $(shell pwd)) tests pass"
 
 recordtest: runtest
 	@echo $(notdir $(shell pwd)) >> ../done

@@ -126,15 +126,15 @@ test_file_listers: $(LISTERS)
 	-@rm -f *.result
 
 $(LISTERS): $(FSM) Makefile
-	$(FSM) $(FSM_FLAGS) $(INPUT).fsm > $@.out
+	@$(FSM) $(FSM_FLAGS) $(INPUT).fsm > $@.out
 	@$(DIFF) $@.out $@.canonical > $@.result
 
 $(CREATORS): $(FSM) Makefile
-	$(FSM) $(FSM_FLAGS) -o $(basename $@) $(INPUT).fsm 
+	@$(FSM) $(FSM_FLAGS) -o $(basename $@) $(INPUT).fsm 
 	@$(DIFF) $@ $@.canonical > $@.result
 
 $(FAILERS): $(FSM) Makefile expectFailure.mk
-	$(MAKE) -f expectFailure.mk FSM_SRC=$(INPUT).fsm FSM_FLAGS="$(FSM_FLAGS)" runtest
+	@$(MAKE) -f expectFailure.mk FSM_SRC=$(INPUT).fsm FSM_FLAGS="$(FSM_FLAGS)" runtest
 	@$(DIFF) fsmout $@.canonical
 
 clean::

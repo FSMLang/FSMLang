@@ -48,6 +48,7 @@ pMACHINE_PREFIX machine_declared_by_id(pNATIVE_INFO,MOD_FLAGS,pID_INFO);
 pMACHINE_PREFIX machine_declared_by_machine_pid(pNATIVE_INFO,MOD_FLAGS,pID_INFO);
 void capture_machine_qualifier(pMACHINE_QUALIFIER);
 pMACHINE_INFO capture_machine(pMACHINE_PREFIX,pMACHINE_QUALIFIER,pSTATEMENT_DECL_LIST);
+void grab_returns_decl(pLIST*,pLIST);
 
 #endif
 

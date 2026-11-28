@@ -791,12 +791,12 @@ static void writePlantUMLWriter(pFSMOutputGenerator pfsmog, pMACHINE_INFO pmi)
                  {
                     add_to_list(ptransition_fns_seen, pai->transition);
 
-                    if (pai->transition->transition_fn_returns_decl)
+                    if (pai->transition->type_data.transition_fn_data.returns_decl)
                     {
                        ih.pid = pai->transition;
                        ih.fout = pfsmpumlog->pmd->pumlFile;
 
-                       iterate_list(ih.pid->transition_fn_returns_decl
+                       iterate_list(ih.pid->type_data.transition_fn_data.returns_decl
                                     , print_transition_options
                                     , &ih
                                    );

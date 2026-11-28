@@ -2718,11 +2718,11 @@ bool declare_transition_fn_ars(pLIST_ELEMENT pelem, void *data)
 	{
 		print_doc_cmnt_as_doxygen_block(pcmd->hFile
 										, ptransition->docCmnt
-										, ptransition->transition_fn_returns_decl == NULL
+										, ptransition->type_data.transition_fn_data.returns_decl == NULL
 									   );
-		if (ptransition->transition_fn_returns_decl)
+		if (ptransition->type_data.transition_fn_data.returns_decl)
 		{
-			iterate_list(ptransition->transition_fn_returns_decl
+			iterate_list(ptransition->type_data.transition_fn_data.returns_decl
 						 , print_doxygen_return_statement
 						 , pich
 						);
@@ -2746,11 +2746,11 @@ bool declare_state_only_transition_functions_ars(pLIST_ELEMENT pelem, void *data
 	{
 		print_doc_cmnt_as_doxygen_block(pich->pcmd->hFile
 										, ptransition->docCmnt
-										, ptransition->transition_fn_returns_decl == NULL
+										, ptransition->type_data.transition_fn_data.returns_decl == NULL
 									   );
-		if (ptransition->transition_fn_returns_decl)
+		if (ptransition->type_data.transition_fn_data.returns_decl)
 		{
-			iterate_list(ptransition->transition_fn_returns_decl
+			iterate_list(ptransition->type_data.transition_fn_data.returns_decl
 						 , print_doxygen_return_statement
 						 , pich
 						);
@@ -2806,12 +2806,12 @@ bool declare_transition_fn_are(pLIST_ELEMENT pelem, void *data)
 	{
 		print_doc_cmnt_as_doxygen_block(pcmd->hFile
 										, ptransition->docCmnt
-										, ptransition->transition_fn_returns_decl == NULL
+										, ptransition->type_data.transition_fn_data.returns_decl == NULL
 									   );
 
-		if (ptransition->transition_fn_returns_decl)
+		if (ptransition->type_data.transition_fn_data.returns_decl)
 		{
-			iterate_list(ptransition->transition_fn_returns_decl
+			iterate_list(ptransition->type_data.transition_fn_data.returns_decl
 						 , print_doxygen_return_statement
 						 , pich
 						);

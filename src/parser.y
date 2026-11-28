@@ -797,6 +797,10 @@ actions_and_transitions:
 	  {
 			$$ = $1;
 	  }
+ | actions_and_transitions translator_machine_return_decl
+	  {
+			$$ = $1;
+	  }
    /* note that machines must precede actions and transitions */
 	;
 
@@ -1243,13 +1247,10 @@ state_vector:
 						fprintf(yyout,"found an all state vector\n");
  					#endif
 		      }
- 	| '(' state_comma_list STATE ')' 
+ 	| '(' state_comma_list ')' 
 					{
 
 						$$ = $2;
-
- 					if (add_to_list($$,$3) == NULL)
-							yyerror("out of memory");
 
 						#ifdef PARSER_DEBUG
 						fprintf(yyout,"found a state vector\n");
@@ -1273,7 +1274,7 @@ state_vector:
 					}
 	;
 
-state_comma_list:	STATE ','
+state_comma_list:	STATE
 					{
 
 						#ifdef PARSER_DEBUG
@@ -1287,7 +1288,7 @@ state_comma_list:	STATE ','
 							yyerror("out of memory");
 
 					}
-	| state_comma_list STATE ','
+	| state_comma_list ',' STATE 
 					{
 
 						#ifdef PARSER_DEBUG
@@ -1296,7 +1297,7 @@ state_comma_list:	STATE ','
 
 						$$ = $1;
 
- 					if (add_to_list($$,$2) == NULL)
+ 					if (add_to_list($$,$3) == NULL)
 							yyerror("out of memory");
 
 					}
@@ -1718,6 +1719,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					 {
 						 $2->type_data.event_data.consumed_by_translator
 							 = ($4->translator->type_data.translator_data.flags & tf_consuming);
+						 $4->translator->type_data.translator_data.pevent = $2;
 					 }
 
  					if (NULL == ($2->type_data.event_data.phandling_states = init_list()))
@@ -1836,6 +1838,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					 {
 						 $3->type_data.event_data.consumed_by_translator
 							 = ($5->translator->type_data.translator_data.flags & tf_consuming);
+						 $5->translator->type_data.translator_data.pevent = $3;
 					 }
 
  					if (NULL == ($3->type_data.event_data.phandling_states = init_list()))
@@ -1873,6 +1876,7 @@ event_decl_list:	EVENT_KEY ID external_designation user_event_data
 					 {
 						 pid->type_data.event_data.consumed_by_translator
 							 = ($6->translator->type_data.translator_data.flags & tf_consuming);
+						 $6->translator->type_data.translator_data.pevent = pid;
 					 }
 
  					if (NULL == (pid->type_data.event_data.phandling_states = init_list()))
@@ -2247,7 +2251,7 @@ namespace_event_ref: namespace EVENT
   }
   ;
 
-returns_comma_list: namespace_event_ref ','
+returns_comma_list: namespace_event_ref
     {
 						/* start a list */
 						if (($$ = init_list()) == NULL) 
@@ -2257,7 +2261,7 @@ returns_comma_list: namespace_event_ref ','
 							yyerror("out of memory");
 
     }
-    | EVENT ','
+    | EVENT
     {
 						/* start a list */
 						if (($$ = init_list()) == NULL) 
@@ -2267,280 +2271,91 @@ returns_comma_list: namespace_event_ref ','
 							yyerror("out of memory");
 
     }
-    | returns_comma_list namespace_event_ref ','
+    | returns_comma_list ',' namespace_event_ref
     {
            $$ = $1;
 
- 					if (add_to_list($$,$2) == NULL)
+ 					if (add_to_list($$,$3) == NULL)
 							yyerror("out of memory");
 
     }
-    | returns_comma_list EVENT ','
+    | returns_comma_list ',' EVENT 
     {
            $$ = $1;
 
- 					if (add_to_list($$,$2) == NULL)
+ 					if (add_to_list($$,$3) == NULL)
 							yyerror("out of memory");
 
     }
     ;
 
 translator_return_decl: 
-  TRANSLATOR_FN RETURNS returns_comma_list EVENT ';'
+  TRANSLATOR_FN RETURNS returns_comma_list ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found a translator return declaration\n");
     #endif
 
- 	 if (!$1->type_data.translator_data.translator_returns_decl)
-		 {
-		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-			if (add_to_list($3,$4) == NULL)
-				 yyerror("out of memory");
-
-			move_list_unique($1->type_data.translator_data.translator_returns_decl, $3);
- 		free_list($3);
+ 	  grab_returns_decl(&$1->type_data.translator_data.returns_decl, $3);
 
   }
-  | TRANSLATOR_FN RETURNS returns_comma_list namespace_event_ref ';'
+	;
+
+translator_machine_return_decl: 
+  TI_MACHINE RETURNS returns_comma_list ';'
   {
     #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found a translator return declaration\n");
+    fprintf(yyout,"Found a machine implementing translator return declaration\n");
     #endif
 
- 	 if (!$1->type_data.translator_data.translator_returns_decl)
-		 {
-		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-			if (add_to_list($3,$4) == NULL)
-				 yyerror("out of memory");
-
-			move_list_unique($1->type_data.translator_data.translator_returns_decl, $3);
- 		free_list($3);
-
-  }
-  | TRANSLATOR_FN RETURNS EVENT ';'
-  {
-    #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found a translator return declaration\n");
-    #endif
-
- 	 if (!$1->type_data.translator_data.translator_returns_decl)
-		 {
-		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-		 if (add_unique_to_list($1->type_data.translator_data.translator_returns_decl,$3) == NULL)
-				yyerror("out of memory");
-
-  }
-  | TRANSLATOR_FN RETURNS namespace_event_ref ';'
-  {
-    #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found a translator return declaration\n");
-    #endif
-
- 	 if (!$1->type_data.translator_data.translator_returns_decl)
-		 {
-		    if (($1->type_data.translator_data.translator_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-		 if (add_unique_to_list($1->type_data.translator_data.translator_returns_decl,$3) == NULL)
-				yyerror("out of memory");
+ 	  grab_returns_decl(&$1->type_data.machine_pid_data.returns_decl, $3);
 
   }
 	;
 
 action_return_decl: 
-  ACTION RETURNS returns_comma_list EVENT ';'
+  ACTION RETURNS returns_comma_list ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->type_data.action_data.action_returns_decl)
-		 {
-		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-			if (add_to_list($3,$4) == NULL)
-				 yyerror("out of memory");
-
-			move_list_unique($1->type_data.action_data.action_returns_decl, $3);
- 		free_list($3);
+ 	  grab_returns_decl(&$1->type_data.action_data.action_returns_decl, $3);
 
   }
-  | ACTION RETURNS returns_comma_list namespace_event_ref ';'
+  | ACTION RETURNS state_comma_list ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found an action return declaration\n");
     #endif
 
- 	 if (!$1->type_data.action_data.action_returns_decl)
-		 {
-		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-			if (add_to_list($3,$4) == NULL)
-				 yyerror("out of memory");
-
-			move_list_unique($1->type_data.action_data.action_returns_decl, $3);
- 		free_list($3);
-
-  }
-  | ACTION RETURNS EVENT ';'
-  {
-    #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found an action return declaration\n");
-    #endif
-
- 	 if (!$1->type_data.action_data.action_returns_decl)
-		 {
-		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-		 if (add_unique_to_list($1->type_data.action_data.action_returns_decl,$3) == NULL)
-				yyerror("out of memory");
-
-  }
-  | ACTION RETURNS namespace_event_ref ';'
-  {
-    #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found an action return declaration\n");
-    #endif
-
- 	 if (!$1->type_data.action_data.action_returns_decl)
-		 {
-		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-		 if (add_unique_to_list($1->type_data.action_data.action_returns_decl,$3) == NULL)
-				yyerror("out of memory");
-
-  }
-  | ACTION RETURNS state_comma_list STATE ';'
-  {
-    #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found an action return declaration\n");
-    #endif
-
-			if (add_to_list($3, $4) == NULL)
-				yyerror("out of memory");
-
- 	 if (!$1->type_data.action_data.action_returns_decl)
-		 {
-		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-			move_list_unique($1->type_data.action_data.action_returns_decl, $3);
- 		free_list($3);
-
-  }
-  | ACTION RETURNS STATE ';'
-  {
-    #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found an action return declaration\n");
-    #endif
-
-		 if (add_to_list($1->type_data.action_data.action_returns_decl,$3) == NULL)
-				yyerror("out of memory");
-
- 	 if (!$1->type_data.action_data.action_returns_decl)
-		 {
-		    if (($1->type_data.action_data.action_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-			add_unique_to_list($1->type_data.action_data.action_returns_decl, $3);
+ 	  grab_returns_decl(&$1->type_data.action_data.action_returns_decl, $3);
 
   }
   ;
  
 transition_fn_return_decl:
-  TRANSITION_FN RETURNS state_comma_list STATE ';'
-  {
-			if (add_unique_to_list($3, $4) == NULL)
- 			yyerror("out of memory");
-
- 	 if (!$1->transition_fn_returns_decl)
-		 {
-		    if (($1->transition_fn_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-			move_list_unique($1->transition_fn_returns_decl, $3);
- 		free_list($3);
-
-    #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found a transition_fn return declaration\n");
-    #endif
-
-  }
-  | TRANSITION_FN RETURNS STATE ';'
+  TRANSITION_FN RETURNS state_comma_list ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found a transition_fn return declaration\n");
     #endif
 
- 	 if (!$1->transition_fn_returns_decl)
-		 {
-		    if (($1->transition_fn_returns_decl = init_list()) == NULL) 
-				   yyerror("out of memory");
-		 }
-
-			add_unique_to_list($1->transition_fn_returns_decl, $3);
+ 	  grab_returns_decl(&$1->type_data.transition_fn_data.returns_decl, $3);
 
   }
-  | TRANSITION_FN RETURNS return_choice_cond_list return_choice_cond ';'
+  | TRANSITION_FN RETURNS return_choice_cond_list ';'
   {
     #ifdef PARSER_DEBUG
     fprintf(yyout,"Found a Mode B transition_fn return declaration\n");
     #endif
 
-    if (add_to_list($3, $4) == NULL)
-        yyerror("out of memory");
-
-    if (!$1->transition_fn_returns_cond_decl)
-    {
-        if (($1->transition_fn_returns_cond_decl = init_list()) == NULL)
-            yyerror("out of memory");
-    }
-
-    move_list($1->transition_fn_returns_cond_decl, $3);
-    free_list($3);
-
-  }
-  | TRANSITION_FN RETURNS return_choice_cond ';'
-  {
-    #ifdef PARSER_DEBUG
-    fprintf(yyout,"Found a Mode B transition_fn return declaration (single choice)\n");
-    #endif
-
-    if (!$1->transition_fn_returns_cond_decl)
-    {
-        if (($1->transition_fn_returns_cond_decl = init_list()) == NULL)
-            yyerror("out of memory");
-    }
-
-    if (add_to_list($1->transition_fn_returns_cond_decl, $3) == NULL)
-        yyerror("out of memory");
+    grab_returns_decl(&$1->type_data.transition_fn_data.returns_cond_decl, $3);
 
   }
   ;
 
-return_choice_cond_list: return_choice_cond ','
+return_choice_cond_list: return_choice_cond 
   {
     if (($$ = init_list()) == NULL)
         yyerror("out of memory");
@@ -2548,11 +2363,11 @@ return_choice_cond_list: return_choice_cond ','
     if (add_to_list($$, $1) == NULL)
         yyerror("out of memory");
   }
-  | return_choice_cond_list return_choice_cond ','
+  | return_choice_cond_list ',' return_choice_cond 
   {
     $$ = $1;
 
-    if (add_to_list($$, $2) == NULL)
+    if (add_to_list($$, $3) == NULL)
         yyerror("out of memory");
   }
   ;

@@ -269,6 +269,7 @@ The actions in this list:
 	a1
 found a scalar event : e1
 found the beginning of a state comma list
+found the continuation of a state comma list
 found a state vector
 	s2
 	s3
@@ -284,6 +285,7 @@ found an event vector
 	e2
 	e3
 found the beginning of a state comma list
+found the continuation of a state comma list
 found the continuation of a state comma list
 found the continuation of a state comma list
 found a state vector
@@ -302,8 +304,10 @@ started an action declaration
 The actions in this list:
 	a3
 found the beginning of a state comma list
+found the continuation of a state comma list
 Found a transition_fn return declaration
 found the beginning of a state comma list
+found the continuation of a state comma list
 found the continuation of a state comma list
 found the continuation of a state comma list
 Found a transition_fn return declaration

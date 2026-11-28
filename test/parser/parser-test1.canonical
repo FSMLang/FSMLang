@@ -28,6 +28,7 @@ found an event vector
 	e1
 	e2
 found the beginning of a state comma list
+found the continuation of a state comma list
 found a state vector
 	s1
 	s2
@@ -38,6 +39,7 @@ found an action with transition
 started an action declaration
 found a scalar event : e3
 found the beginning of a state comma list
+found the continuation of a state comma list
 found a state vector
 	s1
 	s2
@@ -172,6 +174,7 @@ found an event vector
 	anmE1
 	anmE2
 found the beginning of a state comma list
+found the continuation of a state comma list
 found a state vector
 	anmS1
 	anmS2
@@ -183,6 +186,7 @@ The actions in this list:
 	anmA1
 found a scalar event : anmE3
 found the beginning of a state comma list
+found the continuation of a state comma list
 found a state vector
 	anmS1
 	anmS2

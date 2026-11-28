@@ -219,7 +219,7 @@ code {
 </style>
 </head><body>
 <h2>foo::bof</h2>
-<table class='machine_stats'>
+<p>This machine implements the parent state s1.</p><table class='machine_stats'>
 	<tbody>
 		<tr><th>Number of events</th><td>1</td></tr>
 		<tr><th>Events not handled</th><td>0</td></tr>

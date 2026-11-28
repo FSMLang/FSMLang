@@ -21,12 +21,11 @@ echotests:
 	@echo $(TESTS)
 
 runtest: $(TESTS) 
-	@echo "all html tests pass"
+	@echo "all $(notdir $(shell pwd)) tests pass"
 	@$(MAKE) clean
 
 $(TESTS): $(FSM) $$(shell $(FSM) -th -M $(FSM_HTML_FLAGS) $$@.fsm) Makefile
-	@echo prerequisites: $^
-	set -e; \
+	@set -e; \
 	for f in $(filter %.html, $^); do \
 		$(DIFF) $$f $$f.canonical > $${f%.*}.result; \
 	done
